@@ -1,0 +1,83 @@
+{
+  "uid" : "e474914d6559f797",
+  "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_edit_client_account_information",
+  "fullName" : "Automation.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_edit_client_account_information",
+  "historyId" : "f39d7b689654bb98c13fb7170ec86dfb",
+  "time" : {
+    "start" : 1565681531270,
+    "stop" : 1565681572444,
+    "duration" : 41174
+  },
+  "description" : "\n        Verify user can edit client account information\n        ",
+  "descriptionHtml" : "<pre><code>    Verify user can edit client account information\n</code></pre>\n",
+  "status" : "passed",
+  "flaky" : false,
+  "newFailed" : false,
+  "beforeStages" : [ ],
+  "testStage" : {
+    "status" : "passed",
+    "steps" : [ ],
+    "attachments" : [ {
+      "uid" : "3ae86ecc94e2df4e",
+      "name" : "Captured logbook setup",
+      "source" : "3ae86ecc94e2df4e.txt",
+      "type" : "text/plain",
+      "size" : 4744
+    }, {
+      "uid" : "c7252314cde23d9d",
+      "name" : "Captured logbook call",
+      "source" : "c7252314cde23d9d.txt",
+      "type" : "text/plain",
+      "size" : 22451
+    } ],
+    "parameters" : [ ],
+    "attachmentsCount" : 2,
+    "shouldDisplayMessage" : false,
+    "stepsCount" : 0,
+    "hasContent" : true
+  },
+  "afterStages" : [ ],
+  "labels" : [ {
+    "name" : "framework",
+    "value" : "pytest"
+  }, {
+    "name" : "host",
+    "value" : "automation-PC"
+  }, {
+    "name" : "language",
+    "value" : "cpython3"
+  }, {
+    "name" : "severity",
+    "value" : "normal"
+  }, {
+    "name" : "thread",
+    "value" : "5016-MainThread"
+  }, {
+    "name" : "suite",
+    "value" : "Automation"
+  }, {
+    "name" : "testClass",
+    "value" : "Automation"
+  }, {
+    "name" : "testMethod",
+    "value" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_edit_client_account_information"
+  }, {
+    "name" : "package",
+    "value" : "Automation"
+  }, {
+    "name" : "resultFormat",
+    "value" : "allure1"
+  } ],
+  "parameters" : [ ],
+  "links" : [ ],
+  "hidden" : false,
+  "retry" : false,
+  "extra" : {
+    "severity" : "normal",
+    "retries" : [ ],
+    "categories" : [ ],
+    "tags" : [ ]
+  },
+  "source" : "e474914d6559f797.json",
+  "parameterValues" : [ ]
+}

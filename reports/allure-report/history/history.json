@@ -1,0 +1,5720 @@
+{
+  "ecd273ce1962256bcb61df96e9a0c06" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "622ddbfa2753213e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/622ddbfa2753213e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196404276,
+        "stop" : 1565196422553,
+        "duration" : 18277
+      }
+    }, {
+      "uid" : "a874387bd635213f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/a874387bd635213f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063184168,
+        "stop" : 1565063210534,
+        "duration" : 26366
+      }
+    } ]
+  },
+  "5400eb5c9e6fc483da83989b2d07b4b8" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "7f430d38f9f56829",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/7f430d38f9f56829",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196903738,
+        "stop" : 1565196929405,
+        "duration" : 25667
+      }
+    }, {
+      "uid" : "4a518ae924024c97",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/4a518ae924024c97",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063730997,
+        "stop" : 1565063747110,
+        "duration" : 16113
+      }
+    } ]
+  },
+  "a9650223b576e3d2ebfb3adc7536762e" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "bd67867069e624e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/bd67867069e624e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196326272,
+        "stop" : 1565196349696,
+        "duration" : 23424
+      }
+    }, {
+      "uid" : "ca7e01436b168d40",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ca7e01436b168d40",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063109242,
+        "stop" : 1565063127355,
+        "duration" : 18113
+      }
+    } ]
+  },
+  "56a7ae608f673aeeaf0791f63cb2ced" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "8ac76fc99dc60d25",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/8ac76fc99dc60d25",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198954998,
+        "stop" : 1565198976548,
+        "duration" : 21550
+      }
+    }, {
+      "uid" : "8b353598fbf0fdc6",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/8b353598fbf0fdc6",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065980670,
+        "stop" : 1565066015276,
+        "duration" : 34606
+      }
+    } ]
+  },
+  "d8ffbdfc99ef3087b67cabf2cadbe928" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "c7c076cb51dbdf79",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/c7c076cb51dbdf79",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197641576,
+        "stop" : 1565197714485,
+        "duration" : 72909
+      }
+    }, {
+      "uid" : "7ad6326c0b8067ab",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/7ad6326c0b8067ab",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064533133,
+        "stop" : 1565064609342,
+        "duration" : 76209
+      }
+    } ]
+  },
+  "ee5669ee1d281bc802c004ebfe575ed3" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "8e729f6f8bc2d943",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/8e729f6f8bc2d943",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195180933,
+        "stop" : 1565195198073,
+        "duration" : 17140
+      }
+    }, {
+      "uid" : "359c702118b16c36",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/359c702118b16c36",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061781808,
+        "stop" : 1565061824520,
+        "duration" : 42712
+      }
+    } ]
+  },
+  "e07b00c863005c076c4d87e47a5cb1e7" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "d37210014d389f43",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/d37210014d389f43",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198706792,
+        "stop" : 1565198731409,
+        "duration" : 24617
+      }
+    }, {
+      "uid" : "9dd23144a1f8764a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/9dd23144a1f8764a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065695392,
+        "stop" : 1565065725965,
+        "duration" : 30573
+      }
+    } ]
+  },
+  "cc78dce1bffa60ae39d707b11f8644ba" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "bcaa9892212dd682",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/bcaa9892212dd682",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194113196,
+        "stop" : 1565194152217,
+        "duration" : 39021
+      }
+    }, {
+      "uid" : "2fc28cca116c622e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/2fc28cca116c622e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565060695159,
+        "stop" : 1565060753893,
+        "duration" : 58734
+      }
+    } ]
+  },
+  "e748a59e7f03a16d7c77ed8cd8911df" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "4480b538a7ef6a68",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/4480b538a7ef6a68",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199050996,
+        "stop" : 1565199083769,
+        "duration" : 32773
+      }
+    }, {
+      "uid" : "237c02c233687b7d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/237c02c233687b7d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066113376,
+        "stop" : 1565066154784,
+        "duration" : 41408
+      }
+    } ]
+  },
+  "1021614bfa2005cba7a7cf13e5fd3996" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "2e64a2997c982348",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/2e64a2997c982348",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199285460,
+        "stop" : 1565199315612,
+        "duration" : 30152
+      }
+    }, {
+      "uid" : "f4b8a27a6b3fb702",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/f4b8a27a6b3fb702",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066327953,
+        "stop" : 1565066356881,
+        "duration" : 28928
+      }
+    } ]
+  },
+  "8b7b0953fe3f2960f6e712b40186809d" : {
+    "statistic" : {
+      "failed" : 1,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 0,
+      "unknown" : 0,
+      "total" : 1
+    },
+    "items" : [ {
+      "uid" : "690457c5b4905fa5",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/137/allure/#testresult/690457c5b4905fa5",
+      "status" : "failed",
+      "statusDetails" : "NoSuchElementException: Message: no such element: Unable to locate element: {\"method\":\"css selector\",\"selector\":\"[data-test='menu-bar-user']\"}\n  (Session info: chrome=76.0.3809.100)\n  (Driver info: chromedriver=2.42.591088 (7b2b2dca23cca0862f674758c9a3933e685c27d5),platform=Windows NT 6.1.7601 SP1 x86_64)\n",
+      "time" : {
+        "start" : 1565681578005,
+        "stop" : 1565681610451,
+        "duration" : 32446
+      }
+    } ]
+  },
+  "ef4e51eb2f3cf12c0973803dfa397db9" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "4f748e9bfe646c4a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/4f748e9bfe646c4a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194956673,
+        "stop" : 1565194984352,
+        "duration" : 27679
+      }
+    }, {
+      "uid" : "2af9ba65851ac081",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/2af9ba65851ac081",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061535609,
+        "stop" : 1565061571929,
+        "duration" : 36320
+      }
+    } ]
+  },
+  "6526eba22ab4d7b2c20ef0bb22be73ae" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "47c4b427e802cf18",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/47c4b427e802cf18",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200650088,
+        "stop" : 1565200716588,
+        "duration" : 66500
+      }
+    }, {
+      "uid" : "14f4598f473c6959",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/14f4598f473c6959",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067712033,
+        "stop" : 1565067779662,
+        "duration" : 67629
+      }
+    } ]
+  },
+  "6d83c219698d2f3c226e3bc700e4f941" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "185cb9ec1727f5d3",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/185cb9ec1727f5d3",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196161515,
+        "stop" : 1565196184655,
+        "duration" : 23140
+      }
+    }, {
+      "uid" : "57df4f8981a8f6d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/57df4f8981a8f6d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062931014,
+        "stop" : 1565062956956,
+        "duration" : 25942
+      }
+    } ]
+  },
+  "5d343d2aecc82f71a3c717ec48ce6fb3" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "b0d04d29f6cc4d3e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/b0d04d29f6cc4d3e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198930579,
+        "stop" : 1565198950399,
+        "duration" : 19820
+      }
+    }, {
+      "uid" : "a7400588a79ae7a1",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/a7400588a79ae7a1",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065953804,
+        "stop" : 1565065975651,
+        "duration" : 21847
+      }
+    } ]
+  },
+  "9212551c162d4bdbe19af04f664fb637" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "874530aba208487c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/874530aba208487c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195840375,
+        "stop" : 1565195865465,
+        "duration" : 25090
+      }
+    }, {
+      "uid" : "3cf161199fbdd07b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/3cf161199fbdd07b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062559021,
+        "stop" : 1565062578205,
+        "duration" : 19184
+      }
+    } ]
+  },
+  "42345418f2800c57438881984dd00b85" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "f86767b2e89e7d5a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/f86767b2e89e7d5a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196453438,
+        "stop" : 1565196516455,
+        "duration" : 63017
+      }
+    }, {
+      "uid" : "ce8dfca487f783c8",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ce8dfca487f783c8",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063238197,
+        "stop" : 1565063306468,
+        "duration" : 68271
+      }
+    } ]
+  },
+  "6b3e23a6091fcc59f15d162284eeabd0" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "d713f55190e657e7",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/d713f55190e657e7",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194213083,
+        "stop" : 1565194250105,
+        "duration" : 37022
+      }
+    }, {
+      "uid" : "61056eaa1d325c2a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/61056eaa1d325c2a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565060797698,
+        "stop" : 1565060829200,
+        "duration" : 31502
+      }
+    } ]
+  },
+  "c21806ffa975069c3d63010b2a98cdf2" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "694dcfd1542701a1",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/694dcfd1542701a1",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195594757,
+        "stop" : 1565195618024,
+        "duration" : 23267
+      }
+    }, {
+      "uid" : "69c9e9541f221e39",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/69c9e9541f221e39",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062308029,
+        "stop" : 1565062333090,
+        "duration" : 25061
+      }
+    } ]
+  },
+  "3591a660a5852cf063976c04a017a8c7" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "c15b4ff3917f87c2",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/c15b4ff3917f87c2",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199787155,
+        "stop" : 1565199824643,
+        "duration" : 37488
+      }
+    }, {
+      "uid" : "bca853b098c6fb4b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/bca853b098c6fb4b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066833292,
+        "stop" : 1565066873915,
+        "duration" : 40623
+      }
+    } ]
+  },
+  "e6d8ab68b89811d1b261b0ded5bf0a81" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "4ca3e5da7c4f4be7",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/4ca3e5da7c4f4be7",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200113870,
+        "stop" : 1565200145134,
+        "duration" : 31264
+      }
+    }, {
+      "uid" : "85525633bab0ded7",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/85525633bab0ded7",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067157670,
+        "stop" : 1565067196540,
+        "duration" : 38870
+      }
+    } ]
+  },
+  "f39d7b689654bb98c13fb7170ec86dfb" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 1,
+      "unknown" : 0,
+      "total" : 1
+    },
+    "items" : [ {
+      "uid" : "e474914d6559f797",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/137/allure/#testresult/e474914d6559f797",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565681531270,
+        "stop" : 1565681572444,
+        "duration" : 41174
+      }
+    } ]
+  },
+  "11bc12f9c6fdcb7d6e12d9aecafc4f5a" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "45b8bdb3cbef8b02",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/45b8bdb3cbef8b02",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199028579,
+        "stop" : 1565199045686,
+        "duration" : 17107
+      }
+    }, {
+      "uid" : "f95f372d4ce922dc",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/f95f372d4ce922dc",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066088120,
+        "stop" : 1565066108235,
+        "duration" : 20115
+      }
+    } ]
+  },
+  "3f41440211879b26bbcf876d277c5876" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "c3a99a3793f0000c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/c3a99a3793f0000c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199865214,
+        "stop" : 1565199895488,
+        "duration" : 30274
+      }
+    }, {
+      "uid" : "e8a23c082a0fa914",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/e8a23c082a0fa914",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066918090,
+        "stop" : 1565066949177,
+        "duration" : 31087
+      }
+    } ]
+  },
+  "9758f6dec1dbbf2d1d014dbe4262f3f8" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "3364bfb9efb60ec1",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/3364bfb9efb60ec1",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198086517,
+        "stop" : 1565198117611,
+        "duration" : 31094
+      }
+    }, {
+      "uid" : "4ae0ebc1c0baaab6",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/4ae0ebc1c0baaab6",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064999366,
+        "stop" : 1565065039002,
+        "duration" : 39636
+      }
+    } ]
+  },
+  "ba6418d2784cbe8a233fb271394ff6c1" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "d2342f39fb4906f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/d2342f39fb4906f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199553542,
+        "stop" : 1565199584068,
+        "duration" : 30526
+      }
+    }, {
+      "uid" : "94b9e8578abc9c36",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/94b9e8578abc9c36",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066596932,
+        "stop" : 1565066626555,
+        "duration" : 29623
+      }
+    } ]
+  },
+  "714bee51dcebc68e9533ba19bdb31306" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "593f0aa99f94b20a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/593f0aa99f94b20a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195469420,
+        "stop" : 1565195495444,
+        "duration" : 26024
+      }
+    }, {
+      "uid" : "d796ca0caf240c6e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/d796ca0caf240c6e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062132266,
+        "stop" : 1565062167871,
+        "duration" : 35605
+      }
+    } ]
+  },
+  "73c465b59432ac0a1fe760ff1d9df7f3" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "a09079cde8eb568a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/a09079cde8eb568a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195745237,
+        "stop" : 1565195758706,
+        "duration" : 13469
+      }
+    }, {
+      "uid" : "bbff59c826731e3d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/bbff59c826731e3d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062463866,
+        "stop" : 1565062494583,
+        "duration" : 30717
+      }
+    } ]
+  },
+  "fb834c4fbab9f025384da79a547d7390" : {
+    "statistic" : {
+      "failed" : 1,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 0,
+      "unknown" : 0,
+      "total" : 1
+    },
+    "items" : [ {
+      "uid" : "c266d089c383c094",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/137/allure/#testresult/c266d089c383c094",
+      "status" : "failed",
+      "statusDetails" : "NoSuchElementException: Message: no such element: Unable to locate element: {\"method\":\"css selector\",\"selector\":\"[data-test='menu-bar-user']\"}\n  (Session info: chrome=76.0.3809.100)\n  (Driver info: chromedriver=2.42.591088 (7b2b2dca23cca0862f674758c9a3933e685c27d5),platform=Windows NT 6.1.7601 SP1 x86_64)\n",
+      "time" : {
+        "start" : 1565681615668,
+        "stop" : 1565681645238,
+        "duration" : 29570
+      }
+    } ]
+  },
+  "46510b3306ab64e04dcf0391d48f07dd" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "58790a48e28978ea",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/58790a48e28978ea",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194157518,
+        "stop" : 1565194207886,
+        "duration" : 50368
+      }
+    }, {
+      "uid" : "b853ab4dc2e0319e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/b853ab4dc2e0319e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565060759632,
+        "stop" : 1565060793943,
+        "duration" : 34311
+      }
+    } ]
+  },
+  "3d7330f7f967180e00e19e4b19e3e906" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "76843da81bb9bdde",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/76843da81bb9bdde",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196427279,
+        "stop" : 1565196448780,
+        "duration" : 21501
+      }
+    }, {
+      "uid" : "d7e77fa9e434035f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/d7e77fa9e434035f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063216003,
+        "stop" : 1565063233171,
+        "duration" : 17168
+      }
+    } ]
+  },
+  "15e1cb100d4ee3bd5d0c556fb8cdbc2f" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "f19d62029a02bd61",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/f19d62029a02bd61",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194345672,
+        "stop" : 1565194376552,
+        "duration" : 30880
+      }
+    }, {
+      "uid" : "187b9b0002e04f63",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/187b9b0002e04f63",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565060926758,
+        "stop" : 1565060956493,
+        "duration" : 29735
+      }
+    } ]
+  },
+  "591ac8d634c6313a11b936835534d8d9" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "2e4abb68c782bc4f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/2e4abb68c782bc4f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198593671,
+        "stop" : 1565198612616,
+        "duration" : 18945
+      }
+    }, {
+      "uid" : "55f3275e450659dc",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/55f3275e450659dc",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065567970,
+        "stop" : 1565065596618,
+        "duration" : 28648
+      }
+    } ]
+  },
+  "840972f2b0d5caaf8b367827b40d4b43" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "47a806c1d976fbf3",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/47a806c1d976fbf3",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198434630,
+        "stop" : 1565198452487,
+        "duration" : 17857
+      }
+    }, {
+      "uid" : "540fa8e50fa6a3f4",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/540fa8e50fa6a3f4",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065397719,
+        "stop" : 1565065419561,
+        "duration" : 21842
+      }
+    } ]
+  },
+  "6587eac14fc2cfca690ef99d3e3e5c63" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "a7451143e18d3586",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/a7451143e18d3586",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195111341,
+        "stop" : 1565195134794,
+        "duration" : 23453
+      }
+    }, {
+      "uid" : "8b5468bc52ef9c14",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/8b5468bc52ef9c14",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061704992,
+        "stop" : 1565061732600,
+        "duration" : 27608
+      }
+    } ]
+  },
+  "92393527f82d36c774194c61080317b1" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "2726948ac5d7097e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/2726948ac5d7097e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196813433,
+        "stop" : 1565196846139,
+        "duration" : 32706
+      }
+    }, {
+      "uid" : "b8f3ecef3abf2d9d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/b8f3ecef3abf2d9d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063645967,
+        "stop" : 1565063682086,
+        "duration" : 36119
+      }
+    } ]
+  },
+  "88d6f0a56d7882401ca179392720225f" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "dac57f86b8969c0f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/dac57f86b8969c0f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194014458,
+        "stop" : 1565194063528,
+        "duration" : 49070
+      }
+    }, {
+      "uid" : "59f41d30b9e92936",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/59f41d30b9e92936",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565060596070,
+        "stop" : 1565060653562,
+        "duration" : 57492
+      }
+    } ]
+  },
+  "61fcec2ef895ecade019c0d8fc705492" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "dc850b16eb99adb0",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/dc850b16eb99adb0",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196560895,
+        "stop" : 1565196597454,
+        "duration" : 36559
+      }
+    }, {
+      "uid" : "c66e05f1f5474c40",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/c66e05f1f5474c40",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063353601,
+        "stop" : 1565063402489,
+        "duration" : 48888
+      }
+    } ]
+  },
+  "a4d1c250e6dbef620a29e66a92aa7590" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "2be35dd6e453f312",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/2be35dd6e453f312",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195398165,
+        "stop" : 1565195412131,
+        "duration" : 13966
+      }
+    }, {
+      "uid" : "74dd663ef018fc5e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/74dd663ef018fc5e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062038014,
+        "stop" : 1565062059433,
+        "duration" : 21419
+      }
+    } ]
+  },
+  "9bb88b545eef4fcd73adc4594242bdcf" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "c8dff5204f1727cf",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/c8dff5204f1727cf",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196379064,
+        "stop" : 1565196398182,
+        "duration" : 19118
+      }
+    }, {
+      "uid" : "fe6b89525a41c047",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/fe6b89525a41c047",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063151293,
+        "stop" : 1565063178034,
+        "duration" : 26741
+      }
+    } ]
+  },
+  "511f2964ee0a71373fa9482526b7ec94" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "849823c44e78e501",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/849823c44e78e501",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195528229,
+        "stop" : 1565195550293,
+        "duration" : 22064
+      }
+    }, {
+      "uid" : "a3e97d1cebebbb18",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/a3e97d1cebebbb18",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062196368,
+        "stop" : 1565062218699,
+        "duration" : 22331
+      }
+    } ]
+  },
+  "1e9d361737aaea8dfa9edd684308db04" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "907c6cb409bde01d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/907c6cb409bde01d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200078044,
+        "stop" : 1565200109490,
+        "duration" : 31446
+      }
+    }, {
+      "uid" : "86c1a84bbc136228",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/86c1a84bbc136228",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067119439,
+        "stop" : 1565067152526,
+        "duration" : 33087
+      }
+    } ]
+  },
+  "c55a58e8cec55435dc95c2e2b70e1d79" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "9949fad41f2329e5",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/9949fad41f2329e5",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197107686,
+        "stop" : 1565197266335,
+        "duration" : 158649
+      }
+    }, {
+      "uid" : "87ec110309b90610",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/87ec110309b90610",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063945705,
+        "stop" : 1565064126746,
+        "duration" : 181041
+      }
+    } ]
+  },
+  "d43d85289ce485c30e60b2819f37c896" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "532c486e3027f6d5",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/532c486e3027f6d5",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195283311,
+        "stop" : 1565195311811,
+        "duration" : 28500
+      }
+    }, {
+      "uid" : "a0b7f4cbc01474a1",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/a0b7f4cbc01474a1",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061898762,
+        "stop" : 1565061935158,
+        "duration" : 36396
+      }
+    } ]
+  },
+  "10665abdc01334056f65488013be055c" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "537d5cd347bdac52",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/537d5cd347bdac52",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200820441,
+        "stop" : 1565200851143,
+        "duration" : 30702
+      }
+    }, {
+      "uid" : "a4ef99a8c93073d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/a4ef99a8c93073d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067897191,
+        "stop" : 1565067937498,
+        "duration" : 40307
+      }
+    } ]
+  },
+  "c0f18dfb6dd4489e4b20ad57037f4c94" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "f679bdfe326dc827",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/f679bdfe326dc827",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195203252,
+        "stop" : 1565195222699,
+        "duration" : 19447
+      }
+    }, {
+      "uid" : "6f8160b35f403032",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/6f8160b35f403032",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061828492,
+        "stop" : 1565061844483,
+        "duration" : 15991
+      }
+    } ]
+  },
+  "88240009e75ed4d86384a4ee12b36f1a" : {
+    "statistic" : {
+      "failed" : 1,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 0,
+      "unknown" : 0,
+      "total" : 1
+    },
+    "items" : [ {
+      "uid" : "75f9b9b219c8e2b5",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/137/allure/#testresult/75f9b9b219c8e2b5",
+      "status" : "failed",
+      "statusDetails" : "NoSuchElementException: Message: no such element: Unable to locate element: {\"method\":\"css selector\",\"selector\":\"[data-test='menu-bar-user']\"}\n  (Session info: chrome=76.0.3809.100)\n  (Driver info: chromedriver=2.42.591088 (7b2b2dca23cca0862f674758c9a3933e685c27d5),platform=Windows NT 6.1.7601 SP1 x86_64)\n",
+      "time" : {
+        "start" : 1565681403974,
+        "stop" : 1565681438147,
+        "duration" : 34173
+      }
+    } ]
+  },
+  "99f99563592cecb383b3f771805e9088" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "557b1d5e3f13de39",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/557b1d5e3f13de39",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198293858,
+        "stop" : 1565198329074,
+        "duration" : 35216
+      }
+    }, {
+      "uid" : "21862726acfc13db",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/21862726acfc13db",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065236651,
+        "stop" : 1565065258267,
+        "duration" : 21616
+      }
+    } ]
+  },
+  "76774575e0b24d9a5a20a111ebd4910e" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "f7624017a55f8a5c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/f7624017a55f8a5c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196933993,
+        "stop" : 1565197003719,
+        "duration" : 69726
+      }
+    }, {
+      "uid" : "cbbbe24ad8b3090f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/cbbbe24ad8b3090f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063750933,
+        "stop" : 1565063812689,
+        "duration" : 61756
+      }
+    } ]
+  },
+  "44b711222160a661413fad99abd0604b" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 1,
+      "unknown" : 0,
+      "total" : 1
+    },
+    "items" : [ {
+      "uid" : "5e7323d7af863f60",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/5e7323d7af863f60",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199830761,
+        "stop" : 1565199860087,
+        "duration" : 29326
+      }
+    } ]
+  },
+  "f5e9b4a093e0d5c2e1543ab7977100f1" : {
+    "statistic" : {
+      "failed" : 1,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 0,
+      "unknown" : 0,
+      "total" : 1
+    },
+    "items" : [ {
+      "uid" : "6b2cd4e5739df5d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/137/allure/#testresult/6b2cd4e5739df5d",
+      "status" : "failed",
+      "statusDetails" : "NoSuchElementException: Message: no such element: Unable to locate element: {\"method\":\"css selector\",\"selector\":\"[data-test='menu-bar-user']\"}\n  (Session info: chrome=76.0.3809.100)\n  (Driver info: chromedriver=2.42.591088 (7b2b2dca23cca0862f674758c9a3933e685c27d5),platform=Windows NT 6.1.7601 SP1 x86_64)\n",
+      "time" : {
+        "start" : 1565681489436,
+        "stop" : 1565681526211,
+        "duration" : 36775
+      }
+    } ]
+  },
+  "6dc96bc1b177df963371a1ef664605ab" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "a5065ab62986c9c5",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/a5065ab62986c9c5",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194923038,
+        "stop" : 1565194951207,
+        "duration" : 28169
+      }
+    }, {
+      "uid" : "df125cc7bd2db30",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/df125cc7bd2db30",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061511366,
+        "stop" : 1565061531110,
+        "duration" : 19744
+      }
+    } ]
+  },
+  "157740be3f36014bc637461857cbd0d7" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "ca1520eba5cab996",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/ca1520eba5cab996",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197270258,
+        "stop" : 1565197347751,
+        "duration" : 77493
+      }
+    }, {
+      "uid" : "fb917b328b6525f1",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/fb917b328b6525f1",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064130236,
+        "stop" : 1565064196848,
+        "duration" : 66612
+      }
+    } ]
+  },
+  "a8c6045c1bb84193a97faa47390807b" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "930138f30e1849e9",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/930138f30e1849e9",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194568014,
+        "stop" : 1565194596279,
+        "duration" : 28265
+      }
+    }, {
+      "uid" : "aea6ef7787015703",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/aea6ef7787015703",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061148921,
+        "stop" : 1565061173362,
+        "duration" : 24441
+      }
+    } ]
+  },
+  "ead973cd2829eeb8f2caf73d1e322546" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "eabc715fb89a2258",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/eabc715fb89a2258",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200947316,
+        "stop" : 1565200965940,
+        "duration" : 18624
+      }
+    }, {
+      "uid" : "d48fb0269c3f532b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/d48fb0269c3f532b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565068029352,
+        "stop" : 1565068050888,
+        "duration" : 21536
+      }
+    } ]
+  },
+  "88ff733eecd8ec4db27de44fc851e6fb" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "f84d2a314196218b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/f84d2a314196218b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199430751,
+        "stop" : 1565199471880,
+        "duration" : 41129
+      }
+    }, {
+      "uid" : "f84938404accc58e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/f84938404accc58e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066479509,
+        "stop" : 1565066509706,
+        "duration" : 30197
+      }
+    } ]
+  },
+  "75a1afa1849f63ab3bc6b52e54163422" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "e9b6a111420fb079",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/e9b6a111420fb079",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194255460,
+        "stop" : 1565194294718,
+        "duration" : 39258
+      }
+    }, {
+      "uid" : "b3f67b19077879e7",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/b3f67b19077879e7",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565060834133,
+        "stop" : 1565060876821,
+        "duration" : 42688
+      }
+    } ]
+  },
+  "9436eb24ed6e5612e15d49a6eb5f17ae" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "8504db5b923539f2",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/8504db5b923539f2",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198383058,
+        "stop" : 1565198399542,
+        "duration" : 16484
+      }
+    }, {
+      "uid" : "53073a447162edf",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/53073a447162edf",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065323642,
+        "stop" : 1565065347698,
+        "duration" : 24056
+      }
+    } ]
+  },
+  "856b85c23b54901ee9cbdc889687a0f0" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "c52ea78a1d379c07",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/c52ea78a1d379c07",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198617175,
+        "stop" : 1565198640688,
+        "duration" : 23513
+      }
+    }, {
+      "uid" : "9011d134856e441f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/9011d134856e441f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065599899,
+        "stop" : 1565065622470,
+        "duration" : 22571
+      }
+    } ]
+  },
+  "bffccb1e2b99148e273de870a26d70a3" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "43fcf861e943990b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/43fcf861e943990b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195376832,
+        "stop" : 1565195394436,
+        "duration" : 17604
+      }
+    }, {
+      "uid" : "ec3a74d100e3caac",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ec3a74d100e3caac",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061990985,
+        "stop" : 1565062034591,
+        "duration" : 43606
+      }
+    } ]
+  },
+  "163db402795f352c1e7ec9398ecfc86e" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "bd0a9c32ab48537a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/bd0a9c32ab48537a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198356835,
+        "stop" : 1565198377740,
+        "duration" : 20905
+      }
+    }, {
+      "uid" : "72d45d99d445af5d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/72d45d99d445af5d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065291756,
+        "stop" : 1565065317999,
+        "duration" : 26243
+      }
+    } ]
+  },
+  "98167bb696a4567a733db51adbadc355" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "85fb97edb43eb134",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/85fb97edb43eb134",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200513938,
+        "stop" : 1565200549037,
+        "duration" : 35099
+      }
+    }, {
+      "uid" : "c7931e70ab4fd7e7",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/c7931e70ab4fd7e7",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067566972,
+        "stop" : 1565067608786,
+        "duration" : 41814
+      }
+    } ]
+  },
+  "c54ee4aaa3613ae02902c5b641926db8" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "4f26ba06305291f0",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/4f26ba06305291f0",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197608655,
+        "stop" : 1565197636056,
+        "duration" : 27401
+      }
+    }, {
+      "uid" : "790229e1d335e8e1",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/790229e1d335e8e1",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064496539,
+        "stop" : 1565064527660,
+        "duration" : 31121
+      }
+    } ]
+  },
+  "938bdeba24c98122b623bf9a8fa6ca97" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "b4eba5c485552577",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/b4eba5c485552577",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196189678,
+        "stop" : 1565196216998,
+        "duration" : 27320
+      }
+    }, {
+      "uid" : "1b5c8b05cfe02724",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/1b5c8b05cfe02724",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062962415,
+        "stop" : 1565062994262,
+        "duration" : 31847
+      }
+    } ]
+  },
+  "4844b7917a70cde20eb5109601cf5d50" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "d19aba48bf6324f9",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/d19aba48bf6324f9",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195979028,
+        "stop" : 1565196008074,
+        "duration" : 29046
+      }
+    }, {
+      "uid" : "1e848cd1979cd1b2",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/1e848cd1979cd1b2",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062734106,
+        "stop" : 1565062766586,
+        "duration" : 32480
+      }
+    } ]
+  },
+  "9e032d68297770e8142403311413983f" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "dbb16167d56f473f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/dbb16167d56f473f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195021597,
+        "stop" : 1565195039230,
+        "duration" : 17633
+      }
+    }, {
+      "uid" : "2129a5ee22374c7a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/2129a5ee22374c7a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061622570,
+        "stop" : 1565061654433,
+        "duration" : 31863
+      }
+    } ]
+  },
+  "fcbb6f51c1e60f646c15466194f638e8" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "745ca4ad5e26ee75",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/745ca4ad5e26ee75",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195228346,
+        "stop" : 1565195252181,
+        "duration" : 23835
+      }
+    }, {
+      "uid" : "4bbd2218eb0fbf34",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/4bbd2218eb0fbf34",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061848179,
+        "stop" : 1565061867440,
+        "duration" : 19261
+      }
+    } ]
+  },
+  "a1d663c57246339140f0fbdabdeafa6a" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "44acedc4f75b8d0d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/44acedc4f75b8d0d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199387541,
+        "stop" : 1565199424602,
+        "duration" : 37061
+      }
+    }, {
+      "uid" : "e84545c1d4bb826c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/e84545c1d4bb826c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066444125,
+        "stop" : 1565066475118,
+        "duration" : 30993
+      }
+    } ]
+  },
+  "a6ed75ab0f447b18cdf6cbdbcd3e9086" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "863cd077321b9c7d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/863cd077321b9c7d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194601948,
+        "stop" : 1565194619575,
+        "duration" : 17627
+      }
+    }, {
+      "uid" : "906d5b9c5e2ca5b5",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/906d5b9c5e2ca5b5",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061178826,
+        "stop" : 1565061213787,
+        "duration" : 34961
+      }
+    } ]
+  },
+  "f3873204c90f7de7cb7ea471e0f05139" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "56cab3489d88d8fd",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/56cab3489d88d8fd",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198904491,
+        "stop" : 1565198924961,
+        "duration" : 20470
+      }
+    }, {
+      "uid" : "fa5ca3627110195f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/fa5ca3627110195f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065924113,
+        "stop" : 1565065948303,
+        "duration" : 24190
+      }
+    } ]
+  },
+  "193122ca1d81575297a5f3e95be2ad84" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "6af9930d7c77cd29",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/6af9930d7c77cd29",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199900369,
+        "stop" : 1565199945626,
+        "duration" : 45257
+      }
+    }, {
+      "uid" : "6c28ac68e9ca46f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/6c28ac68e9ca46f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066953724,
+        "stop" : 1565066990432,
+        "duration" : 36708
+      }
+    } ]
+  },
+  "51a67f61619b9a1c9bc30e3b71504dff" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "4b6892b72c155325",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/4b6892b72c155325",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197778761,
+        "stop" : 1565197822534,
+        "duration" : 43773
+      }
+    }, {
+      "uid" : "ff16f6d7c76faf84",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ff16f6d7c76faf84",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064677738,
+        "stop" : 1565064736289,
+        "duration" : 58551
+      }
+    } ]
+  },
+  "f2b1c125c2237c98d64936187d1172c1" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "682cf31da8837ffb",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/682cf31da8837ffb",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194381121,
+        "stop" : 1565194413608,
+        "duration" : 32487
+      }
+    }, {
+      "uid" : "329ba7ac02d17b1f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/329ba7ac02d17b1f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565060962578,
+        "stop" : 1565060996593,
+        "duration" : 34015
+      }
+    } ]
+  },
+  "dcff3c14cd67934e34c4fce795d4e46d" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "be5c4038a0c229e2",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/be5c4038a0c229e2",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195416699,
+        "stop" : 1565195434360,
+        "duration" : 17661
+      }
+    }, {
+      "uid" : "1fd5dd5a73503472",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/1fd5dd5a73503472",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062063076,
+        "stop" : 1565062082177,
+        "duration" : 19101
+      }
+    } ]
+  },
+  "c9b1e6af924a9168ee4505253b83b9d0" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "7081198c979fc13e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/7081198c979fc13e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200278932,
+        "stop" : 1565200312107,
+        "duration" : 33175
+      }
+    }, {
+      "uid" : "1857b90efa241fd3",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/1857b90efa241fd3",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067328987,
+        "stop" : 1565067362284,
+        "duration" : 33297
+      }
+    } ]
+  },
+  "9752ec36aa5142b507f016a7b4eb03b8" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "2a47f520aef64a59",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/2a47f520aef64a59",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199634814,
+        "stop" : 1565199668508,
+        "duration" : 33694
+      }
+    }, {
+      "uid" : "ecc6cd59737d4f7b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ecc6cd59737d4f7b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066674073,
+        "stop" : 1565066716894,
+        "duration" : 42821
+      }
+    } ]
+  },
+  "adce14fbe218be5645d8836f60a44949" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "54e1be025564f5b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/54e1be025564f5b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200722105,
+        "stop" : 1565200763032,
+        "duration" : 40927
+      }
+    }, {
+      "uid" : "f4b2ee60b31f17fe",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/f4b2ee60b31f17fe",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067783697,
+        "stop" : 1565067830550,
+        "duration" : 46853
+      }
+    } ]
+  },
+  "f809e25196c92806991a20fb47b2c056" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "c8ecbbb2ef5264d7",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/c8ecbbb2ef5264d7",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198879857,
+        "stop" : 1565198900071,
+        "duration" : 20214
+      }
+    }, {
+      "uid" : "448c36290d9d815d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/448c36290d9d815d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065886926,
+        "stop" : 1565065919339,
+        "duration" : 32413
+      }
+    } ]
+  },
+  "eedd7a667a99034b75e487e8344372b0" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "8f125c53e32b5ee3",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/8f125c53e32b5ee3",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196222473,
+        "stop" : 1565196245909,
+        "duration" : 23436
+      }
+    }, {
+      "uid" : "c73206cad4ddba8c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/c73206cad4ddba8c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062998596,
+        "stop" : 1565063039809,
+        "duration" : 41213
+      }
+    } ]
+  },
+  "e2d551d0b3678c8e865d91fc51590f8a" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "3727d8e0b08cd913",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/3727d8e0b08cd913",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197007797,
+        "stop" : 1565197102684,
+        "duration" : 94887
+      }
+    }, {
+      "uid" : "be474eeb21fa75b8",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/be474eeb21fa75b8",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063819708,
+        "stop" : 1565063942101,
+        "duration" : 122393
+      }
+    } ]
+  },
+  "abf6397695367cfe67175059dca2e311" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "72f524df1db83134",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/72f524df1db83134",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198851369,
+        "stop" : 1565198874205,
+        "duration" : 22836
+      }
+    }, {
+      "uid" : "fd9c66bf1bbe5531",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/fd9c66bf1bbe5531",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065858911,
+        "stop" : 1565065881279,
+        "duration" : 22368
+      }
+    } ]
+  },
+  "d7cff578fc88fe16e924e5ab0669bfb2" : {
+    "statistic" : {
+      "failed" : 1,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 0,
+      "unknown" : 0,
+      "total" : 1
+    },
+    "items" : [ {
+      "uid" : "e67c6bbf0d251166",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/137/allure/#testresult/e67c6bbf0d251166",
+      "status" : "failed",
+      "statusDetails" : "NoSuchElementException: Message: no such element: Unable to locate element: {\"method\":\"css selector\",\"selector\":\"[data-test='menu-bar-user']\"}\n  (Session info: chrome=76.0.3809.100)\n  (Driver info: chromedriver=2.42.591088 (7b2b2dca23cca0862f674758c9a3933e685c27d5),platform=Windows NT 6.1.7601 SP1 x86_64)\n",
+      "time" : {
+        "start" : 1565681298960,
+        "stop" : 1565681331057,
+        "duration" : 32097
+      }
+    } ]
+  },
+  "c015bebd0e5fe54d4b445009ebac439" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "5f1204fac0a3995c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/5f1204fac0a3995c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199224133,
+        "stop" : 1565199279849,
+        "duration" : 55716
+      }
+    }, {
+      "uid" : "b1d86582c44280c9",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/b1d86582c44280c9",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066286864,
+        "stop" : 1565066322757,
+        "duration" : 35893
+      }
+    } ]
+  },
+  "715711881b65eebe6a7aa932c15006db" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "10f0b103f34c71ec",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/10f0b103f34c71ec",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195071705,
+        "stop" : 1565195105721,
+        "duration" : 34016
+      }
+    }, {
+      "uid" : "27ebefa91878353c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/27ebefa91878353c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061681786,
+        "stop" : 1565061700445,
+        "duration" : 18659
+      }
+    } ]
+  },
+  "fe2bd8b86c929e0e2162df81850e8b5a" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "73fba843abd0e13",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/73fba843abd0e13",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199172086,
+        "stop" : 1565199217485,
+        "duration" : 45399
+      }
+    }, {
+      "uid" : "6c034285824f9ec9",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/6c034285824f9ec9",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066238218,
+        "stop" : 1565066281721,
+        "duration" : 43503
+      }
+    } ]
+  },
+  "443a218eb22bbe61fb431c0b3fd7b358" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "7187469eca118883",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/7187469eca118883",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198674991,
+        "stop" : 1565198701506,
+        "duration" : 26515
+      }
+    }, {
+      "uid" : "7cab7d05831f443f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/7cab7d05831f443f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065662788,
+        "stop" : 1565065690431,
+        "duration" : 27643
+      }
+    } ]
+  },
+  "728e2dbfcd2876da5f7e02e597d42026" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "6e176bded379f4cb",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/6e176bded379f4cb",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200767936,
+        "stop" : 1565200816861,
+        "duration" : 48925
+      }
+    }, {
+      "uid" : "e0fbe78bc81d1437",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/e0fbe78bc81d1437",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067837139,
+        "stop" : 1565067893357,
+        "duration" : 56218
+      }
+    } ]
+  },
+  "b44f675aadb9ec20a465a42862acb603" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "bb84422820a6e7d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/bb84422820a6e7d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200903271,
+        "stop" : 1565200943961,
+        "duration" : 40690
+      }
+    }, {
+      "uid" : "c5019c7e8c5239cf",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/c5019c7e8c5239cf",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565068001889,
+        "stop" : 1565068025445,
+        "duration" : 23556
+      }
+    } ]
+  },
+  "861a2fbdd5162bc1d599c2da65927a40" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "8d0618d29723a557",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/8d0618d29723a557",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199704038,
+        "stop" : 1565199732585,
+        "duration" : 28547
+      }
+    }, {
+      "uid" : "daa991e569aedeb7",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/daa991e569aedeb7",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066760979,
+        "stop" : 1565066794026,
+        "duration" : 33047
+      }
+    } ]
+  },
+  "f2980776ae03adfc2ebfa0bb1251ee73" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "1f39975ff6db3d69",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/1f39975ff6db3d69",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196355192,
+        "stop" : 1565196374038,
+        "duration" : 18846
+      }
+    }, {
+      "uid" : "d7953eebd92ebd22",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/d7953eebd92ebd22",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063131774,
+        "stop" : 1565063146774,
+        "duration" : 15000
+      }
+    } ]
+  },
+  "f4fc912ce72ba06dcffb0f354eddc018" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "becf5fb66d1659fe",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/becf5fb66d1659fe",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194770912,
+        "stop" : 1565194786527,
+        "duration" : 15615
+      }
+    }, {
+      "uid" : "f1f00f474a3dc53f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/f1f00f474a3dc53f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061340602,
+        "stop" : 1565061364936,
+        "duration" : 24334
+      }
+    } ]
+  },
+  "ae09097e476377571a1a0bf5043746eb" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "1c9e62937ceb3bbf",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/1c9e62937ceb3bbf",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194534174,
+        "stop" : 1565194562809,
+        "duration" : 28635
+      }
+    }, {
+      "uid" : "ce010d0c6403c308",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ce010d0c6403c308",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061119602,
+        "stop" : 1565061144833,
+        "duration" : 25231
+      }
+    } ]
+  },
+  "e091f50a53cf0dc60e49a97398f70c57" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "57491d50710ec3e5",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/57491d50710ec3e5",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196522547,
+        "stop" : 1565196556979,
+        "duration" : 34432
+      }
+    }, {
+      "uid" : "f251edf1e74a401b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/f251edf1e74a401b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063310607,
+        "stop" : 1565063349026,
+        "duration" : 38419
+      }
+    } ]
+  },
+  "1dd8badf1b9b4bc82d893e7d8669ab91" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "51980ec143337e32",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/51980ec143337e32",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199986084,
+        "stop" : 1565200029925,
+        "duration" : 43841
+      }
+    }, {
+      "uid" : "670a2c50e2b31bce",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/670a2c50e2b31bce",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067031143,
+        "stop" : 1565067070365,
+        "duration" : 39222
+      }
+    } ]
+  },
+  "c122f3685d5ac89716436adbcef74371" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "15c754ee6286391c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/15c754ee6286391c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196666937,
+        "stop" : 1565196696064,
+        "duration" : 29127
+      }
+    }, {
+      "uid" : "3b0fb7395425bd0",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/3b0fb7395425bd0",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063467861,
+        "stop" : 1565063493228,
+        "duration" : 25367
+      }
+    } ]
+  },
+  "305629e81f7f673719697d31bd447cc8" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "79bb3649d1d05320",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/79bb3649d1d05320",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198046009,
+        "stop" : 1565198080809,
+        "duration" : 34800
+      }
+    }, {
+      "uid" : "583b797922af8d76",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/583b797922af8d76",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064969866,
+        "stop" : 1565064993917,
+        "duration" : 24051
+      }
+    } ]
+  },
+  "f57a35ad19a4b048928ae4be1d37a10d" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "f4d0d956dbcfaf12",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/f4d0d956dbcfaf12",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197467027,
+        "stop" : 1565197499546,
+        "duration" : 32519
+      }
+    }, {
+      "uid" : "8a264a0d336c1726",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/8a264a0d336c1726",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064297232,
+        "stop" : 1565064347091,
+        "duration" : 49859
+      }
+    } ]
+  },
+  "bb5f8812e435fc84b9da3707a76e184c" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "6e8fe2218f18db07",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/6e8fe2218f18db07",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200151291,
+        "stop" : 1565200200557,
+        "duration" : 49266
+      }
+    }, {
+      "uid" : "427192d9308b83fc",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/427192d9308b83fc",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067201559,
+        "stop" : 1565067233068,
+        "duration" : 31509
+      }
+    } ]
+  },
+  "654c7fe43d8227f3b8c383b8c7635189" : {
+    "statistic" : {
+      "failed" : 1,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 0,
+      "unknown" : 0,
+      "total" : 1
+    },
+    "items" : [ {
+      "uid" : "423a2ee383f85304",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/137/allure/#testresult/423a2ee383f85304",
+      "status" : "failed",
+      "statusDetails" : "NoSuchElementException: Message: no such element: Unable to locate element: {\"method\":\"css selector\",\"selector\":\"[data-test='menu-bar-user-my-account']\"}\n  (Session info: chrome=76.0.3809.100)\n  (Driver info: chromedriver=2.42.591088 (7b2b2dca23cca0862f674758c9a3933e685c27d5),platform=Windows NT 6.1.7601 SP1 x86_64)\n",
+      "time" : {
+        "start" : 1565681337758,
+        "stop" : 1565681398835,
+        "duration" : 61077
+      }
+    } ]
+  },
+  "48c54f4bb919ddc51b0c627ce71bbbfe" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "213e297e963a28b5",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/213e297e963a28b5",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194899546,
+        "stop" : 1565194917397,
+        "duration" : 17851
+      }
+    }, {
+      "uid" : "33e9f63dc2d53a2f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/33e9f63dc2d53a2f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061490852,
+        "stop" : 1565061508025,
+        "duration" : 17173
+      }
+    } ]
+  },
+  "493093d848d1d81f7ebf3a30fd4cd6e4" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "4f3b1ae0f73e8862",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/4f3b1ae0f73e8862",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200856404,
+        "stop" : 1565200896638,
+        "duration" : 40234
+      }
+    }, {
+      "uid" : "edcd4df383d317d8",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/edcd4df383d317d8",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067942618,
+        "stop" : 1565067996364,
+        "duration" : 53746
+      }
+    } ]
+  },
+  "47d2fa19e8156b89d17250f82e358e28" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "3057bbd83b076283",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/3057bbd83b076283",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195872378,
+        "stop" : 1565195901009,
+        "duration" : 28631
+      }
+    }, {
+      "uid" : "13b07158b5d74736",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/13b07158b5d74736",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062584121,
+        "stop" : 1565062608132,
+        "duration" : 24011
+      }
+    } ]
+  },
+  "ea66d93a77ebd7bdf2c536b1b7b63640" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "12ae07b900f9dc61",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/12ae07b900f9dc61",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197352445,
+        "stop" : 1565197416492,
+        "duration" : 64047
+      }
+    }, {
+      "uid" : "981e007c72334dde",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/981e007c72334dde",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064203970,
+        "stop" : 1565064261139,
+        "duration" : 57169
+      }
+    } ]
+  },
+  "7c5c5d3581afc3f32096569fb8aee0a6" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "8e00557301c669ff",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/8e00557301c669ff",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195318733,
+        "stop" : 1565195372644,
+        "duration" : 53911
+      }
+    }, {
+      "uid" : "659ed628f96348af",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/659ed628f96348af",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061942154,
+        "stop" : 1565061984045,
+        "duration" : 41891
+      }
+    } ]
+  },
+  "462151a0e2b6f6b9546931fdaa515a7a" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "50c153e7693fef69",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/50c153e7693fef69",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196630090,
+        "stop" : 1565196661805,
+        "duration" : 31715
+      }
+    }, {
+      "uid" : "6908b3c85ab4dbe7",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/6908b3c85ab4dbe7",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063428964,
+        "stop" : 1565063461605,
+        "duration" : 32641
+      }
+    } ]
+  },
+  "54d2ca0c541fd0f6123d8570052c4979" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "cf2092be3a6f46eb",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/cf2092be3a6f46eb",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196050265,
+        "stop" : 1565196066016,
+        "duration" : 15751
+      }
+    }, {
+      "uid" : "797b6db955b3097b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/797b6db955b3097b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062796598,
+        "stop" : 1565062816028,
+        "duration" : 19430
+      }
+    } ]
+  },
+  "42cdbdad32c7dbe219cb59b31be3814f" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "b1724c60111605f0",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/b1724c60111605f0",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194457574,
+        "stop" : 1565194497144,
+        "duration" : 39570
+      }
+    }, {
+      "uid" : "ca45ba666eff078e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ca45ba666eff078e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061030759,
+        "stop" : 1565061072457,
+        "duration" : 41698
+      }
+    } ]
+  },
+  "7ea474ade4543070079272fa8ceb4367" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "1be3d33e10dc4e46",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/1be3d33e10dc4e46",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194877848,
+        "stop" : 1565194895098,
+        "duration" : 17250
+      }
+    }, {
+      "uid" : "67b4147ae70fe5d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/67b4147ae70fe5d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061468373,
+        "stop" : 1565061486437,
+        "duration" : 18064
+      }
+    } ]
+  },
+  "42b966847761da6bcfec06f9ee2016da" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "bc20bd5e4c16a39e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/bc20bd5e4c16a39e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196699797,
+        "stop" : 1565196716716,
+        "duration" : 16919
+      }
+    }, {
+      "uid" : "1dd055bbd1396fbe",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/1dd055bbd1396fbe",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063499617,
+        "stop" : 1565063519842,
+        "duration" : 20225
+      }
+    } ]
+  },
+  "9d8c741b53b17932033c4c0d08a43f2c" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "de1bb9b878f18fc1",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/de1bb9b878f18fc1",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196251040,
+        "stop" : 1565196293505,
+        "duration" : 42465
+      }
+    }, {
+      "uid" : "e77453dcd2e6d3c9",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/e77453dcd2e6d3c9",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063044122,
+        "stop" : 1565063069159,
+        "duration" : 25037
+      }
+    } ]
+  },
+  "8f4253419f27204fb6d59991b133edba" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "5f42eafb3e8bbf1e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/5f42eafb3e8bbf1e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200393781,
+        "stop" : 1565200436293,
+        "duration" : 42512
+      }
+    }, {
+      "uid" : "8793eb0d22e97e0a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/8793eb0d22e97e0a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067443612,
+        "stop" : 1565067478499,
+        "duration" : 34887
+      }
+    } ]
+  },
+  "336f984f03a78f23adec35f4b9ccef6b" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "110c4353c1c00aac",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/110c4353c1c00aac",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194648596,
+        "stop" : 1565194694179,
+        "duration" : 45583
+      }
+    }, {
+      "uid" : "f4671fd49b005713",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/f4671fd49b005713",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061262616,
+        "stop" : 1565061290112,
+        "duration" : 27496
+      }
+    } ]
+  },
+  "aebe3e97fa2ef0f231bd4ba2f880c44b" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "c97e2cd7cb632ee4",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/c97e2cd7cb632ee4",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195554237,
+        "stop" : 1565195570537,
+        "duration" : 16300
+      }
+    }, {
+      "uid" : "da135e6998d2b29d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/da135e6998d2b29d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062223734,
+        "stop" : 1565062253732,
+        "duration" : 29998
+      }
+    } ]
+  },
+  "c56e6e7067c6d4ab29fceef708bbfd57" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "359bf009766202a0",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/359bf009766202a0",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196722260,
+        "stop" : 1565196742367,
+        "duration" : 20107
+      }
+    }, {
+      "uid" : "95ed135be867c43",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/95ed135be867c43",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063524808,
+        "stop" : 1565063540592,
+        "duration" : 15784
+      }
+    } ]
+  },
+  "be88b8dc55049b8034e224f531657d4f" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "d4b6ec9e96ff8f83",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/d4b6ec9e96ff8f83",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199736970,
+        "stop" : 1565199780484,
+        "duration" : 43514
+      }
+    }, {
+      "uid" : "3f70ce36c38f30a0",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/3f70ce36c38f30a0",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066797732,
+        "stop" : 1565066827943,
+        "duration" : 30211
+      }
+    } ]
+  },
+  "ef4d7d7536b8c899ae2a031fb6950155" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "4ed046f780de5168",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/4ed046f780de5168",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195502352,
+        "stop" : 1565195522837,
+        "duration" : 20485
+      }
+    }, {
+      "uid" : "279cbb111e46c5da",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/279cbb111e46c5da",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062172946,
+        "stop" : 1565062192587,
+        "duration" : 19641
+      }
+    } ]
+  },
+  "ab42440d0bb3ac697941928cdf74f9cf" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "37908103c2c18ff3",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/37908103c2c18ff3",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197976783,
+        "stop" : 1565198040892,
+        "duration" : 64109
+      }
+    }, {
+      "uid" : "c079ae819b5efed8",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/c079ae819b5efed8",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064904823,
+        "stop" : 1565064964889,
+        "duration" : 60066
+      }
+    } ]
+  },
+  "1ffb91e47d71f76fbdcd906c708ecc44" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "c61b9a867765dcb9",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/c61b9a867765dcb9",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195777860,
+        "stop" : 1565195807940,
+        "duration" : 30080
+      }
+    }, {
+      "uid" : "89baf4c6b151ef3f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/89baf4c6b151ef3f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062522642,
+        "stop" : 1565062535157,
+        "duration" : 12515
+      }
+    } ]
+  },
+  "82d4d6f34f9918460d8d16b25f9de912" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "188c338e4497147",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/188c338e4497147",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199319309,
+        "stop" : 1565199351856,
+        "duration" : 32547
+      }
+    }, {
+      "uid" : "ff1073802cde8be3",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ff1073802cde8be3",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066362466,
+        "stop" : 1565066392677,
+        "duration" : 30211
+      }
+    } ]
+  },
+  "fec7bbe312e4ecf521175dfa118775e7" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "e5dd01555d3f08b0",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/e5dd01555d3f08b0",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198545201,
+        "stop" : 1565198562394,
+        "duration" : 17193
+      }
+    }, {
+      "uid" : "449047b653549806",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/449047b653549806",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065491469,
+        "stop" : 1565065515481,
+        "duration" : 24012
+      }
+    } ]
+  },
+  "6e78114eb96abbce59f058170ee035b4" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "b213c074ff916491",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/b213c074ff916491",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195664826,
+        "stop" : 1565195690368,
+        "duration" : 25542
+      }
+    }, {
+      "uid" : "1bc323cd4a4c66d9",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/1bc323cd4a4c66d9",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062354366,
+        "stop" : 1565062368645,
+        "duration" : 14279
+      }
+    } ]
+  },
+  "d6160fb1deab7c9c51fb37d3d19468dd" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "cc7d8aec3a3b3395",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/cc7d8aec3a3b3395",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199673372,
+        "stop" : 1565199700923,
+        "duration" : 27551
+      }
+    }, {
+      "uid" : "b30fffa46786e09",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/b30fffa46786e09",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066723115,
+        "stop" : 1565066756887,
+        "duration" : 33772
+      }
+    } ]
+  },
+  "22b320af6852f5303dfb284343dac2fe" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "b32dba8487e6b211",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/b32dba8487e6b211",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198736542,
+        "stop" : 1565198757825,
+        "duration" : 21283
+      }
+    }, {
+      "uid" : "fd6660a417a81897",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/fd6660a417a81897",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065731106,
+        "stop" : 1565065761725,
+        "duration" : 30619
+      }
+    } ]
+  },
+  "b44a8c4347d48147ce52d70bf74a2c49" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "47a841082138aff4",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/47a841082138aff4",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195906071,
+        "stop" : 1565195927197,
+        "duration" : 21126
+      }
+    }, {
+      "uid" : "45be94dd01c44f14",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/45be94dd01c44f14",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062614985,
+        "stop" : 1565062649088,
+        "duration" : 34103
+      }
+    } ]
+  },
+  "a5a564c94e45893f80baeaec76b52e9f" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "340c054765a82ee3",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/340c054765a82ee3",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194700182,
+        "stop" : 1565194725098,
+        "duration" : 24916
+      }
+    }, {
+      "uid" : "dfd47d0fa64cb90d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/dfd47d0fa64cb90d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061294218,
+        "stop" : 1565061315503,
+        "duration" : 21285
+      }
+    } ]
+  },
+  "2f2b94ab46333328ad370cacd98e9a63" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "d63aff1becafeb15",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/d63aff1becafeb15",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196792025,
+        "stop" : 1565196808391,
+        "duration" : 16366
+      }
+    }, {
+      "uid" : "5d83b88c345c90ba",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/5d83b88c345c90ba",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063612520,
+        "stop" : 1565063638301,
+        "duration" : 25781
+      }
+    } ]
+  },
+  "533283167a63ce4bcd1bf001a124f8f3" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "3296c2e458f9a153",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/3296c2e458f9a153",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196070214,
+        "stop" : 1565196083823,
+        "duration" : 13609
+      }
+    }, {
+      "uid" : "bcb63bade301a1bf",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/bcb63bade301a1bf",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062821966,
+        "stop" : 1565062842660,
+        "duration" : 20694
+      }
+    } ]
+  },
+  "5a5520b11d58525311a1c13b28ba83c1" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "203e1d4a45d4bb0e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/203e1d4a45d4bb0e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196768522,
+        "stop" : 1565196786865,
+        "duration" : 18343
+      }
+    }, {
+      "uid" : "9c82ba3e554be405",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/9c82ba3e554be405",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063571541,
+        "stop" : 1565063607485,
+        "duration" : 35944
+      }
+    } ]
+  },
+  "521c5f1ff4e990047b25fbea5e080b43" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "51c1f3635b5d7e42",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/51c1f3635b5d7e42",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199590577,
+        "stop" : 1565199627899,
+        "duration" : 37322
+      }
+    }, {
+      "uid" : "63fe638084d9caa8",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/63fe638084d9caa8",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066631502,
+        "stop" : 1565066667259,
+        "duration" : 35757
+      }
+    } ]
+  },
+  "a45fb98e8b59075d649c6b1124dfacb7" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "9e47f93cc21ea20e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/9e47f93cc21ea20e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196110003,
+        "stop" : 1565196130612,
+        "duration" : 20609
+      }
+    }, {
+      "uid" : "5a178caca0633039",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/5a178caca0633039",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062873131,
+        "stop" : 1565062900714,
+        "duration" : 27583
+      }
+    } ]
+  },
+  "8d2c1bd3b035575ddf1f64b58ea3ff3a" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "2e9ed2ff20722959",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/2e9ed2ff20722959",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195812521,
+        "stop" : 1565195833323,
+        "duration" : 20802
+      }
+    }, {
+      "uid" : "a8a897a8309a9e08",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/a8a897a8309a9e08",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062538883,
+        "stop" : 1565062554210,
+        "duration" : 15327
+      }
+    } ]
+  },
+  "ee2b0b61962266b3bae9b83c44c29bfb" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "6e034eeb26584877",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/6e034eeb26584877",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200034497,
+        "stop" : 1565200072559,
+        "duration" : 38062
+      }
+    }, {
+      "uid" : "c5800b1c8e0436fe",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/c5800b1c8e0436fe",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067077578,
+        "stop" : 1565067114398,
+        "duration" : 36820
+      }
+    } ]
+  },
+  "158c42db4a9051fd9cf53b528c9d059f" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "95e4309a406b27f0",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/95e4309a406b27f0",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198827070,
+        "stop" : 1565198846354,
+        "duration" : 19284
+      }
+    }, {
+      "uid" : "2cb8e6a82f2fbde6",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/2cb8e6a82f2fbde6",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065831292,
+        "stop" : 1565065853827,
+        "duration" : 22535
+      }
+    } ]
+  },
+  "9284fa3062f26c1664d0dcc975a1466a" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "ef0da4b1ddadc108",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/ef0da4b1ddadc108",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199951043,
+        "stop" : 1565199980957,
+        "duration" : 29914
+      }
+    }, {
+      "uid" : "65bdeb4dadef4cb",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/65bdeb4dadef4cb",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066993838,
+        "stop" : 1565067025280,
+        "duration" : 31442
+      }
+    } ]
+  },
+  "9e6e3d24110465717f9dfc4bf1f97ae" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "75155160e6bdd240",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/75155160e6bdd240",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200204599,
+        "stop" : 1565200238858,
+        "duration" : 34259
+      }
+    }, {
+      "uid" : "16fa2c6b2755a55f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/16fa2c6b2755a55f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067238199,
+        "stop" : 1565067280487,
+        "duration" : 42288
+      }
+    } ]
+  },
+  "5d40cdcbcd4329b02871782366498257" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "ecd2fd219b89cc55",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/ecd2fd219b89cc55",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196297594,
+        "stop" : 1565196320859,
+        "duration" : 23265
+      }
+    }, {
+      "uid" : "356c32b858022696",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/356c32b858022696",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063073898,
+        "stop" : 1565063103646,
+        "duration" : 29748
+      }
+    } ]
+  },
+  "4b76a49b94ed8eff91ce515f06e562b" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "3d81d818102f6d28",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/3d81d818102f6d28",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197573627,
+        "stop" : 1565197603519,
+        "duration" : 29892
+      }
+    }, {
+      "uid" : "19a9e720d01454e8",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/19a9e720d01454e8",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064442303,
+        "stop" : 1565064493485,
+        "duration" : 51182
+      }
+    } ]
+  },
+  "2f16d8db0f8615d837839dc40f0e39c8" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "11ed74b929720404",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/11ed74b929720404",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195573606,
+        "stop" : 1565195590681,
+        "duration" : 17075
+      }
+    }, {
+      "uid" : "d3bc33f9dd8e3c2a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/d3bc33f9dd8e3c2a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062260561,
+        "stop" : 1565062302691,
+        "duration" : 42130
+      }
+    } ]
+  },
+  "d1e78cc9104ed9f29c50d74d072303c4" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "f76440bcfc5cc20e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/f76440bcfc5cc20e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197873839,
+        "stop" : 1565197939762,
+        "duration" : 65923
+      }
+    }, {
+      "uid" : "218b4d03793e8245",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/218b4d03793e8245",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064796971,
+        "stop" : 1565064855854,
+        "duration" : 58883
+      }
+    } ]
+  },
+  "1edfeae7f0295b70d374fe4eeaab1123" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "49b950dc041ede",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/49b950dc041ede",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195930883,
+        "stop" : 1565195947740,
+        "duration" : 16857
+      }
+    }, {
+      "uid" : "40655702517ec048",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/40655702517ec048",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062653765,
+        "stop" : 1565062682579,
+        "duration" : 28814
+      }
+    } ]
+  },
+  "a147d0bbedd4b90838741be738d77f5e" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "af689fd780437aa9",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/af689fd780437aa9",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199355045,
+        "stop" : 1565199382000,
+        "duration" : 26955
+      }
+    }, {
+      "uid" : "858f306c6b5c5a9b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/858f306c6b5c5a9b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066397367,
+        "stop" : 1565066439718,
+        "duration" : 42351
+      }
+    } ]
+  },
+  "4b0f5482f18a6c259123fe123ec9c097" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "14b25b4c059b22e7",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/14b25b4c059b22e7",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197828457,
+        "stop" : 1565197869318,
+        "duration" : 40861
+      }
+    }, {
+      "uid" : "6dfbb1d9e88c14b8",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/6dfbb1d9e88c14b8",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064741836,
+        "stop" : 1565064791565,
+        "duration" : 49729
+      }
+    } ]
+  },
+  "e799d21410a249b22bb5bf5bb8d8c2fa" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "d823acc5c97dc88b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/d823acc5c97dc88b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195697269,
+        "stop" : 1565195718814,
+        "duration" : 21545
+      }
+    }, {
+      "uid" : "a678ee4ac59af77",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/a678ee4ac59af77",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062373199,
+        "stop" : 1565062408854,
+        "duration" : 35655
+      }
+    } ]
+  },
+  "adc1b9dd883b192db63c919c0247d55b" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "a7bf29e2c969816e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/a7bf29e2c969816e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198982636,
+        "stop" : 1565199004351,
+        "duration" : 21715
+      }
+    }, {
+      "uid" : "813ac8a78245b1",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/813ac8a78245b1",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066020201,
+        "stop" : 1565066052127,
+        "duration" : 31926
+      }
+    } ]
+  },
+  "f5f62ae37b51520bcee472368ce69637" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "50baf6e4596310da",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/50baf6e4596310da",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194624213,
+        "stop" : 1565194643587,
+        "duration" : 19374
+      }
+    }, {
+      "uid" : "14518b9fc4f6e568",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/14518b9fc4f6e568",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061221125,
+        "stop" : 1565061256598,
+        "duration" : 35473
+      }
+    } ]
+  },
+  "a4496dcd05ce2f2faa9db2c1bc6e5478" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "962e9b87599ebc45",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/962e9b87599ebc45",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198763463,
+        "stop" : 1565198786122,
+        "duration" : 22659
+      }
+    }, {
+      "uid" : "ba4d8843855d5fc2",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ba4d8843855d5fc2",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065766300,
+        "stop" : 1565065799242,
+        "duration" : 32942
+      }
+    } ]
+  },
+  "c317a4a92e10f442c70f2a05b0b53eec" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "8ed8327dca40dee0",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/8ed8327dca40dee0",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198513742,
+        "stop" : 1565198541003,
+        "duration" : 27261
+      }
+    }, {
+      "uid" : "7265176be39e6d97",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/7265176be39e6d97",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065466739,
+        "stop" : 1565065485813,
+        "duration" : 19074
+      }
+    } ]
+  },
+  "856d7ac480002edea120758c38cacd3b" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "18f83a4738eae373",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/18f83a4738eae373",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194822035,
+        "stop" : 1565194842886,
+        "duration" : 20851
+      }
+    }, {
+      "uid" : "697c99070c249315",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/697c99070c249315",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061398854,
+        "stop" : 1565061426069,
+        "duration" : 27215
+      }
+    } ]
+  },
+  "350a77c777c624d52d41a55397ea6921" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "f3b94ac223cd6d5a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/f3b94ac223cd6d5a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196851506,
+        "stop" : 1565196898625,
+        "duration" : 47119
+      }
+    }, {
+      "uid" : "701c850b3a335d79",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/701c850b3a335d79",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063687709,
+        "stop" : 1565063727873,
+        "duration" : 40164
+      }
+    } ]
+  },
+  "82451634c67c6562bb49885538ce0b4a" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "1f9b51072e883940",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/1f9b51072e883940",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196747852,
+        "stop" : 1565196763848,
+        "duration" : 15996
+      }
+    }, {
+      "uid" : "743cb77ef0b16f29",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/743cb77ef0b16f29",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063544349,
+        "stop" : 1565063568078,
+        "duration" : 23729
+      }
+    } ]
+  },
+  "b9e3345209877bf870f680eef79641c1" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "d22418878a90c69d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/d22418878a90c69d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200318508,
+        "stop" : 1565200351024,
+        "duration" : 32516
+      }
+    }, {
+      "uid" : "b8a59e674f107e85",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/b8a59e674f107e85",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067367852,
+        "stop" : 1565067399829,
+        "duration" : 31977
+      }
+    } ]
+  },
+  "f965e73b1aa033b979b8529734e94e99" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "cd265af0ea00e5d2",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/cd265af0ea00e5d2",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198404621,
+        "stop" : 1565198429404,
+        "duration" : 24783
+      }
+    }, {
+      "uid" : "f0bc73bd6001d252",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/f0bc73bd6001d252",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065354543,
+        "stop" : 1565065392032,
+        "duration" : 37489
+      }
+    } ]
+  },
+  "350bd7f94b9e29281c8f6eff8338a7a7" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "a54380797e4898d7",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/a54380797e4898d7",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197504673,
+        "stop" : 1565197532349,
+        "duration" : 27676
+      }
+    }, {
+      "uid" : "b7919deb84485efd",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/b7919deb84485efd",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064352515,
+        "stop" : 1565064385350,
+        "duration" : 32835
+      }
+    } ]
+  },
+  "4bef02b804b6aacec05e1a2ee8a28b9e" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "feea7024a086c579",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/feea7024a086c579",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197719033,
+        "stop" : 1565197773437,
+        "duration" : 54404
+      }
+    }, {
+      "uid" : "f8776cd83fb4f76c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/f8776cd83fb4f76c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064614485,
+        "stop" : 1565064672199,
+        "duration" : 57714
+      }
+    } ]
+  },
+  "1489b2992b8b4aad79d7673258c5cd63" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "a125d9a979a47c80",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/a125d9a979a47c80",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194299157,
+        "stop" : 1565194340432,
+        "duration" : 41275
+      }
+    }, {
+      "uid" : "6c8feba59c4be9e1",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/6c8feba59c4be9e1",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565060884065,
+        "stop" : 1565060922175,
+        "duration" : 38110
+      }
+    } ]
+  },
+  "3f3f7474c178fe901e3e5d2b25efd76b" : {
+    "statistic" : {
+      "failed" : 1,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 0,
+      "unknown" : 0,
+      "total" : 1
+    },
+    "items" : [ {
+      "uid" : "7400ce1f2cb34617",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/137/allure/#testresult/7400ce1f2cb34617",
+      "status" : "failed",
+      "statusDetails" : "NoSuchElementException: Message: no such element: Unable to locate element: {\"method\":\"css selector\",\"selector\":\"[data-test='menu-bar-user']\"}\n  (Session info: chrome=76.0.3809.100)\n  (Driver info: chromedriver=2.42.591088 (7b2b2dca23cca0862f674758c9a3933e685c27d5),platform=Windows NT 6.1.7601 SP1 x86_64)\n",
+      "time" : {
+        "start" : 1565681443046,
+        "stop" : 1565681484476,
+        "duration" : 41430
+      }
+    } ]
+  },
+  "164d59cca1b2897a545d2d9d88c3571" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "b321de2c2ef383b9",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/b321de2c2ef383b9",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200355701,
+        "stop" : 1565200387725,
+        "duration" : 32024
+      }
+    }, {
+      "uid" : "78eb769d0646a390",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/78eb769d0646a390",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067404952,
+        "stop" : 1565067438612,
+        "duration" : 33660
+      }
+    } ]
+  },
+  "344f61db7a2f079f48fd23b6e238307" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "a6892a3d82792b48",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/a6892a3d82792b48",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198123137,
+        "stop" : 1565198184617,
+        "duration" : 61480
+      }
+    }, {
+      "uid" : "f8e9bb05ab15392",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/f8e9bb05ab15392",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065043417,
+        "stop" : 1565065116380,
+        "duration" : 72963
+      }
+    } ]
+  },
+  "612a4351acbef4a279eb747940daa7d7" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "a1c7da007db85ead",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/a1c7da007db85ead",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198333686,
+        "stop" : 1565198351317,
+        "duration" : 17631
+      }
+    }, {
+      "uid" : "5c4809d257d20bc6",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/5c4809d257d20bc6",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065262596,
+        "stop" : 1565065288541,
+        "duration" : 25945
+      }
+    } ]
+  },
+  "9bb8a9771033e5657ab2362df5f1e7c" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "e13e862332f1eed0",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/e13e862332f1eed0",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199129375,
+        "stop" : 1565199168607,
+        "duration" : 39232
+      }
+    }, {
+      "uid" : "bf0a13956732d6fd",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/bf0a13956732d6fd",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066184929,
+        "stop" : 1565066233073,
+        "duration" : 48144
+      }
+    } ]
+  },
+  "5987353043389797f3c4302dfecdfe85" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "c389ed5816210a45",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/c389ed5816210a45",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195762111,
+        "stop" : 1565195773864,
+        "duration" : 11753
+      }
+    }, {
+      "uid" : "4fde424d9797b820",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/4fde424d9797b820",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062499667,
+        "stop" : 1565062518939,
+        "duration" : 19272
+      }
+    } ]
+  },
+  "3b0c329720773a6386e5861ce77057cc" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "fcab45dbd2582d9f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/fcab45dbd2582d9f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196088062,
+        "stop" : 1565196104603,
+        "duration" : 16541
+      }
+    }, {
+      "uid" : "86a2890d8e7ce824",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/86a2890d8e7ce824",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062847965,
+        "stop" : 1565062868782,
+        "duration" : 20817
+      }
+    } ]
+  },
+  "75397ed3bb94525923687c8cf39a2523" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "7b1f972d5cf1cf4a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/7b1f972d5cf1cf4a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200555111,
+        "stop" : 1565200586640,
+        "duration" : 31529
+      }
+    }, {
+      "uid" : "eea8d1812d72d48a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/eea8d1812d72d48a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067614245,
+        "stop" : 1565067643623,
+        "duration" : 29378
+      }
+    } ]
+  },
+  "833d50c02e5e11cf7944bfd871fecb15" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "7f32aef6a5974691",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/7f32aef6a5974691",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198457517,
+        "stop" : 1565198483716,
+        "duration" : 26199
+      }
+    }, {
+      "uid" : "fcef9f968648e913",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/fcef9f968648e913",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065423903,
+        "stop" : 1565065439115,
+        "duration" : 15212
+      }
+    } ]
+  },
+  "836d1369bf29e3f81c59f93c0cf1faa9" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "7c0524894b9ea29c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/7c0524894b9ea29c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199009111,
+        "stop" : 1565199024197,
+        "duration" : 15086
+      }
+    }, {
+      "uid" : "a45ec2080798d26b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/a45ec2080798d26b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066057283,
+        "stop" : 1565066082984,
+        "duration" : 25701
+      }
+    } ]
+  },
+  "215eeba67f050e1daf40464486556611" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "8206117e942c9815",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/8206117e942c9815",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194847893,
+        "stop" : 1565194872267,
+        "duration" : 24374
+      }
+    }, {
+      "uid" : "4f44ba8f842709e9",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/4f44ba8f842709e9",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061433788,
+        "stop" : 1565061462755,
+        "duration" : 28967
+      }
+    } ]
+  },
+  "cbc989792db18da37fd68e035f57a54b" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "55a63ad7fd045d5e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/55a63ad7fd045d5e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197537962,
+        "stop" : 1565197568504,
+        "duration" : 30542
+      }
+    }, {
+      "uid" : "e69e60ab3991e1d8",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/e69e60ab3991e1d8",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064389976,
+        "stop" : 1565064435194,
+        "duration" : 45218
+      }
+    } ]
+  },
+  "a8bf9f69aac5367fbee1c98ad58ffafa" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "9c81b9cebff51722",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/9c81b9cebff51722",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196015147,
+        "stop" : 1565196045085,
+        "duration" : 29938
+      }
+    }, {
+      "uid" : "de24f5207f2494bc",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/de24f5207f2494bc",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062770997,
+        "stop" : 1565062791784,
+        "duration" : 20787
+      }
+    } ]
+  },
+  "fa1454c05860352298ff5cd597721841" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "d80b5151c592164e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/d80b5151c592164e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195139711,
+        "stop" : 1565195176860,
+        "duration" : 37149
+      }
+    }, {
+      "uid" : "4191c02344c77259",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/4191c02344c77259",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061738478,
+        "stop" : 1565061774177,
+        "duration" : 35699
+      }
+    } ]
+  },
+  "1be99c8a4a3d31f69196009f71615d23" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "9ecc0c3e2b8f18a0",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/9ecc0c3e2b8f18a0",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198567431,
+        "stop" : 1565198587642,
+        "duration" : 20211
+      }
+    }, {
+      "uid" : "d15370bc2286ba87",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/d15370bc2286ba87",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065522368,
+        "stop" : 1565065563492,
+        "duration" : 41124
+      }
+    } ]
+  },
+  "e580431e7804d65e7475e5b310f454e" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "69493b944cd8f970",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/69493b944cd8f970",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198489186,
+        "stop" : 1565198508950,
+        "duration" : 19764
+      }
+    }, {
+      "uid" : "637d755398d5476d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/637d755398d5476d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065442343,
+        "stop" : 1565065462449,
+        "duration" : 20106
+      }
+    } ]
+  },
+  "5c86ef7f413bb31883510465f4df9cf4" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "4c22d8504fb3f7d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/4c22d8504fb3f7d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197945398,
+        "stop" : 1565197971636,
+        "duration" : 26238
+      }
+    }, {
+      "uid" : "32a6df8910353c24",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/32a6df8910353c24",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064861501,
+        "stop" : 1565064900677,
+        "duration" : 39176
+      }
+    } ]
+  },
+  "1b3c1a3f6f5c9785f714d4526eef0cb6" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "88f619a57dabc240",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/88f619a57dabc240",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194791713,
+        "stop" : 1565194816395,
+        "duration" : 24682
+      }
+    }, {
+      "uid" : "52d3a1e9ff2b97fb",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/52d3a1e9ff2b97fb",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061369443,
+        "stop" : 1565061391788,
+        "duration" : 22345
+      }
+    } ]
+  },
+  "6a545b2f16df1fd8552b9d5dd2f63602" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "cd30cce2f535e2fb",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/cd30cce2f535e2fb",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195256277,
+        "stop" : 1565195278112,
+        "duration" : 21835
+      }
+    }, {
+      "uid" : "49162532378b110f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/49162532378b110f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061870884,
+        "stop" : 1565061893931,
+        "duration" : 23047
+      }
+    } ]
+  },
+  "39b65b2773490f4a9f5862c8e90aa14c" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "90e35a6d8d0f5817",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/90e35a6d8d0f5817",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200244191,
+        "stop" : 1565200274428,
+        "duration" : 30237
+      }
+    }, {
+      "uid" : "88fbeeeed2653a47",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/88fbeeeed2653a47",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067284947,
+        "stop" : 1565067324413,
+        "duration" : 39466
+      }
+    } ]
+  },
+  "a554efee13449af46fb2ebec186b7dee" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "cef8fa1e4412f098",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/cef8fa1e4412f098",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198646033,
+        "stop" : 1565198670666,
+        "duration" : 24633
+      }
+    }, {
+      "uid" : "ce32223eaa8ab471",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ce32223eaa8ab471",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065628239,
+        "stop" : 1565065657282,
+        "duration" : 29043
+      }
+    } ]
+  },
+  "b6ad34de88845891e81f38c7f6f19a94" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "df362a160f77080f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/df362a160f77080f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199090770,
+        "stop" : 1565199125643,
+        "duration" : 34873
+      }
+    }, {
+      "uid" : "ac3b0456c33d39c9",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ac3b0456c33d39c9",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066159932,
+        "stop" : 1565066179774,
+        "duration" : 19842
+      }
+    } ]
+  },
+  "b06a4cdc40c506ead7f124f48ba12ff1" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "eb23bc50184276f6",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/eb23bc50184276f6",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195724430,
+        "stop" : 1565195740789,
+        "duration" : 16359
+      }
+    }, {
+      "uid" : "b34f9e552709272e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/b34f9e552709272e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062414097,
+        "stop" : 1565062456725,
+        "duration" : 42628
+      }
+    } ]
+  },
+  "bf3584a1d501a90afc05d38f6e032329" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "f37f7bad763a0ee4",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/f37f7bad763a0ee4",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198791137,
+        "stop" : 1565198822780,
+        "duration" : 31643
+      }
+    }, {
+      "uid" : "79fde595d729c842",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/79fde595d729c842",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065805033,
+        "stop" : 1565065826716,
+        "duration" : 21683
+      }
+    } ]
+  },
+  "9c0ea012922447600bfc1e1a237fb8af" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "926d98268ea2e0a8",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/926d98268ea2e0a8",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196602393,
+        "stop" : 1565196623954,
+        "duration" : 21561
+      }
+    }, {
+      "uid" : "3eacca16033dcba7",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/3eacca16033dcba7",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565063407386,
+        "stop" : 1565063424576,
+        "duration" : 17190
+      }
+    } ]
+  },
+  "105767b800f3805a6f21725e60c91c20" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "883c3f3cd692187f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/883c3f3cd692187f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200477648,
+        "stop" : 1565200508942,
+        "duration" : 31294
+      }
+    }, {
+      "uid" : "165330bdc3118c67",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/165330bdc3118c67",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067522222,
+        "stop" : 1565067562221,
+        "duration" : 39999
+      }
+    } ]
+  },
+  "fc9404f74acdb05dc5b73cff2dbdb4c" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "69619d6fff63bb32",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/69619d6fff63bb32",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565193962038,
+        "stop" : 1565194009523,
+        "duration" : 47485
+      }
+    }, {
+      "uid" : "f2731f38839f81ef",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/f2731f38839f81ef",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565060537270,
+        "stop" : 1565060590971,
+        "duration" : 53701
+      }
+    } ]
+  },
+  "5c1ab34496b4e7ebd940f56f5eebebdc" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "88281ed439885fe3",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/88281ed439885fe3",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565197420575,
+        "stop" : 1565197461315,
+        "duration" : 40740
+      }
+    }, {
+      "uid" : "b5b574f895910654",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/b5b574f895910654",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565064264903,
+        "stop" : 1565064291960,
+        "duration" : 27057
+      }
+    } ]
+  },
+  "ccf5c9c893199dea876c3be58dfa2778" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "501a8a1ae53f5c6a",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/501a8a1ae53f5c6a",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194502123,
+        "stop" : 1565194528951,
+        "duration" : 26828
+      }
+    }, {
+      "uid" : "a345c26235ed09b4",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/a345c26235ed09b4",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061078862,
+        "stop" : 1565061115409,
+        "duration" : 36547
+      }
+    } ]
+  },
+  "81b45c98ecbbabbdf8365343477b4794" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "a88aefc4f32f3b58",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/a88aefc4f32f3b58",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194418236,
+        "stop" : 1565194451484,
+        "duration" : 33248
+      }
+    }, {
+      "uid" : "74fae0cbf4dfb320",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/74fae0cbf4dfb320",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565060999997,
+        "stop" : 1565061025455,
+        "duration" : 25458
+      }
+    } ]
+  },
+  "e3e452aa3ced545a245b635dfc2d614b" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "faf867a858a9538c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/faf867a858a9538c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195044369,
+        "stop" : 1565195067136,
+        "duration" : 22767
+      }
+    }, {
+      "uid" : "20e84c931a01a510",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/20e84c931a01a510",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061659007,
+        "stop" : 1565061678452,
+        "duration" : 19445
+      }
+    } ]
+  },
+  "69d80a4cbbc56a2a3685b426ae8511bf" : {
+    "statistic" : {
+      "failed" : 1,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 0,
+      "unknown" : 0,
+      "total" : 1
+    },
+    "items" : [ {
+      "uid" : "661be81975ca268c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/661be81975ca268c",
+      "status" : "failed",
+      "statusDetails" : "Exception: Error message should not display with valid business uen",
+      "time" : {
+        "start" : 1565066881598,
+        "stop" : 1565066911663,
+        "duration" : 30065
+      }
+    } ]
+  },
+  "6726dccdbd38378dc3df8225ddf15922" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "13fcff53471a6d45",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/13fcff53471a6d45",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199521309,
+        "stop" : 1565199549062,
+        "duration" : 27753
+      }
+    }, {
+      "uid" : "75d66db7ff497c9d",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/75d66db7ff497c9d",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066559612,
+        "stop" : 1565066593275,
+        "duration" : 33663
+      }
+    } ]
+  },
+  "c26915bcfd39d6c2a13374efded9cec7" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "b01bc29d56d31d52",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/b01bc29d56d31d52",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198189423,
+        "stop" : 1565198223908,
+        "duration" : 34485
+      }
+    }, {
+      "uid" : "ef81738cc20444bb",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/ef81738cc20444bb",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065120033,
+        "stop" : 1565065144920,
+        "duration" : 24887
+      }
+    } ]
+  },
+  "ce844042af90bf5ca2da991437157dd2" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "7d6e93e183938a59",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/7d6e93e183938a59",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195951750,
+        "stop" : 1565195973717,
+        "duration" : 21967
+      }
+    }, {
+      "uid" : "848ec808fc03008c",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/848ec808fc03008c",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062686269,
+        "stop" : 1565062727503,
+        "duration" : 41234
+      }
+    } ]
+  },
+  "8718ddef2ee47c4cb9f4d246a36dd6f3" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "eb6e49e4f348c7f1",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/eb6e49e4f348c7f1",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195440179,
+        "stop" : 1565195462188,
+        "duration" : 22009
+      }
+    }, {
+      "uid" : "8b98263965381403",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/8b98263965381403",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062087056,
+        "stop" : 1565062125107,
+        "duration" : 38051
+      }
+    } ]
+  },
+  "9786814272ce1cff9e8a70292827b0a3" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "3c76d6c8832c498e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/3c76d6c8832c498e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194989349,
+        "stop" : 1565195016466,
+        "duration" : 27117
+      }
+    }, {
+      "uid" : "d6ff35b489d8f502",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/d6ff35b489d8f502",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061577128,
+        "stop" : 1565061615795,
+        "duration" : 38667
+      }
+    } ]
+  },
+  "8c4cd31cfe8693e970439f51fc5dd872" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "165d5d622ece013b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/165d5d622ece013b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194729463,
+        "stop" : 1565194765833,
+        "duration" : 36370
+      }
+    }, {
+      "uid" : "b4a1c08f2d965bc3",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/b4a1c08f2d965bc3",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565061318577,
+        "stop" : 1565061336446,
+        "duration" : 17869
+      }
+    } ]
+  },
+  "4612ca7a42ab901e4c5bb6abb68db1f5" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "2c8ad9ff1ea6ab20",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/2c8ad9ff1ea6ab20",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200440870,
+        "stop" : 1565200471233,
+        "duration" : 30363
+      }
+    }, {
+      "uid" : "4dc03bf2bb4316ef",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/4dc03bf2bb4316ef",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067484554,
+        "stop" : 1565067517074,
+        "duration" : 32520
+      }
+    } ]
+  },
+  "579aadff0af458add6aea6b97b5ecd97" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "4b08249087ba5f3b",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/4b08249087ba5f3b",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565199478086,
+        "stop" : 1565199517623,
+        "duration" : 39537
+      }
+    }, {
+      "uid" : "e5700b7b8032293e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/e5700b7b8032293e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565066515941,
+        "stop" : 1565066553878,
+        "duration" : 37937
+      }
+    } ]
+  },
+  "4b80853e16460346aba0097a6fc0f307" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "5735391ce71d7412",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/5735391ce71d7412",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565194068550,
+        "stop" : 1565194108278,
+        "duration" : 39728
+      }
+    }, {
+      "uid" : "381dfae74eac3471",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/381dfae74eac3471",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565060658467,
+        "stop" : 1565060690108,
+        "duration" : 31641
+      }
+    } ]
+  },
+  "2d92cfc0e1b631b134e9c72b92e60290" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "590a81bd713d328f",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/590a81bd713d328f",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565198229943,
+        "stop" : 1565198288723,
+        "duration" : 58780
+      }
+    }, {
+      "uid" : "fdf59c0b243b6867",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/fdf59c0b243b6867",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565065149496,
+        "stop" : 1565065231914,
+        "duration" : 82418
+      }
+    } ]
+  },
+  "5487f89939390560344c28952ca40d33" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "6949a15a79eb83af",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/6949a15a79eb83af",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565200591745,
+        "stop" : 1565200646045,
+        "duration" : 54300
+      }
+    }, {
+      "uid" : "3659af4f88cd9ba4",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/3659af4f88cd9ba4",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565067648004,
+        "stop" : 1565067705367,
+        "duration" : 57363
+      }
+    } ]
+  },
+  "ae07787cc41c4701d3f102be5329b17" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "2ab9d40496c4274e",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/2ab9d40496c4274e",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565196137286,
+        "stop" : 1565196155886,
+        "duration" : 18600
+      }
+    }, {
+      "uid" : "c0a33dbb1e9245e4",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/c0a33dbb1e9245e4",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062905655,
+        "stop" : 1565062925999,
+        "duration" : 20344
+      }
+    } ]
+  },
+  "5190d86212d37b6cc4bc3015764509a7" : {
+    "statistic" : {
+      "failed" : 0,
+      "broken" : 0,
+      "skipped" : 0,
+      "passed" : 2,
+      "unknown" : 0,
+      "total" : 2
+    },
+    "items" : [ {
+      "uid" : "f97baa1c26e51cd2",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/134/allure/#testresult/f97baa1c26e51cd2",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565195623457,
+        "stop" : 1565195658669,
+        "duration" : 35212
+      }
+    }, {
+      "uid" : "37f8a04e096821c1",
+      "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/133/allure/#testresult/37f8a04e096821c1",
+      "status" : "passed",
+      "time" : {
+        "start" : 1565062336704,
+        "stop" : 1565062350826,
+        "duration" : 14122
+      }
+    } ]
+  }
+}

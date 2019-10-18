@@ -1,0 +1,160 @@
+[INFO] STEP: ==================================================
+[WARNING] root: 1. Login with client account.
+[INFO] STEP: ==================================================
+[DEBUG] DEBUG: Wait for element "[data-test='input-email'] input" visible
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='input-email'] input", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-2/displayed {"id": "0.43434195068080883-2", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-2/displayed HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Input test_cautomation_sw@mailinator.com to the text box
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='input-email'] input", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-2/clear {"id": "0.43434195068080883-2", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-2/clear HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-2/value {"text": "test_cautomation_sw@mailinator.com", "value": ["t", "e", "s", "t", "_", "c", "a", "u", "t", "o", "m", "a", "t", "i", "o", "n", "_", "s", "w", "@", "m", "a", "i", "l", "i", "n", "a", "t", "o", "r", ".", "c", "o", "m"], "id": "0.43434195068080883-2", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-2/value HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Wait for element "[data-test='input-password'] input" visible
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='input-password'] input", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-3/displayed {"id": "0.43434195068080883-3", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-3/displayed HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Input 123123 to the text box
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='input-password'] input", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-3/clear {"id": "0.43434195068080883-3", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-3/clear HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-3/value {"text": "123123", "value": ["1", "2", "3", "1", "2", "3"], "id": "0.43434195068080883-3", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-3/value HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Wait for element [data-test='btn-login'] click-able
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='btn-login']", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-4/displayed {"id": "0.43434195068080883-4", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-4/displayed HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-4/enabled {"id": "0.43434195068080883-4", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-4/enabled HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Click on the element by css: [data-test='btn-login']
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='btn-login']", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-4/click {"id": "0.43434195068080883-4", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-4/click HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[INFO] STEP: ==================================================
+[WARNING] root: 2. Go to account information page.
+[INFO] STEP: ==================================================
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='menu-bar-user']", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/moveto {"element": "0.43434195068080883-5", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/moveto HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='menu-bar-user-my-account']", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/moveto {"element": "0.43434195068080883-6", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/moveto HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/click {"button": 0, "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/click HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[INFO] STEP: ==================================================
+[WARNING] root: 3. Edit business account information.
+[INFO] STEP: ==================================================
+[DEBUG] DEBUG: Wait for element [data-test='ganeral-info-account-edit'] click-able
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='ganeral-info-account-edit']", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-7/displayed {"id": "0.43434195068080883-7", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-7/displayed HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-7/enabled {"id": "0.43434195068080883-7", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-7/enabled HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Click on the element by css: [data-test='ganeral-info-account-edit']
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='ganeral-info-account-edit']", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-7/click {"id": "0.43434195068080883-7", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-7/click HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Wait for element "[data-test='ganeral-info-account-name'] input" visible
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='ganeral-info-account-name'] input", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-8/displayed {"id": "0.43434195068080883-8", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-8/displayed HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Input  New Name to the text box
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='ganeral-info-account-name'] input", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-8/clear {"id": "0.43434195068080883-8", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-8/clear HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-8/value {"text": " New Name", "value": [" ", "N", "e", "w", " ", "N", "a", "m", "e"], "id": "0.43434195068080883-8", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-8/value HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Wait for element "[data-test='ganeral-info-account-phone'] input" visible
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='ganeral-info-account-phone'] input", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-9/displayed {"id": "0.43434195068080883-9", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-9/displayed HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Input 0378998730 to the text box
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='ganeral-info-account-phone'] input", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-9/clear {"id": "0.43434195068080883-9", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-9/clear HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-9/value {"text": "0378998730", "value": ["0", "3", "7", "8", "9", "9", "8", "7", "3", "0"], "id": "0.43434195068080883-9", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-9/value HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Wait for element [data-test='ganeral-info-account-save'] click-able
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='ganeral-info-account-save']", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 104
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-10/displayed {"id": "0.43434195068080883-10", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-10/displayed HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-10/enabled {"id": "0.43434195068080883-10", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-10/enabled HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Click on the element by css: [data-test='ganeral-info-account-save']
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='ganeral-info-account-save']", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 104
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-10/click {"id": "0.43434195068080883-10", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-10/click HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[INFO] STEP: ==================================================
+[WARNING] root: 4. Verify new information are applied
+[INFO] STEP: ==================================================
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='ganeral-info-account-name'] input", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-8/attribute/value {"name": "value", "id": "0.43434195068080883-8", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-8/attribute/value HTTP/1.1" 200 79
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[INFO] INFO: Got expected name.
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element {"using": "css selector", "value": "[data-test='ganeral-info-account-phone'] input", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "POST /session/916bf3600b197aea58dc3606f445f802/element HTTP/1.1" 200 103
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49460/session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-9/attribute/value {"name": "value", "id": "0.43434195068080883-9", "sessionId": "916bf3600b197aea58dc3606f445f802"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49460 "GET /session/916bf3600b197aea58dc3606f445f802/element/0.43434195068080883-9/attribute/value HTTP/1.1" 200 80
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[INFO] INFO: Got expected phone number.

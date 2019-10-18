@@ -1,0 +1,34 @@
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49213/session {"capabilities": {"firstMatch": [{}], "alwaysMatch": {"browserName": "chrome", "platformName": "any", "goog:chromeOptions": {"extensions": [], "args": []}}}, "desiredCapabilities": {"browserName": "chrome", "version": "", "platform": "ANY", "goog:chromeOptions": {"extensions": [], "args": []}}}
+[DEBUG] urllib3.connectionpool: Starting new HTTP connection (1): 127.0.0.1:49213
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49213 "POST /session HTTP/1.1" 200 891
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[INFO] INFO: Set implicitly wait to 3.
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49213/session/7ff087347cd610722b38ed75b0b7de99/timeouts/implicit_wait {"ms": 3000.0, "sessionId": "7ff087347cd610722b38ed75b0b7de99"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49213 "POST /session/7ff087347cd610722b38ed75b0b7de99/timeouts/implicit_wait HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49213/session/7ff087347cd610722b38ed75b0b7de99/window/current/maximize {"windowHandle": "current", "sessionId": "7ff087347cd610722b38ed75b0b7de99"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49213 "POST /session/7ff087347cd610722b38ed75b0b7de99/window/current/maximize HTTP/1.1" 200 109
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: DELETE http://127.0.0.1:49213/session/7ff087347cd610722b38ed75b0b7de99/cookie {"sessionId": "7ff087347cd610722b38ed75b0b7de99"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49213 "DELETE /session/7ff087347cd610722b38ed75b0b7de99/cookie HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49213/session/7ff087347cd610722b38ed75b0b7de99/url {"url": "http://freightknot.com", "sessionId": "7ff087347cd610722b38ed75b0b7de99"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49213 "POST /session/7ff087347cd610722b38ed75b0b7de99/url HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Wait for element [data-test='header_sign-in'] click-able
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49213/session/7ff087347cd610722b38ed75b0b7de99/element {"using": "css selector", "value": "[data-test='header_sign-in']", "sessionId": "7ff087347cd610722b38ed75b0b7de99"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49213 "POST /session/7ff087347cd610722b38ed75b0b7de99/element HTTP/1.1" 200 102
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49213/session/7ff087347cd610722b38ed75b0b7de99/element/0.4646739404070246-1/displayed {"id": "0.4646739404070246-1", "sessionId": "7ff087347cd610722b38ed75b0b7de99"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49213 "GET /session/7ff087347cd610722b38ed75b0b7de99/element/0.4646739404070246-1/displayed HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: GET http://127.0.0.1:49213/session/7ff087347cd610722b38ed75b0b7de99/element/0.4646739404070246-1/enabled {"id": "0.4646739404070246-1", "sessionId": "7ff087347cd610722b38ed75b0b7de99"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49213 "GET /session/7ff087347cd610722b38ed75b0b7de99/element/0.4646739404070246-1/enabled HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] DEBUG: Click on the element by css: [data-test='header_sign-in']
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49213/session/7ff087347cd610722b38ed75b0b7de99/element {"using": "css selector", "value": "[data-test='header_sign-in']", "sessionId": "7ff087347cd610722b38ed75b0b7de99"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49213 "POST /session/7ff087347cd610722b38ed75b0b7de99/element HTTP/1.1" 200 102
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request
+[DEBUG] selenium.webdriver.remote.remote_connection: POST http://127.0.0.1:49213/session/7ff087347cd610722b38ed75b0b7de99/element/0.4646739404070246-1/click {"id": "0.4646739404070246-1", "sessionId": "7ff087347cd610722b38ed75b0b7de99"}
+[DEBUG] urllib3.connectionpool: http://127.0.0.1:49213 "POST /session/7ff087347cd610722b38ed75b0b7de99/element/0.4646739404070246-1/click HTTP/1.1" 200 72
+[DEBUG] selenium.webdriver.remote.remote_connection: Finished Request

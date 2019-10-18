@@ -1,0 +1,10 @@
+[ {
+  "name" : "Jenkins",
+  "type" : "jenkins",
+  "url" : "http://192.168.0.88:9090/",
+  "buildOrder" : 137,
+  "buildName" : "freightknot-automation #137",
+  "buildUrl" : "http://192.168.0.88:9090/job/freightknot-automation/137/",
+  "reportName" : "AllureReport",
+  "reportUrl" : "http://192.168.0.88:9090/job/freightknot-automation/137/allure"
+} ]

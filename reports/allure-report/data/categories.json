@@ -1,0 +1,108 @@
+{
+  "uid" : "4b4757e66a1912dae1a509f688f20b0f",
+  "name" : "categories",
+  "children" : [ {
+    "name" : "Product defects",
+    "children" : [ {
+      "name" : "NoSuchElementException: Message: no such element: Unable to locate element: {\"method\":\"css selector\",\"selector\":\"[data-test='menu-bar-user']\"}\n  (Session info: chrome=76.0.3809.100)\n  (Driver info: chromedriver=2.42.591088 (7b2b2dca23cca0862f674758c9a3933e685c27d5),platform=Windows NT 6.1.7601 SP1 x86_64)\n",
+      "children" : [ {
+        "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_add_new_delete_address_1___Hello_Kitty____01678997830____41_Nguyen_Thi_Kitty___Sai_Gon___Viet_Nam____Sai_Gon____990000__",
+        "uid" : "e67c6bbf0d251166",
+        "parentUid" : "7e21cc72e189543369c4ee82777cb50f",
+        "status" : "failed",
+        "time" : {
+          "start" : 1565681298960,
+          "stop" : 1565681331057,
+          "duration" : 32097
+        },
+        "flaky" : false,
+        "newFailed" : false,
+        "parameters" : [ ]
+      }, {
+        "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_change_password_with_inconsistent_new_password",
+        "uid" : "75f9b9b219c8e2b5",
+        "parentUid" : "7e21cc72e189543369c4ee82777cb50f",
+        "status" : "failed",
+        "time" : {
+          "start" : 1565681403974,
+          "stop" : 1565681438147,
+          "duration" : 34173
+        },
+        "flaky" : false,
+        "newFailed" : false,
+        "parameters" : [ ]
+      }, {
+        "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_change_password_with_wrong_current_password",
+        "uid" : "7400ce1f2cb34617",
+        "parentUid" : "7e21cc72e189543369c4ee82777cb50f",
+        "status" : "failed",
+        "time" : {
+          "start" : 1565681443046,
+          "stop" : 1565681484476,
+          "duration" : 41430
+        },
+        "flaky" : false,
+        "newFailed" : false,
+        "parameters" : [ ]
+      }, {
+        "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_edit_business_account_information",
+        "uid" : "6b2cd4e5739df5d",
+        "parentUid" : "7e21cc72e189543369c4ee82777cb50f",
+        "status" : "failed",
+        "time" : {
+          "start" : 1565681489436,
+          "stop" : 1565681526211,
+          "duration" : 36775
+        },
+        "flaky" : false,
+        "newFailed" : false,
+        "parameters" : [ ]
+      }, {
+        "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_email_is_displayed_in_account_information",
+        "uid" : "690457c5b4905fa5",
+        "parentUid" : "7e21cc72e189543369c4ee82777cb50f",
+        "status" : "failed",
+        "time" : {
+          "start" : 1565681578005,
+          "stop" : 1565681610451,
+          "duration" : 32446
+        },
+        "flaky" : false,
+        "newFailed" : false,
+        "parameters" : [ ]
+      }, {
+        "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_password_is_covered_in_account_information",
+        "uid" : "c266d089c383c094",
+        "parentUid" : "7e21cc72e189543369c4ee82777cb50f",
+        "status" : "failed",
+        "time" : {
+          "start" : 1565681615668,
+          "stop" : 1565681645238,
+          "duration" : 29570
+        },
+        "flaky" : false,
+        "newFailed" : false,
+        "parameters" : [ ]
+      } ],
+      "uid" : "7e21cc72e189543369c4ee82777cb50f"
+    }, {
+      "name" : "NoSuchElementException: Message: no such element: Unable to locate element: {\"method\":\"css selector\",\"selector\":\"[data-test='menu-bar-user-my-account']\"}\n  (Session info: chrome=76.0.3809.100)\n  (Driver info: chromedriver=2.42.591088 (7b2b2dca23cca0862f674758c9a3933e685c27d5),platform=Windows NT 6.1.7601 SP1 x86_64)\n",
+      "children" : [ {
+        "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_change_account_password",
+        "uid" : "423a2ee383f85304",
+        "parentUid" : "da0435d3d507923caa7d7d591d1f3df0",
+        "status" : "failed",
+        "time" : {
+          "start" : 1565681337758,
+          "stop" : 1565681398835,
+          "duration" : 61077
+        },
+        "flaky" : false,
+        "newFailed" : false,
+        "parameters" : [ ]
+      } ],
+      "uid" : "da0435d3d507923caa7d7d591d1f3df0"
+    } ],
+    "uid" : "8fb3a91ba5aaf9de24cc8a92edc82b5d"
+  } ]
+}

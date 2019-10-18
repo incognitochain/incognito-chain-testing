@@ -1,0 +1,81 @@
+[ {
+  "uid" : "7400ce1f2cb34617",
+  "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_change_password_with_wrong_current_password",
+  "time" : {
+    "start" : 1565681443046,
+    "stop" : 1565681484476,
+    "duration" : 41430
+  },
+  "status" : "failed",
+  "severity" : "normal"
+}, {
+  "uid" : "e67c6bbf0d251166",
+  "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_add_new_delete_address_1___Hello_Kitty____01678997830____41_Nguyen_Thi_Kitty___Sai_Gon___Viet_Nam____Sai_Gon____990000__",
+  "time" : {
+    "start" : 1565681298960,
+    "stop" : 1565681331057,
+    "duration" : 32097
+  },
+  "status" : "failed",
+  "severity" : "normal"
+}, {
+  "uid" : "c266d089c383c094",
+  "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_password_is_covered_in_account_information",
+  "time" : {
+    "start" : 1565681615668,
+    "stop" : 1565681645238,
+    "duration" : 29570
+  },
+  "status" : "failed",
+  "severity" : "normal"
+}, {
+  "uid" : "423a2ee383f85304",
+  "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_change_account_password",
+  "time" : {
+    "start" : 1565681337758,
+    "stop" : 1565681398835,
+    "duration" : 61077
+  },
+  "status" : "failed",
+  "severity" : "normal"
+}, {
+  "uid" : "6b2cd4e5739df5d",
+  "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_edit_business_account_information",
+  "time" : {
+    "start" : 1565681489436,
+    "stop" : 1565681526211,
+    "duration" : 36775
+  },
+  "status" : "failed",
+  "severity" : "normal"
+}, {
+  "uid" : "e474914d6559f797",
+  "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_edit_client_account_information",
+  "time" : {
+    "start" : 1565681531270,
+    "stop" : 1565681572444,
+    "duration" : 41174
+  },
+  "status" : "passed",
+  "severity" : "normal"
+}, {
+  "uid" : "690457c5b4905fa5",
+  "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_email_is_displayed_in_account_information",
+  "time" : {
+    "start" : 1565681578005,
+    "stop" : 1565681610451,
+    "duration" : 32446
+  },
+  "status" : "failed",
+  "severity" : "normal"
+}, {
+  "uid" : "75f9b9b219c8e2b5",
+  "name" : "C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases.C:\\Jenkins-agent\\workspace\\freightknot-automation\\Automation\\testcases\\user_profile.test_user_profile.TestUserProfile.test_change_password_with_inconsistent_new_password",
+  "time" : {
+    "start" : 1565681403974,
+    "stop" : 1565681438147,
+    "duration" : 34173
+  },
+  "status" : "failed",
+  "severity" : "normal"
+} ]
