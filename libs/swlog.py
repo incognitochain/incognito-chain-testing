@@ -114,7 +114,7 @@ def STEP(msg):
     logging.addLevelName(STEP_LEVEL_NUM, 'STEP')
     log.info('=' * 50)
     # logging.log(STEP_LEVEL_NUM, msg)
-    log.info('####' + msg)
+    log.info(msg)
     log.info('=' * 50)
 
 

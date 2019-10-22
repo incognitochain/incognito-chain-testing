@@ -20,6 +20,7 @@ parse==1.9.0
 parse-type==0.4.2
 pathlib2==2.3.2
 pluggy==0.7.1
+pexpect==4.7.0
 py==1.6.0
 pytest==3.8.1
 pytest-allure-adaptor==1.7.10
@@ -36,3 +37,4 @@ selenium==3.14.1
 six==1.11.0
 urllib3==1.23
 virtualenv==16.0.0
+websocket-client==0.56.0
