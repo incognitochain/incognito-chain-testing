@@ -5,11 +5,7 @@ Created Oct 11 2018
 """
 # pylint: disable = too-many-public-methods
 import unittest
-import pytest
-# from ddt import ddt, data
-from libs.swlog import STEP, assert_true, wait_time, DEBUG
-from libs.node_handler import ssh2pc
-from libs.websocket import ws
+
 # from Automation.pages.sign_up.base_sign_up import BaseSignUp
 # from Automation.util.utils import Utils
 # from Automation.util.mail_checking import MailChecking
@@ -17,7 +13,15 @@ from libs.websocket import ws
 # from Automation.pages.login.base_login import BaseLogin
 # from Automation.pages.user_profile.base_user_profile import BaseUserProfile
 # from Automation.workflow.sign_up import SignUp
-import requests, json, time
+import json
+import pytest
+import requests
+
+from libs.NodeHandler import SSH2PC
+from libs.WebSocket import WebSocket
+# from ddt import ddt, data
+from libs.swlog import STEP
+
 
 class test_sendPRV(unittest.TestCase):
     """
@@ -67,19 +71,19 @@ class test_sendPRV(unittest.TestCase):
             return aa['Error']['Message']
 
     def stopNode(self, ip, username, stakename):
-        staking = ssh2pc(ip,username,"na")
+        staking = SSH2PC(ip, username, "na")
         print(staking.stopDocker(stakename))
         # print(staking.startDocker(stakename))
         staking.logout()
 
     def startNode(self, ip, username, stakename):
-        staking = ssh2pc(ip,username,"na")
+        staking = SSH2PC(ip, username, "na")
         # print(staking.stopDocker(stakename))
         print(staking.startDocker(stakename))
         staking.logout()
 
     def delDbNode(self, ip, username, stakename):
-        staking = ssh2pc(ip,username,"na")
+        staking = SSH2PC(ip, username, "na")
         # print(staking.stopDocker(stakename))
         print(staking.deleteDatabase(stakename))
         staking.logout()
@@ -177,7 +181,7 @@ class test_sendPRV(unittest.TestCase):
 
        
         STEP("3.1 subcribe transaction")
-        step31 = ws(self.test_data["ws0"])
+        step31 = WebSocket(self.test_data["ws0"])
         step31.createConnection()
         step31_result = step31.subcribePendingTransaction(step3_result)
         step31.closeConnection()
@@ -221,13 +225,13 @@ class test_sendPRV(unittest.TestCase):
 
        
         STEP("3.1 subcribe transaction")
-        step31 = ws(self.test_data["ws0"])
+        step31 = WebSocket(self.test_data["ws0"])
         step31.createConnection()
         step31_result = step31.subcribePendingTransaction(step3_result)
         step31.closeConnection()
         
         STEP("3.2 subcribe cross transaction")
-        step32 = ws(self.test_data["ws4"])
+        step32 = WebSocket(self.test_data["ws4"])
         step32.createConnection()
         step32_result = step32.subcribeCrossOutputCoinByPrivatekey(self.test_data["address3_privatekey"])
         step32.closeConnection()
@@ -248,7 +252,7 @@ class test_sendPRV(unittest.TestCase):
         Verify send PRV to another address
         """
         STEP("1. subcribe cross transaction")
-        step1 = ws(self.test_data["ws4"])
+        step1 = WebSocket(self.test_data["ws4"])
         step1.createConnection()
         step1_result = step1.subcribeCrossOutputCoinByPrivatekey(self.test_data["address3_privatekey"])
         step1.closeConnection()
