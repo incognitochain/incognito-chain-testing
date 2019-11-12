@@ -5,11 +5,11 @@ from pexpect import pxssh
 
 
 class SSH2PC:
-    def __init__(self, host, username, password):
+    def __init__(self, host, username, password, sshkey):
         self.host = host
         self.username = username
         self.password = password
-        self.sshkey = "/Users/khanhlh/stagging"
+        self.sshkey = sshkey
 
         self.spawn = pxssh.pxssh()
         # initial ssh-login session:

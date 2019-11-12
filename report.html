@@ -127,9 +127,8 @@ function init () {
                               }, false)
     });
 
-};
-
-function sort_table(clicked, key_func) {
+}
+    function sort_table(clicked, key_func) {
     var rows = find_all('.results-table-row');
     var reversed = !clicked.classList.contains('asc');
     var sorted_rows = sort(rows, key_func, reversed);
@@ -235,7 +234,7 @@ function filter_table(elem) {
 }
 </script>
     <h1>report.html</h1>
-    <p>Report generated on 22-Oct-2019 at 13:00:27 by<a href="https://pypi.python.org/pypi/pytest-html"> pytest-html</a> v1.19.0</p>
+    <p>Report generated on 04-Nov-2019 at 17:04:27 by<a href="https://pypi.python.org/pypi/pytest-html"> pytest-html</a> v1.19.0</p>
     <h2>Environment</h2>
     <table id="environment">
       <tr>
@@ -251,8 +250,8 @@ function filter_table(elem) {
         <td>Python</td>
         <td>3.7.4</td></tr></table>
     <h2>Summary</h2>
-    <p>1 tests ran in 113.40 seconds. </p>
-    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">1 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <p>2 tests ran in 8.42 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">2 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
     <h2>Results</h2>
     <table id="results-table">
       <thead id="results-table-head">
@@ -266,8 +265,41 @@ function filter_table(elem) {
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">testcases/prv_transaction/test_sendPRV.py::test_sendPRV::test_1startnode_shard0</td>
-          <td class="col-duration">113.19</td>
+          <td class="col-name">testcases/prv_transaction/test_SendPRV.py::test_sendPRV::test_2sendPRV_privacy_1shard</td>
+          <td class="col-duration">8.08</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">---------------------------- Captured logbook call -----------------------------<br/>[INFO] STEP: ==================================================
+[INFO] STEP: 1. get address1 and address2 balance before sending
+[INFO] STEP: ==================================================
+[DEBUG] urllib3.connectionpool: Starting new HTTP connection (1): 172.105.112.133:20006
+[DEBUG] urllib3.connectionpool: http://172.105.112.133:20006 &quot;POST / HTTP/1.1&quot; 200 None
+[DEBUG] urllib3.connectionpool: Starting new HTTP connection (1): 172.105.112.133:20006
+[DEBUG] urllib3.connectionpool: http://172.105.112.133:20006 &quot;POST / HTTP/1.1&quot; 200 None
+[INFO] STEP: ==================================================
+[INFO] STEP: 2. from address1 send prv to address2
+[INFO] STEP: ==================================================
+[DEBUG] urllib3.connectionpool: Starting new HTTP connection (1): 172.105.112.133:20006
+[DEBUG] urllib3.connectionpool: http://172.105.112.133:20006 &quot;POST / HTTP/1.1&quot; 200 None
+[INFO] STEP: ==================================================
+[INFO] STEP: 3. subcribe transaction
+[INFO] STEP: ==================================================
+[INFO] STEP: ==================================================
+[INFO] STEP: 4. check address1 balance
+[INFO] STEP: ==================================================
+[DEBUG] urllib3.connectionpool: Starting new HTTP connection (1): 172.105.112.133:20006
+[DEBUG] urllib3.connectionpool: http://172.105.112.133:20006 &quot;POST / HTTP/1.1&quot; 200 None
+[INFO] STEP: ==================================================
+[INFO] STEP: 5. check address2 balance
+[INFO] STEP: ==================================================
+[DEBUG] urllib3.connectionpool: Starting new HTTP connection (1): 172.105.112.133:20006
+[DEBUG] urllib3.connectionpool: http://172.105.112.133:20006 &quot;POST / HTTP/1.1&quot; 200 None</div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">testcases/prv_transaction/test_SendPRV.py::test_sendPRV::test_cleanup</td>
+          <td class="col-duration">0.04</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
