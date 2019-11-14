@@ -2,7 +2,7 @@ import json
 
 import requests, re
 
-from libs.AutoLog import WARN, DEBUG
+from libs.AutoLog import WARN, DEBUG, INFO
 
 
 class DEX():
@@ -201,10 +201,13 @@ class DEX():
         if resp_json['Error'] is None:
             if re.search(pairkey, str(resp_json['Result']['PDEPoolPairs'])):
                 pair = resp_json['Result']['PDEPoolPairs'][pairkey]
+                INFO("Rate of %s-%s is: %d-%d" %(tokenid1[-6:],tokenid2[-6:],pair["Token1PoolValue"],pair["Token2PoolValue"]))
                 return [pair["Token1PoolValue"], pair["Token2PoolValue"]]
             else:
                 if re.search(pairkey2, str(resp_json['Result']['PDEPoolPairs'])):
                     pair = resp_json['Result']['PDEPoolPairs'][pairkey2]
+                    INFO("Rate of %s-%s is: %d-%d" % (
+                    tokenid2[-6:], tokenid1[-6:], pair["Token2PoolValue"], pair["Token1PoolValue"]))
                     return [pair["Token2PoolValue"], pair["Token1PoolValue"]]
                 else:
                     WARN(pairkey + " or " + pairkey2 + " NOT found")
