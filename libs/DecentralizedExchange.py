@@ -74,6 +74,8 @@ class DEX():
 
     def trade_token(self, privatekey, paymentaddress, tokenid_toSell, amount_toSell, tokenid_toBuy,
                     minAmount_toBuy, trading_fee = 0):
+
+        total_amount = amount_toSell + trading_fee
         headers = {'Content-Type': 'application/json'}
         data = {"id": 1, "jsonrpc": "1.0", "method": "createandsendtxwithptokentradereq",
                 "params": [
@@ -87,9 +89,9 @@ class DEX():
                         "TokenTxType": 1,
                         "TokenName": "",
                         "TokenSymbol": "",
-                        "TokenAmount": amount_toSell,
+                        "TokenAmount": total_amount,
                         "TokenReceivers": {
-                            "15pABFiJVeh9D5uiQEhQX4SVibGGbdAVipQxBdxkmDqAJaoG1EdFKHBrNfs": amount_toSell
+                            "15pABFiJVeh9D5uiQEhQX4SVibGGbdAVipQxBdxkmDqAJaoG1EdFKHBrNfs": total_amount
                         },
                         "TokenFee": 0,
 
