@@ -1,5 +1,6 @@
 ## NODE LIST:
 fullnode = {
+    "localhost" : {'ip': '127.0.0.1', 'rpc': 9354},
     0: {'ip': 'test-node.incognito.org', 'rpc': 9334, 'ws': 0, 'username': 'root', 'password': 'xxx',
         'sshkey': '/Users/khanhlh/stagging', 'fullnodename': 'fullnode0'}
 }
@@ -14,6 +15,7 @@ beacon = {
         'sshkey': '/Users/khanhlh/stagging', 'beaconname': 'beacon3'}
 }
 shard0 = {
+    "localhost" : {'ip': '127.0.0.1', 'rpc': 9334},
     3: {'ip': '172.105.112.133', 'rpc': 20006, 'ws': 30006, 'username': 'root', 'password': 'xxx',
         'sshkey': '/Users/khanhlh/stagging', 'stakename': 'shard0-2'},
     4: {'ip': '172.104.82.133', 'rpc': 20007, 'ws': 30007, 'username': 'root', 'password': 'xxx',
@@ -42,6 +44,7 @@ shard0 = {
          'sshkey': '/Users/khanhlh/stagging', 'stakename': 'staking71'}
 }
 shard1 = {
+    "localhost" : {'ip': '127.0.0.1', 'rpc': 9338},
     4: {'ip': '172.104.82.133', 'rpc': 20011, 'ws': 30011, 'username': 'root', 'password': 'xxx',
         'sshkey': '/Users/khanhlh/stagging', 'stakename': 'shard1-3'}
 }
