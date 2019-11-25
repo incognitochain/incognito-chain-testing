@@ -20,10 +20,10 @@ class Transaction():
         if resp_json['Error'] is None:
             # print (resp_json['Result']['TxID'])
             # print (resp_json['Result']['ShardID'])
-            return resp_json['Result']['TxID']
+            return resp_json['Result']['TxID'], "SUCCESS"
         else:
             WARN(resp_json['Error']['Message'])
-            return resp_json['Error']['Message']
+            return resp_json['Error']['Message'], resp_json['Error']['StackTrace']
 
     def getBalance(self, address_privatekey):
         headers = {'Content-Type': 'application/json'}

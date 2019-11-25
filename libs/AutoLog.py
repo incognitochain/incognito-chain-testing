@@ -21,23 +21,26 @@ def custom_logger(log_level=logging.DEBUG):
     # Gets the name of the class / method from where this method is called
     logger_name = inspect.stack()[2][1]
     logger = logging.getLogger(logger_name)
+    formatter = logging.Formatter('%(asctime)s - %(name)-103s - %(levelname)-8s: %(message)s',
+                                  datefmt='%b%d %H:%M:%S')
     if logger.hasHandlers():
         # Logger is already configured, remove all handlers
         logger.handlers = []
 
     # By default, log all messages
     logger.setLevel(logging.DEBUG)
-
     log_file = datetime.now().strftime("run_%b_%d_%Y.log")
-
     file_handler = logging.FileHandler(filename=os.path.join('log', log_file))
-
     file_handler.setLevel(log_level)
-
-    formatter = logging.Formatter('%(asctime)s - %(name)-103s - %(levelname)-8s: %(message)s',
-                                  datefmt='%b%d %H:%M:%S')
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
+
+    # Log STEP - disable
+    # step_log = datetime.now().strftime("step_%b_%d_%Y.log")
+    # step_handler = logging.FileHandler(filename=os.path.join('log', step_log))
+    # step_handler.setLevel(logging.INFO)
+    # step_handler.setFormatter(formatter)
+    # logger.addHandler(step_handler)
 
     return logger
 
@@ -124,6 +127,20 @@ def STEP(no, msg):
     log = custom_logger(logging.INFO)
     log.info("[STEP %d] %s" % (no, msg))
     print("[STEP %d] %s" % (no, msg))
+
+
+# STEP FUNCTION BY van.vo - disabled
+# def step(self, msg, *args, **kwargs):
+#     if self.isEnabledFor(STEP_LEVEL_NUM):
+#         self._log(STEP_LEVEL_NUM, msg, args, **kwargs)
+#
+# logging.Logger.step = step
+#
+# def STEP(msg):
+#     log = custom_logger(logging.INFO)
+#     log.info('=' * 50)
+#     log.step(msg)
+#     log.info('=' * 50)
 
 def RESULT(msg):
     log = custom_logger(logging.INFO)

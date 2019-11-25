@@ -1,0 +1,357 @@
+Nov25 10:21:37 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] get address1 and address2 balance before sending
+Nov25 10:21:37 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699733999247824
+Nov25 10:21:38 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr2_balance: 72999699932
+Nov25 10:21:38 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] from address1 send prv to address2
+Nov25 10:21:38 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : transaction id: 56518a96edccd6a75f0ab091616cda74342927c0160e9a76a321f7fb66b894bd
+Nov25 10:21:38 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] subcribe transaction
+Nov25 10:21:38 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 10:21:38 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: 56518a96edccd6a75f0ab091616cda74342927c0160e9a76a321f7fb66b894bd
+Nov25 10:21:38 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Block: 57856 - Shard: 0 - Fee: 2
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] check address1 balance
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699732999247822
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] check address2 balance
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr2_balance: 73999699932
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699732999247822
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 62999999931
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address1 send prv to address3
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Transaction id: 9a404a20703d9aadad2177249583a8d682f766f15031fa608c2c9ae7f874594e
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] Subcribe transaction
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: 9a404a20703d9aadad2177249583a8d682f766f15031fa608c2c9ae7f874594e
+Nov25 10:21:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 10:21:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Block: 57857 - Shard: 0 - Fee: 2
+Nov25 10:21:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] Subcribe cross transaction by privatekey
+Nov25 10:21:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://139.162.114.95:30023/
+Nov25 10:22:37 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 6] Check address1 balance
+Nov25 10:22:38 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 10:22:38 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 7] Check address3 balance
+Nov25 10:22:38 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Addr3_balance: 63999999931
+Nov25 10:22:38 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 10:22:38 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://139.162.114.95:30023/ connection closed
+Nov25 15:23:13 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 15:23:13 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 15:23:13 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 15:23:13 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 15:23:13 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 15:23:13 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 15:23:13 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 15:23:13 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 15:33:43 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 15:33:44 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 15:33:44 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 15:33:44 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 15:33:44 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 15:33:44 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 15:33:44 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 15:33:44 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 15:48:57 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 15:48:58 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 15:48:58 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 15:48:58 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 15:48:58 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 15:48:58 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 15:48:58 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 15:48:58 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] Subcribe transaction
+Nov25 15:48:58 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 15:48:58 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 15:48:58 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 15:49:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 15:49:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 15:49:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 15:49:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 15:49:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 15:49:47 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 15:49:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 15:49:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] Subcribe transaction
+Nov25 15:49:47 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 15:49:48 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 15:49:48 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 15:53:10 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 15:53:10 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 15:53:10 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 15:53:10 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 15:53:10 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 15:53:10 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 15:53:10 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 15:56:38 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 15:56:38 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 15:56:41 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 15:56:41 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 15:56:41 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 15:56:41 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 15:56:41 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 15:56:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 15:56:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:05:50 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 16:05:50 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 16:05:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 16:05:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 16:05:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 16:05:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 16:05:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 16:05:53 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:05:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:06:13 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 16:06:13 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 16:12:01 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 16:12:01 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 16:12:01 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 16:12:01 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 16:12:01 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 16:12:01 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:12:01 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:12:17 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] Subcribe transaction
+Nov25 16:12:17 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 16:12:17 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 16:12:17 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] From address3 send prv to address1 - Wrong input transaction
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 16:21:03 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 16:22:05 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 16:22:06 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 16:22:06 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 16:22:06 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 16:22:06 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 16:22:06 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:22:06 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:22:06 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] From address3 send prv to address1 - Wrong input transaction
+Nov25 16:22:06 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:22:06 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:22:06 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 16:22:06 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 16:23:46 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 16:23:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 16:23:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 16:23:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 16:23:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 16:23:47 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:23:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:23:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] From address3 send prv to address1 - Wrong input transaction
+Nov25 16:23:47 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:23:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:23:47 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Estimated fee: 5
+Nov25 16:24:02 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 16:24:02 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 16:42:49 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 16:42:49 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] From address3 send prv to address1 - Wrong input transaction
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Estimated fee: 5
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] From address3 send prv to address1 - Wrong input transaction
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 16:42:50 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] From address3 send prv to address1 - Wrong input transaction
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Estimated fee: 5
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] From address3 send prv to address1 - success
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : TxID: fb2d2c002833f8b9571ebe52ad11541639c18626836eebe8c0f004e98476176e
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 6] Subcribe transaction
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.115.135:30022/
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: fb2d2c002833f8b9571ebe52ad11541639c18626836eebe8c0f004e98476176e
+Nov25 16:44:34 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 16:49:35 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 16:49:35 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 16:54:38 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 16:54:39 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699731999247820
+Nov25 16:54:39 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 16:54:39 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 16:54:39 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address1 send prv to address3
+Nov25 16:54:39 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Transaction ID: 363f55f23f0ddfa9b6efd6c9dcff4b05d545f5fb6ef534b866d1ea63d90ce17e
+Nov25 16:54:39 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] Subcribe transaction
+Nov25 16:54:39 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 16:54:39 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: 363f55f23f0ddfa9b6efd6c9dcff4b05d545f5fb6ef534b866d1ea63d90ce17e
+Nov25 16:54:39 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 16:54:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Block: 60214 - Shard: 0 - Fee: 2
+Nov25 16:54:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] Subcribe cross transaction by privatekey
+Nov25 16:54:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.115.135:30022/
+Nov25 16:59:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 16:59:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699730999247818
+Nov25 16:59:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 16:59:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 16:59:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 16:59:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 16:59:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 16:59:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 16:59:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.115.135:30022/ connection closed
+Nov25 17:31:36 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] get address1 and address2 balance before sending
+Nov25 17:31:36 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699730999247818
+Nov25 17:31:36 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr2_balance: 73999699932
+Nov25 17:31:36 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] from address1 send prv to address2
+Nov25 17:31:36 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : transaction id: 9640714b1aca9aa1262bdc29a652dc28ab82426d53fd87bc1ee553b64c311c02
+Nov25 17:31:36 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] subcribe transaction
+Nov25 17:31:36 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 17:31:36 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: 9640714b1aca9aa1262bdc29a652dc28ab82426d53fd87bc1ee553b64c311c02
+Nov25 17:31:36 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 17:31:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Block: 60436 - Shard: 0 - Fee: 2
+Nov25 17:31:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] check address1 balance
+Nov25 17:31:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699729999247816
+Nov25 17:31:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] check address2 balance
+Nov25 17:31:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr2_balance: 74999699932
+Nov25 17:31:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 17:31:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699729999247816
+Nov25 17:31:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 17:31:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 17:31:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address1 send prv to address3
+Nov25 17:31:43 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Transaction ID: 369d12f00e0ea4ebd5945b8f5f9158166334dc5aff9ec50708ee714739a70943
+Nov25 17:31:43 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] Subcribe transaction
+Nov25 17:31:43 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 17:31:43 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: 369d12f00e0ea4ebd5945b8f5f9158166334dc5aff9ec50708ee714739a70943
+Nov25 17:31:43 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 17:31:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Block: 60437 - Shard: 0 - Fee: 2
+Nov25 17:31:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] Subcribe cross transaction by privatekey
+Nov25 17:31:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.115.135:30022/
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699728999247814
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 63999999931
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] From address3 send prv to address1 - Wrong input transaction
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Estimated fee: 5
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] From address3 send prv to address1 - success
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : TxID: 96507c94b7495bd4b725ae4db42a3161e2b22e8fd7677c9e22be1df853781e8f
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 6] Subcribe transaction
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.115.135:30022/
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: 96507c94b7495bd4b725ae4db42a3161e2b22e8fd7677c9e22be1df853781e8f
+Nov25 17:36:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 17:40:24 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] get address1 and address2 balance before sending
+Nov25 17:40:24 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699728999247814
+Nov25 17:40:24 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr2_balance: 74999699932
+Nov25 17:40:24 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] from address1 send prv to address2
+Nov25 17:40:24 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : transaction id: 9c8669b7a17bc492bc450615e504e23a0bbb84d89f073d5c1b9969393ce2a9e5
+Nov25 17:40:24 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] subcribe transaction
+Nov25 17:40:24 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 17:40:24 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: 9c8669b7a17bc492bc450615e504e23a0bbb84d89f073d5c1b9969393ce2a9e5
+Nov25 17:40:24 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Block: 60489 - Shard: 0 - Fee: 2
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] check address1 balance
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699727999247812
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] check address2 balance
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr2_balance: 75999699932
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699727999247812
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 0
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address1 send prv to address3
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Transaction ID: 08bbd88b98f5456a42213b33d049d4bc8a245aacad56bb1598c2396c32e4b488
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] Subcribe transaction
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: 08bbd88b98f5456a42213b33d049d4bc8a245aacad56bb1598c2396c32e4b488
+Nov25 17:40:32 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 17:40:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Block: 60490 - Shard: 0 - Fee: 2
+Nov25 17:40:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] Subcribe cross transaction by privatekey
+Nov25 17:40:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.104.82.133:30011/
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 6] Check address1 balance
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699726999247810
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 7] Check address3 balance
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Addr3_balance: 1000000000
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699726999247810
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 1000000000
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 17:41:32 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] From address3 send prv to address1 - Wrong input transaction
+Nov25 17:41:33 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 17:41:33 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 17:41:33 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Estimated fee: 2
+Nov25 17:41:33 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] From address3 send prv to address1 - success
+Nov25 17:41:33 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : TxID: e854ec8bd81f513a3c7338b82a50b1189e3ca8a31752f3d9208f7f48b1f2c34a
+Nov25 17:41:33 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 6] Subcribe transaction
+Nov25 17:41:33 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.104.82.133:30011/
+Nov25 17:41:33 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: e854ec8bd81f513a3c7338b82a50b1189e3ca8a31752f3d9208f7f48b1f2c34a
+Nov25 17:41:33 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 17:41:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Block: 27330 - Shard: 1 - Fee: 2
+Nov25 17:41:42 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 7] Subcribe cross transaction by privatekey
+Nov25 17:41:42 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 17:42:39 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 8] Check address1 balance
+Nov25 17:42:39 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699727999247808
+Nov25 17:42:39 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 17:42:39 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.104.82.133:30011/ connection closed
+Nov25 17:44:46 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] get address1 and address2 balance before sending
+Nov25 17:44:46 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699727999247808
+Nov25 17:44:46 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr2_balance: 75999699932
+Nov25 17:44:46 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] from address1 send prv to address2
+Nov25 17:44:46 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : transaction id: 094fff78bea2119e6a643e18df755dae785311869e712c27b778ac3855efe54e
+Nov25 17:44:46 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] subcribe transaction
+Nov25 17:44:46 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 17:44:46 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: 094fff78bea2119e6a643e18df755dae785311869e712c27b778ac3855efe54e
+Nov25 17:44:46 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Block: 60515 - Shard: 0 - Fee: 2
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] check address1 balance
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699726999247806
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] check address2 balance
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr2_balance: 76999699932
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699726999247806
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 0
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address1 send prv to address3
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Transaction ID: 9dd3c260da68ec526b23634eb799ff6fac9336e82cc0ca7e87df9301733b7587
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] Subcribe transaction
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: 9dd3c260da68ec526b23634eb799ff6fac9336e82cc0ca7e87df9301733b7587
+Nov25 17:44:52 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 17:45:02 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Block: 60516 - Shard: 0 - Fee: 2
+Nov25 17:45:02 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] Subcribe cross transaction by privatekey
+Nov25 17:45:02 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.104.82.133:30011/
+Nov25 17:45:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 6] Check address1 balance
+Nov25 17:45:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699725999247804
+Nov25 17:45:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 7] Check address3 balance
+Nov25 17:45:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Addr3_balance: 1000000000
+Nov25 17:45:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 1] Get address1 balance
+Nov25 17:45:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699725999247804
+Nov25 17:45:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 2] Get address3 balance
+Nov25 17:45:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr3_balance: 1000000000
+Nov25 17:45:52 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 3] From address3 send prv to address1 - Not enough coin
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 4] From address3 send prv to address1 - Wrong input transaction
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/Transaction.py                                  - WARNING : Can not create tx
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Expecting: Can not create tx
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Estimated fee: 2
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 5] From address3 send prv to address1 - success
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : TxID: 5510af58cbb789f6c5f72a9f105e6eb0f3bb32a656e51fcaf2836098d6e5fc1f
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 6] Subcribe transaction
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.104.82.133:30011/
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Sent subcribependingtransaction: 5510af58cbb789f6c5f72a9f105e6eb0f3bb32a656e51fcaf2836098d6e5fc1f
+Nov25 17:45:53 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : Receiving...
+Nov25 17:46:02 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - INFO    : Block: 27356 - Shard: 1 - Fee: 2
+Nov25 17:46:02 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 7] Subcribe cross transaction by privatekey
+Nov25 17:46:02 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : SUCCEED to establish ws connection: ws://172.105.112.133:30006/
+Nov25 17:46:59 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 8] Check address1 balance
+Nov25 17:46:59 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : addr1_balance: 699726999247802
+Nov25 17:46:59 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : [STEP 7] Check address3 balance
+Nov25 17:46:59 - /Users/khanhlh/repo/github/incognito-chain-testing/testcases/prv_transaction/test_SendPRV.py            - INFO    : Addr3_balance: 0
+Nov25 17:46:59 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.105.112.133:30006/ connection closed
+Nov25 17:47:00 - /Users/khanhlh/repo/github/incognito-chain-testing/libs/WebSocket.py                                    - DEBUG   : ws://172.104.82.133:30011/ connection closed
