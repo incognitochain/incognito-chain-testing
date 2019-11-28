@@ -15,7 +15,7 @@ import unittest
 # from Automation.workflow.sign_up import SignUp
 import pytest
 
-import topology.NodeList as NodeList
+import topology.NodeList_devnet as NodeList
 # from ddt import ddt, data
 from libs.AutoLog import INFO, STEP, assert_true
 from libs.Transaction import Transaction
@@ -40,14 +40,14 @@ class test_sendPRV(unittest.TestCase):
             "12S11S8hSMBci33Qbq62Fr9sbSfMpeYrPivAwHQt6VVm4mUxDsvLbCWTijZ5h9w58gyTzo8QLFztYNxxR5wx5PSPRx2Z81CWDicg7qx",
         'address3_privatekey':
             "112t8rnYzQ1WsqSEPtRxMbxqEyn5QtACqN1oCa2SRQc3tY6unSeh4SwUqSuTKu6pi2ZDx6JP8JV2Zd6wQUvfSZQHSZK9MXVxTwxTzvgkp6Vw",
-        'prv_amount': 1 * 1000000000
+        'prv_amount': 0.123456789 * 1000000000
 
     }
 
     shard03 = Transaction(NodeList.shard0[3]['ip'], NodeList.shard0[3]['rpc'])
     shard03ws = WebSocket(NodeList.shard0[3]['ip'], NodeList.shard0[3]['ws'])
-    shard13 = Transaction(NodeList.shard1[4]['ip'], NodeList.shard1[4]['rpc'])
-    shard13ws = WebSocket(NodeList.shard1[4]['ip'], NodeList.shard1[4]['ws'])
+    shard13 = Transaction(NodeList.shard1[3]['ip'], NodeList.shard1[3]['rpc'])
+    shard13ws = WebSocket(NodeList.shard1[3]['ip'], NodeList.shard1[3]['ws'])
 
     @pytest.mark.run
     def test_2sendPRV_privacy_1shard(self):
@@ -142,7 +142,7 @@ class test_sendPRV(unittest.TestCase):
         STEP(2, "Get address3 balance")
         step2_result = self.shard13.getBalance(self.test_data["address3_privatekey"])
         INFO("addr3_balance: " + str(step2_result))
-        assert step2_result != "Invalid parameters"
+        assert_true(step2_result != 0, "addr3_balance = 0, stop this testcase")
 
         STEP(3, "From address3 send prv to address1 - Not enough coin")
         # send current balance + 10

@@ -7,7 +7,7 @@ from libs.AutoLog import INFO, DEBUG, ERROR
 class WebSocket():
     def __init__(self, ip, ws):
         self.url = "ws://" + ip + ":" + str(ws) + "/"
-        self.timeout = 300
+        self.timeout = 120
         self.ws_conn = create_connection(self.url, self.timeout)
 
     def createConnection(self):
