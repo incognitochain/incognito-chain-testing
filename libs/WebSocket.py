@@ -1,13 +1,14 @@
 import json
 
 from websocket import create_connection
+
 from libs.AutoLog import INFO, DEBUG, ERROR
 
 
 class WebSocket():
     def __init__(self, ip, ws):
         self.url = "ws://" + ip + ":" + str(ws) + "/"
-        self.timeout = 120
+        self.timeout = 180
         self.ws_conn = create_connection(self.url, self.timeout)
 
     def createConnection(self):
@@ -36,7 +37,7 @@ class WebSocket():
         DEBUG("Receiving...")
         result = self.ws_conn.recv()
         res_json = json.loads(result)
-        # print("Received '%s'" % res_json)
+        DEBUG("Received '%s'" % res_json)
         tx_fee = res_json['Result']['Result']['Fee']
         shard = res_json['Result']['Result']['ShardID']
         block = res_json['Result']['Result']['BlockHeight']
@@ -48,10 +49,51 @@ class WebSocket():
         data = {"request": {"jsonrpc": "1.0", "method": "subcribecrossoutputcoinbyprivatekey", "params": [privatekey],
                             "id": 1}, "subcription": "11", "type": 0, }
         self.ws_conn.send(json.dumps(data))
-        print("Sent subcribecrossoutputcoinbyprivatekey: " + privatekey)
+        print("Sent subcribeCrossOutputCoinByPrivatekey: " + privatekey)
         print("Receiving...")
         result = self.ws_conn.recv()
-        print("Received '%s'" % result)
+        res_json = json.loads(result)
+        DEBUG("Received '%s'" % res_json)
+        SenderShardID = res_json['Result']['Result']["SenderShardID"]
+        ReceiverShardID = res_json['Result']['Result']["ReceiverShardID"]
+        BlockHeight = res_json['Result']['Result']["BlockHeight"]
+        INFO(
+            "SenderShardID: %d - ReceiverShardID: %d - BlockHeight: %d" % (SenderShardID, ReceiverShardID, BlockHeight))
+        return True
+
+    def subcribeCrossCustomTokenByPrivatekey(self, privatekey):
+        data = {"request": {"jsonrpc": "1.0", "method": "subcribecrosscustomtokenbyprivatekey", "params": [privatekey],
+                            "id": 1}, "subcription": "11", "type": 0, }
+        self.ws_conn.send(json.dumps(data))
+        print("Sent subcribeCrossCustomTokenByPrivatekey: " + privatekey)
+        print("Receiving...")
+        result = self.ws_conn.recv()
+        res_json = json.loads(result)
+        DEBUG("Received '%s'" % res_json)
+        SenderShardID = res_json['Result']['Result']["SenderShardID"]
+        ReceiverShardID = res_json['Result']['Result']["ReceiverShardID"]
+        BlockHeight = res_json['Result']['Result']["BlockHeight"]
+        TokenID = res_json['Result']['Result']["TokenID"]
+        INFO("SenderShardID: %d - ReceiverShardID: %d - BlockHeight: %d - TokenID: %s"
+             % (SenderShardID, ReceiverShardID, BlockHeight, TokenID))
+        return True
+
+    def subcribeCrossCustomTokenPrivacyByPrivatekey(self, privatekey):
+        data = {"request": {"jsonrpc": "1.0", "method": "subcribecrosscustomtokenprivacybyprivatekey",
+                            "params": [privatekey],
+                            "id": 1}, "subcription": "11", "type": 0, }
+        self.ws_conn.send(json.dumps(data))
+        print("Sent subcribeCrossCustomTokenPrivacyByPrivatekey: " + privatekey)
+        print("Receiving...")
+        result = self.ws_conn.recv()
+        res_json = json.loads(result)
+        DEBUG("Received '%s'" % res_json)
+        SenderShardID = res_json['Result']['Result']["SenderShardID"]
+        ReceiverShardID = res_json['Result']['Result']["ReceiverShardID"]
+        BlockHeight = res_json['Result']['Result']["BlockHeight"]
+        TokenID = res_json['Result']['Result']["TokenID"]
+        INFO("SenderShardID: %d - ReceiverShardID: %d - BlockHeight: %d - TokenID: %s"
+             % (SenderShardID, ReceiverShardID, BlockHeight, TokenID))
         return True
 
     def closeConnection(self):

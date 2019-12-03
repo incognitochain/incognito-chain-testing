@@ -29,17 +29,17 @@ class test_sendPRV(unittest.TestCase):
 
     test_data = {
         'address1_privatekey':
-            "112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA",
-        'address1_payment':
-            "12RxERBySmquLtM1R1Dk2s7J4LyPxqHxcZ956kupQX3FPhVo2KtoUYJWKet2nWqWqSh3asWmgGTYsvz3jX73HqD8Jr2LwhjhJfpG756",
-        'address2_payment':
-            "12RyJTSL2G8KvjN7SUFuiS9Ek4pvFFze3EMMic31fmXVw8McwYzpKPpxeW6TLsNo1UoPhCHKV3GDRLQwdLF41PED3LQNCLsGNKzmCE5",
-        'address2_privatekey':
             "112t8rnXVMJJZzfF1naXvfE9nkTKwUwFWFeh8cfEyViG1vpA8A9khJk3mhyB1hDuJ4RbreDTsZpgJK4YcSxdEpXJKMEd8Vmp5UqKWwBcYzxv",
+        'address1_payment':
+            "12RyJTSL2G8KvjN7SUFuiS9Ek4pvFFze3EMMic31fmXVw8McwYzpKPpxeW6TLsNo1UoPhCHKV3GDRLQwdLF41PED3LQNCLsGNKzmCE5",
+        'address2_payment':
+            "12RwbexYzKJwGaJDdDE7rgLEkNC1dL5cJf4xNaQ29EmpPN52C6oepWiTtQCpyHAoo6ZTHMx2Nt3A8p5jYqpYvbrVYGpVTen1rVstCpr",
+        'address2_privatekey':
+            "112t8rnX6USJnBzswUeuuanesuEEUGsxE8Pj3kkxkqvGRedUUPyocmtsqETX2WMBSvfBCwwsmMpxonhfQm2N5wy3SrNk11eYxEyDtwuGxw2E",
         'address3_payment':
-            "12S11S8hSMBci33Qbq62Fr9sbSfMpeYrPivAwHQt6VVm4mUxDsvLbCWTijZ5h9w58gyTzo8QLFztYNxxR5wx5PSPRx2Z81CWDicg7qx",
+            "12RqmK5woGNeBTy16ouYepSw4QEq28gsv2m81ebcPQ82GgS5S8PHEY37NU2aTacLRruFvjTqKCgffTeMDL83snTYz5zDp1MTLwjVhZS",
         'address3_privatekey':
-            "112t8rnYzQ1WsqSEPtRxMbxqEyn5QtACqN1oCa2SRQc3tY6unSeh4SwUqSuTKu6pi2ZDx6JP8JV2Zd6wQUvfSZQHSZK9MXVxTwxTzvgkp6Vw",
+            "112t8rnXoEWG5H8x1odKxSj6sbLXowTBsVVkAxNWr5WnsbSTDkRiVrSdPy8QfMujntKRYBqywKMJCyhMpdr93T3XiUD5QJR1QFtTpYKpjBEx",
         'prv_amount': 0.123456789 * 1000000000
 
     }
@@ -49,12 +49,15 @@ class test_sendPRV(unittest.TestCase):
     shard13 = Transaction(NodeList.shard1[3]['ip'], NodeList.shard1[3]['rpc'])
     shard13ws = WebSocket(NodeList.shard1[3]['ip'], NodeList.shard1[3]['ws'])
 
+    print("\nENV: " + str(NodeList.shard0[3]))
+    print("ENV: " + str(NodeList.shard1[3]))
+
     @pytest.mark.run
-    def test_2sendPRV_privacy_1shard(self):
-        """
+    def test_02_sendPRV_privacy_1shard(self):
+        print("""
         Verify send PRV to another address 1Shard successfully
-        """
-        print("\n")
+        """)
+
         STEP(1, "get address1 and address2 balance before sending")
         balance1b = self.shard03.getBalance(self.test_data["address1_privatekey"])
         INFO("addr1_balance: " + str(balance1b))
@@ -87,11 +90,11 @@ class test_sendPRV(unittest.TestCase):
         assert balance2a == balance2b + self.test_data["prv_amount"]
 
     @pytest.mark.run
-    def test_3sendPRV_privacy_Xshard(self):
-        """
+    def test_03_sendPRV_privacy_Xshard(self):
+        print("""
         Verify send PRV to another address Xshard successfully
-        """
-        print("\n")
+        """)
+
         STEP(1, "Get address1 balance")
         step1_result = self.shard03.getBalance(self.test_data["address1_privatekey"])
         INFO("addr1_balance: " + str(step1_result))
@@ -127,13 +130,12 @@ class test_sendPRV(unittest.TestCase):
         assert step5_result == step2_result + self.test_data["prv_amount"]
 
     @pytest.mark.run
-    def test_4sendPRV_Xshard_insufficient_fund(self):
-        """
+    def test_04_sendPRV_Xshard_insufficient_fund(self):
+        print("""
         Verify send PRV to another address:
         - Not enough coin (insufficient fund)
         - Wrong input transaction
-        """
-        print("\n")
+        """)
         STEP(1, "Get address1 balance")
         step1_result = self.shard03.getBalance(self.test_data["address1_privatekey"])
         INFO("addr1_balance: " + str(step1_result))
@@ -149,6 +151,7 @@ class test_sendPRV(unittest.TestCase):
         step3_result = self.shard13.sendTransaction(self.test_data["address3_privatekey"],
                                                     self.test_data["address1_payment"], step2_result + 10)
         INFO("Expecting: " + step3_result[0])
+        INFO("StackTrace: " + step3_result[1])
         assert_true(step3_result[0] == 'Can not create tx', "something went wrong, this tx must failed")
         assert_true(re.search(r'Not enough coin', step3_result[1]), "something went so wrong")
 
@@ -159,6 +162,7 @@ class test_sendPRV(unittest.TestCase):
         step4_result = self.shard13.sendTransaction(self.test_data["address3_privatekey"],
                                                     self.test_data["address1_payment"], step2_result)
         INFO("Expecting: " + step4_result[0])
+        INFO("StackTrace: " + step4_result[1])
         assert_true(step4_result[0] == 'Can not create tx', "something went wrong, this tx must failed")
         assert_true(re.search(r'Wrong input transaction', step4_result[1]), "something went so wrong")
         estimated_fee = re.search(r'fee=(\d+)\n', step4_result[1])
@@ -194,9 +198,9 @@ class test_sendPRV(unittest.TestCase):
         assert step7_result == 0
 
     @pytest.mark.run
-    def test_cleanup(self):
-        """
+    def test_99_cleanup(self):
+        print("""
         CLEAN UP
-        """
+        """)
         self.shard03ws.closeConnection()
         self.shard13ws.closeConnection()

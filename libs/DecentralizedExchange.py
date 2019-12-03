@@ -34,7 +34,7 @@ class DEX():
             return resp_json['Result']['TxID']
         else:
             WARN(resp_json['Error']['Message'])
-            return resp_json['Error']['Message']
+            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
 
     def contribute_token(self, privatekey, paymentaddress, tokenid_toContribute, amount_toContribute,
                          contribution_pairID):
@@ -70,7 +70,7 @@ class DEX():
             return resp_json['Result']['TxID']
         else:
             WARN(resp_json['Error']['Message'])
-            return resp_json['Error']['Message']
+            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
 
     def trade_token(self, privatekey, paymentaddress, tokenid_toSell, amount_toSell, tokenid_toBuy,
                     minAmount_toBuy, trading_fee = 0):
@@ -115,7 +115,7 @@ class DEX():
             return resp_json['Result']['TxID']
         else:
             WARN(resp_json['Error']['Message'])
-            return resp_json['Error']['Message']
+            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
 
     def trade_prv(self, privatekey, paymentaddress, amount_toSell, tokenid_toBuy, minAmount_toBuy):
         headers = {'Content-Type': 'application/json'}
@@ -144,7 +144,7 @@ class DEX():
             return resp_json['Result']['TxID']
         else:
             WARN(resp_json['Error']['Message'])
-            return resp_json['Error']['Message']
+            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
 
     def withdrawal_contribution(self, privatekey, paymentaddress, amount_toSell, tokenid1, tokenid2,
                                 amount_withdrawal=25000000000000):
@@ -174,7 +174,7 @@ class DEX():
             return resp_json['Result']['TxID']
         else:
             WARN(resp_json['Error']['Message'])
-            return resp_json['Error']['Message']
+            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
 
     def get_latestRate(self, tokenid1, tokenid2):
         headers = {'Content-Type': 'application/json'}
@@ -212,12 +212,12 @@ class DEX():
                     tokenid2[-6:], tokenid1[-6:], pair["Token2PoolValue"], pair["Token1PoolValue"]))
                     return [pair["Token2PoolValue"], pair["Token1PoolValue"]]
                 else:
-                    WARN(pairkey + " or " + pairkey2 + " NOT found")
+                    WARN(pairkey + " or\n " + pairkey2 + " NOT found")
                     DEBUG(resp_json['Result']['PDEPoolPairs'])
                     return False
         else:
             WARN(resp_json['Error']['Message'])
-            return resp_json['Error']['Message']
+            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
 
     def get_waitingContribution(self, tokenid, paymentaddress):
         headers = {'Content-Type': 'application/json'}
@@ -253,4 +253,4 @@ class DEX():
             return False
         else:
             WARN(resp_json['Error']['Message'])
-            return resp_json['Error']['Message']
+            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
