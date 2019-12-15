@@ -113,7 +113,7 @@ class Transaction():
         headers = {'Content-Type': 'application/json'}
         # TokenTxType = 1 => send token
         data = {"jsonrpc": "1.0", "method": "createandsendprivacycustomtokentransaction", "id": 1,
-                "params": [sender_privatekey, None, prv_fee, 1,
+                "params": [sender_privatekey, None, prv_fee, 0,
                            {
                                "Privacy": True,
                                "TokenID": tokenid,

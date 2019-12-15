@@ -9,7 +9,7 @@ from time import strftime
 
 import pytest
 
-import topology.NodeList as NodeList
+import topology.NodeList_devnet as NodeList
 from libs.AutoLog import INFO, STEP, assert_true, WAIT
 from libs.DecentralizedExchange import DEX
 from libs.Transaction import Transaction
@@ -43,14 +43,22 @@ class test_sendToken(unittest.TestCase):
         'burning_addr': "15pABFiJVeh9D5uiQEhQX4SVibGGbdAVipQxBdxkmDqAJaoG1EdFKHBrNfs"
     }
 
-    shard03dex = DEX(NodeList.shard0[3]['ip'], NodeList.shard0[3]['rpc'])
-    # fullnode_trx = Transaction(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['rpc'])
-    shard03 = Transaction(NodeList.shard0[3]['ip'], NodeList.shard0[3]['rpc'])
-    shard03ws = WebSocket(NodeList.shard0[3]['ip'], NodeList.shard0[3]['ws'])
-    shard13 = Transaction(NodeList.shard1[3]['ip'], NodeList.shard1[3]['rpc'])
-    shard13ws = WebSocket(NodeList.shard1[3]['ip'], NodeList.shard1[3]['ws'])
-    shard23 = Transaction(NodeList.shard2[3]['ip'], NodeList.shard2[3]['rpc'])
-    shard23ws = WebSocket(NodeList.shard2[3]['ip'], NodeList.shard2[3]['ws'])
+    # shard03dex = DEX(NodeList.shard0[3]['ip'], NodeList.shard0[3]['rpc'])
+    # # fullnode_trx = Transaction(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['rpc'])
+    # shard0 = Transaction(NodeList.shard0[3]['ip'], NodeList.shard0[3]['rpc'])
+    # shard0ws = WebSocket(NodeList.shard0[3]['ip'], NodeList.shard0[3]['ws'])
+    # shard1 = Transaction(NodeList.shard1[3]['ip'], NodeList.shard1[3]['rpc'])
+    # shard1ws = WebSocket(NodeList.shard1[3]['ip'], NodeList.shard1[3]['ws'])
+    # shard2 = Transaction(NodeList.shard2[3]['ip'], NodeList.shard2[3]['rpc'])
+    # shard2ws = WebSocket(NodeList.shard2[3]['ip'], NodeList.shard2[3]['ws'])
+
+    shard03dex = DEX(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['rpc'])
+    shard0 = Transaction(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['rpc'])
+    shard0ws = WebSocket(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['ws'])
+    shard1 = Transaction(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['rpc'])
+    shard1ws = WebSocket(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['ws'])
+    shard2 = Transaction(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['rpc'])
+    shard2ws = WebSocket(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['ws'])
 
     print("\nENV: " + str(NodeList.shard0[3]))
     print("ENV: " + str(NodeList.shard1[3]))
@@ -67,35 +75,35 @@ class test_sendToken(unittest.TestCase):
 
         STEP(1, "Initial new token")
         token_symbol = strftime("%H%M%S")
-        s1rs = self.shard03.init_customToken(self.test_data['s0_addr1'][0], self.test_data['s0_addr1'][1], token_symbol,
-                                             self.test_data['init_tokenAmount'])
+        s1rs = self.shard0.init_customToken(self.test_data['s0_addr1'][0], self.test_data['s0_addr1'][1], token_symbol,
+                                            self.test_data['init_tokenAmount'])
         assert_true(len(s1rs[0]) == 64 & len(s1rs[1]) == 64, "Failed to init new token", "Success to init new token")
         test_sendToken.token_id = s1rs[1]
         INFO("token id: %s" % s1rs[1])
 
         STEP(2, "subcribe transaction")
-        self.shard03ws.createConnection()
-        self.shard03ws.subcribePendingTransaction(s1rs[0])
+        self.shard0ws.createConnection()
+        self.shard0ws.subcribePendingTransaction(s1rs[0])
 
         STEP(3, "Get custom token balance")
-        token_balance, _ = self.shard03.get_customTokenBalance(self.test_data['s0_addr1'][0], s1rs[1])
+        token_balance, _ = self.shard0.get_customTokenBalance(self.test_data['s0_addr1'][0], s1rs[1])
         INFO("Token balance: %s" % str(token_balance))
 
         STEP(4, "contribute token & PRV")
         # Contribute TOKEN:
         contribute_token_tx = self.shard03dex.contribute_token(self.test_data['s0_addr1'][0],
                                                                self.test_data['s0_addr1'][1], s1rs[1],
-                                                               10000000000000, "10token_1prv")
+                                                               10000 * 1000000000, "token1_1prv")
         INFO("Contribute " + s1rs[1] + " Success, TxID: " + contribute_token_tx)
         INFO("Subscribe contribution transaction")
-        self.shard03ws.subcribePendingTransaction(contribute_token_tx)
+        self.shard0ws.subcribePendingTransaction(contribute_token_tx)
         # Contribute PRV:
         contribute_prv_tx = self.shard03dex.contribute_prv(self.test_data['s0_addr1'][0],
                                                            self.test_data['s0_addr1'][1],
-                                                           10000000000000, "10token_1prv")
+                                                           10000 * 1000000000, "token1_1prv")
         INFO("Contribute PRV Success, TxID: " + contribute_prv_tx)
         INFO("Subscribe contribution transaction")
-        self.shard03ws.subcribePendingTransaction(contribute_prv_tx)
+        self.shard0ws.subcribePendingTransaction(contribute_prv_tx)
 
         STEP(5, "Verify Contribution")
         rate = []
@@ -103,10 +111,10 @@ class test_sendToken(unittest.TestCase):
             WAIT(10)
             rate = self.shard03dex.get_latestRate("0000000000000000000000000000000000000000000000000000000000000004",
                                                   s1rs[1])
-            if rate == [10000000000000, 10000000000000]:
+            if rate == [10000 * 1000000000, 10000 * 1000000000]:
                 break
-        INFO("rate prv vs token" + str(rate))
-        assert_true(rate == [10000000000000, 10000000000000], "Contribution Failed")
+        INFO("rate prv vs token: " + str(rate))
+        assert_true(rate == [10000 * 1000000000, 10000 * 1000000000], "Contribution Failed")
 
     @pytest.mark.run
     def test_02_sendToken_privacy_1shard(self):
@@ -117,66 +125,72 @@ class test_sendToken(unittest.TestCase):
         ''')
 
         STEP(1, "get address1 and address2 balance before sending")
-        balance1b, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        balance1b, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_balance: " + str(balance1b))
         assert balance1b != "Invalid parameters"
 
-        balance2b, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
+        balance2b, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
         INFO("addr2_balance: " + str(balance2b))
         assert balance2b != "Invalid parameters"
 
         STEP(2, "from address1 send Token to address2 - Fee PRV auto estimated")
-        estimate_transaction_size = self.shard03.estimatefee_token(self.test_data["s0_addr1"][0],
-                                                                   self.test_data["s0_addr2"][1],
-                                                                   test_sendToken.token_id,
-                                                                   self.test_data["token_amount"])
+        estimate_transaction_size = self.shard0.estimatefee_token(self.test_data["s0_addr1"][0],
+                                                                  self.test_data["s0_addr2"][1],
+                                                                  test_sendToken.token_id,
+                                                                  self.test_data["token_amount"])
+        token_fee = 2
         INFO("estimate transaction size before send: " + str(estimate_transaction_size[0]) + "KB")
-        tx_id = self.shard03.send_customTokenTransaction(self.test_data["s0_addr1"][0],
-                                                         self.test_data["s0_addr2"][1], test_sendToken.token_id,
-                                                         self.test_data["token_amount"])
+        tx_id = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
+                                                        self.test_data["s0_addr2"][1], test_sendToken.token_id,
+                                                        self.test_data["token_amount"], -1)
         INFO("transaction id: " + tx_id[0])
+        INFO("stacktrace: " + str(tx_id[1]))
         assert tx_id[0] != 'Can not create tx'
 
         STEP(3, "subcribe transaction")
-        self.shard03ws.createConnection()
-        ws_res = self.shard03ws.subcribePendingTransaction(tx_id[0])
+        self.shard0ws.createConnection()
+        ws_res = self.shard0ws.subcribePendingTransaction(tx_id[0])
+        # assert_true(ws_res[2] % 100 == 0, "tx_fee is not a multiple of 100",
+        #             "tx_fee is %d * %d" % (100, ws_res[2] / 100))
 
         STEP(4, "check address1 & 2 balance after sent")
-        balance1a, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        balance1a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_balance: " + str(balance1a))
         # Balance after = balance before - amount
         assert balance1a == balance1b - self.test_data["token_amount"]
 
-        balance2a, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
+        balance2a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
         INFO("addr2_balance: " + str(balance2a))
         # Balance after = balance before + amount
         assert balance2a == balance2b + self.test_data["token_amount"]
 
         STEP(5, "from address1 send Token to address2 - Fee PRV fixed")
-        estimate_transaction_size = self.shard03.estimatefee_token(self.test_data["s0_addr1"][0],
-                                                                   self.test_data["s0_addr2"][1],
-                                                                   test_sendToken.token_id,
-                                                                   self.test_data["token_amount"])
+        estimate_transaction_size = self.shard0.estimatefee_token(self.test_data["s0_addr1"][0],
+                                                                  self.test_data["s0_addr2"][1],
+                                                                  test_sendToken.token_id,
+                                                                  self.test_data["token_amount"])
+        token_fee = 200000
         INFO("estimate transaction size before send: " + str(estimate_transaction_size[0]) + "KB")
-        tx_id = self.shard03.send_customTokenTransaction(self.test_data["s0_addr1"][0],
-                                                         self.test_data["s0_addr2"][1], test_sendToken.token_id,
-                                                         self.test_data["token_amount"], 100)
+        tx_id = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
+                                                        self.test_data["s0_addr2"][1], test_sendToken.token_id,
+                                                        self.test_data["token_amount"], 0, token_fee)
         INFO("transaction id: " + tx_id[0])
-        assert tx_id[0] != 'Can not create tx'
+        INFO("Stacktrace: " + str(tx_id[1]))
+        assert_true(tx_id[0] != 'Can not create tx' and tx_id[0] != "Invalid parameters", tx_id[0])
 
         STEP(6, "subcribe transaction")
-        self.shard03ws.createConnection()
-        ws_res = self.shard03ws.subcribePendingTransaction(tx_id[0])
-        assert_true(ws_res[2] % 100 == 0, "tx_fee is not a multiple of 100",
-                    "tx_fee is %d * %d" % (100, ws_res[2] / 100))
+        self.shard0ws.createConnection()
+        ws_res = self.shard0ws.subcribePendingTransaction(tx_id[0])
+        # assert_true(ws_res[2] % 100 == 0, "tx_fee is not a multiple of 100",
+        #             "tx_fee is %d * %d" % (100, ws_res[2] / 100))
 
         STEP(7, "check address1 & 2 balance after sent")
-        balance1c, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        balance1c, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_balance: " + str(balance1c))
         # Balance after = balance before - amount
-        assert balance1c == balance1a - self.test_data["token_amount"]
+        assert balance1c == balance1a - self.test_data["token_amount"] - token_fee
 
-        balance2c, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
+        balance2c, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
         INFO("addr2_balance: " + str(balance2c))
         # Balance after = balance before + amount
         assert balance2c == balance2a + self.test_data["token_amount"]
@@ -190,75 +204,75 @@ class test_sendToken(unittest.TestCase):
         """)
 
         STEP(1, "get address1 and address3 balance before sending")
-        balance1b, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        balance1b, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_balance: " + str(balance1b))
         assert balance1b != "Invalid parameters"
 
-        balance3b, _ = self.shard13.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
+        balance3b, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
         INFO("addr3_balance: " + str(balance3b))
         assert balance3b != "Invalid parameters"
 
         STEP(2, "from address1 send prv to address3 - tx_fee PRV fixed 1PRV")
-        estimate_transaction_size = self.shard03.estimatefee_token(self.test_data["s0_addr1"][0],
-                                                                   self.test_data["s1_addr3"][1],
-                                                                   test_sendToken.token_id,
-                                                                   self.test_data["token_amount"])
+        estimate_transaction_size = self.shard0.estimatefee_token(self.test_data["s0_addr1"][0],
+                                                                  self.test_data["s1_addr3"][1],
+                                                                  test_sendToken.token_id,
+                                                                  self.test_data["token_amount"])
         INFO("estimate transaction size before send: " + str(estimate_transaction_size[0]) + "KB")
-        tx_id = self.shard03.send_customTokenTransaction(self.test_data["s0_addr1"][0],
-                                                         self.test_data["s1_addr3"][1], test_sendToken.token_id,
-                                                         self.test_data["token_amount"], 1000000000)
+        tx_id = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
+                                                        self.test_data["s1_addr3"][1], test_sendToken.token_id,
+                                                        self.test_data["token_amount"], 1000000000)
         INFO("transaction id: " + tx_id[0])
         assert tx_id[0] != 'Can not create tx'
 
         STEP(3, "subcribe transaction")
-        self.shard03ws.createConnection()
-        ws_res = self.shard03ws.subcribePendingTransaction(tx_id[0])
+        self.shard0ws.createConnection()
+        ws_res = self.shard0ws.subcribePendingTransaction(tx_id[0])
         assert_true(ws_res[2] % 1000000000 == 0, "Invalid tx_fee",
                     "Transaction fee is %d * %d" % (1000000000, ws_res[2] / 1000000000))
-        self.shard13ws.createConnection()
-        ws_res5 = self.shard13ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s1_addr3"][0])
+        self.shard1ws.createConnection()
+        ws_res5 = self.shard1ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s1_addr3"][0])
 
         STEP(4, "check address1 & 3 balance")
-        balance1a, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        balance1a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_balance: " + str(balance1a))
         # Balance after = balance before - amount
         assert balance1a == balance1b - self.test_data["token_amount"]
 
-        balance3a, _ = self.shard13.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
+        balance3a, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
         INFO("addr3_balance: " + str(balance3a))
         # Balance after = balance before + amount
         assert balance3a == balance3b + self.test_data["token_amount"]
 
         STEP(5, "from address1 send prv to address3 - tx_fee Token fixed 100")
-        estimate_transaction_size = self.shard03.estimatefee_token(self.test_data["s0_addr1"][0],
-                                                                   self.test_data["s1_addr3"][1],
-                                                                   test_sendToken.token_id,
-                                                                   self.test_data["token_amount"])
+        estimate_transaction_size = self.shard0.estimatefee_token(self.test_data["s0_addr1"][0],
+                                                                  self.test_data["s1_addr3"][1],
+                                                                  test_sendToken.token_id,
+                                                                  self.test_data["token_amount"])
         INFO("estimate transaction size before send: " + str(estimate_transaction_size[0]) + "KB")
 
-        balance4b, _ = self.shard23.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
+        balance4b, _ = self.shard2.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
         INFO("addr4_balance: " + str(balance4b))
 
-        tx_id = self.shard03.send_customTokenTransaction(self.test_data["s0_addr1"][0],
-                                                         self.test_data["s2_addr4"][1], test_sendToken.token_id,
-                                                         self.test_data["token_amount"], 0, 100)
+        tx_id = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
+                                                        self.test_data["s2_addr4"][1], test_sendToken.token_id,
+                                                        self.test_data["token_amount"], 0, 100)
+        assert_true(tx_id[0] != 'Can not create tx' and tx_id[0] != "Invalid parameters", tx_id[0])
         INFO("transaction id: " + tx_id[0])
-        assert tx_id[0] != 'Can not create tx'
 
         STEP(6, "subcribe transaction")
-        self.shard03ws.createConnection()
-        ws_res = self.shard03ws.subcribePendingTransaction(tx_id[0])
+        self.shard0ws.createConnection()
+        ws_res = self.shard0ws.subcribePendingTransaction(tx_id[0])
         assert_true(ws_res[2] == 0, "Invalid tx_fee", "Transaction fee is 0 PRV")
-        self.shard23ws.createConnection()
-        ws_res5 = self.shard23ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s2_addr4"][0])
+        self.shard2ws.createConnection()
+        ws_res5 = self.shard2ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s2_addr4"][0])
 
         STEP(7, "check address1 & 4 balance")
-        balance1c, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        balance1c, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_balance: " + str(balance1c))
         # Balance after = balance before - amount
         assert balance1c == balance1a - self.test_data["token_amount"] - 100
 
-        balance4a, _ = self.shard23.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
+        balance4a, _ = self.shard2.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
         INFO("addr4_balance: " + str(balance4a))
         # Balance after = balance before + amount
         assert balance4a == balance4b + self.test_data["token_amount"]
@@ -272,44 +286,47 @@ class test_sendToken(unittest.TestCase):
             """)
 
         STEP(1, "get address1, 3 and 4 balance before sending")
-        balance1b, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        balance1b, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_balance: " + str(balance1b))
         assert balance1b != "Invalid parameters"
 
-        balance3b, _ = self.shard13.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
-        INFO("addr1_balance: " + str(balance3b))
+        balance3b, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
+        INFO("addr3_balance: " + str(balance3b))
         assert balance3b != "Invalid parameters"
+        assert_true(balance3b > 0, "addr3 balance = 0")
 
-        balance4b, _ = self.shard23.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
+        balance4b, _ = self.shard2.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
         INFO("addr4_balance: " + str(balance4b))
         assert balance4b != "Invalid parameters"
+        assert_true(balance4b > 0, "addr4 balance = 0")
 
         STEP(2, "from address3 & 4 send all Token to address1")
-        tx_id3 = self.shard13.send_customTokenTransaction(self.test_data["s1_addr3"][0],
-                                                          self.test_data["s0_addr1"][1], test_sendToken.token_id,
-                                                          balance3b)
-        tx_id4 = self.shard23.send_customTokenTransaction(self.test_data["s2_addr4"][0],
-                                                          self.test_data["s0_addr1"][1], test_sendToken.token_id,
-                                                          balance4b)
-        INFO("transaction id shard1: " + tx_id3[0])
+        tx_id3 = self.shard1.send_customTokenTransaction(self.test_data["s1_addr3"][0],
+                                                         self.test_data["s0_addr1"][1], test_sendToken.token_id,
+                                                         balance3b - 10, 0, 10)
+        tx_id4 = self.shard2.send_customTokenTransaction(self.test_data["s2_addr4"][0],
+                                                         self.test_data["s0_addr1"][1], test_sendToken.token_id,
+                                                         balance4b - 10, 0, 10)
+        INFO("transaction id shard1: " + tx_id3[0] + str(tx_id3[1]))
+
+        INFO("transaction id shard2: " + tx_id4[0] + str(tx_id4[1]))
         assert tx_id3[0] != 'Can not create tx'
-        INFO("transaction id shard2: " + tx_id4[0])
         assert tx_id4[0] != 'Can not create tx'
 
         STEP(3, "subcribe transaction")
-        self.shard13ws.createConnection()
-        ws_res13 = self.shard13ws.subcribePendingTransaction(tx_id3[0])
-        self.shard23ws.createConnection()
-        ws_res23 = self.shard23ws.subcribePendingTransaction(tx_id4[0])
-        self.shard03ws.createConnection()
-        ws_res03 = self.shard03ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s0_addr1"][0])
+        self.shard1ws.createConnection()
+        ws_res13 = self.shard1ws.subcribePendingTransaction(tx_id3[0])
+        self.shard2ws.createConnection()
+        ws_res23 = self.shard2ws.subcribePendingTransaction(tx_id4[0])
+        self.shard0ws.createConnection()
+        ws_res03 = self.shard0ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s0_addr1"][0])
 
         STEP(4, "check address3 & 4 balance")
         balance4a = "null"
         balance3a = "null"
         for _ in range(0, 6):
-            balance4a, _ = self.shard23.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
-            balance3a, _ = self.shard13.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
+            balance4a, _ = self.shard2.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
+            balance3a, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
             if balance4a == 0 & balance3a == 0:
                 break
             WAIT(10)
@@ -322,15 +339,14 @@ class test_sendToken(unittest.TestCase):
         STEP(5, "check address1 balance")
         balance1a = "null"
         for _ in range(0, 6):
-            balance1a, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
-            if balance1a == balance1b + balance3b + balance4b:
+            balance1a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+            if balance1a == balance1b + balance3b + balance4b - 10 - 10:
                 break
             WAIT(10)
         INFO("addr1_balance: " + str(balance1a))
         # Balance after = balance before + amount + amount
-        assert_true(balance1a == balance1b + balance3b + balance4b,
+        assert_true(balance1a == balance1b + balance3b + balance4b - 10 - 10,
                     "Balance addr1 invalid: %d != %d + %d + %d" % (balance1a, balance1b, balance3b, balance4b))
-
 
     @pytest.mark.run
     def est_04_sendToken_Xshard_insufficient_fund(self):
@@ -342,19 +358,19 @@ class test_sendToken(unittest.TestCase):
         """
         print("\n")
         STEP(1, "Get address1 balance")
-        step1_result = self.shard03.getBalance(self.test_data["address1_privatekey"])
+        step1_result = self.shard0.getBalance(self.test_data["address1_privatekey"])
         INFO("addr1_balance: " + str(step1_result))
         assert step1_result != "Invalid parameters"
 
         STEP(2, "Get address3 balance")
-        step2_result = self.shard13.getBalance(self.test_data["address3_privatekey"])
+        step2_result = self.shard1.getBalance(self.test_data["address3_privatekey"])
         INFO("addr3_balance: " + str(step2_result))
         assert_true(step2_result != 0, "addr3_balance = 0, stop this testcase")
 
         STEP(3, "From address3 send prv to address1 - Not enough coin")
         # send current balance + 10
-        step3_result = self.shard13.sendTransaction(self.test_data["address3_privatekey"],
-                                                    self.test_data["address1_payment"], step2_result + 10)
+        step3_result = self.shard1.sendTransaction(self.test_data["address3_privatekey"],
+                                                   self.test_data["address1_payment"], step2_result + 10)
         INFO("Expecting: " + step3_result[0])
         assert_true(step3_result[0] == 'Can not create tx', "something went wrong, this tx must failed")
         assert_true(re.search(r'Not enough coin', step3_result[1]), "something went so wrong")
@@ -363,8 +379,8 @@ class test_sendToken(unittest.TestCase):
 
         STEP(4, "From address3 send prv to address1 - Wrong input transaction")
         # send current balance (lacking of fee)
-        step4_result = self.shard13.sendTransaction(self.test_data["address3_privatekey"],
-                                                    self.test_data["address1_payment"], step2_result)
+        step4_result = self.shard1.sendTransaction(self.test_data["address3_privatekey"],
+                                                   self.test_data["address1_payment"], step2_result)
         INFO("Expecting: " + step4_result[0])
         assert_true(step4_result[0] == 'Can not create tx', "something went wrong, this tx must failed")
         assert_true(re.search(r'Wrong input transaction', step4_result[1]), "something went so wrong")
@@ -376,27 +392,27 @@ class test_sendToken(unittest.TestCase):
 
         STEP(5, "From address3 send prv to address1 - success")
         # send current balance - fee
-        step5_result = self.shard13.sendTransaction(self.test_data["address3_privatekey"],
-                                                    self.test_data["address1_payment"],
-                                                    step2_result - int(estimated_fee))
+        step5_result = self.shard1.sendTransaction(self.test_data["address3_privatekey"],
+                                                   self.test_data["address1_payment"],
+                                                   step2_result - int(estimated_fee))
         assert_true(step5_result[0] != 'Can not create tx', "something went wrong, this tx must succeeded")
         INFO("TxID: " + step5_result[0])
 
         STEP(6, "Subcribe transaction")
-        self.shard13ws.createConnection()
-        ws_res6 = self.shard13ws.subcribePendingTransaction(step5_result[0])
+        self.shard1ws.createConnection()
+        ws_res6 = self.shard1ws.subcribePendingTransaction(step5_result[0])
 
         STEP(7, "Subcribe cross transaction by privatekey")
-        self.shard03ws.createConnection()
-        ws_res7 = self.shard03ws.subcribeCrossOutputCoinByPrivatekey(self.test_data["address1_privatekey"])
+        self.shard0ws.createConnection()
+        ws_res7 = self.shard0ws.subcribeCrossOutputCoinByPrivatekey(self.test_data["address1_privatekey"])
 
         STEP(8, "Check address1 balance")
-        step8_result = self.shard03.getBalance(self.test_data["address1_privatekey"])
+        step8_result = self.shard0.getBalance(self.test_data["address1_privatekey"])
         INFO("addr1_balance: " + str(step8_result))
         assert step8_result == step1_result + step2_result - ws_res6[2]
 
         STEP(7, "Check address3 balance")
-        step7_result = self.shard13.getBalance(self.test_data["address3_privatekey"])
+        step7_result = self.shard1.getBalance(self.test_data["address3_privatekey"])
         INFO("Addr3_balance: " + str(step7_result))
         assert step7_result == 0
 
@@ -409,36 +425,36 @@ class test_sendToken(unittest.TestCase):
         """
         print("\n")
         STEP(1, "Get address1 balance")
-        step1_result = self.shard03.getBalance(self.test_data["address1_privatekey"])
+        step1_result = self.shard0.getBalance(self.test_data["address1_privatekey"])
         INFO("addr1_balance: " + str(step1_result))
         assert step1_result != "Invalid parameters"
 
         STEP(2, "Get address3 balance")
-        step2_result = self.shard13.getBalance(self.test_data["address3_privatekey"])
+        step2_result = self.shard1.getBalance(self.test_data["address3_privatekey"])
         INFO("addr3_balance: " + str(step2_result))
         assert step2_result != "Invalid parameters"
 
         STEP(3, "From address1 send prv to address3")
-        step3_result = self.shard03.sendTransaction(self.test_data["address1_privatekey"],
-                                                    self.test_data["address3_payment"], self.test_data["prv_amount"])
+        step3_result = self.shard0.sendTransaction(self.test_data["address1_privatekey"],
+                                                   self.test_data["address3_payment"], self.test_data["prv_amount"])
         INFO("Transaction ID: " + step3_result[0])
         assert step3_result[0] != 'Can not create tx'
 
         STEP(4, "Subcribe transaction")
-        self.shard03ws.createConnection()
-        ws_res4 = self.shard03ws.subcribePendingTransaction(step3_result[0])
+        self.shard0ws.createConnection()
+        ws_res4 = self.shard0ws.subcribePendingTransaction(step3_result[0])
 
         STEP(5, "Subcribe cross transaction by privatekey")
-        self.shard13ws.createConnection()
-        ws_res5 = self.shard13ws.subcribeCrossOutputCoinByPrivatekey(self.test_data["address3_privatekey"])
+        self.shard1ws.createConnection()
+        ws_res5 = self.shard1ws.subcribeCrossOutputCoinByPrivatekey(self.test_data["address3_privatekey"])
 
         STEP(6, "Check address1 balance")
-        step4_result = self.shard03.getBalance(self.test_data["address1_privatekey"])
+        step4_result = self.shard0.getBalance(self.test_data["address1_privatekey"])
         INFO("addr1_balance: " + str(step4_result))
         assert step4_result == step1_result - self.test_data["prv_amount"] - ws_res4[2]
 
         STEP(7, "Check address3 balance")
-        step5_result = self.shard13.getBalance(self.test_data["address3_privatekey"])
+        step5_result = self.shard1.getBalance(self.test_data["address3_privatekey"])
         INFO("Addr3_balance: " + str(step5_result))
         assert step5_result == step2_result + self.test_data["prv_amount"]
 
@@ -446,21 +462,21 @@ class test_sendToken(unittest.TestCase):
     def est_06_burn_pToken(self):
         print("\n")
         STEP(0, "check address1 balance")
-        balance1b, _ = self.shard03.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        balance1b, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_balance: " + str(balance1b))
 
         STEP(1, "Burn token")
-        txid, shard = self.shard03.send_customTokenTransaction(self.test_data['s0_addr1'][0],
-                                                               self.test_data['burning_addr'],
-                                                               test_sendToken.token_id, balance1b)
+        txid, shard = self.shard0.send_customTokenTransaction(self.test_data['s0_addr1'][0],
+                                                              self.test_data['burning_addr'],
+                                                              test_sendToken.token_id, balance1b)
         assert_true(len(txid) == 64, "Burning not success")
 
         STEP(2, "subcribe transaction")
-        self.shard03ws.createConnection()
-        self.shard03ws.subcribePendingTransaction(txid)
+        self.shard0ws.createConnection()
+        self.shard0ws.subcribePendingTransaction(txid)
 
         STEP(3, "Get custom token balance")
-        token_balance, _ = self.shard03.get_customTokenBalance(self.test_data['s0_addr1'][0], test_sendToken.token_id)
+        token_balance, _ = self.shard0.get_customTokenBalance(self.test_data['s0_addr1'][0], test_sendToken.token_id)
         INFO("Token balance after burn: " + str(token_balance))
         assert_true(token_balance == 0, "Token Balance != 0", "Burning success")
 
@@ -469,5 +485,5 @@ class test_sendToken(unittest.TestCase):
         """
         CLEAN UP
         """
-        self.shard03ws.closeConnection()
-        self.shard13ws.closeConnection()
+        self.shard0ws.closeConnection()
+        self.shard1ws.closeConnection()

@@ -1,7 +1,7 @@
-## NODE LIST:
+## NODE LIST DEVNET:
 fullnode = {
     "localhost": {'ip': '127.0.0.1', 'rpc': 9354},
-    0: {'ip': '54.39.158.106', 'rpc': 9334, 'ws': 0, 'username': 'root', 'password': 'xxx',
+    0: {'ip': '54.39.158.106', 'rpc': 9334, 'ws': 19334, 'username': 'root', 'password': 'xxx',
         'sshkey': '/Users/khanhlh/stagging', 'fullnodename': 'fullnode0'}
 }
 beacon = {
