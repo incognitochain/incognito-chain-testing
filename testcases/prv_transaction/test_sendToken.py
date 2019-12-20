@@ -9,7 +9,7 @@ from time import strftime
 
 import pytest
 
-import topology.NodeList_devnet as NodeList
+import topology.NodeList as NodeList
 from libs.AutoLog import INFO, STEP, assert_true, WAIT
 from libs.DecentralizedExchange import DEX
 from libs.Transaction import Transaction
@@ -23,23 +23,24 @@ class test_sendToken(unittest.TestCase):
 
     test_data = {
         's0_addr1': [
-            "112t8rnXVMJJZzfF1naXvfE9nkTKwUwFWFeh8cfEyViG1vpA8A9khJk3mhyB1hDuJ4RbreDTsZpgJK4YcSxdEpXJKMEd8Vmp5UqKWwBcYzxv",
-            "12RyJTSL2G8KvjN7SUFuiS9Ek4pvFFze3EMMic31fmXVw8McwYzpKPpxeW6TLsNo1UoPhCHKV3GDRLQwdLF41PED3LQNCLsGNKzmCE5"
+            "112t8rnX3VTd3MTWMpfbYP8HGY4ToAaLjrmUYzfjJBrAcb8iPLkNqvVDXWrLNiFV5yb2NBpR3FDZj3VW8GcLUwRdQ61hPMWP3YrREZAZ1UbH",
+            "12S6R8HfTyL74bggg47LX88RSvBPaMPBMEMoo6yx9WQ4EgLiYERXXcE2Mv2HrCsFuKhBsTfrYMeH82Bus5MHQGt3xHwoxX4v2qM5jRE"
         ],
         's0_addr2': [
-            "112t8rnakdKxvk7VMKUB9qmsPY4czwnP24b82BnepcxHLX6kJ1dYQsR8d6xNTzwC9nEhJdocr9u19NAr4iSYXCeTBRu3YET8iADMAP3szdfw",
-            "12RxnTs5KqyQUzGF4R2w68j3biJD29iDsFiVgC4GRy5X85anUrq1rg8P4aUyDRuS5desg9WANRptifcissMBPETyMeBE8KEh7LmQ6m7",
+            "112t8rndq3phbUG44goJZyYSy9Qvm6nEJr8N672tD8E5VyzqPuJVQBb1wcHQSrQibsbBLkrGfQ14fzw8iNoAtu13gqKjktffPrw9ZxcoNsbk",
+            "12Rq6XDGQVYcxop7krJUJZCgsWCCU2UpgDDWdhjtxfeuWbcuksHNdjDkBVBz5t98q9UKjTS77Y6BZDeVeKuvw7QZfMBT7wb3M3YWS4k",
         ],
         's1_addr3': [
-            "112t8rnXHSFhmnyduga9tE5vh5CpTX1Ydu8murPuyQi3FYwxESW6eCPVG7vy62vjeRuM8PDfDDLf6wfXekJM5QbdHAryj2XcN4JAZq5y1Tri",
-            "12Rqdqkv3w4uyfSTYTkoegWSHSoex75QLuHiS4C1MzwMztieSPai59mprYovV6WC963SP4p9sH5uS3eFYomefPrvvMKhuafER6YV3Kv",
+            "112t8rngNKpZHv6WsKqaYqKPi8JvfEVY9oqob3QiSKmbHbfDrDFXZZtmqLAacnmfqTJKKR9P2UJ1kYvkmdHAHU4zPRHpv38kHRRjLtHNv4yN",
+            "12S2NxoLzvEsKBpvL6g3gjECvErpxVQoAg7VpnhojLXa6S3TchxbwM5aHQYJoT3K1nkq7C7VjAwgVwn2De3uLzD1J8VkmWe3cDRLPef",
         ],
         's2_addr4': [
-            "112t8rnZ5UZouZU9nFmYLfpHUp8NrvQkGLPD564mjzNDM8rMp9nc9sXZ6CFxCGEMuvHQpYN7af6KCPJnq9MfEnXQfntbM8hpy9LW8p4qzPxS",
-            "12Rw9oesEgd8t5NGrfqxtWTCzh1eDif55miqZ1kFzj5zeQ6UQnNB9JXRn5Vc5QVbBaiFhoYdYPnQZ5tWwcBpse5EJXM3Av6qEV2wspv",
+            "112t8rnendREF3cg2vuRC248dFymXonwBC7TMmfppXEzz9wFziktHj8NhsGebcRmtquyg2zbytkecPMSHFBVcw4yJewv7E3J6cHgDzYiHoJj",
+            "12S4YzSA6hC12zuMF8L2rC7Tks1TtcfDUSWjcPeKeyT1ApV1KXqQnmtpCNEYbta88GrjhPiS6yFfuyfViDW5cmooqsZ5tvC8SRJZdCF",
         ],
         'token_amount': 0.123456789 * 1000000000,
         'init_tokenAmount': 1000000 * 1000000000,
+        'prv_amount':100,
         'burning_addr': "15pABFiJVeh9D5uiQEhQX4SVibGGbdAVipQxBdxkmDqAJaoG1EdFKHBrNfs"
     }
 
@@ -64,10 +65,10 @@ class test_sendToken(unittest.TestCase):
     print("ENV: " + str(NodeList.shard1[3]))
     print("ENV: " + str(NodeList.shard2[3]))
 
-    token_id = ""
+    token_id = "6dee6fa8d29dc2d1c286b86a9ba99ff70a183ddf7a7339ed7dd9f471b8ce91a6"
 
     @pytest.mark.run
-    def test_01_init_pToken(self):
+    def est_01_init_pToken(self):
         print('''
         Init a pToken
         Contribute pToken-PRV to pDex (mapping rate) => use pToken to pay fee
@@ -117,7 +118,7 @@ class test_sendToken(unittest.TestCase):
         assert_true(rate == [10000 * 1000000000, 10000 * 1000000000], "Contribution Failed")
 
     @pytest.mark.run
-    def test_02_sendToken_privacy_1shard(self):
+    def test_02_sendToken_noPrivacy_1shard_prvFee(self):
         print('''
         Verify send Token to another address 1Shard successfully
         Fee: PRV (auto estimate)
