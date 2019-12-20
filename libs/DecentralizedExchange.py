@@ -207,7 +207,7 @@ class DEX():
                 else:
                     WARN(pairkey + " or\n " + pairkey2 + " NOT found")
                     DEBUG(resp_json['Result']['PDEPoolPairs'])
-                    return False
+                    return [0, 0]
         else:
             WARN(resp_json['Error']['Message'])
             return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
@@ -263,12 +263,12 @@ class DEX():
                 sharekey2 = "pdeshare-" + str(beacon_height) + "-" + tokenid2 + "-" + tokenid1 + "-" + paymentaddress
                 if re.search(sharekey, str(resp_json['Result']['PDEShares'])):
                     share = resp_json['Result']['PDEShares'][sharekey]
-                    INFO("Share of %s-%s-%s is: %d" % (tokenid1[-6:], tokenid2[-6:], paymentaddress[-6:], share))
+                    DEBUG("Share of %s-%s-%s is: %d" % (tokenid1[-6:], tokenid2[-6:], paymentaddress[-6:], share))
                     pde_share_list.append(share)
                 else:
                     if re.search(sharekey2, str(resp_json['Result']['PDEShares'])):
                         share = resp_json['Result']['PDEShares'][sharekey2]
-                        INFO("Share of %s-%s-%s is: %d" % (tokenid2[-6:], tokenid1[-6:], paymentaddress[-6:], share))
+                        DEBUG("Share of %s-%s-%s is: %d" % (tokenid2[-6:], tokenid1[-6:], paymentaddress[-6:], share))
                         pde_share_list.append(share)
                     else:
                         WARN(sharekey + " or\n " + sharekey2 + " NOT found")

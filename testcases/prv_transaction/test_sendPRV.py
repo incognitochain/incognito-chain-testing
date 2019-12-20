@@ -8,7 +8,7 @@ import unittest, math
 
 import pytest
 
-import topology.NodeList as NodeList
+import topology.NodeList_mainnet as NodeList
 from libs.AutoLog import INFO, STEP, assert_true
 from libs.Transaction import Transaction
 from libs.WebSocket import WebSocket
@@ -28,20 +28,20 @@ class test_sendPRV(unittest.TestCase):
         's1_addr3': [
             "112t8rnXoEWG5H8x1odKxSj6sbLXowTBsVVkAxNWr5WnsbSTDkRiVrSdPy8QfMujntKRYBqywKMJCyhMpdr93T3XiUD5QJR1QFtTpYKpjBEx",
             "12RqmK5woGNeBTy16ouYepSw4QEq28gsv2m81ebcPQ82GgS5S8PHEY37NU2aTacLRruFvjTqKCgffTeMDL83snTYz5zDp1MTLwjVhZS"],
-        's2_addr4_d': [
+        's2_addr4': [
             "112t8rnZ5UZouZU9nFmYLfpHUp8NrvQkGLPD564mjzNDM8rMp9nc9sXZ6CFxCGEMuvHQpYN7af6KCPJnq9MfEnXQfntbM8hpy9LW8p4qzPxS",
             "12Rw9oesEgd8t5NGrfqxtWTCzh1eDif55miqZ1kFzj5zeQ6UQnNB9JXRn5Vc5QVbBaiFhoYdYPnQZ5tWwcBpse5EJXM3Av6qEV2wspv"],
-        's2_addr5_d': [
+        's2_addr5': [
             "112t8rnan3pbXtdvfKSk3kti1tFcFpVSq5wp7c3hhLk7E4jQih2zsv8ynjpP1UQivExGwbMf9Ezp9qmKBJuHhNZPAzheqX4WTV8LfrdZY5Mh",
             "12RxCyrWFCkpzfnMcnN8MuDrXkFAsEAkhyn4zHhy3n6CNZPYJ4cNDesBGycwu62PJn8rQ8uLiC5zSYDiXFa9hXtQMUJvVCMT2uUNn8G"],
-        's2_addr4': [
+        's2_addr4_d': [
             "112t8rnZ9qPE7C6RbrK6Ygat1H94kEkYGSd84fAGiU396yQHu8CBHmV1DDHE947d7orfHnDtKA9WCffDk7NS5zUu5CMCUHK8nkRtrv4nw6uu",
             "12Rrk9r3Chmt5Wibkmu2VcFSUffGZbkz2rzMWdmmB3GEu8t8RF4v2wc1gBQtkJFZmPfUP29bSXR4Wn8kDveLQBTBK5Hck9BoGRnuM7n"],
-        's2_addr5': [
+        's2_addr5_d': [
             "112t8rnaK4C17Chu8rEAPXHUaPYNeGz8VsjV7BzdeLA9VBc8oiYwQXNrc6XEABb4uNEfG9LFgvVfi4KQmVpQrwMWph4E1YoVS1m37HwrFDsE",
             "12RtmaJMoRbUCsYxLC4RatP2vWVR3QdZXpbkXR7LwZjVrZfXF46ZNL4QgpCU71SXjz2eCeruA7ZiHM91otTJXzqJiztq5mrdHA35yaf"],
         'prv_amount2': 0.123456789 * 1000000000,
-        'prv_amount': 100
+        'prv_amount': 10
     }
 
     # shard0 = Transaction(NodeList.shard0[3]['ip'], NodeList.shard0[3]['rpc'])
@@ -55,9 +55,9 @@ class test_sendPRV(unittest.TestCase):
     shard2 = Transaction(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['rpc'])
     shard2ws = WebSocket(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['ws'])
 
-    print("\nENV: " + str(NodeList.shard0[3]))
-    print("ENV: " + str(NodeList.shard1[3]))
-    print("ENV: " + str(NodeList.shard2[3]))
+    # print("\nENV: " + str(NodeList.shard0[3]))
+    # print("ENV: " + str(NodeList.shard1[3]))
+    # print("ENV: " + str(NodeList.shard2[3]))
     print("ENV: " + str(NodeList.fullnode[0]))
 
     @pytest.mark.run
@@ -117,14 +117,14 @@ class test_sendPRV(unittest.TestCase):
         STEP(3, "From address1 send prv to address3")
         step3_result = self.shard0.sendTransaction(self.test_data["s0_addr1"][0],
                                                    self.test_data["s1_addr3"][1], self.test_data["prv_amount"],
-                                                   100)
+                                                   2)
         INFO("Transaction ID: " + step3_result[0])
         assert step3_result[0] != 'Can not create tx'
 
         STEP(4, "Subcribe transaction")
         self.shard0ws.createConnection()
         ws_res4 = self.shard0ws.subcribePendingTransaction(step3_result[0])
-        assert_true(ws_res4[2] % 100 == 0, "Invalid tx fee", "Tx fee is %d * %dKB" % (100, ws_res4[2] / 100))
+        assert_true(ws_res4[2] % 2 == 0, "Invalid tx fee", "Tx fee is %d * %dKB" % (2, ws_res4[2] / 2))
 
         STEP(5, "Subcribe cross transaction by privatekey")
         self.shard1ws.createConnection()
@@ -228,7 +228,7 @@ class test_sendPRV(unittest.TestCase):
         STEP(3, "From address1 send prv to address3")
         step3_result = self.shard0.sendTransaction(self.test_data["s0_addr1"][0],
                                                    self.test_data["s2_addr4"][1], self.test_data["prv_amount"],
-                                                   100)
+                                                   5)
         INFO("Transaction ID: " + step3_result[0])
         INFO("StackTrace: " + str(step3_result[1]))
         assert step3_result[0] != 'Can not create tx'
@@ -236,7 +236,7 @@ class test_sendPRV(unittest.TestCase):
         STEP(4, "Subcribe transaction")
         self.shard0ws.createConnection()
         ws_res4 = self.shard0ws.subcribePendingTransaction(step3_result[0])
-        assert_true(ws_res4[2] % 100 == 0, "Invalid tx fee", "Tx fee is %d * %dKB" % (100, ws_res4[2] / 100))
+        assert_true(ws_res4[2] % 5 == 0, "Invalid tx fee", "Tx fee is %d * %dKB" % (5, ws_res4[2] / 5))
 
         STEP(5, "Subcribe cross transaction by privatekey")
         self.shard2ws.createConnection()
