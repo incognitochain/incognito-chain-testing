@@ -1,9 +1,6 @@
 import json
-
 import requests
-
 from libs.AutoLog import WARN, DEBUG, INFO
-
 
 class Transaction():
     def __init__(self, ip, rpc):
