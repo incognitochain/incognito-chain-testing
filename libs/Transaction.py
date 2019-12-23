@@ -6,7 +6,7 @@ class Transaction():
     def __init__(self, ip, rpc):
         self.url = "http://" + ip + ":" + str(rpc)
 
-    def sendTransaction(self, sender_privatekey, receiver_paymentaddress, amount_prv, fee=-1, privacy=0):
+    def sendTransaction(self, sender_privatekey, receiver_paymentaddress, amount_prv, fee=-1, privacy=1):
         headers = {'Content-Type': 'application/json'}
         data = {"jsonrpc": "1.0", "method": "createandsendtransaction",
                 "params": [sender_privatekey, {receiver_paymentaddress: amount_prv}, fee, privacy], "id": 1}
@@ -106,11 +106,11 @@ class Transaction():
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
 
     def send_customTokenTransaction(self, sender_privatekey, receiver_paymentaddress, tokenid, amount_customToken,
-                                    prv_fee=-1, token_fee=0):
+                                    prv_fee=-1, token_fee=0, prv_amount=0, prv_privacy=0,token_privacy=0):
         headers = {'Content-Type': 'application/json'}
         # TokenTxType = 1 => send token
         data = {"jsonrpc": "1.0", "method": "createandsendprivacycustomtokentransaction", "id": 1,
-                "params": [sender_privatekey, None, prv_fee, 0,
+                "params": [sender_privatekey, {receiver_paymentaddress: prv_amount} , prv_fee, prv_privacy,
                            {
                                "Privacy": True,
                                "TokenID": tokenid,
@@ -123,7 +123,7 @@ class Transaction():
                                },
                                "TokenFee": token_fee
                            },
-                           "", 0
+                           "", token_privacy
                            ]}
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
         # print(response.text)
