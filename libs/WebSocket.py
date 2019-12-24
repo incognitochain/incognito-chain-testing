@@ -61,22 +61,6 @@ class WebSocket():
             "SenderShardID: %d - ReceiverShardID: %d - BlockHeight: %d" % (SenderShardID, ReceiverShardID, BlockHeight))
         return True
 
-    def subcribeCrossCustomTokenByPrivatekey(self, privatekey):
-        data = {"request": {"jsonrpc": "1.0", "method": "subcribecrosscustomtokenbyprivatekey", "params": [privatekey],
-                            "id": 1}, "subcription": "11", "type": 0, }
-        self.ws_conn.send(json.dumps(data))
-        print("Sent subcribeCrossCustomTokenByPrivatekey: " + privatekey)
-        print("Receiving...")
-        result = self.ws_conn.recv()
-        res_json = json.loads(result)
-        DEBUG("Received '%s'" % res_json)
-        SenderShardID = res_json['Result']['Result']["SenderShardID"]
-        ReceiverShardID = res_json['Result']['Result']["ReceiverShardID"]
-        BlockHeight = res_json['Result']['Result']["BlockHeight"]
-        TokenID = res_json['Result']['Result']["TokenID"]
-        INFO("SenderShardID: %d - ReceiverShardID: %d - BlockHeight: %d - TokenID: %s"
-             % (SenderShardID, ReceiverShardID, BlockHeight, TokenID))
-        return True
 
     def subcribeCrossCustomTokenPrivacyByPrivatekey(self, privatekey):
         data = {"request": {"jsonrpc": "1.0", "method": "subcribecrosscustomtokenprivacybyprivatekey",

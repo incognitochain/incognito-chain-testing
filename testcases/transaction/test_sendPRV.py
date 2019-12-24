@@ -299,6 +299,10 @@ class test_sendPRV(unittest.TestCase):
         # Balance after = balance before + amount
         assert balance2a == balance2b + self.test_data["prv_amount"]
 
+        STEP(6, "Check transaction privacy")
+        step6_result = self.shard0.get_txbyhash(tx_id[0])
+        assert_true(step6_result[2] == False, "transaction must be no privacy ")
+
     @pytest.mark.run
     def test_06_sendPRV_noPivacy_1shard_noAutoFee(self):
         print("""
@@ -335,6 +339,14 @@ class test_sendPRV(unittest.TestCase):
         INFO("addr2_balance: " + str(balance2a))
         # Balance after = balance before + amount
         assert balance2a == balance2b + self.test_data["prv_amount"]
+
+        STEP(6, "check transaction privacy")
+        step6_result = self.shard0.get_txbyhash(tx_id[0])
+        assert_true(step6_result[2]== False, "transaction must be no privacy ")
+
+        STEP(7, "Check transaction privacy")
+        step6_result = self.shard0.get_txbyhash(tx_id[0])
+        assert_true(step6_result[2] == False, "transaction must be no privacy ")
 
     @pytest.mark.run
     def test_07_sendPRV_privacy_1shard_autoFee(self):
@@ -373,6 +385,11 @@ class test_sendPRV(unittest.TestCase):
         # Balance after = balance before + amount
         assert balance2a == balance2b + self.test_data["prv_amount"]
 
+        STEP(6, "check transaction privacy")
+        step6_result= self.shard0.get_txbyhash(tx_id[0])
+        assert_true(step6_result[2]== True , "transaction must be privacy" )
+
+
     @pytest.mark.run
     def test_08_sendPRV_privacy_1shard_noAutoee(self):
         print("""
@@ -409,6 +426,10 @@ class test_sendPRV(unittest.TestCase):
         INFO("addr2_balance: " + str(balance2a))
         # Balance after = balance before + amount
         assert balance2a == balance2b + self.test_data["prv_amount"]
+
+        STEP(6, "check transaction privacy")
+        step6_result = self.shard0.get_txbyhash(tx_id[0])
+        assert_true(step6_result[2] == True, "transaction must be privacy")
 
     @pytest.mark.run
     def test_09_sendPRV_noPrivacy_Xshard_autoFee(self):
@@ -449,6 +470,10 @@ class test_sendPRV(unittest.TestCase):
         step5_result = self.shard1.getBalance(self.test_data["s1_addr3"][0])
         INFO("Addr3_balance: " + str(step5_result))
         assert step5_result == step2_result + self.test_data["prv_amount"]
+
+        STEP(8, "Check transaction privacy")
+        step8_result = self.shard0.get_txbyhash(step3_result[0])
+        assert_true(step8_result[2] == False, "transaction must be no privacy ")
 
     @pytest.mark.run
     def test_10_sendPRV_noPrivacy_Xshard_noAautoFee(self):
@@ -493,6 +518,10 @@ class test_sendPRV(unittest.TestCase):
         INFO("Addr3_balance: " + str(step5_result))
         assert step5_result == step2_result + self.test_data["prv_amount"]
 
+        STEP(8, "Check transaction privacy")
+        step8_result = self.shard0.get_txbyhash(step3_result[0])
+        assert_true(step8_result[2] == False, "transaction must be no privacy ")
+
     @pytest.mark.run
     def test_11_sendPRV_privacy_Xshard_autoFee(self):
         print("""
@@ -532,6 +561,10 @@ class test_sendPRV(unittest.TestCase):
         step5_result = self.shard1.getBalance(self.test_data["s1_addr3"][0])
         INFO("Addr3_balance: " + str(step5_result))
         assert step5_result == step2_result + self.test_data["prv_amount"]
+
+        STEP(8, "Check transaction privacy")
+        step8_result = self.shard0.get_txbyhash(step3_result[0])
+        assert_true(step8_result[2] == True, "transaction must be privacy ")
 
     @pytest.mark.run
     def test_12_sendPRV_privacy_Xshard_noAutoFee(self):
@@ -575,6 +608,10 @@ class test_sendPRV(unittest.TestCase):
         step5_result = self.shard1.getBalance(self.test_data["s1_addr3"][0])
         INFO("Addr3_balance: " + str(step5_result))
         assert step5_result == step2_result + self.test_data["prv_amount"]
+
+        STEP(8, "Check transaction privacy")
+        step8_result = self.shard0.get_txbyhash(step3_result[0])
+        assert_true(step8_result[2] == True, "transaction must be privacy ")
 
     @pytest.mark.run
     def test_13_sendPRV_privacy_Xshard_insufficient_fund(self):
@@ -651,10 +688,14 @@ class test_sendPRV(unittest.TestCase):
         INFO("addr1_balance: " + str(step8_result))
         assert step8_result == step1_result + step2_result - ws_res6[2]
 
-        STEP(7, "Check address3 balance")
+        STEP(9, "Check address3 balance")
         step7_result = self.shard1.getBalance(self.test_data["s1_addr3"][0])
         INFO("Addr3_balance: " + str(step7_result))
         assert step7_result == 0
+
+        STEP(10, "Check transaction privacy")
+        step10_result = self.shard0.get_txbyhash(step5_result[0])
+        assert_true(step10_result[2] == True, "transaction must be privacy ")
 
     @pytest.mark.run
     def test_14_sendPRV_privacy_1shard_insufficient_fund(self):
@@ -726,10 +767,14 @@ class test_sendPRV(unittest.TestCase):
         INFO("addr1_balance: " + str(step7_result))
         assert step7_result == step1_result + step2_result - ws_res6[2]
 
-        STEP(7, "Check address2 balance")
+        STEP(8, "Check address2 balance")
         step8_result = self.shard0.getBalance(self.test_data["s0_addr2"][0])
         INFO("Addr2_balance: " + str(step8_result))
         assert step8_result == 0
+
+        STEP(9, "Check transaction privacy")
+        step9_result = self.shard0.get_txbyhash(step5_result[0])
+        assert_true(step9_result[2] == True, "transaction must be privacy ")
 
     @pytest.mark.run
     def est_15_sendPRV_privacy_Xshard(self):

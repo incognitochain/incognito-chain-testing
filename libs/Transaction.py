@@ -47,7 +47,7 @@ class Transaction():
         DEBUG(resp_json)
 
         if resp_json['Error'] is None:
-            return resp_json['Result']['BlockHash'], resp_json['Result']['ShardID']
+            return resp_json['Result']['BlockHash'], resp_json['Result']['ShardID'], resp_json['Result']['IsPrivacy'],resp_json['Result']['PrivacyCustomTokenIsPrivacy']
         else:
             WARN(resp_json['Error']['Message'])
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
@@ -106,7 +106,7 @@ class Transaction():
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
 
     def send_customTokenTransaction(self, sender_privatekey, receiver_paymentaddress, tokenid, amount_customToken,
-                                    prv_fee=-1, token_fee=0, prv_amount=0, prv_privacy=0,token_privacy=0):
+                                    prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0,token_privacy=0):
         headers = {'Content-Type': 'application/json'}
         # TokenTxType = 1 => send token
         data = {"jsonrpc": "1.0", "method": "createandsendprivacycustomtokentransaction", "id": 1,
