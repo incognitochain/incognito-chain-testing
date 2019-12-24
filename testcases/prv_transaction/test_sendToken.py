@@ -40,7 +40,7 @@ class test_sendToken(unittest.TestCase):
         ],
         'token_amount': 0.12345 * 100000,
         'init_tokenAmount': 1000000 * 1000000000,
-        'prv_amount': 100,
+        'prv_amount': 10,
         'token_fee': 200,
         'burning_addr': "15pABFiJVeh9D5uiQEhQX4SVibGGbdAVipQxBdxkmDqAJaoG1EdFKHBrNfs"
     }
@@ -124,8 +124,8 @@ class test_sendToken(unittest.TestCase):
         Verify send Token to another address 1Shard successfully
         Fee: PRV (auto estimate)
         Fee: PRV (fixed number * transaction size(KB))
-        Token_fee =0
-        PRV_fee =0
+        Token_privacy =0
+        PRV_privacy =0
         ''')
 
         STEP(1, "get address1 and address2 balance before sending")
@@ -181,7 +181,6 @@ class test_sendToken(unittest.TestCase):
         assert_true(step4_result[2] == False, "transaction must be no prv_privacy ")
 
         INFO("Check transaction token_privacy")
-        step4_result = self.shard0.get_txbyhash(step2_result[0])
         assert_true(step4_result[3] == False, "transaction must be no token_privacy ")
 
         STEP(5, "from address1 send Token to address2 - no Fee PRV ")
@@ -226,9 +225,12 @@ class test_sendToken(unittest.TestCase):
         assert_true(step7_balancePRV_add2 == step4_balancePRV_add2,
                     "incorrect prv balance of the address 2 ")
 
-        INFO("Check transaction privacy")
+        INFO("Check transaction prv privacy")
         step7_result = self.shard0.get_txbyhash(step5_result[0])
-        assert_true(step7_result[2] == False, "transaction must be no privacy ")
+        assert_true(step7_result[2] == False, "transaction must be no prv_privacy ")
+
+        INFO("Check transaction token privacy")
+        assert_true(step7_result[3] == False, "transaction must be no token_privacy ")
 
     @pytest.mark.run
     def test_03_sendToken_Privacy_1shard_prvFee(self):
@@ -236,6 +238,8 @@ class test_sendToken(unittest.TestCase):
            Verify send Token to another address 1Shard successfully
            Fee: PRV (auto estimate)
            Fee: PRV (fixed number * transaction size(KB))
+           token_privacy =0
+           prv_privacy=1
            ''')
 
         STEP(1, "get address1 and address2 balance before sending")
@@ -287,9 +291,12 @@ class test_sendToken(unittest.TestCase):
         assert_true(step4_balancePRV_add2 == step1_balancePRV_add2,
                     "incorrect prv balance of the address 2 ")
 
-        INFO("Check transaction privacy")
+        INFO("Check transaction prv_privacy")
         step4_result = self.shard0.get_txbyhash(step2_result[0])
         assert_true(step4_result[2] == True, "transaction must be privacy ")
+
+        INFO("Check transaction token_privacy")
+        assert_true(step4_result[3] == False, "transaction must be no token_privacy ")
 
         STEP(5, "from address1 send Token to address2 - no Fee PRV ")
 
@@ -325,9 +332,12 @@ class test_sendToken(unittest.TestCase):
         assert_true(step7_balancePRV_add2 == step4_balancePRV_add2,
                     "incorrect prv balance of the address 2 ")
 
-        INFO("Check transaction privacy")
+        INFO("Check transaction prv_privacy")
         step7_result = self.shard0.get_txbyhash(step5_result[0])
         assert_true(step7_result[2] == True, "transaction must be privacy ")
+
+        INFO("Check transaction token_privacy")
+        assert_true(step7_result[3] == False, "transaction must be no token_privacy ")
 
     @pytest.mark.run
     def test_04_sendToken_noPrivacy_Xshard_prvFee(self):
@@ -335,6 +345,8 @@ class test_sendToken(unittest.TestCase):
           Verify send Token to another address XShard successfully
           Fee: PRV (auto estimate)
           Fee: PRV (no auto fee)
+          Token_privacy =0
+          PRV_privacy=0
           ''')
 
         STEP(1, "get address1 and address2 balance before sending")
@@ -389,9 +401,12 @@ class test_sendToken(unittest.TestCase):
         assert_true(step4_balancePRV_add3 == step1_balancePRV_add3,
                     "incorrect prv balance of the address 3 ")
 
-        INFO("Check transaction privacy")
+        INFO("Check transaction prv_privacy")
         step4_result = self.shard0.get_txbyhash(step2_result[0])
         assert_true(step4_result[2] == False, "transaction must be no privacy ")
+
+        INFO("Check transaction token_privacy")
+        assert_true(step4_result[3] == False, "transaction must be no privacy ")
 
         STEP(5, "from address1 send Token to address3 - no Fee PRV ")
         step5_result = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
@@ -428,9 +443,12 @@ class test_sendToken(unittest.TestCase):
         assert_true(step7_balancePRV_add3 == step4_balancePRV_add3,
                     "incorrect prv balance of the address 3 ")
 
-        INFO("Check transaction privacy")
+        INFO("Check transaction prv_privacy")
         step7_result = self.shard0.get_txbyhash(step5_result[0])
         assert_true(step7_result[2] == False, "transaction must be no privacy ")
+
+        INFO("Check transaction token privacy")
+        assert_true(step7_result[3] == False, "transaction must be no privacy ")
 
     @pytest.mark.run
     def test_05_sendToken_Privacy_Xshard_prvFee(self):
@@ -438,6 +456,8 @@ class test_sendToken(unittest.TestCase):
             Verify send Token to another address XShard successfully
             Fee: PRV (auto estimate)
             Fee: PRV (no auto fee)
+            Token_privacy =0
+            PRV_privacy =1
             ''')
 
         STEP(1, "get address1 and address2 balance before sending")
@@ -492,9 +512,12 @@ class test_sendToken(unittest.TestCase):
         assert_true(step4_balancePRV_add3 == step1_balancePRV_add3,
                     "incorrect prv balance of the address 3 ")
 
-        INFO("Check transaction privacy")
+        INFO("Check transaction PRV privacy")
         step4_result = self.shard0.get_txbyhash(step2_result[0])
         assert_true(step4_result[2] == True, "transaction must be privacy ")
+
+        INFO("Check transaction token privacy")
+        assert_true(step4_result[3] == False, "transaction must be no privacy ")
 
         STEP(5, "from address1 send Token to address3 - no Fee PRV ")
         step5_result = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
@@ -531,9 +554,12 @@ class test_sendToken(unittest.TestCase):
         assert_true(step7_balancePRV_add3 == step4_balancePRV_add3,
                     "incorrect prv balance of the address 3 ")
 
-        INFO("Check transaction privacy")
+        INFO("Check transaction PRV privacy")
         step7_result = self.shard0.get_txbyhash(step5_result[0])
         assert_true(step7_result[2] == True, "transaction must be privacy ")
+
+        INFO("Check transaction Token privacy")
+        assert_true(step7_result[3] == False, "transaction must be privacy ")
 
     @pytest.mark.run
     def test_06_sendToken_noPrivacy_1shard_tokenFee(self):
@@ -576,7 +602,7 @@ class test_sendToken(unittest.TestCase):
         STEP(4, "check address1 & 2 balance after sent")
         balance1a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_token_balance: " + str(balance1a))
-        # Balance after = balance before - amount
+        # Balance after = balance before - amount -fee
         assert balance1a == balance1b - self.test_data["token_amount"] - self.test_data["token_fee"]
 
         balance2a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
@@ -596,7 +622,8 @@ class test_sendToken(unittest.TestCase):
 
         STEP(5, "Check transaction privacy")
         step5_result = self.shard0.get_txbyhash(step2_result[0])
-        assert_true(step5_result[3] == False, "transaction must be no privacy ")
+        assert_true(step5_result[3] == False, "transaction must be no token_privacy ")
+        assert_true(step5_result[2] == False, "transaction must be no prv_privacy ")
 
     @pytest.mark.run
     def test_07_sendToken_Privacy_1shard_tokenFee(self):
@@ -640,7 +667,7 @@ class test_sendToken(unittest.TestCase):
         STEP(4, "check address1 & 2 balance after sent")
         balance1a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_token_balance: " + str(balance1a))
-        # Balance after = balance before - amount
+        # Balance after = balance before - amount -fee
         assert balance1a == balance1b - self.test_data["token_amount"] - self.test_data["token_fee"]
 
         balance2a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
@@ -660,7 +687,8 @@ class test_sendToken(unittest.TestCase):
 
         STEP(5, "Check transaction privacy")
         step5_result = self.shard0.get_txbyhash(step2_result[0])
-        assert_true(step5_result[2] == True, "transaction must be privacy ")
+        assert_true(step5_result[2] == False, "transaction must be no prv_privacy ")
+        assert_true(step5_result[3] == True, "transaction must be token_privacy ")
 
     @pytest.mark.run
     def test_08_sendToken_noPrivacy_Xshard_tokenFee(self):
@@ -671,7 +699,7 @@ class test_sendToken(unittest.TestCase):
                  PRV_privacy =0
                  ''')
 
-        STEP(1, "get address1 and address2 balance before sending")
+        STEP(1, "get address1 and address4 balance before sending")
         balance1b, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_token_balance: " + str(balance1b))
         assert_true(balance1b != "Invalid parameters", "get wrong token balance add1")
@@ -680,17 +708,17 @@ class test_sendToken(unittest.TestCase):
         INFO("add1_prv_balance : " + str(step1_balancePRV_add1))
         assert_true(step1_balancePRV_add1 != "Invalid parameters", "get wrong prv balance add1")
 
-        balance2b, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
-        INFO("addr3_token_balance: " + str(balance2b))
+        balance2b, _ = self.shard2.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
+        INFO("addr4_token_balance: " + str(balance2b))
         assert_true(balance2b != "Invalid parameters", "get wrong token balance add2")
 
-        step1_balancePRV_add3 = self.shard1.getBalance(self.test_data["s1_addr3"][0])
-        INFO("add3_prv_balance : " + str(step1_balancePRV_add3))
-        assert_true(step1_balancePRV_add3 != "Invalid parameters", "get wrong prv balance add2")
+        step1_balancePRV_add4 = self.shard2.getBalance(self.test_data["s2_addr4"][0])
+        INFO("add4_prv_balance : " + str(step1_balancePRV_add4))
+        assert_true(step1_balancePRV_add4 != "Invalid parameters", "get wrong prv balance add2")
 
-        STEP(2, "from address1 send Token to address3 - Fee PRV auto estimated")
+        STEP(2, "from address1 send Token to address4 - Fee PRV auto estimated")
         step2_result = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
-                                                               self.test_data["s1_addr3"][1], test_sendToken.token_id,
+                                                               self.test_data["s2_addr4"][1], test_sendToken.token_id,
                                                                self.test_data["token_amount"], prv_fee=0,
                                                                token_fee=self.test_data["token_fee"],
                                                                token_privacy=0)
@@ -701,16 +729,16 @@ class test_sendToken(unittest.TestCase):
         self.shard0ws.createConnection()
         ws_res = self.shard0ws.subcribePendingTransaction(step2_result[0])
 
-        self.shard1ws.createConnection()
-        ws_res3 = self.shard1ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s1_addr3"][0])
+        self.shard2ws.createConnection()
+        ws_res3 = self.shard2ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s2_addr4"][0])
 
-        STEP(4, "check address1 & 2 balance after sent")
+        STEP(4, "check address1 & 4 balance after sent")
         balance1a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_token_balance: " + str(balance1a))
-        # Balance after = balance before - amount
-        assert balance1a == balance1b - self.test_data["token_amount"]
+        # Balance after = balance before - amount -fee
+        assert balance1a == balance1b - self.test_data["token_amount"] -self.test_data["token_fee"]
 
-        balance2a, _ = self.shard0.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
+        balance2a, _ = self.shard2.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
         INFO("addr3_token_balance: " + str(balance2a))
         # Balance after = balance before + amount
         assert balance2a == balance2b + self.test_data["token_amount"]
@@ -720,14 +748,15 @@ class test_sendToken(unittest.TestCase):
         assert_true(step4_balancePRV_add1 == step1_balancePRV_add1 - ws_res[2],
                     "incorrect prv balance of the address 1 ")
 
-        step4_balancePRV_add3 = self.shard1.getBalance(self.test_data["s1_addr3"][0])
-        INFO("add3_prv_balance : " + str(step4_balancePRV_add3))
-        assert_true(step4_balancePRV_add3 == step1_balancePRV_add3,
-                    "incorrect prv balance of the address 3 ")
+        step4_balancePRV_add4 = self.shard2.getBalance(self.test_data["s2_addr4"][0])
+        INFO("add4_prv_balance : " + str(step4_balancePRV_add4))
+        assert_true(step4_balancePRV_add4 == step1_balancePRV_add4,
+                    "incorrect prv balance of the address 4 ")
 
         STEP(5, "Check transaction privacy")
         step5_result = self.shard0.get_txbyhash(step2_result[0])
-        assert_true(step5_result[3] == False, "transaction must be no privacy ")
+        assert_true(step5_result[2] == False, "transaction must be no prv_privacy ")
+        assert_true(step5_result[3] == False, "transaction must be no token_privacy ")
 
     @pytest.mark.run
     def test_09_sendToken_Privacy_Xshard_tokenFee(self):
@@ -773,8 +802,8 @@ class test_sendToken(unittest.TestCase):
         STEP(4, "check address1 & 2 balance after sent")
         balance1a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
         INFO("addr1_token_balance: " + str(balance1a))
-        # Balance after = balance before - amount
-        assert balance1a == balance1b - self.test_data["token_amount"]
+        # Balance after = balance before - amount -fee
+        assert balance1a == balance1b - self.test_data["token_amount"] -self.test_data["token_fee"]
 
         balance2a, _ = self.shard0.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
         INFO("addr3_token_balance: " + str(balance2a))
@@ -793,93 +822,146 @@ class test_sendToken(unittest.TestCase):
 
         STEP(5, "Check transaction privacy")
         step5_result = self.shard0.get_txbyhash(step2_result[0])
-        assert_true(step5_result[3] == True, "transaction must be privacy ")
-
+        assert_true(step5_result[3] == True, "transaction must be toekn_privacy ")
+        assert_true(step5_result[2] == False, "transaction must be no prv_privacy ")
 
     @pytest.mark.run
-    def est_xx_sendToken_privacy_Xshard(self):
-        print("""
-        Verify send Token to another address Xshard successfully
-        Fee: PRV (fixed * transaction size KB)
-        Fee: pToken (fixed)
-        """)
+    def test_10_sendToken_sendPRV_Privacy_1shard_tokenFee_prvFee(self):
+        print('''
+                  Verify send Token to another address 1Shard successfully
+                  Fee: token
+                  Fee : auto PRV
+                  Token_privacy = 1
+                  Prv_privacy =1
 
-        STEP(1, "get address1 and address3 balance before sending")
+                  ''')
+
+        STEP(1, "get address1 and address2 balance before sending")
         balance1b, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
-        INFO("addr1_balance: " + str(balance1b))
-        assert balance1b != "Invalid parameters"
+        INFO("addr1_token_balance: " + str(balance1b))
+        assert_true(balance1b != "Invalid parameters", "get wrong token balance add1")
 
-        balance3b, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
-        INFO("addr3_balance: " + str(balance3b))
-        assert balance3b != "Invalid parameters"
+        step1_balancePRV_add1 = self.shard0.getBalance(self.test_data["s0_addr1"][0])
+        INFO("add1_prv_balance : " + str(step1_balancePRV_add1))
+        assert_true(step1_balancePRV_add1 != "Invalid parameters", "get wrong prv balance add1")
 
-        STEP(2, "from address1 send prv to address3 - tx_fee PRV fixed 1PRV")
-        estimate_transaction_size = self.shard0.estimatefee_token(self.test_data["s0_addr1"][0],
-                                                                  self.test_data["s1_addr3"][1],
-                                                                  test_sendToken.token_id,
-                                                                  self.test_data["token_amount"])
-        INFO("estimate transaction size before send: " + str(estimate_transaction_size[0]) + "KB")
-        tx_id = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
-                                                        self.test_data["s1_addr3"][1], test_sendToken.token_id,
-                                                        self.test_data["token_amount"], 1000000000)
-        INFO("transaction id: " + tx_id[0])
-        assert tx_id[0] != 'Can not create tx'
+        balance2b, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
+        INFO("addr2_token_balance: " + str(balance2b))
+        assert_true(balance2b != "Invalid parameters", "get wrong token balance add2")
+
+        step1_balancePRV_add2 = self.shard0.getBalance(self.test_data["s0_addr2"][0])
+        INFO("add2_prv_balance : " + str(step1_balancePRV_add2))
+        assert_true(step1_balancePRV_add2 != "Invalid parameters", "get wrong prv balance add2")
+
+        STEP(2, "from address1 send Token to address2 - Fee PRV auto estimated")
+        step2_result = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
+                                                               self.test_data["s0_addr2"][1], test_sendToken.token_id,
+                                                               self.test_data["token_amount"], prv_fee=-1,
+                                                               token_fee=self.test_data["token_fee"],prv_amount=self.test_data["prv_amount"], token_privacy=1,prv_privacy=1)
+        INFO("transaction id: " + step2_result[0])
+        assert_true(step2_result[0] != 'Can not create tx', step2_result[1])
 
         STEP(3, "subcribe transaction")
         self.shard0ws.createConnection()
-        ws_res = self.shard0ws.subcribePendingTransaction(tx_id[0])
-        assert_true(ws_res[2] % 1000000000 == 0, "Invalid tx_fee",
-                    "Transaction fee is %d * %d" % (1000000000, ws_res[2] / 1000000000))
-        self.shard1ws.createConnection()
-        ws_res5 = self.shard1ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s1_addr3"][0])
+        ws_res = self.shard0ws.subcribePendingTransaction(step2_result[0])
 
-        STEP(4, "check address1 & 3 balance")
+        STEP(4, "check address1 & 2 balance after sent")
         balance1a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
-        INFO("addr1_balance: " + str(balance1a))
-        # Balance after = balance before - amount
-        assert balance1a == balance1b - self.test_data["token_amount"]
+        INFO("addr1_token_balance: " + str(balance1a))
+        # Balance after = balance before - amount - fee
+        assert balance1a == balance1b - self.test_data["token_amount"] - self.test_data["token_fee"]
 
-        balance3a, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
-        INFO("addr3_balance: " + str(balance3a))
+        balance2a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
+        INFO("addr2_token_balance: " + str(balance2a))
         # Balance after = balance before + amount
-        assert balance3a == balance3b + self.test_data["token_amount"]
+        assert balance2a == balance2b + self.test_data["token_amount"]
 
-        STEP(5, "from address1 send prv to address3 - tx_fee Token fixed 100")
-        estimate_transaction_size = self.shard0.estimatefee_token(self.test_data["s0_addr1"][0],
-                                                                  self.test_data["s1_addr3"][1],
-                                                                  test_sendToken.token_id,
-                                                                  self.test_data["token_amount"])
-        INFO("estimate transaction size before send: " + str(estimate_transaction_size[0]) + "KB")
+        step4_balancePRV_add1 = self.shard0.getBalance(self.test_data["s0_addr1"][0])
+        INFO("add1_prv_balance : " + str(step4_balancePRV_add1))
+        assert_true(step4_balancePRV_add1 == step1_balancePRV_add1 - ws_res[2]- self.test_data["prv_amount"],
+                    "incorrect prv balance of the address 1 ")
 
-        balance4b, _ = self.shard2.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
-        INFO("addr4_balance: " + str(balance4b))
+        step4_balancePRV_add2 = self.shard0.getBalance(self.test_data["s0_addr2"][0])
+        INFO("add2_prv_balance : " + str(step4_balancePRV_add2))
+        assert_true(step4_balancePRV_add2 == step1_balancePRV_add2 + self.test_data["prv_amount"],
+                    "incorrect prv balance of the address 2 ")
 
-        tx_id = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
-                                                        self.test_data["s2_addr4"][1], test_sendToken.token_id,
-                                                        self.test_data["token_amount"], 0, 100)
-        assert_true(tx_id[0] != 'Can not create tx' and tx_id[0] != "Invalid parameters", tx_id[0])
-        INFO("transaction id: " + tx_id[0])
-
-        STEP(6, "subcribe transaction")
-        self.shard0ws.createConnection()
-        ws_res = self.shard0ws.subcribePendingTransaction(tx_id[0])
-        assert_true(ws_res[2] == 0, "Invalid tx_fee", "Transaction fee is 0 PRV")
-        self.shard2ws.createConnection()
-        ws_res5 = self.shard2ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s2_addr4"][0])
-
-        STEP(7, "check address1 & 4 balance")
-        balance1c, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
-        INFO("addr1_balance: " + str(balance1c))
-        # Balance after = balance before - amount
-        assert balance1c == balance1a - self.test_data["token_amount"] - 100
-
-        balance4a, _ = self.shard2.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
-        INFO("addr4_balance: " + str(balance4a))
-        # Balance after = balance before + amount
-        assert balance4a == balance4b + self.test_data["token_amount"]
+        STEP(5, "Check transaction privacy")
+        step5_result = self.shard0.get_txbyhash(step2_result[0])
+        assert_true(step5_result[2] == True, "transaction must be prv_privacy ")
+        assert_true(step5_result[3] == True, "transaction must be token_privacy ")
 
     @pytest.mark.run
-    def est_xx_send_2Xshard_tx_1beaconblock(self):
+    def test_11_sendToken_sendPRV_Privacy_Xshard_tokenFee_prvFee(self):
+        print('''
+                 Verify send Token to another address XShard successfully
+                 Fee: token fee
+                 Fee : auto prv
+                 Token_privacy = 1
+                 PRV_privacy =1
+                 ''')
+
+        STEP(1, "get address1 and address2 balance before sending")
+        balance1b, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        INFO("addr1_token_balance: " + str(balance1b))
+        assert_true(balance1b != "Invalid parameters", "get wrong token balance add1")
+
+        step1_balancePRV_add1 = self.shard0.getBalance(self.test_data["s0_addr1"][0])
+        INFO("add1_prv_balance : " + str(step1_balancePRV_add1))
+        assert_true(step1_balancePRV_add1 != "Invalid parameters", "get wrong prv balance add1")
+
+        balance2b, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
+        INFO("addr3_token_balance: " + str(balance2b))
+        assert_true(balance2b != "Invalid parameters", "get wrong token balance add3")
+
+        step1_balancePRV_add3 = self.shard1.getBalance(self.test_data["s1_addr3"][0])
+        INFO("add3_prv_balance : " + str(step1_balancePRV_add3))
+        assert_true(step1_balancePRV_add3 != "Invalid parameters", "get wrong prv balance add3")
+
+        STEP(2, "from address1 send Token to address3 - Fee PRV auto estimated")
+        step2_result = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
+                                                               self.test_data["s1_addr3"][1], test_sendToken.token_id,
+                                                               self.test_data["token_amount"], prv_fee=-1,
+                                                               token_fee=self.test_data["token_fee"], prv_amount=self.test_data["prv_amount"], prv_privacy=1,
+                                                               token_privacy=1)
+        INFO("transaction id: " + step2_result[0])
+        assert_true(step2_result[0] != 'Can not create tx', step2_result[1])
+
+        STEP(3, "subcribe transaction")
+        self.shard0ws.createConnection()
+        ws_res = self.shard0ws.subcribePendingTransaction(step2_result[0])
+
+        self.shard1ws.createConnection()
+        ws_res3 = self.shard1ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s1_addr3"][0])
+
+        STEP(4, "check address1 & 2 balance after sent")
+        balance1a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        INFO("addr1_token_balance: " + str(balance1a))
+        # Balance after = balance before - amount -fee
+        assert balance1a == balance1b - self.test_data["token_amount"] - self.test_data["token_fee"]
+
+        balance2a, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
+        INFO("addr3_token_balance: " + str(balance2a))
+        # Balance after = balance before + amount
+        assert balance2a == balance2b + self.test_data["token_amount"]
+
+        step4_balancePRV_add1 = self.shard0.getBalance(self.test_data["s0_addr1"][0])
+        INFO("add1_prv_balance : " + str(step4_balancePRV_add1))
+        assert_true(step4_balancePRV_add1 == step1_balancePRV_add1 - ws_res[2]- self.test_data["prv_amount"],
+                    "incorrect prv balance of the address 1 ")
+
+        step4_balancePRV_add3 = self.shard1.getBalance(self.test_data["s1_addr3"][0])
+        INFO("add3_prv_balance : " + str(step4_balancePRV_add3))
+        assert_true(step4_balancePRV_add3 == step1_balancePRV_add3 + self.test_data["prv_amount"],
+                    "incorrect prv balance of the address 3 ")
+
+        STEP(5, "Check transaction privacy")
+        step5_result = self.shard0.get_txbyhash(step2_result[0])
+        assert_true(step5_result[3] == True, "transaction must be token_privacy ")
+        assert_true(step5_result[2] == True, "transaction must be prv_privacy ")
+
+    @pytest.mark.run
+    def test_12_send_2Xshard_tx_1beaconblock(self):
         print("""
             Verify send Token Xshard, from Shard_n+1 Shard_n+2 to Shard_n at the same time
             Fee: PRV (fixed * transaction size KB)
@@ -950,72 +1032,146 @@ class test_sendToken(unittest.TestCase):
                     "Balance addr1 invalid: %d != %d + %d + %d" % (balance1a, balance1b, balance3b, balance4b))
 
     @pytest.mark.run
-    def est_xx_sendToken_Xshard_insufficient_fund(self):
+    def test_13_sendToken_Xshard_insufficient_fund(self):
         """
         Verify send Token to another address:
         - Not enough coin (insufficient fund)
         - Wrong input transaction
         - Valid transaction
         """
-        print("\n")
-        STEP(1, "Get address1 balance")
-        step1_result = self.shard0.getBalance(self.test_data["address1_privatekey"])
-        INFO("addr1_balance: " + str(step1_result))
-        assert step1_result != "Invalid parameters"
+        STEP(1, "get address2 and address3 balance before sending")
+        step1_token_add2, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
+        INFO("addr2_token_balance: " + str(step1_token_add2))
+        assert_true(step1_token_add2 != "Invalid parameters", "get wrong token balance add2")
 
-        STEP(2, "Get address3 balance")
-        step2_result = self.shard1.getBalance(self.test_data["address3_privatekey"])
-        INFO("addr3_balance: " + str(step2_result))
-        assert_true(step2_result != 0, "addr3_balance = 0, stop this testcase")
+        step1_PRV_add2 = self.shard0.getBalance(self.test_data["s0_addr2"][0])
+        INFO("add2_prv_balance : " + str(step1_PRV_add2))
+        assert_true(step1_PRV_add2 != "Invalid parameters", "get wrong prv balance add2")
 
-        STEP(3, "From address3 send prv to address1 - Not enough coin")
+        step1_token_add3, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
+        INFO("addr3_token_balance: " + str(step1_token_add3))
+        assert_true(step1_token_add3 != "Invalid parameters", "get wrong token balance add3")
+
+        step1_PRV_add3 = self.shard1.getBalance(self.test_data["s1_addr3"][0])
+        INFO("add3_prv_balance : " + str(step1_PRV_add3))
+        assert_true(step1_PRV_add3 != "Invalid parameters", "get wrong prv balance add3")
+
+        STEP(2, "From address2 send prv to address3 - Not enough coin")
         # send current balance + 10
-        step3_result = self.shard1.sendTransaction(self.test_data["address3_privatekey"],
-                                                   self.test_data["address1_payment"], step2_result + 10)
+        step2_result = self.shard0.send_customTokenTransaction(self.test_data["s0_addr2"][0],
+                                                   self.test_data["s1_addr3"][1], self.token_id, amount_customToken= step1_token_add2 + 10)
+        INFO("Expecting: " + step2_result[0])
+        assert_true(step2_result[0] == 'Can not create tx', "something went wrong, this tx must failed")
+        assert_true(re.search(r'Not enough coin', step2_result[1]), "something went so wrong")
+
+        # breakpoint()
+
+        STEP(3, "From address2 send prv to address3 - Wrong input transaction")
+        # send current balance (lacking of fee)
+        step3_result = self.shard0.send_customTokenTransaction(self.test_data["s0_addr2"][0],
+                                                   self.test_data["s1_addr3"][1], self.token_id,  amount_customToken= step1_token_add2, token_fee=self.test_data["token_fee"])
         INFO("Expecting: " + step3_result[0])
         assert_true(step3_result[0] == 'Can not create tx', "something went wrong, this tx must failed")
-        assert_true(re.search(r'Not enough coin', step3_result[1]), "something went so wrong")
 
         # breakpoint()
 
-        STEP(4, "From address3 send prv to address1 - Wrong input transaction")
-        # send current balance (lacking of fee)
-        step4_result = self.shard1.sendTransaction(self.test_data["address3_privatekey"],
-                                                   self.test_data["address1_payment"], step2_result)
-        INFO("Expecting: " + step4_result[0])
-        assert_true(step4_result[0] == 'Can not create tx', "something went wrong, this tx must failed")
-        assert_true(re.search(r'Wrong input transaction', step4_result[1]), "something went so wrong")
-        estimated_fee = re.search(r'fee=(\d+)\n', step4_result[1])
-        estimated_fee = estimated_fee.group(1)
-        INFO("Estimated fee: " + estimated_fee)
+        STEP(4, "From address2 send prv to address3 - success")
+        # send current balance - fee (100)
+        estimated_fee =10
+        step4_result = self.shard0.send_customTokenTransaction(self.test_data["s0_addr2"][0],
+                                                  self.test_data["s1_addr3"][1], self.token_id, amount_customToken= step1_token_add2 - estimated_fee, token_fee=estimated_fee)
+        step4_result[0] != 'Can not create tx'
+        assert_true(step4_result[0] != 'Can not create tx', step4_result[1])
+        INFO("TxID: " + step4_result[0])
 
-        # breakpoint()
-
-        STEP(5, "From address3 send prv to address1 - success")
-        # send current balance - fee
-        step5_result = self.shard1.sendTransaction(self.test_data["address3_privatekey"],
-                                                   self.test_data["address1_payment"],
-                                                   step2_result - int(estimated_fee))
-        assert_true(step5_result[0] != 'Can not create tx', "something went wrong, this tx must succeeded")
-        INFO("TxID: " + step5_result[0])
-
-        STEP(6, "Subcribe transaction")
-        self.shard1ws.createConnection()
-        ws_res6 = self.shard1ws.subcribePendingTransaction(step5_result[0])
-
-        STEP(7, "Subcribe cross transaction by privatekey")
+        STEP(5, "Subcribe transaction")
         self.shard0ws.createConnection()
-        ws_res7 = self.shard0ws.subcribeCrossOutputCoinByPrivatekey(self.test_data["address1_privatekey"])
+        ws_res6 = self.shard0ws.subcribePendingTransaction(step4_result[0])
 
-        STEP(8, "Check address1 balance")
-        step8_result = self.shard0.getBalance(self.test_data["address1_privatekey"])
-        INFO("addr1_balance: " + str(step8_result))
-        assert step8_result == step1_result + step2_result - ws_res6[2]
+        self.shard1ws.createConnection()
+        ws_res7 = self.shard1ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s1_addr3"][0])
 
-        STEP(7, "Check address3 balance")
-        step7_result = self.shard1.getBalance(self.test_data["address3_privatekey"])
-        INFO("Addr3_balance: " + str(step7_result))
-        assert step7_result == 0
+        STEP(6, "Check address1 balance")
+        step6_result = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0],self.token_id)
+        INFO("addr3_balance: " + str(step6_result))
+        assert step6_result[0] == step1_token_add3 + step1_token_add2 - estimated_fee
+
+        STEP(7, "Check address2 balance")
+        step7_result = self.shard0.get_customTokenBalance(self.test_data["s0_addr2"][0],self.token_id)
+        INFO("Addr2_balance: " + str(step7_result))
+        assert step7_result[0] == 0
+
+    @pytest.mark.run
+    def test_14_sendToken_1shard_insufficient_fund(self):
+        """
+        Verify send Token to another address:
+        - Not enough coin (insufficient fund)
+        - Wrong input transaction
+        - Valid transaction
+        """
+        STEP(1, "get address1 and address2 balance before sending")
+        step1_token_add2, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr2"][0], test_sendToken.token_id)
+        INFO("addr2_token_balance: " + str(step1_token_add2))
+        assert_true(step1_token_add2 != "Invalid parameters", "get wrong token balance add2")
+
+        step1_PRV_add2 = self.shard0.getBalance(self.test_data["s0_addr2"][0])
+        INFO("add2_prv_balance : " + str(step1_PRV_add2))
+        assert_true(step1_PRV_add2 != "Invalid parameters", "get wrong prv balance add2")
+
+        step1_token_add1, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        INFO("addr1_token_balance: " + str(step1_token_add1))
+        assert_true(step1_token_add1 != "Invalid parameters", "get wrong token balance add1")
+
+        step1_PRV_add1 = self.shard0.getBalance(self.test_data["s0_addr1"][0])
+        INFO("add1_prv_balance : " + str(step1_PRV_add1))
+        assert_true(step1_PRV_add1 != "Invalid parameters", "get wrong prv balance add1")
+
+        STEP(2, "From address2 send prv to address1 - Not enough coin")
+        # send current balance + 10
+        step2_result = self.shard0.send_customTokenTransaction(self.test_data["s0_addr2"][0],
+                                                               self.test_data["s0_addr1"][1], self.token_id,
+                                                               amount_customToken=step1_token_add2 + 10)
+        INFO("Expecting: " + step2_result[0])
+        assert_true(step2_result[0] == 'Can not create tx', "something went wrong, this tx must failed")
+        assert_true(re.search(r'Not enough coin', step2_result[1]), "something went so wrong")
+
+        # breakpoint()
+
+        STEP(3, "From address2 send prv to address1 - Wrong input transaction")
+        # send current balance (lacking of fee)
+        step3_result = self.shard0.send_customTokenTransaction(self.test_data["s0_addr2"][0],
+                                                               self.test_data["s0_addr1"][1], self.token_id,
+                                                               amount_customToken=step1_token_add2,
+                                                               token_fee=self.test_data["token_fee"])
+        INFO("Expecting: " + step3_result[0])
+        assert_true(step3_result[0] == 'Can not create tx', "something went wrong, this tx must failed")
+
+        # breakpoint()
+
+        STEP(4, "From address2 send prv to address1 - success")
+        # send current balance - fee (10)
+        estimated_fee = 10
+        step4_result = self.shard0.send_customTokenTransaction(self.test_data["s0_addr2"][0],
+                                                               self.test_data["s0_addr1"][1], self.token_id,
+                                                               amount_customToken=step1_token_add2 - estimated_fee,
+                                                               token_fee=10)
+        step4_result[0] != 'Can not create tx'
+        assert_true(step4_result[0] != 'Can not create tx', step4_result[1])
+        INFO("TxID: " + step4_result[0])
+
+        STEP(5, "Subcribe transaction")
+        self.shard0ws.createConnection()
+        ws_res6 = self.shard0ws.subcribePendingTransaction(step4_result[0])
+
+        STEP(6, "Check address1 balance")
+        step6_result = self.shard1.get_customTokenBalance(self.test_data["s0_addr1"][0], self.token_id)
+        INFO("addr1_balance: " + str(step6_result))
+        assert step6_result[0] == step1_token_add1 + step1_token_add2 - estimated_fee
+
+        STEP(7, "Check address2 balance")
+        step7_result = self.shard0.get_customTokenBalance(self.test_data["s0_addr2"][0], self.token_id)
+        INFO("Addr2_balance: " + str(step7_result[0]))
+        assert step7_result[0] == 0
 
     @pytest.mark.run
     def est_xx_sendToken_privacy_Xshard(self):
@@ -1060,6 +1216,90 @@ class test_sendToken(unittest.TestCase):
         assert step5_result == step2_result + self.test_data["prv_amount"]
 
     @pytest.mark.run
+    def est_xx_sendToken_privacy_Xshard(self):
+        print("""
+          Verify send Token to another address Xshard successfully
+          Fee: auto PRV 
+          Fee: pToken (fixed)
+          """)
+
+        STEP(1, "get address1 and address3 balance before sending")
+        balance1b, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        INFO("addr1_balance: " + str(balance1b))
+        assert balance1b != "Invalid parameters"
+
+        balance3b, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
+        INFO("addr3_balance: " + str(balance3b))
+        assert balance3b != "Invalid parameters"
+
+        STEP(2, "from address1 send prv to address3 ")
+        estimate_transaction_size = self.shard0.estimatefee_token(self.test_data["s0_addr1"][0],
+                                                                  self.test_data["s1_addr3"][1],
+                                                                  test_sendToken.token_id,
+                                                                  self.test_data["token_amount"])
+        '''
+        INFO("estimate transaction size before send: " + str(estimate_transaction_size[0]) + "KB")
+        tx_id = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
+                                                        self.test_data["s1_addr3"][1], test_sendToken.token_id,
+                                                        self.test_data["token_amount"], 1000000000)
+        INFO("transaction id: " + tx_id[0])
+        assert tx_id[0] != 'Can not create tx'
+        '''
+
+        STEP(3, "subcribe transaction")
+        self.shard0ws.createConnection()
+        ws_res = self.shard0ws.subcribePendingTransaction(tx_id[0])
+        assert_true(ws_res[2] % 1000000000 == 0, "Invalid tx_fee",
+                    "Transaction fee is %d * %d" % (1000000000, ws_res[2] / 1000000000))
+        self.shard1ws.createConnection()
+        ws_res5 = self.shard1ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s1_addr3"][0])
+
+        STEP(4, "check address1 & 3 balance")
+        balance1a, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        INFO("addr1_balance: " + str(balance1a))
+        # Balance after = balance before - amount
+        assert balance1a == balance1b - self.test_data["token_amount"]
+
+        balance3a, _ = self.shard1.get_customTokenBalance(self.test_data["s1_addr3"][0], test_sendToken.token_id)
+        INFO("addr3_balance: " + str(balance3a))
+        # Balance after = balance before + amount
+        assert balance3a == balance3b + self.test_data["token_amount"]
+
+        STEP(5, "from address1 send prv to address3 - tx_fee Token fixed 100")
+        estimate_transaction_size = self.shard0.estimatefee_token(self.test_data["s0_addr1"][0],
+                                                                  self.test_data["s1_addr3"][1],
+                                                                  test_sendToken.token_id,
+                                                                  self.test_data["token_amount"])
+        INFO("estimate transaction size before send: " + str(estimate_transaction_size[0]) + "KB")
+
+        balance4b, _ = self.shard2.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
+        INFO("addr4_balance: " + str(balance4b))
+
+        tx_id = self.shard0.send_customTokenTransaction(self.test_data["s0_addr1"][0],
+                                                        self.test_data["s2_addr4"][1], test_sendToken.token_id,
+                                                        self.test_data["token_amount"], 0, 100)
+        assert_true(tx_id[0] != 'Can not create tx' and tx_id[0] != "Invalid parameters", tx_id[0])
+        INFO("transaction id: " + tx_id[0])
+
+        STEP(6, "subcribe transaction")
+        self.shard0ws.createConnection()
+        ws_res = self.shard0ws.subcribePendingTransaction(tx_id[0])
+        assert_true(ws_res[2] == 0, "Invalid tx_fee", "Transaction fee is 0 PRV")
+        self.shard2ws.createConnection()
+        ws_res5 = self.shard2ws.subcribeCrossCustomTokenPrivacyByPrivatekey(self.test_data["s2_addr4"][0])
+
+        STEP(7, "check address1 & 4 balance")
+        balance1c, _ = self.shard0.get_customTokenBalance(self.test_data["s0_addr1"][0], test_sendToken.token_id)
+        INFO("addr1_balance: " + str(balance1c))
+        # Balance after = balance before - amount
+        assert balance1c == balance1a - self.test_data["token_amount"] - 100
+
+        balance4a, _ = self.shard2.get_customTokenBalance(self.test_data["s2_addr4"][0], test_sendToken.token_id)
+        INFO("addr4_balance: " + str(balance4a))
+        # Balance after = balance before + amount
+        assert balance4a == balance4b + self.test_data["token_amount"]
+
+    @pytest.mark.run
     def est_xx_burn_pToken(self):
         print("\n")
         STEP(0, "check address1 balance")
@@ -1088,3 +1328,4 @@ class test_sendToken(unittest.TestCase):
         """
         self.shard0ws.closeConnection()
         self.shard1ws.closeConnection()
+        self.shard2ws.closeConnection()
