@@ -1,6 +1,9 @@
 import json
+
 import requests
+
 from libs.AutoLog import WARN, DEBUG, INFO
+
 
 class Transaction():
     def __init__(self, ip, rpc):
@@ -16,7 +19,7 @@ class Transaction():
         """
 
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
-        # print(response.text)
+        #print(response.text)
         resp_json = json.loads(response.text)
 
         if resp_json['Error'] is None:
@@ -47,7 +50,7 @@ class Transaction():
         DEBUG(resp_json)
 
         if resp_json['Error'] is None:
-            return resp_json['Result']['BlockHash'], resp_json['Result']['ShardID'], resp_json['Result']['IsPrivacy'],resp_json['Result']['PrivacyCustomTokenIsPrivacy']
+            return resp_json['Result']['BlockHash'], resp_json['Result']['ShardID'], resp_json['Result']['IsPrivacy'], resp_json['Result']['PrivacyCustomTokenIsPrivacy']
         else:
             WARN(resp_json['Error']['Message'])
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
@@ -176,6 +179,46 @@ class Transaction():
 
         if resp_json['Error'] is None:
             return resp_json['Result']['EstimateTxSizeInKb'], "SUCCESS"
+        else:
+            WARN(resp_json['Error']['Message'])
+            return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
+
+    ###############
+    # WITHDRAW REWARD
+    ###############
+
+    def withdrawReward(self, privateKey, paymentAddress):
+            headers = {'Content-Type': 'application/json'}
+            data = { "jsonrpc": "1.0", "method": "withdrawreward",
+                "params": [privateKey, 0, 0, 0,
+                           {
+                               "PaymentAddress": paymentAddress,
+                               "TokenID":"0000000000000000000000000000000000000000000000000000000000000004"
+                               }
+
+                     ],
+                     "id":1}
+            response = requests.post(self.url, data=json.dumps(data), headers=headers)
+            resp_json = json.loads(response.text)
+            DEBUG(resp_json)
+
+            if resp_json['Error'] is None:
+                return resp_json['Result']['TxID'], "SUCCESS"
+            else:
+                WARN(resp_json['Error']['Message'])
+                return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
+
+    def getReward(self, paymentAddress):
+        headers = {'Content-Type': 'application/json'}
+        data = {"jsonrpc": "1.0", "method": "getrewardamount",
+                "params": [paymentAddress]
+                }
+        response = requests.post(self.url, data=json.dumps(data), headers=headers)
+        resp_json = json.loads(response.text)
+        DEBUG(resp_json)
+
+        if resp_json['Error'] is None:
+            return resp_json['Result']['TxID'], "SUCCESS"
         else:
             WARN(resp_json['Error']['Message'])
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]

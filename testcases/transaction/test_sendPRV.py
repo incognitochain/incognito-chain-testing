@@ -15,7 +15,7 @@ class test_sendPRV(unittest.TestCase):
     """
     Test case: Send PRV
     """
-    test_data = {
+    test_data_ = {
         's0_addr1': [
             "112t8rnXVMJJZzfF1naXvfE9nkTKwUwFWFeh8cfEyViG1vpA8A9khJk3mhyB1hDuJ4RbreDTsZpgJK4YcSxdEpXJKMEd8Vmp5UqKWwBcYzxv",
             "12RyJTSL2G8KvjN7SUFuiS9Ek4pvFFze3EMMic31fmXVw8McwYzpKPpxeW6TLsNo1UoPhCHKV3GDRLQwdLF41PED3LQNCLsGNKzmCE5"],
@@ -41,7 +41,7 @@ class test_sendPRV(unittest.TestCase):
         'prv_amount': 10
     }
 
-    test_data_tuan = {
+    test_data = {
         's0_addr1': [
             "112t8rnX3VTd3MTWMpfbYP8HGY4ToAaLjrmUYzfjJBrAcb8iPLkNqvVDXWrLNiFV5yb2NBpR3FDZj3VW8GcLUwRdQ61hPMWP3YrREZAZ1UbH",
             "12S6R8HfTyL74bggg47LX88RSvBPaMPBMEMoo6yx9WQ4EgLiYERXXcE2Mv2HrCsFuKhBsTfrYMeH82Bus5MHQGt3xHwoxX4v2qM5jRE"
@@ -95,8 +95,8 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_01_sendPRV_noPrivacy_1shard_with_0_balance(self):
         print("""
-                    Verify send PRV form account balance = 0  to another address X1hard with no privacy
-                    """)
+                        Verify send PRV form account balance = 0  to another address X1hard with no privacy
+                        """)
         INFO("test_01_sendPRV_no_privacy_1shard_with_0_balance")
         STEP(1, "get address1 and address2 balance before sending")
         balance1b = self.shard3.getBalance(self.test_data["s3_addr6"][0])
@@ -139,8 +139,8 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_02_sendPRV_noPrivacy_Xshard_with_0_balance(self):
         print("""
-                Verify send PRV form account balance = 0  to another address XShard with no privacy
-                """)
+                    Verify send PRV form account balance = 0  to another address XShard with no privacy
+                    """)
         INFO("test_02_sendPRV_no_privacy_Xshard_with_0_balance")
         STEP(1, "get address1 and address2 balance before sending")
         balance1b = self.shard3.getBalance(self.test_data["s3_addr6"][0])
@@ -183,8 +183,8 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_03_sendPRV_privacy_1shard_with_0_balance(self):
         print("""
-                        Verify send PRV form account balance = 0  to another address X1hard with privacy
-                        """)
+                            Verify send PRV form account balance = 0  to another address X1hard with privacy
+                            """)
         INFO("test_03_sendPRV_privacy_1shard_with_0_balance")
         STEP(1, "get address1 and address2 balance before sending")
         balance1b = self.shard3.getBalance(self.test_data["s3_addr6"][0])
@@ -224,8 +224,8 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_04_sendPRV_privacy_Xshard_with_0_balance(self):
         print("""
-                    Verify send PRV form account balance = 0  to another address XShard with no privacy
-                    """)
+                        Verify send PRV form account balance = 0  to another address XShard with no privacy
+                        """)
         INFO("test_04_sendPRV_privacy_Xshard_with_0_balance")
         STEP(1, "get address1 and address2 balance before sending")
         balance1b = self.shard3.getBalance(self.test_data["s3_addr6"][0])
@@ -265,8 +265,8 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_05_sendPRV_noPrivacy_1shard_autoFee(self):
         print("""
-            Verify send PRV ( no privacy - Auto fee )to another address 1Shard successfully with no privacy
-            """)
+                Verify send PRV ( no privacy - Auto fee )to another address 1Shard successfully with no privacy
+                """)
         INFO("test_05_sendPRV_no_privacy_1shard_auto_fee")
         STEP(1, "get address1 and address2 balance before sending")
         balance1b = self.shard0.getBalance(self.test_data["s0_addr1"][0])
@@ -306,8 +306,8 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_06_sendPRV_noPivacy_1shard_noAutoFee(self):
         print("""
-                Verify send PRV ( no privacy - noAuto fee ) to another address 1Shard successfully with no privacy
-                """)
+                    Verify send PRV ( no privacy - noAuto fee ) to another address 1Shard successfully with no privacy
+                    """)
         INFO("test_06_sendPRV_no_privacy_1shard_noAuto_fee")
         STEP(1, "get address1 and address2 balance before sending")
         balance1b = self.shard0.getBalance(self.test_data["s0_addr1"][0])
@@ -320,7 +320,8 @@ class test_sendPRV(unittest.TestCase):
 
         STEP(2, "from address1 send prv to address2")
         tx_id = self.shard0.sendTransaction(self.test_data["s0_addr1"][0],
-                                            self.test_data["s0_addr2"][1], self.test_data["prv_amount"], fee=2, privacy=0)
+                                            self.test_data["s0_addr2"][1], self.test_data["prv_amount"], fee=2,
+                                            privacy=0)
         INFO("transaction id: " + tx_id[0])
         assert tx_id[0] != 'Can not create tx'
 
@@ -351,8 +352,8 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_07_sendPRV_privacy_1shard_autoFee(self):
         print("""
-        Verify send PRV ( privacy - auto fee ) to another address 1Shard successfully
-        """)
+            Verify send PRV ( privacy - auto fee ) to another address 1Shard successfully
+            """)
         INFO("test_07_sendPRV_privacy_1shard_auto_fee")
         STEP(1, "get address1 and address2 balance before sending")
         balance1b = self.shard0.getBalance(self.test_data["s0_addr1"][0])
@@ -389,12 +390,11 @@ class test_sendPRV(unittest.TestCase):
         step6_result= self.shard0.get_txbyhash(tx_id[0])
         assert_true(step6_result[2]== True , "transaction must be privacy" )
 
-
     @pytest.mark.run
     def test_08_sendPRV_privacy_1shard_noAutoee(self):
         print("""
-            Verify send PRV ( privacy - noAuto fee ) to another address 1Shard successfully
-            """)
+                Verify send PRV ( privacy - noAuto fee ) to another address 1Shard successfully
+                """)
         INFO("test_08_sendPRV_privacy_1shard_noAuto_fee")
         STEP(1, "get address1 and address2 balance before sending")
         balance1b = self.shard0.getBalance(self.test_data["s0_addr1"][0])
@@ -434,8 +434,8 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_09_sendPRV_noPrivacy_Xshard_autoFee(self):
         print("""
-         Verify send PRV (no privacy- auto fee ) to another address Xshard successfully with no privacy
-         """)
+             Verify send PRV (no privacy- auto fee ) to another address Xshard successfully with no privacy
+             """)
         INFO("test_09_sendPRV_no_privacy_Xshard_auto_fee")
         STEP(1, "Get address1 balance")
         step1_result = self.shard0.getBalance(self.test_data["s0_addr1"][0])
@@ -449,7 +449,8 @@ class test_sendPRV(unittest.TestCase):
 
         STEP(3, "From address1 send prv to address3")
         step3_result = self.shard0.sendTransaction(self.test_data["s0_addr1"][0],
-                                                   self.test_data["s1_addr3"][1], self.test_data["prv_amount"], privacy=0)
+                                                   self.test_data["s1_addr3"][1], self.test_data["prv_amount"],
+                                                   privacy=0)
         INFO("Transaction ID: " + step3_result[0])
         assert step3_result[0] != 'Can not create tx'
 
@@ -478,9 +479,9 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_10_sendPRV_noPrivacy_Xshard_noAautoFee(self):
         print("""
-         Verify send PRV (no privacy - no auto fee ) to another address Xshard successfully with no privacy
-         Fee: 100 nanoPRV * transaction size
-         """)
+             Verify send PRV (no privacy - no auto fee ) to another address Xshard successfully with no privacy
+             Fee: 100 nanoPRV * transaction size
+             """)
         INFO("test_10_sendPRV_no_privacy_Xshard_noAauto_fee")
         STEP(1, "Get address1 balance")
         step1_result = self.shard0.getBalance(self.test_data["s0_addr1"][0])
@@ -525,8 +526,8 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_11_sendPRV_privacy_Xshard_autoFee(self):
         print("""
-        Verify send PRV (privacy - auto fee ) to another address Xshard successfully
-        """)
+            Verify send PRV (privacy - auto fee ) to another address Xshard successfully
+            """)
         INFO("test_11_sendPRV_privacy_Xshard_auto_fee")
         STEP(1, "Get address1 balance")
         step1_result = self.shard0.getBalance(self.test_data["s0_addr1"][0])
@@ -569,9 +570,9 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_12_sendPRV_privacy_Xshard_noAutoFee(self):
         print("""
-           Verify send PRV (privacy - no Auto fee) to another address Xshard successfully
-           Fee: 100 nanoPRV * transaction size
-           """)
+               Verify send PRV (privacy - no Auto fee) to another address Xshard successfully
+               Fee: 100 nanoPRV * transaction size
+               """)
         INFO("test_12_sendPRV_privacy_Xshard_noAuto_fee")
         STEP(1, "Get address1 balance")
         step1_result = self.shard0.getBalance(self.test_data["s0_addr1"][0])
@@ -586,14 +587,14 @@ class test_sendPRV(unittest.TestCase):
         STEP(3, "From address1 send prv to address3")
         step3_result = self.shard0.sendTransaction(self.test_data["s0_addr1"][0],
                                                    self.test_data["s1_addr3"][1], self.test_data["prv_amount"],
-                                                   2)
+                                                   100)
         INFO("Transaction ID: " + step3_result[0])
         assert step3_result[0] != 'Can not create tx'
 
         STEP(4, "Subcribe transaction")
         self.shard0ws.createConnection()
         ws_res4 = self.shard0ws.subcribePendingTransaction(step3_result[0])
-        assert_true(ws_res4[2] % 2 == 0, "Invalid tx fee", "Tx fee is %d * %dKB" % (2, ws_res4[2] / 2))
+        assert_true(ws_res4[2] % 100 == 0, "Invalid tx fee", "Tx fee is %d * %dKB" % (100, ws_res4[2] / 100))
 
         STEP(5, "Subcribe cross transaction by privatekey")
         self.shard1ws.createConnection()
@@ -616,10 +617,10 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_13_sendPRV_privacy_Xshard_insufficient_fund(self):
         print("""
-        Verify send PRV to another address:
-        - Not enough coin (insufficient fund)
-        - Wrong input transaction
-        """)
+            Verify send PRV to another address:
+            - Not enough coin (insufficient fund)
+            - Wrong input transaction
+            """)
 
         INFO("test_13_sendPRV_privacy_Xshard_insufficient_fund")
         STEP(1, "Get address1 balance")
@@ -663,8 +664,8 @@ class test_sendPRV(unittest.TestCase):
                                                    self.test_data["s0_addr1"][1],
                                                    step2_result - int(estimated_fee))
         if step5_result[0] != 'Can not create tx':
-            # assert_true(step5_result[0] != 'Can not create tx', step5_result[1])
-            INFO("TxID: " + step5_result[0])
+            #assert_true(step5_result[0] != 'Can not create tx', step5_result[1])
+            INFO("TxID 1 : " + step5_result[0])
         else:
             estimated_fee = re.search(r'fee=(\d+)\n', step5_result[1])
             estimated_fee = estimated_fee.group(1)
@@ -700,10 +701,10 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def test_14_sendPRV_privacy_1shard_insufficient_fund(self):
         print("""
-            Verify send PRV to another address:
-            - Not enough coin (insufficient fund)
-            - Wrong input transaction
-            """)
+                Verify send PRV to another address:
+                - Not enough coin (insufficient fund)
+                - Wrong input transaction
+                """)
         INFO("test_14_sendPRV_privacy_1shard_insufficient_fund")
         STEP(1, "Get address1 balance")
         step1_result = self.shard0.getBalance(self.test_data["s0_addr1"][0])
@@ -779,9 +780,9 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def est_15_sendPRV_privacy_Xshard(self):
         print("""
-            Verify send PRV to another address Xshard successfully
-            Fee: 100 nanoPRV * transaction size
-            """)
+                Verify send PRV to another address Xshard successfully
+                Fee: 100 nanoPRV * transaction size
+                """)
 
         STEP(1, "Get address1 balance")
         step1_result = self.shard0.getBalance(self.test_data["s0_addr1"][0])
@@ -796,7 +797,7 @@ class test_sendPRV(unittest.TestCase):
         STEP(3, "From address1 send prv to address3")
         step3_result = self.shard0.sendTransaction(self.test_data["s0_addr1"][0],
                                                    self.test_data["s2_addr4"][1], self.test_data["prv_amount"],
-                                                   5)
+                                                   100)
         INFO("Transaction ID: " + step3_result[0])
         INFO("StackTrace: " + str(step3_result[1]))
         assert step3_result[0] != 'Can not create tx'
@@ -804,7 +805,7 @@ class test_sendPRV(unittest.TestCase):
         STEP(4, "Subcribe transaction")
         self.shard0ws.createConnection()
         ws_res4 = self.shard0ws.subcribePendingTransaction(step3_result[0])
-        assert_true(ws_res4[2] % 5 == 0, "Invalid tx fee", "Tx fee is %d * %dKB" % (5, ws_res4[2] / 5))
+        assert_true(ws_res4[2] % 100 == 0, "Invalid tx fee", "Tx fee is %d * %dKB" % (100, ws_res4[2] / 100))
 
         STEP(5, "Subcribe cross transaction by privatekey")
         self.shard2ws.createConnection()
@@ -823,8 +824,8 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def est_16_sendPRV_privacy_1shard(self):
         print("""
-           Verify send PRV to another address 1Shard successfully
-           """)
+               Verify send PRV to another address 1Shard successfully
+               """)
 
         STEP(1, "get s2_addr4 and s2_addr5 balance before sending")
         balance1b = self.shard2.getBalance(self.test_data["s2_addr4"][0])
@@ -864,10 +865,10 @@ class test_sendPRV(unittest.TestCase):
     @pytest.mark.run
     def est_17_sendPRV_privacy_Xshard_max_value(self):
         print("""
-         Verify send PRV to another address:
-         -  > 10 mil PRV unsuccess
-         - Tx fee = 100000000000 PRV success
-         """)
+             Verify send PRV to another address:
+             -  > 10 mil PRV unsuccess
+             - Tx fee = 100000000000 PRV success
+             """)
         STEP(1, "Get address1 balance")
         step1_result = self.shard0.getBalance(self.test_data["s0_addr1"][0])
         INFO("addr1_balance: " + str(step1_result))
@@ -890,20 +891,20 @@ class test_sendPRV(unittest.TestCase):
         STEP(4, "From address3 send prv to address1 - max value fee ")
         # send with fee = 10000000000000 PRV
         step4_result = self.shard1.sendTransaction(self.test_data["s1_addr3"][0],
-                                                   self.test_data["s0_addr1"][1], self.test_data["prv_amount"], fee=900000000000000)
+                                                   self.test_data["s0_addr1"][1], self.test_data["prv_amount"],
+                                                   fee=900000000000000)
         INFO("Expecting: " + step4_result[0])
         INFO("StackTrace: " + step4_result[1])
         assert_true(step4_result[0] == 'Can not create tx', "something went wrong, this tx must failed")
         assert_true(re.search(r'input value less than output value', step4_result[1]), "something went so wrong")
 
-
-
     @pytest.mark.run
     def test_99_cleanup(self):
         print("""
-        CLEAN UP
-        """)
+            CLEAN UP
+            """)
         self.shard0ws.closeConnection()
         self.shard1ws.closeConnection()
         self.shard2ws.closeConnection()
         self.shard3ws.closeConnection()
+

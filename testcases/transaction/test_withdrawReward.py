@@ -38,7 +38,34 @@ class test_withdrawReward(unittest.TestCase):
         - withdraw all prv
         - try to withdraw prv again
         """)
-        pass
+        STEP(1, "get address  balance before sending")
+        step1_result = self.fullnode_tx.getBalance(self.test_data["s0_addr1"][0])
+        INFO("addr1_balance: " + str(step1_result))
+        assert_true(step1_result != "Invalid parameters", "get balance something wrong")
+
+        STEP(2, "get current reward")
+        step2_result = self.fullnode_tx.getReward(self.test_data["s0_addr1"][1])
+        INFO("reward : " + str(step2_result[0]))
+        assert_true(step2_result[0] != "Invalid parameters", " get reward something wrong")
+
+        STEP(3, "withdraw reward")
+        step3_result = self.fullnode_tx.withdrawReward(self.test_data["s0_addr1"][0], self.test_data["s0_addr1"][1])
+        assert_true(step3_result[0] != "Can not create tx", "withdraw reward failed")
+
+        STEP(4, "subcribe transaction")
+        self.fullnode_ws.createConnection()
+        wsc =self.fullnode_ws.subcribePendingTransaction(step3_result[0])
+
+        STEP(5, "check remaind reward ")
+        step5_result =self.fullnode_tx.getReward(self.test_data["s0_addr1"][1])
+        INFO("Remaind reward : " + str(step5_result[0]))
+        assert_true(step5_result[0] ==0, "remaind reward != 0 ")
+
+        STEP(6, " check balance address")
+        step6_result = self.fullnode_tx.getBalance(self.test_data["s0_addr1"][0])
+        INFO("add1 balance : " + str(step6_result[0]))
+        assert_true(step6_result[0] == step2_result[0] + step1_result[0], "balance receiver not correct")
+
 
     @pytest.mark.run
     def test_02_withdraw_reward_pToken(self):
