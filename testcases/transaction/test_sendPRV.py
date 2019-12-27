@@ -391,7 +391,7 @@ class test_sendPRV(unittest.TestCase):
         assert_true(step6_result[2]== True , "transaction must be privacy" )
 
     @pytest.mark.run
-    def test_08_sendPRV_privacy_1shard_noAutoee(self):
+    def test_08_sendPRV_privacy_1shard_noAutoFee(self):
         print("""
                 Verify send PRV ( privacy - noAuto fee ) to another address 1Shard successfully
                 """)
@@ -778,92 +778,7 @@ class test_sendPRV(unittest.TestCase):
         assert_true(step9_result[2] == True, "transaction must be privacy ")
 
     @pytest.mark.run
-    def est_15_sendPRV_privacy_Xshard(self):
-        print("""
-                Verify send PRV to another address Xshard successfully
-                Fee: 100 nanoPRV * transaction size
-                """)
-
-        STEP(1, "Get address1 balance")
-        step1_result = self.shard0.getBalance(self.test_data["s0_addr1"][0])
-        INFO("addr1_balance: " + str(step1_result))
-        assert step1_result != "Invalid parameters"
-
-        STEP(2, "Get address4 balance")
-        step2_result = self.shard2.getBalance(self.test_data["s2_addr4"][0])
-        INFO("addr4_balance: " + str(step2_result))
-        assert step2_result != "Invalid parameters"
-
-        STEP(3, "From address1 send prv to address3")
-        step3_result = self.shard0.sendTransaction(self.test_data["s0_addr1"][0],
-                                                   self.test_data["s2_addr4"][1], self.test_data["prv_amount"],
-                                                   100)
-        INFO("Transaction ID: " + step3_result[0])
-        INFO("StackTrace: " + str(step3_result[1]))
-        assert step3_result[0] != 'Can not create tx'
-
-        STEP(4, "Subcribe transaction")
-        self.shard0ws.createConnection()
-        ws_res4 = self.shard0ws.subcribePendingTransaction(step3_result[0])
-        assert_true(ws_res4[2] % 100 == 0, "Invalid tx fee", "Tx fee is %d * %dKB" % (100, ws_res4[2] / 100))
-
-        STEP(5, "Subcribe cross transaction by privatekey")
-        self.shard2ws.createConnection()
-        ws_res5 = self.shard2ws.subcribeCrossOutputCoinByPrivatekey(self.test_data["s2_addr4"][0])
-
-        STEP(6, "Check address1 balance")
-        step4_result = self.shard0.getBalance(self.test_data["s0_addr1"][0])
-        INFO("addr1_balance: " + str(step4_result))
-        assert step4_result == step1_result - self.test_data["prv_amount"] - ws_res4[2]
-
-        STEP(7, "Check address4 balance")
-        step5_result = self.shard2.getBalance(self.test_data["s2_addr4"][0])
-        INFO("addr4_balance: " + str(step5_result))
-        assert step5_result == step2_result + self.test_data["prv_amount"]
-
-    @pytest.mark.run
-    def est_16_sendPRV_privacy_1shard(self):
-        print("""
-               Verify send PRV to another address 1Shard successfully
-               """)
-
-        STEP(1, "get s2_addr4 and s2_addr5 balance before sending")
-        balance1b = self.shard2.getBalance(self.test_data["s2_addr4"][0])
-        INFO("s2_addr4_balance: " + str(balance1b))
-        assert balance1b != "Invalid parameters"
-
-        balance2b = self.shard2.getBalance(self.test_data["s2_addr5"][0])
-        INFO("s2_addr5_balance: " + str(balance2b))
-        assert balance2b != "Invalid parameters"
-
-        STEP(2, "from s2_addr4 send prv to s2_addr5")
-        # send 1/4 of the balance
-        send_amount = math.floor(balance1b / 4)
-        tx_id = self.shard2.sendTransaction(self.test_data["s2_addr4"][0],
-                                            self.test_data["s2_addr5"][1], send_amount)
-        INFO("transaction id: " + tx_id[0])
-        INFO("Send amount: " + str(send_amount))
-        INFO("StackTrace: " + tx_id[1])
-        assert tx_id[0] != 'Can not create tx'
-
-        STEP(3, "subcribe transaction")
-        self.shard2ws.createConnection()
-        ws_res = self.shard2ws.subcribePendingTransaction(tx_id[0])
-
-        STEP(4, "check s2_addr4 balance")
-        balance1a = self.shard2.getBalance(self.test_data["s2_addr4"][0])
-        INFO("s2_addr4_balance: " + str(balance1a))
-        # Balance after = balance before - amount - fee
-        assert balance1a == balance1b - send_amount - ws_res[2]
-
-        STEP(5, "check s2_addr5 balance")
-        balance2a = self.shard2.getBalance(self.test_data["s2_addr5"][0])
-        INFO("s2_addr5_balance: " + str(balance2a))
-        # Balance after = balance before + amount
-        assert balance2a == balance2b + send_amount
-
-    @pytest.mark.run
-    def est_17_sendPRV_privacy_Xshard_max_value(self):
+    def est_15_sendPRV_privacy_Xshard_max_value(self):
         print("""
              Verify send PRV to another address:
              -  > 10 mil PRV unsuccess
