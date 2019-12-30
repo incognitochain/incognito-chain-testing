@@ -16,7 +16,7 @@ class DEX():
                 "params": [
                     privatekey,
                     {
-                        "15pABFiJVeh9D5uiQEhQX4SVibGGbdAVipQxBdxkmDqAJaoG1EdFKHBrNfs": amount_toContribute
+                        "12RxahVABnAVCGP3LGwCn8jkQxgw7z1x14wztHzn455TTVpi1wBq9YGwkRMQg3J4e657AbAnCvYCJSdA9czBUNuCKwGSRQt55Xwz8WA": amount_toContribute
                     },
                     100, -1,
                     {
@@ -52,7 +52,7 @@ class DEX():
                         "TokenSymbol": "",
                         "TokenAmount": amount_toContribute,
                         "TokenReceivers": {
-                            "15pABFiJVeh9D5uiQEhQX4SVibGGbdAVipQxBdxkmDqAJaoG1EdFKHBrNfs": amount_toContribute
+                            "12RxahVABnAVCGP3LGwCn8jkQxgw7z1x14wztHzn455TTVpi1wBq9YGwkRMQg3J4e657AbAnCvYCJSdA9czBUNuCKwGSRQt55Xwz8WA": amount_toContribute
                         },
                         "TokenFee": 0,
                         "PDEContributionPairID": contribution_pairID,
@@ -91,7 +91,7 @@ class DEX():
                         "TokenSymbol": "",
                         "TokenAmount": total_amount,
                         "TokenReceivers": {
-                            "15pABFiJVeh9D5uiQEhQX4SVibGGbdAVipQxBdxkmDqAJaoG1EdFKHBrNfs": total_amount
+                            "12RxahVABnAVCGP3LGwCn8jkQxgw7z1x14wztHzn455TTVpi1wBq9YGwkRMQg3J4e657AbAnCvYCJSdA9czBUNuCKwGSRQt55Xwz8WA": total_amount
                         },
                         "TokenFee": 0,
 
@@ -123,7 +123,7 @@ class DEX():
                 "params": [
                     privatekey,
                     {
-                        "15pABFiJVeh9D5uiQEhQX4SVibGGbdAVipQxBdxkmDqAJaoG1EdFKHBrNfs": amount_toSell
+                        "12RxahVABnAVCGP3LGwCn8jkQxgw7z1x14wztHzn455TTVpi1wBq9YGwkRMQg3J4e657AbAnCvYCJSdA9czBUNuCKwGSRQt55Xwz8WA": amount_toSell
                     }, -1, -1,
                     {
                         "TokenIDToBuyStr": tokenid_toBuy,
@@ -149,7 +149,7 @@ class DEX():
                 "params": [
                     privatekey,
                     {
-                        "15pABFiJVeh9D5uiQEhQX4SVibGGbdAVipQxBdxkmDqAJaoG1EdFKHBrNfs": 0
+                        "12RxahVABnAVCGP3LGwCn8jkQxgw7z1x14wztHzn455TTVpi1wBq9YGwkRMQg3J4e657AbAnCvYCJSdA9czBUNuCKwGSRQt55Xwz8WA": 0
                     }, -1, 0,
                     {
                         "WithdrawerAddressStr": paymentaddress,
@@ -278,3 +278,24 @@ class DEX():
         else:
             WARN(resp_json['Error']['Message'])
             return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
+
+    def get_contributionStatus(self, pairId):
+        headers = {'Content-Type': 'application/json'}
+        data = {"id": 1, "jsonrpc": "1.0", "method": "getpdecontributionstatusv2", "params": [{
+            "ContributionPairID": pairId}]}
+        response = requests.post(self.url, data=json.dumps(data), headers=headers)
+        resp_json = json.loads(response.text)
+        # DEBUG(response.text)
+
+        if resp_json['Error'] is None:
+            status_code = resp_json['Result']['Status']
+            if status_code == 4:
+                return resp_json['Result']['TokenID1Str'], resp_json['Result']['Contributed1Amount'], \
+                       resp_json['Result']['Returned1Amount'], \
+                       resp_json['Result']['TokenID2Str'], resp_json['Result']['Contributed2Amount'], \
+                       resp_json['Result']['Returned2Amount']
+            else:
+                return "TODOS"
+        else:
+            WARN(resp_json['Error']['Message'])
+            return resp_json['Error']['Message']
