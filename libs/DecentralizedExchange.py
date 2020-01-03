@@ -148,9 +148,7 @@ class DEX():
         data = {"id": 1, "jsonrpc": "1.0", "method": "createandsendtxwithwithdrawalreq",
                 "params": [
                     privatekey,
-                    {
-                        "12RxahVABnAVCGP3LGwCn8jkQxgw7z1x14wztHzn455TTVpi1wBq9YGwkRMQg3J4e657AbAnCvYCJSdA9czBUNuCKwGSRQt55Xwz8WA": 0
-                    }, -1, 0,
+                    None, -1, 0,
                     {
                         "WithdrawerAddressStr": paymentaddress,
                         "WithdrawalToken1IDStr": tokenid1,

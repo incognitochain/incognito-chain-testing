@@ -31,8 +31,8 @@ class test_dex(unittest.TestCase):
         # "797d79": "0c1e0dded579a13cb5f9034d810b892d6109fd2ad269f545ee2df0e760cda5d6",
         # "562f2b": "a78c34f9dd6adb186d7f371f676b0d6de1603c87a31c281aedf769aad6a57661",
 
-        "amount_contribution_797d79": 100,
-        "amount_contribution_562f2b": 100,
+        "amount_contribution_797d79": 4102,
+        "amount_contribution_562f2b": 20088,
         "amount_contribution_000004": 2000,
         # "amount_contribution_797d79": 29461,
         # "amount_contribution_562f2b": 24623623,
@@ -423,7 +423,7 @@ class test_dex(unittest.TestCase):
 
         _, api_contribute_d79, api_return_d79, _, api_contribute_f2b, api_return_f2b = \
             self.fullnode.get_contributionStatus(
-                "562f2b_797d79")
+                "797d79_562f2b")
         INFO("Contribution amount submitted 797d79 and 562f2b: %d & %d " % (
             self.testData['amount_contribution_797d79'], self.testData['amount_contribution_562f2b']))
         INFO("Expecting 797d79 and 562f2b contribution: %d & %d" % (
