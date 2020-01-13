@@ -30,6 +30,28 @@ class Transaction():
             WARN(resp_json['Error']['Message'])
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
 
+    def sendTransactionMultiOuputPRV(self, sender_privatekey, list_receiver_paymentaddress, amount_prv, fee=-1,
+                                     privacy=1):
+        payment = dict()
+        for i in range(0, len(list_receiver_paymentaddress)):
+            payment[list_receiver_paymentaddress[i]] = amount_prv
+
+        headers = {'Content-Type': 'application/json'}
+        data = {"jsonrpc": "1.0", "method": "createandsendtransaction",
+                "params": [sender_privatekey, payment, fee, privacy], "id": 1}
+
+        response = requests.post(self.url, data=json.dumps(data), headers=headers)
+        print(response.text)
+        resp_json = json.loads(response.text)
+
+        if resp_json['Error'] is None:
+            # print (resp_json['Result']['TxID'])
+            # print (resp_json['Result']['ShardID'])
+            return resp_json['Result']['TxID'], "SUCCESS"
+        else:
+            WARN(resp_json['Error']['Message'])
+            return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
+
     def getBalance(self, privatekey):
         headers = {'Content-Type': 'application/json'}
         data = {"jsonrpc": "1.0", "method": "getbalancebyprivatekey", "params": [privatekey], "id": 1}
@@ -50,7 +72,8 @@ class Transaction():
         DEBUG(resp_json)
 
         if resp_json['Error'] is None:
-            return resp_json['Result']['BlockHash'], resp_json['Result']['ShardID'], resp_json['Result']['IsPrivacy'], resp_json['Result']['PrivacyCustomTokenIsPrivacy']
+            return resp_json['Result']['BlockHash'], resp_json['Result']['ShardID'], resp_json['Result']['IsPrivacy'], \
+                   resp_json['Result']['PrivacyCustomTokenIsPrivacy']
         else:
             WARN(resp_json['Error']['Message'])
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
@@ -72,6 +95,23 @@ class Transaction():
             # print (resp_json['Result']['TxID'])
             # print (resp_json['Result']['ShardID'])
             return resp_json['Result']['EstimateTxSizeInKb'], "SUCCESS"
+        else:
+            WARN(resp_json['Error']['Message'])
+            return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
+
+    def check_is_privacy_prv(self, txid):
+        headers = {'Content-Type': 'application/json'}
+        data = {"jsonrpc": "1.0", "method": "gettransactionbyhash", "params": [txid], "id": 1}
+        response = requests.post(self.url, data=json.dumps(data), headers=headers)
+        resp_json = json.loads(response.text)
+        DEBUG(resp_json)
+
+        if resp_json['Error'] is None:
+            if resp_json['Result']['IsPrivacy'] is True and \
+                    resp_json['Result']['ProofDetail']['InputCoins'][0]['CoinDetails']['Value'] == 0:
+                return True, "privacy"
+            else:
+                return False, "noprivacy"
         else:
             WARN(resp_json['Error']['Message'])
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
@@ -100,6 +140,7 @@ class Transaction():
                 ]}
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
         resp_json = json.loads(response.text)
+        print(resp_json)
         DEBUG(resp_json)
 
         if resp_json['Error'] is None:
@@ -109,11 +150,11 @@ class Transaction():
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
 
     def send_customTokenTransaction(self, sender_privatekey, receiver_paymentaddress, tokenid, amount_customToken,
-                                    prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0,token_privacy=0):
+                                    prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
         headers = {'Content-Type': 'application/json'}
         # TokenTxType = 1 => send token
         data = {"jsonrpc": "1.0", "method": "createandsendprivacycustomtokentransaction", "id": 1,
-                "params": [sender_privatekey, {receiver_paymentaddress: prv_amount} , prv_fee, prv_privacy,
+                "params": [sender_privatekey, {receiver_paymentaddress: prv_amount}, prv_fee, prv_privacy,
                            {
                                "Privacy": True,
                                "TokenID": tokenid,
@@ -130,6 +171,41 @@ class Transaction():
                            ]}
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
         #print(response.text)
+        resp_json = json.loads(response.text)
+        DEBUG(resp_json)
+
+        if resp_json['Error'] is None:
+            return resp_json['Result']['TxID'], resp_json['Result']['ShardID']
+        else:
+            WARN(resp_json['Error']['Message'])
+            return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
+
+    def send_customTokenTransaction_multioutput(self, sender_privatekey, list_receiver_paymentaddress, tokenid,
+                                                token_amount,
+                                                prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
+        payment_prv = dict()
+        payment_token = dict()
+        for i in range(0, len(list_receiver_paymentaddress)):
+            payment_prv[list_receiver_paymentaddress[i]] = prv_amount
+            payment_token[list_receiver_paymentaddress[i]] = token_amount
+        headers = {'Content-Type': 'application/json'}
+        # TokenTxType = 1 => send token
+        data = {"jsonrpc": "1.0", "method": "createandsendprivacycustomtokentransaction", "id": 1,
+                "params": [sender_privatekey, payment_prv, prv_fee, prv_privacy,
+                           {
+                               "Privacy": True,
+                               "TokenID": tokenid,
+                               "TokenName": "",
+                               "TokenSymbol": "",
+                               "TokenTxType": 1,
+                               "TokenAmount": 0,
+                               "TokenReceivers": payment_token,
+                               "TokenFee": token_fee
+                           },
+                           "", token_privacy
+                           ]}
+        response = requests.post(self.url, data=json.dumps(data), headers=headers)
+        print(response.text)
         resp_json = json.loads(response.text)
         DEBUG(resp_json)
 
@@ -183,30 +259,47 @@ class Transaction():
             WARN(resp_json['Error']['Message'])
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
 
+    def check_is_privacy_token(self, txid):
+        headers = {'Content-Type': 'application/json'}
+        data = {"jsonrpc": "1.0", "method": "gettransactionbyhash", "params": [txid], "id": 1}
+        response = requests.post(self.url, data=json.dumps(data), headers=headers)
+        resp_json = json.loads(response.text)
+        DEBUG(resp_json)
+
+        if resp_json['Error'] is None:
+            if resp_json['Result']['PrivacyCustomTokenIsPrivacy'] is True and \
+                    resp_json['Result']['PrivacyCustomTokenProofDetail']['InputCoins'][0]['CoinDetails']['Value'] == 0:
+                return True, "privacy"
+            else:
+                return False, "noprivacy"
+        else:
+            WARN(resp_json['Error']['Message'])
+            return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
+
     ###############
     # WITHDRAW REWARD
     ###############
 
     def withdrawReward(self, privateKey, paymentAddress, tokenId):
-            headers = {'Content-Type': 'application/json'}
-            data = { "jsonrpc": "1.0", "method": "withdrawreward",
+        headers = {'Content-Type': 'application/json'}
+        data = {"jsonrpc": "1.0", "method": "withdrawreward",
                 "params": [privateKey, 0, 0, 0,
                            {
                                "PaymentAddress": paymentAddress,
                                "TokenID": tokenId
-                               }
+                           }
 
-                     ],
-                     "id":1}
-            response = requests.post(self.url, data=json.dumps(data), headers=headers)
-            resp_json = json.loads(response.text)
-            DEBUG(resp_json)
-            #print(resp_json)
-            if resp_json['Error'] is None:
-                return resp_json['Result']['TxID'], "SUCCESS"
-            else:
-                WARN(resp_json['Error']['Message'])
-                return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
+                           ],
+                "id": 1}
+        response = requests.post(self.url, data=json.dumps(data), headers=headers)
+        resp_json = json.loads(response.text)
+        DEBUG(resp_json)
+        #print(resp_json)
+        if resp_json['Error'] is None:
+            return resp_json['Result']['TxID'], "SUCCESS"
+        else:
+            WARN(resp_json['Error']['Message'])
+            return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
 
     def get_reward_prv(self, payment_address):
         headers = {'Content-Type': 'application/json'}
@@ -249,9 +342,9 @@ class Transaction():
         data = {"jsonrpc": "1.0", "method": "getrewardamount", "params": [payment_address], "id": 1}
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
         resp_json = json.loads(response.text)
-        #print(resp_json)
+        # print(resp_json)
         if resp_json['Error'] is None:
-            return token_id,resp_json['Result'][token_id]
+            return token_id, resp_json['Result'][token_id]
         else:
             WARN(resp_json['Error']['Message'])
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256], resp_json['Error']['Code']
@@ -261,7 +354,7 @@ class Transaction():
         data = {"jsonrpc": "1.0", "method": "getrewardamount", "params": [payment_address], "id": 1}
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
         resp_json = json.loads(response.text)
-        #print(resp_json)
+        # print(resp_json)
         if resp_json['Error'] is None:
             for k, v in resp_json["Result"].items():
                 if k == str(token_id):
@@ -270,4 +363,3 @@ class Transaction():
         else:
             WARN(resp_json['Error']['Message'])
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256], resp_json['Error']['Code']
-
