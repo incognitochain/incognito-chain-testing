@@ -18,7 +18,7 @@ class test_dex(unittest.TestCase):
         """)
     testData = {
         "count": 100,
-        "trade_amount": 1999,
+        "trade_amount": 99,
         "tx_fee": 5,
         "trading_fee": 0,
         "slippage": 7,
@@ -31,9 +31,9 @@ class test_dex(unittest.TestCase):
         # "797d79": "0c1e0dded579a13cb5f9034d810b892d6109fd2ad269f545ee2df0e760cda5d6",
         # "562f2b": "a78c34f9dd6adb186d7f371f676b0d6de1603c87a31c281aedf769aad6a57661",
 
-        "amount_contribution_797d79": 3000,
+        "amount_contribution_797d79": 300000,
         "amount_contribution_562f2b": 500,
-        "amount_contribution_000004": 2000,
+        "amount_contribution_000004": 200000,
         # "amount_contribution_797d79": 29461,
         # "amount_contribution_562f2b": 24623623,
 
@@ -46,7 +46,7 @@ class test_dex(unittest.TestCase):
             "12RxiiobVPEoo4djdueSsDcT79BgcBQtiZfwMTwTt9a6tfN9gEbsor7BgxsHxb8DeufMo2BTDxn11wnm3ANDHGL1e8Y7NXWZmQLMiLC",
         ],
         "privateKey": {
-            5: [
+            0: [
                 "112t8rnakdKxvk7VMKUB9qmsPY4czwnP24b82BnepcxHLX6kJ1dYQsR8d6xNTzwC9nEhJdocr9u19NAr4iSYXCeTBRu3YET8iADMAP3szdfw",
                 "112t8rnbTkezohA4GLeUDpLFnuDbFvPcoCS1MxctvEu3rmUkvmoWJ37MnXDSscpVy6bKfSwjWigi9L3qhcUFo8yZLLsgPvYAn9fs1E62qNPS",
                 "112t8rnjzNW1iKLjpNW9oJoD38pnVVgCiZWRuqGmMvcEgZEHjtg4tLRTAcfTCxNXrdzKcEmY9JVfX2Wb3JLaCjfRDEyGhXGK67VB297mZuwH",
@@ -110,7 +110,7 @@ class test_dex(unittest.TestCase):
                 "112t8rnpq9pGi2DLqp5yWqwPxRAWkRVGtyb1xGKXUmW5Dxox7pwT6twao3RBugiMj9pDZizmi9ohfqAEv4ggRaXhoPzXnvutV4YU2qekJg5M"
 
             ],
-            0: [
+            5: [
                 "112t8rnYwrzsk7bQgYM6duFMfQsHDvoF3bLLEXQGSXayLzFhH2MDyHRFpYenM9qaPXRFcwVK2b7jFG8WHLgYamaqG8PzAJuC7sqhSw2RzaKx",
                 "112t8rneWAhErTC8YUFTnfcKHvB1x6uAVdehy1S8GP2psgqDxK3RHouUcd69fz88oAL9XuMyQ8mBY5FmmGJdcyrpwXjWBXRpoWwgJXjsxi4j",
                 "112t8rni5FF2cEVMZmmCzpnr4QuFnUvYymbkjk3LGp5GJs8c8wTMURmJbZGx8WgwkPodtwGr34Vu8KZat7gxZmSXu5h9LDuppnyzcEXSgKff",
@@ -160,7 +160,7 @@ class test_dex(unittest.TestCase):
             ]
         },
         "paymentAddr": {
-            5: [
+            0: [
                 "12RxnTs5KqyQUzGF4R2w68j3biJD29iDsFiVgC4GRy5X85anUrq1rg8P4aUyDRuS5desg9WANRptifcissMBPETyMeBE8KEh7LmQ6m7",
                 "12Rv7iLGR4m2116m6X44yyY531WQ4j7Eroxnkv2CZKHeieDtmHUEeerq9RkPkvb8N4S3NxcBdJPDe4jHKeapzTxSVpRcGGK7NPUc1eF",
                 "12Rryj5pw8jmf6Pxs4FFxWs6YW8eBbJd1m2vGiFaguyH9rSQwuqeTqvDuUrReNSVd2w6mfr1SrCZYocU1Wrh9xhWS9rXEYGWuDz2VAp",
@@ -221,7 +221,7 @@ class test_dex(unittest.TestCase):
                 "12S44xGxJjNiuJze9V9AoqsLSAy7N32T3xCBkH5ockymfqgMkTk246LXigfApoDCiYxyyDszVwYwhsYg7pP5YMMKP4PbWNZUGR1z35p",
                 "12S6i33cVoMZCw8QPkvrPssTjaqpxpgGTgaPTjBdDESQPHSRnGSd4kTViYTmLN8NXmEQuJhCiDuc4H3Q1avAw5hCUMTCpx5bxSFdx2z"
             ],
-            0: [
+            5: [
                 "12RxdaQkg3HzYAzfWb53osy9pbyHVqTd5m1hN6eghfjAXLwpy2m3QgGBRWVnmhH6sq1YScnYLC9aESWitaLTw9TNsJkhXiv88CAn6kf",
                 "12Rx2NqWi5uEmMrT3fRVjhosBoGpjAQ9yxFmHckxZjyekU9YPdN622iVrwL3NwERvepotM6TDxPUo2SV4iDpW3NUukxeNCwJb2QTN9H",
                 "12Rvic7Pnf1d12ZB2hnYwGV6W9RLfHpkaSt2N5Xr5up8Hj93s2z8SQKRqQZ6ye2tFD2WKy28XTSQ1w9wiYN8RZtFbPipjxSUycJvbPT",
@@ -299,13 +299,13 @@ class test_dex(unittest.TestCase):
     def cal_actualContribution(self, contribution_token1_amount, contribution_token2_amount, token1_pool, token2_pool):
         actual_contribution_token1 = min(contribution_token1_amount,
                                          math.floor(contribution_token2_amount * token1_pool / token2_pool))
-        # print("actual_contribution_token1 in min: %d" % actual_contribution_token1)
+        print("actual_contribution_token1 in min: %d" % actual_contribution_token1)
         actual_contribution_token2 = math.floor(actual_contribution_token1 * token2_pool / token1_pool)
-        # print("actual_contribution_token2 in mul: %d" % actual_contribution_token2)
+        print("actual_contribution_token2 in mul: %d" % actual_contribution_token2)
 
         if actual_contribution_token1 == contribution_token1_amount:
             actual_contribution_token1 = math.floor(actual_contribution_token2 * token1_pool / token2_pool)
-            # print ("actual_contribution_token1 in iff: %d" %actual_contribution_token1)
+            print("actual_contribution_token1 in iff: %d" % actual_contribution_token1)
 
         refund_token1 = contribution_token1_amount - actual_contribution_token1
         refund_token2 = contribution_token2_amount - actual_contribution_token2
@@ -401,16 +401,10 @@ class test_dex(unittest.TestCase):
                                                           self.testData['paymentAddr'][5])
         INFO("owner_shareamount after contribution: " + str(owner_shareamount_A))
 
-        if rate_B[0] == 0 or rate_B[1] == 0:
-            actual_000004_contribution, actual_797d79_contribution, refund_000004, refund_797d79 = self.testData[
-                                                                                                       'amount_contribution_000004'], \
-                                                                                                   self.testData[
-                                                                                                       'amount_contribution_797d79'], 0, 0
-        else:
-            actual_000004_contribution, actual_797d79_contribution, refund_000004, refund_797d79 = \
-                self.cal_actualContribution(
-                    self.testData['amount_contribution_000004'], self.testData['amount_contribution_797d79'], rate_B[0],
-                    rate_B[1])
+        expect_797d79_contribution, expect_000004_contribution, refund_797d79, refund_000004 = \
+            self.cal_actualContribution(
+                self.testData['amount_contribution_797d79'], self.testData['amount_contribution_000004'], rate_B[1],
+                rate_B[0])
 
         for _ in range(0, 10):
             WAIT(10)
@@ -426,21 +420,30 @@ class test_dex(unittest.TestCase):
         INFO("Contribution amount submitted 797d79 and 000004: %d & %d " % (
             self.testData['amount_contribution_797d79'], self.testData['amount_contribution_000004']))
         INFO(
-            "Actual 797d79 and 000004 contribution: %d & %d" % (actual_797d79_contribution, actual_000004_contribution))
+            "Expect 797d79 and 000004 contribution: %d & %d" % (expect_797d79_contribution, expect_000004_contribution))
+
+        _, api_contribute_prv, api_return_prv, _, api_contribute_d79, api_return_d79 = \
+            self.fullnode.get_contributionStatus(
+                "797d79_PRV")
+
+        INFO("From API: %d %d %d %d" % (api_contribute_prv, api_contribute_d79, api_return_prv, api_return_d79))
+        INFO(
+            "Actual 797d79 and 000004 contribution: %d & %d" % (
+            balance_797d79_B - balance_797d79_A2, balance_000004_B - balance_000004_A2 - tx_fee))
         INFO("797d79 balance after contribution (after refund): " + str(balance_797d79_A2))
         INFO("000004 balance after contribution (after refund): " + str(balance_000004_A2))
 
         assert_true(math.floor(
-            (actual_000004_contribution * sum(owner_shareamount_B) / rate_B[0])
+            (api_contribute_prv * sum(owner_shareamount_B) / rate_B[0])
             + owner_shareamount_B[0]) == owner_shareamount_A[0],
                     "Contribution shares amount is wrong", "Contribution shares amount is correct")
-        assert_true(balance_797d79_A2 + actual_797d79_contribution == balance_797d79_B,
+        assert_true(balance_797d79_A2 + api_contribute_d79 == balance_797d79_B,
                     "Balance 797d79 is wrong, refund is wrong", "Balance 797d79 is correct")
-        assert_true(balance_000004_A2 + actual_000004_contribution + tx_fee == balance_000004_B,
+        assert_true(balance_000004_A2 + api_contribute_prv + tx_fee == balance_000004_B,
                     "Balance 000004 is wrong, refund is wrong", "Balance 000004 is correct")
 
     @pytest.mark.run
-    def test_DEX11_contributePRV_revert(self):
+    def test_DEX10_contributePRV_revert(self):
         print("""
         test_DEX01_contribute_revert:
         - contribute a pair of token 000004 vs 797d79
@@ -526,16 +529,11 @@ class test_dex(unittest.TestCase):
                                                           self.testData['paymentAddr'][0] +
                                                           self.testData['paymentAddr'][5])
         INFO("owner_shareamount after contribution: " + str(owner_shareamount_A))
-        if rate_B[0] == 0 or rate_B[1] == 0:
-            actual_000004_contribution, actual_797d79_contribution, refund_000004, refund_797d79 = self.testData[
-                                                                                                       'amount_contribution_000004'], \
-                                                                                                   self.testData[
-                                                                                                       'amount_contribution_797d79'], 0, 0
-        else:
-            actual_000004_contribution, actual_797d79_contribution, refund_000004, refund_797d79 = \
-                self.cal_actualContribution(
-                    self.testData['amount_contribution_000004'], self.testData['amount_contribution_797d79'], rate_B[0],
-                    rate_B[1])
+
+        expect_000004_contribution, expect_797d79_contribution, refund_000004, refund_797d79 = \
+            self.cal_actualContribution(
+                self.testData['amount_contribution_000004'], self.testData['amount_contribution_797d79'], rate_B[0],
+                rate_B[1])
 
         STEP(6, "Calculate actual contribution_amount, refund, rate, shares, after contribution")
         for _ in range(0, 10):
@@ -552,19 +550,24 @@ class test_dex(unittest.TestCase):
         INFO("Contribution amount submitted 000004 & 797d79: %d & %d " % (
             self.testData['amount_contribution_000004'], self.testData['amount_contribution_797d79']))
         INFO("Expecting 000004 & 797d79 contribution: %d & %d" % (
-            actual_000004_contribution, actual_797d79_contribution))
-        INFO("Actual 000004 & 797d79 contribution: %d & %d" % (balance_000004_B - balance_000004_A2,
+            expect_000004_contribution, expect_797d79_contribution))
+        INFO("Actual 000004 & 797d79 contribution: %d & %d" % (balance_000004_B - balance_000004_A2 - tx_fee,
                                                                balance_797d79_B - balance_797d79_A2))
+        _, api_contribute_prv, api_return_prv, _, api_contribute_d79, api_return_d79 = \
+            self.fullnode.get_contributionStatus(
+                "797d79_PRV")
+
+        INFO("From API: %d %d %d %d" % (api_contribute_prv, api_contribute_d79, api_return_prv, api_return_d79))
         INFO("797d79 balance after contribution (after refund): " + str(balance_797d79_A2))
         INFO("000004 balance after contribution (after refund): " + str(balance_000004_A2))
 
         assert_true(math.floor(
-            (actual_000004_contribution * sum(owner_shareamount_B) / rate_B[0])
+            (api_contribute_prv * sum(owner_shareamount_B) / rate_B[0])
             + owner_shareamount_B[0]) == owner_shareamount_A[0],
                     "Contribution shares amount is wrong", "Contribution shares amount is correct")
-        assert_true(balance_797d79_A2 + actual_797d79_contribution == balance_797d79_B,
+        assert_true(balance_797d79_A2 + api_contribute_d79 == balance_797d79_B,
                     "Balance 797d79 is wrong, refund is wrong", "Balance 797d79 is correct")
-        assert_true(balance_000004_A2 + actual_000004_contribution + tx_fee == balance_000004_B,
+        assert_true(balance_000004_A2 + api_contribute_prv + tx_fee == balance_000004_B,
                     "Balance 000004 is wrong, refund is wrong", "Balance 000004 is correct")
 
     @pytest.mark.run
@@ -705,44 +708,52 @@ class test_dex(unittest.TestCase):
 
     @pytest.mark.run
     def est_DEX15_bulkSwap_nShard(self):
-        print("\n")
-        INFO("test_DEX02_bulkSwap_nShard\n")
+        print("""
+                test_DEX15_bulkSwap_nShard:
+                - 10 address make trading at same time
+                - difference trading fee
+                - highest trading fee get better price
+                """)
 
         STEP(0, "Checking balance")
         balance_797d79_B = []
-        balance_562f2b_B = []
+        balance_000004_B = []
         balance_797d79_A = []
-        balance_562f2b_A = []
+        balance_000004_A = []
         privatekey_alias = []
-        trading_fee = [44, 99, 33, 77, 88, 66, 11, 55, 22, 110]
+        trading_fee = [7, 2, 1, 6, 9, 2, 3, 5, 8, 4]
 
-        # trade_amount_562f2b = self.testData['trade_amount']
-        trade_amount_797d79 = self.testData['trade_amount']
+        trade_amount_000004 = self.testData['trade_amount']
+        # trade_amount_797d79 = self.testData['trade_amount']
 
-        for i in range(0, len(self.testData['privateKey'][7])):
-            balance_797d79_B.append(self.shard7_trx.get_customTokenBalance(self.testData['privateKey'][7][i],
-                                                                           self.testData['797d79']))
-            balance_562f2b_temp = self.shard7_trx.get_customTokenBalance(self.testData['privateKey'][7][i],
-                                                                         self.testData['562f2b'])
-            balance_562f2b_B.append(balance_562f2b_temp)
-            privatekey_alias.append(self.testData['privateKey'][7][i][-6:])
+        for i in range(0, len(self.testData['privateKey'][8])):
+            balance_797d79_temp, _ = self.shard0_trx.get_customTokenBalance(self.testData['privateKey'][8][i],
+                                                                            self.testData['797d79'])
+            balance_000004_temp = self.shard0_trx.getBalance(self.testData['privateKey'][8][i])
+
+            assert_true(balance_000004_temp > trade_amount_000004,
+                        "This " + self.testData['privateKey'][8][i][-6:] + " balance 797d79 less than trading amount")
+
+            balance_000004_B.append(balance_000004_temp)
+            balance_797d79_B.append(balance_797d79_temp)
+            privatekey_alias.append(self.testData['privateKey'][8][i][-6:])
 
         INFO("Privatekey_alias                  : " + str(privatekey_alias))
         INFO("797d79 balance before trade       : " + str(balance_797d79_B))
-        INFO("562f2b balance before trade       : " + str(balance_562f2b_B))
-        rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("Rate 797d79 vs 562f2b - Before Trade : " + str(rate_B))
+        INFO("000004 balance before trade       : " + str(balance_000004_B))
+        rate_B = self.fullnode.get_latestRate(self.testData["000004"], self.testData["797d79"])
+        INFO("Rate 000004 vs 797d79 - Before Trade : " + str(rate_B))
 
         # breakpoint()
 
-        STEP(2, "trade 797d79 at same time")
+        STEP(2, "trade 000004 at same time")
         txid_list = []
         for i in range(0, len(privatekey_alias)):
-            trade_txid = self.shard7.trade_token(self.testData['privateKey'][7][i],
-                                                 self.testData['paymentAddr'][7][i],
-                                                 self.testData['797d79'], trade_amount_797d79,
-                                                 self.testData['562f2b'],
-                                                 1, trading_fee[i])
+            trade_txid = self.shard0.trade_prv(self.testData['privateKey'][8][i],
+                                               self.testData['paymentAddr'][8][i],
+                                               trade_amount_000004,
+                                               self.testData['797d79'],
+                                               1, trading_fee[i])
             txid_list.append(trade_txid)
         INFO("Transaction id list               : " + str(txid_list))
 
@@ -751,50 +762,50 @@ class test_dex(unittest.TestCase):
         for txid in txid_list:
             print(txid[-6:])
             for i in range(0, 10):
-                tx_confirm = self.shard7_trx.get_txbyhash(txid)
+                tx_confirm = self.shard0_trx.get_txbyhash(txid)
                 if tx_confirm[0] != "":
                     step3_result = True
                     DEBUG("the " + txid + " is confirmed")
                     break
                 else:
                     print("shardid: " + str(tx_confirm[1]))
-                    WAIT(5)
+                    WAIT(10)
             assert_true(step3_result == True, "The " + txid + " is NOT yet confirmed")
 
         STEP(4, "CHECK BALANCE AFTER")
-        for i in range(0, len(privatekey_alias)):
+        for i in range(0, len(self.testData['privateKey'][8])):
             tmp_token1Balance_A = False
             for _ in range(0, 10):
-                tmp_token1Balance_A = self.shard7_trx.get_customTokenBalance(self.testData['privateKey'][7][i],
-                                                                             self.testData['562f2b'])
-                if tmp_token1Balance_A > balance_562f2b_B[i]:
+                tmp_token1Balance_A = self.shard0_trx.getBalance(self.testData['privateKey'][8][i])
+                if tmp_token1Balance_A > balance_000004_B[i]:
                     break
                 if i < 3:
                     WAIT(5)
             if tmp_token1Balance_A is not False:
-                balance_562f2b_A.append(tmp_token1Balance_A)
-                balance_797d79_A.append(self.shard7_trx.get_customTokenBalance(self.testData['privateKey'][7][i],
-                                                                               self.testData['797d79']))
+                balance_000004_A.append(tmp_token1Balance_A)
+                tmp_token2Balance_A, _ = self.shard0_trx.get_customTokenBalance(self.testData['privateKey'][8][i],
+                                                                                self.testData['797d79'])
+                balance_797d79_A.append(tmp_token2Balance_A)
             else:
-                # ERROR("Wait time expired, 562f2b did NOT increasse")
-                assert_true(tmp_token1Balance_A != False, "Wait time expired, 562f2b did NOT increase")
+                # ERROR("Wait time expired, 000004 did NOT increasse")
+                assert_true(tmp_token1Balance_A != False, "Wait time expired, 000004 did NOT increase")
 
         INFO("Privatekey_alias                  : " + str(privatekey_alias))
         INFO("797d79 balance after trade        : " + str(balance_797d79_A))
-        INFO("562f2b balance after trade        : " + str(balance_562f2b_A))
+        INFO("000004 balance after trade        : " + str(balance_000004_A))
 
-        STEP(5, "Check rate 797d79 vs 562f2b")
-        rate_A = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("rate 797d79 vs 562f2b - After Trade  : " + str(rate_A))
+        STEP(5, "Check rate 797d79 vs 000004")
+        rate_A = self.fullnode.get_latestRate(self.testData["000004"], self.testData["797d79"])
+        INFO("rate 000004 vs 797d79 - After Trade  : " + str(rate_A))
 
         STEP(6, "Double check the algorithm ")
         result_797d79 = []
-        result_562f2b = []
+        result_000004 = []
         result_rate = copy.deepcopy(rate_B)
         trade_priority = []
 
         for i in range(0, len(trading_fee)):
-            trade_priority.append(trade_amount_797d79 / trading_fee[i])
+            trade_priority.append(trade_amount_000004 / trading_fee[i])
         print("Trade Priority: " + str(trade_priority))
 
         sort_order = sorted(range(len(trade_priority)), key=lambda k: trade_priority[k])
@@ -802,33 +813,33 @@ class test_dex(unittest.TestCase):
 
         for order in sort_order:
             print(str(order) + "--")
-            received_amount_562f2b = self.cal_actualReceived(trade_amount_797d79, result_rate[0], result_rate[1])
+            received_amount_797d79 = self.cal_actualReceived(trade_amount_000004, result_rate[1], result_rate[0])
 
-            if received_amount_562f2b == balance_562f2b_A[order] - balance_562f2b_B[order]:
-                result_562f2b.append(str(order) + "Received_True")
+            if received_amount_797d79 == balance_797d79_A[order] - balance_797d79_B[order]:
+                result_797d79.append(str(order) + "Received_True")
             else:
-                result_562f2b.append(str(order) + "Received_False")
-                print("%d != %d - %d" % (received_amount_562f2b, balance_562f2b_A[order], balance_562f2b_B[order]))
+                result_797d79.append(str(order) + "Received_False")
+                print("  Actual received: %d" % (balance_797d79_A[order] - balance_797d79_B[order]))
 
-            if trade_amount_797d79 == balance_797d79_B[order] - balance_797d79_A[order] - trading_fee[order]:
-                result_797d79.append(str(order) + "Trade_True")
+            if trade_amount_000004 == balance_000004_B[order] - balance_000004_A[order] - trading_fee[order]:
+                result_000004.append(str(order) + "Trade_True")
             else:
-                result_797d79.append(str(order) + "Trade_False")
-                print("%d != %d - %d - %d" % (
-                    trade_amount_797d79, balance_797d79_B[order], balance_797d79_A[order], trading_fee[order]))
+                result_000004.append(str(order) + "Trade_False")
+                print("  Actual Trade amount: %d " % (
+                        balance_000004_B[order] - balance_000004_A[order] - trading_fee[order]))
 
-            result_rate[1] = result_rate[1] - received_amount_562f2b
-            result_rate[0] = result_rate[0] + trade_amount_797d79 + trading_fee[order]
+            result_rate[1] = result_rate[1] - received_amount_797d79
+            result_rate[0] = result_rate[0] + trade_amount_000004 + trading_fee[order]
 
         # sort result before print
         result_797d79.sort()
-        result_562f2b.sort()
+        result_000004.sort()
 
         INFO("result_797d79 : " + str(result_797d79))
-        INFO("result_562f2b : " + str(result_562f2b))
-        INFO("rate 797d79 vs 562f2b - Before Trade   : " + str(rate_B))
-        INFO("rate 797d79 vs 562f2b - After Trade    : " + str(rate_A))
-        INFO("rate 797d79 vs 562f2b - Calulated Trade: " + str(result_rate))
+        INFO("result_000004 : " + str(result_000004))
+        INFO("rate 797d79 vs 000004 - Before Trade   : " + str(rate_B))
+        INFO("rate 797d79 vs 000004 - After Trade    : " + str(rate_A))
+        INFO("rate 797d79 vs 000004 - Calulated Trade: " + str(result_rate))
         assert_true(result_rate == rate_A, "Pair Rate is WRONG after Trade", "Pair Rate is correct")
 
     @pytest.mark.run

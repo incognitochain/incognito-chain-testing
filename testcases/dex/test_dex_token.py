@@ -4,7 +4,7 @@ import unittest
 
 import pytest
 
-import topology.NodeList as NodeList
+import topology.NodeList_devnet as NodeList
 from libs.AutoLog import INFO, WAIT, STEP, assert_true, DEBUG
 from libs.DecentralizedExchange import DEX
 from libs.Transaction import Transaction
@@ -31,9 +31,9 @@ class test_dex(unittest.TestCase):
         # "797d79": "0c1e0dded579a13cb5f9034d810b892d6109fd2ad269f545ee2df0e760cda5d6",
         # "562f2b": "a78c34f9dd6adb186d7f371f676b0d6de1603c87a31c281aedf769aad6a57661",
 
-        "amount_contribution_797d79": 4102,
+        "amount_contribution_797d79": 623452,
         "amount_contribution_562f2b": 20088,
-        "amount_contribution_000004": 2000,
+        "amount_contribution_000004": 236523,
         # "amount_contribution_797d79": 29461,
         # "amount_contribution_562f2b": 24623623,
 
@@ -299,13 +299,13 @@ class test_dex(unittest.TestCase):
     def cal_actualContribution(self, contribution_token1_amount, contribution_token2_amount, token1_pool, token2_pool):
         actual_contribution_token1 = min(contribution_token1_amount,
                                          math.floor(contribution_token2_amount * token1_pool / token2_pool))
-        # print("actual_contribution_token1 in min: %d" % actual_contribution_token1)
+        print("actual_contribution_token1 in min: %d" % actual_contribution_token1)
         actual_contribution_token2 = math.floor(actual_contribution_token1 * token2_pool / token1_pool)
-        # print("actual_contribution_token2 in mul: %d" % actual_contribution_token2)
+        print("actual_contribution_token2 in mul: %d" % actual_contribution_token2)
 
         if actual_contribution_token1 == contribution_token1_amount:
             actual_contribution_token1 = math.floor(actual_contribution_token2 * token1_pool / token2_pool)
-            # print ("actual_contribution_token1 in iff: %d" %actual_contribution_token1)
+            print("actual_contribution_token1 in iff: %d" % actual_contribution_token1)
 
         refund_token1 = contribution_token1_amount - actual_contribution_token1
         refund_token2 = contribution_token2_amount - actual_contribution_token2
@@ -335,6 +335,7 @@ class test_dex(unittest.TestCase):
         owner_shareamount_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
                                                           [self.testData['token_ownerPaymentAddress'][0]] +
                                                           self.testData['paymentAddr'][0] +
+                                                          self.testData['paymentAddr'][3] +
                                                           self.testData['paymentAddr'][5])
         INFO("797d79 balance before contribution: " + str(balance_797d79_B))
         INFO("562f2b balance before contribution: " + str(balance_562f2b_B))
@@ -396,6 +397,7 @@ class test_dex(unittest.TestCase):
         owner_shareamount_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
                                                           [self.testData['token_ownerPaymentAddress'][0]] +
                                                           self.testData['paymentAddr'][0] +
+                                                          self.testData['paymentAddr'][3] +
                                                           self.testData['paymentAddr'][5])
         INFO("owner_shareamount after contribution: " + str(owner_shareamount_A))
 
@@ -466,6 +468,7 @@ class test_dex(unittest.TestCase):
         owner_shareamount_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
                                                           [self.testData['token_ownerPaymentAddress'][0]] +
                                                           self.testData['paymentAddr'][0] +
+                                                          self.testData['paymentAddr'][3] +
                                                           self.testData['paymentAddr'][5])
         INFO("797d79 balance before contribution: " + str(balance_797d79_B))
         INFO("562f2b balance before contribution: " + str(balance_562f2b_B))
@@ -527,6 +530,7 @@ class test_dex(unittest.TestCase):
         owner_shareamount_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
                                                           [self.testData['token_ownerPaymentAddress'][0]] +
                                                           self.testData['paymentAddr'][0] +
+                                                          self.testData['paymentAddr'][3] +
                                                           self.testData['paymentAddr'][5])
         INFO("owner_shareamount after contribution: " + str(owner_shareamount_A))
 
@@ -587,7 +591,7 @@ class test_dex(unittest.TestCase):
         balance_797d79_A = []
         balance_562f2b_A = []
         privatekey_alias = []
-        trading_fee = [7, 2, 1, 6, 9, 2, 3, 5, 8, 4]
+        trading_fee = [39, 49, 87, 66, 55, 24, 73, 92, 11, 20]
 
         # trade_amount_562f2b = self.testData['trade_amount']
         trade_amount_797d79 = self.testData['trade_amount']
@@ -708,7 +712,8 @@ class test_dex(unittest.TestCase):
         INFO("rate 797d79 vs 562f2b - Before Trade   : " + str(rate_B))
         INFO("rate 797d79 vs 562f2b - After Trade    : " + str(rate_A))
         INFO("rate 797d79 vs 562f2b - Calulated Trade: " + str(result_rate))
-        assert_true(result_rate == rate_A, "Pair Rate is WRONG after Trade", "Pair Rate is correct")
+        assert_true(abs(result_rate[0] - rate_A[0]) <= 1 and abs(result_rate[1] - rate_A[1]) <= 1,
+                    "Pair Rate is WRONG after Trade", "Pair Rate is correct")
 
     @pytest.mark.run
     def test_DEX02_bulkSwap_nShard(self):
@@ -721,7 +726,7 @@ class test_dex(unittest.TestCase):
         balance_797d79_A = []
         balance_562f2b_A = []
         privatekey_alias = []
-        trading_fee = [44, 99, 33, 77, 88, 66, 11, 55, 22, 110]
+        trading_fee = [44, 66, 33, 77, 99, 88, 11, 55, 22, 110]
 
         # trade_amount_562f2b = self.testData['trade_amount']
         trade_amount_797d79 = self.testData['trade_amount']
@@ -835,7 +840,8 @@ class test_dex(unittest.TestCase):
         INFO("rate 797d79 vs 562f2b - Before Trade   : " + str(rate_B))
         INFO("rate 797d79 vs 562f2b - After Trade    : " + str(rate_A))
         INFO("rate 797d79 vs 562f2b - Calulated Trade: " + str(result_rate))
-        assert_true(result_rate == rate_A, "Pair Rate is WRONG after Trade", "Pair Rate is correct")
+        assert_true(abs(result_rate[0] - rate_A[0]) <= 1 and abs(result_rate[1] - rate_A[1]) <= 1,
+                    "Pair Rate is WRONG after Trade", "Pair Rate is correct")
 
     @pytest.mark.run
     def test_DEX03_addLiquidity_1shard(self):
@@ -870,6 +876,7 @@ class test_dex(unittest.TestCase):
         share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
                                                      [self.testData['token_ownerPaymentAddress'][0]] +
                                                      self.testData['paymentAddr'][0] +
+                                                     self.testData['paymentAddr'][3] +
                                                      self.testData['paymentAddr'][5])
         share_l0_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
                                                         self.testData['paymentAddr'][0])
@@ -932,6 +939,7 @@ class test_dex(unittest.TestCase):
         share_797d79_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
                                                      [self.testData['token_ownerPaymentAddress'][0]] +
                                                      self.testData['paymentAddr'][0] +
+                                                     self.testData['paymentAddr'][3] +
                                                      self.testData['paymentAddr'][5])
         share_l0_797d79_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
                                                         self.testData['paymentAddr'][0])
@@ -993,6 +1001,7 @@ class test_dex(unittest.TestCase):
         share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
                                                      [self.testData['token_ownerPaymentAddress'][0]] +
                                                      self.testData['paymentAddr'][0] +
+                                                     self.testData['paymentAddr'][3] +
                                                      self.testData['paymentAddr'][5])
         rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
         STEP(2, "Withdraw 15% from 1st share owner")
@@ -1034,6 +1043,7 @@ class test_dex(unittest.TestCase):
         share_797d79_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
                                                      [self.testData['token_ownerPaymentAddress'][0]] +
                                                      self.testData['paymentAddr'][0] +
+                                                     self.testData['paymentAddr'][3] +
                                                      self.testData['paymentAddr'][5])
         rate_A = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
         d79_withdrawal = math.floor(withdraw_amount * rate_B[0] / sum(share_797d79_B))

@@ -3,7 +3,7 @@ import re
 
 import requests
 
-from libs.AutoLog import WARN, DEBUG, INFO
+from libs.AutoLog import WARN, DEBUG, INFO, ERROR
 
 
 class DEX():
@@ -117,30 +117,32 @@ class DEX():
             WARN(resp_json['Error']['Message'])
             return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
 
-    def trade_prv(self, privatekey, paymentaddress, amount_toSell, tokenid_toBuy, minAmount_toBuy):
+    def trade_prv(self, privatekey, paymentaddress, amount_toSell, tokenid_toBuy, minAmount_toBuy, trading_fee=0):
         headers = {'Content-Type': 'application/json'}
         data = {"id": 1, "jsonrpc": "1.0", "method": "createandsendtxwithprvtradereq",
                 "params": [
                     privatekey,
                     {
-                        "12RxahVABnAVCGP3LGwCn8jkQxgw7z1x14wztHzn455TTVpi1wBq9YGwkRMQg3J4e657AbAnCvYCJSdA9czBUNuCKwGSRQt55Xwz8WA": amount_toSell
+                        "12RxahVABnAVCGP3LGwCn8jkQxgw7z1x14wztHzn455TTVpi1wBq9YGwkRMQg3J4e657AbAnCvYCJSdA9czBUNuCKwGSRQt55Xwz8WA": amount_toSell + trading_fee
                     }, -1, -1,
                     {
                         "TokenIDToBuyStr": tokenid_toBuy,
                         "TokenIDToSellStr": "0000000000000000000000000000000000000000000000000000000000000004",
                         "SellAmount": amount_toSell,
                         "MinAcceptableAmount": minAmount_toBuy,
+                        "TradingFee": trading_fee,
                         "TraderAddressStr": paymentaddress
                     }
                 ]}
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
-        resp_json = json.loads()
+        resp_json = json.loads(response.text)
         DEBUG(resp_json)
 
         if resp_json['Error'] is None:
             return resp_json['Result']['TxID']
         else:
             WARN(resp_json['Error']['Message'])
+            ERROR(resp_json['Error']['StackTrace'][0:256])
             return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
 
     def withdrawal_contribution(self, privatekey, paymentaddress, tokenid1, tokenid2, amount_withdrawal):
@@ -269,7 +271,7 @@ class DEX():
                         DEBUG("Share of %s-%s-%s is: %d" % (tokenid2[-6:], tokenid1[-6:], paymentaddress[-6:], share))
                         pde_share_list.append(share)
                     else:
-                        WARN(sharekey + " or\n " + sharekey2 + " NOT found")
+                        DEBUG(sharekey + " or\n " + sharekey2 + " NOT found")
                         DEBUG(resp_json['Result']['PDEShares'])
                         pde_share_list.append(0)
             return pde_share_list
