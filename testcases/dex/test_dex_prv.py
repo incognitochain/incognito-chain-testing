@@ -299,256 +299,21 @@ class test_dex(unittest.TestCase):
     def cal_actualContribution(self, contribution_token1_amount, contribution_token2_amount, token1_pool, token2_pool):
         actual_contribution_token1 = min(contribution_token1_amount,
                                          math.floor(contribution_token2_amount * token1_pool / token2_pool))
+        # print("actual_contribution_token1 in min: %d" % actual_contribution_token1)
         actual_contribution_token2 = math.floor(actual_contribution_token1 * token2_pool / token1_pool)
+        # print("actual_contribution_token2 in mul: %d" % actual_contribution_token2)
+
+        if actual_contribution_token1 == contribution_token1_amount:
+            actual_contribution_token1 = math.floor(actual_contribution_token2 * token1_pool / token2_pool)
+            # print ("actual_contribution_token1 in iff: %d" %actual_contribution_token1)
+
         refund_token1 = contribution_token1_amount - actual_contribution_token1
         refund_token2 = contribution_token2_amount - actual_contribution_token2
-        return actual_contribution_token1, actual_contribution_token2, refund_token1, refund_token2
+        return actual_contribution_token1, actual_contribution_token2, \
+               refund_token1, refund_token2
 
     @pytest.mark.run
-    def test_DEX01_contribute(self):
-        print("""
-        test_DEX01_contribute:
-        - contribute a pair of token 797d79 vs 562f2b
-        - checking token rate after contribute
-        - check share amount after contribute
-        - check the amount of refund and the actual amount contribution
-        """)
-        STEP(0, "Checking env - checking waiting contribution list, pDEX share amount")
-        assert_true(self.fullnode.get_waitingContribution(self.testData['797d79'],
-                                                          self.testData['token_ownerPaymentAddress'][0]) == False,
-                    "Found 797d79", "NOT Found 797d79")
-        assert_true(self.fullnode.get_waitingContribution(self.testData['562f2b'],
-                                                          self.testData['token_ownerPaymentAddress'][0]) == False,
-                    "Found 562f2b", "NOT Found 562f2b")
-        balance_797d79_B = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                    self.testData['797d79'])[0]
-        balance_562f2b_B = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                    self.testData['562f2b'])[0]
-        owner_shareamount_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
-                                                          [self.testData['token_ownerPaymentAddress'][0]] +
-                                                          self.testData['paymentAddr'][0] +
-                                                          self.testData['paymentAddr'][5])
-        INFO("797d79 balance before contribution: " + str(balance_797d79_B))
-        INFO("562f2b balance before contribution: " + str(balance_562f2b_B))
-        INFO("owner_shareamount before contribution: " + str(owner_shareamount_B))
-        rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("rate 797d79 vs 562f2b before contribute : " + str(rate_B))
-
-        STEP(1, "Contribute 797d79")
-        contribute_token1 = self.fullnode.contribute_token(self.testData['token_ownerPrivateKey'][0],
-                                                           self.testData['token_ownerPaymentAddress'][0],
-                                                           self.testData['797d79'],
-                                                           self.testData['amount_contribution_797d79'], "797d79_562f2b")
-        INFO("Contribute 797d79 Success, TxID: " + contribute_token1)
-
-        STEP(2, "Verifying contribution 797d79")
-        step2_result = False
-        for i in range(0, 10):
-            WAIT(10)
-            if self.fullnode.get_waitingContribution(self.testData['797d79'],
-                                                     self.testData['token_ownerPaymentAddress'][0]):
-                step2_result = True
-                INFO("The 797d79 found in waiting contribution list")
-                break
-        assert_true(step2_result == True, "The 797d79 NOT found in waiting contribution list")
-
-        STEP(3, "Contribute 562f2b")
-        contribute_token2 = self.fullnode.contribute_token(self.testData['token_ownerPrivateKey'][0],
-                                                           self.testData['token_ownerPaymentAddress'][0],
-                                                           self.testData['562f2b'],
-                                                           self.testData['amount_contribution_562f2b'], "797d79_562f2b")
-        INFO("Contribute 797d79 Success, TxID: " + contribute_token2)
-
-        STEP(4, "Verifying 797d79 disappeared in waiting list")
-        step4_result = False
-        for i in range(0, 10):
-            WAIT(10)
-            if not self.fullnode.get_waitingContribution(self.testData['797d79'],
-                                                         self.testData['token_ownerPaymentAddress'][0]):
-                step4_result = True
-                INFO("The 797d79 NOT found in waiting contribution list")
-                break
-        assert_true(step4_result == True, "The 797d79 is still found in waiting contribution list")
-
-        balance_797d79_A = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                    self.testData['797d79'])[0]
-        balance_562f2b_A = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                    self.testData['562f2b'])[0]
-        INFO("797d79 balance after contribution (before refund): " + str(balance_797d79_A))
-        INFO("562f2b balance after contribution (before refund): " + str(balance_562f2b_A))
-
-        assert_true((balance_797d79_A + self.testData['amount_contribution_797d79']) == balance_797d79_B,
-                    "797d79 balance is wrong")
-        assert_true((balance_562f2b_A + self.testData[
-            'amount_contribution_562f2b'] == balance_562f2b_B), "562f2b balance is wrong")
-
-        STEP(5, "Check rate 797d79 vs 562f2b")
-        rate_A = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("rate 797d79 vs 562f2b after contribute : " + str(rate_A))
-        owner_shareamount_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
-                                                          [self.testData['token_ownerPaymentAddress'][0]] +
-                                                          self.testData['paymentAddr'][0] +
-                                                          self.testData['paymentAddr'][5])
-        INFO("owner_shareamount after contribution: " + str(owner_shareamount_A))
-
-        actual_797d79_contribution, actual_562f2b_contribution, refund_797d79, refund_562f2b = \
-            self.cal_actualContribution(
-                self.testData['amount_contribution_797d79'], self.testData['amount_contribution_562f2b'], rate_B[0],
-                rate_B[1])
-
-        for _ in range(0, 10):
-            WAIT(10)
-            balance_797d79_A2 = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                         self.testData['797d79'])[0]
-            if balance_797d79_A2 > balance_797d79_A or refund_797d79 == 0:
-                break
-        for _ in range(0, 10):
-            balance_562f2b_A2 = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                         self.testData['562f2b'])[0]
-            if balance_562f2b_A2 > balance_562f2b_A or refund_562f2b == 0:
-                break
-            WAIT(10)
-        INFO("Contribution amount submitted 797d79 and 562f2b: %d & %d " % (
-            self.testData['amount_contribution_797d79'], self.testData['amount_contribution_562f2b']))
-        INFO(
-            "Actual 797d79 and 562f2b contribution: %d & %d" % (actual_797d79_contribution, actual_562f2b_contribution))
-        INFO("797d79 balance after contribution (after refund): " + str(balance_797d79_A2))
-        INFO("562f2b balance after contribution (after refund): " + str(balance_562f2b_A2))
-
-        assert_true(math.floor(
-            (actual_797d79_contribution * sum(owner_shareamount_B) / rate_B[0])
-            + owner_shareamount_B[0]) == owner_shareamount_A[0],
-                    "Contribution shares amount is wrong", "Contribution shares amount is correct")
-        assert_true(balance_797d79_A2 + actual_797d79_contribution == balance_797d79_B,
-                    "Balance 797d79 is wrong, refund is wrong", "Balance 797d79 is correct")
-        assert_true(balance_562f2b_A2 + actual_562f2b_contribution == balance_562f2b_B,
-                    "Balance 562f2b is wrong, refund is wrong", "Balance 562f2b is correct")
-
-    @pytest.mark.run
-    def test_DEX01_contribute_revert(self):
-        print("""
-        test_DEX01_contribute_revert:
-        - contribute a pair of token 562f2b vs 797d79
-        - checking token rate after contribute
-        - check share amount after contribute
-        - check the amount of refund and the actual amount contribution
-        """)
-        STEP(0, "Checking env - checking waiting contribution list, pDEX share amount")
-        assert_true(self.fullnode.get_waitingContribution(self.testData['797d79'],
-                                                          self.testData['token_ownerPaymentAddress'][0]) == False,
-                    "Found 797d79", "NOT Found 797d79")
-        assert_true(self.fullnode.get_waitingContribution(self.testData['562f2b'],
-                                                          self.testData['token_ownerPaymentAddress'][0]) == False,
-                    "Found 562f2b", "NOT Found 562f2b")
-        balance_797d79_B = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                    self.testData['797d79'])[0]
-        balance_562f2b_B = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                    self.testData['562f2b'])[0]
-        owner_shareamount_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
-                                                          [self.testData['token_ownerPaymentAddress'][0]] +
-                                                          self.testData['paymentAddr'][0] +
-                                                          self.testData['paymentAddr'][5])
-        INFO("797d79 balance before contribution: " + str(balance_797d79_B))
-        INFO("562f2b balance before contribution: " + str(balance_562f2b_B))
-        INFO("owner_shareamount before contribution: " + str(owner_shareamount_B))
-        rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("rate 797d79 vs 562f2b before contribute : " + str(rate_B))
-
-        STEP(1, "Contribute 562f2b")
-        contribute_token1 = self.fullnode.contribute_token(self.testData['token_ownerPrivateKey'][0],
-                                                           self.testData['token_ownerPaymentAddress'][0],
-                                                           self.testData['562f2b'],
-                                                           self.testData['amount_contribution_562f2b'], "797d79_562f2b")
-        INFO("Contribute 562f2b Success, TxID: " + contribute_token1)
-
-        STEP(2, "Verifying contribution 562f2b")
-        step2_result = False
-        for i in range(0, 10):
-            WAIT(10)
-            if self.fullnode.get_waitingContribution(self.testData['562f2b'],
-                                                     self.testData['token_ownerPaymentAddress'][0]):
-                step2_result = True
-                INFO("The 562f2b found in waiting contribution list")
-                break
-        assert_true(step2_result == True, "The 562f2b NOT found in waiting contribution list")
-
-        STEP(3, "Contribute 797d79")
-        contribute_token2 = self.fullnode.contribute_token(self.testData['token_ownerPrivateKey'][0],
-                                                           self.testData['token_ownerPaymentAddress'][0],
-                                                           self.testData['797d79'],
-                                                           self.testData['amount_contribution_797d79'], "797d79_562f2b")
-        INFO("Contribute 797d79 Success, TxID: " + contribute_token2)
-
-        STEP(4, "Verifying 562f2b disappeared in waiting list")
-        step4_result = False
-        for i in range(0, 10):
-            WAIT(10)
-            if not self.fullnode.get_waitingContribution(self.testData['562f2b'],
-                                                         self.testData['token_ownerPaymentAddress'][0]):
-                step4_result = True
-                INFO("The 562f2b NOT found in waiting contribution list")
-                break
-        assert_true(step4_result == True, "The 562f2b is still found in waiting contribution list")
-
-        balance_797d79_A = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                    self.testData['797d79'])[0]
-        balance_562f2b_A = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                    self.testData['562f2b'])[0]
-        INFO("797d79 balance after contribution (before refund): " + str(balance_797d79_A))
-        INFO("562f2b balance after contribution (before refund): " + str(balance_562f2b_A))
-
-        assert_true((balance_797d79_A + self.testData['amount_contribution_797d79']) == balance_797d79_B,
-                    "797d79 balance is wrong")
-        assert_true((balance_562f2b_A + self.testData['amount_contribution_562f2b'] == balance_562f2b_B),
-                    "562f2b balance is wrong")
-
-        STEP(5, "Check rate 797d79 vs 562f2b")
-        rate_A = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("rate 797d79 vs 562f2b after contribute : " + str(rate_A))
-        owner_shareamount_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
-                                                          [self.testData['token_ownerPaymentAddress'][0]] +
-                                                          self.testData['paymentAddr'][0] +
-                                                          self.testData['paymentAddr'][5])
-        INFO("owner_shareamount after contribution: " + str(owner_shareamount_A))
-
-        actual_797d79_contribution, actual_562f2b_contribution, refund_797d79, refund_562f2b = \
-            self.cal_actualContribution(
-                self.testData['amount_contribution_797d79'], self.testData['amount_contribution_562f2b'], rate_B[0],
-                rate_B[1])
-
-        STEP(6, "Calculate actual contribution_amount, refund, rate, shares, after contribution")
-        for _ in range(0, 10):
-            WAIT(10)
-            balance_797d79_A2 = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                         self.testData['797d79'])[0]
-            if balance_797d79_A2 > balance_797d79_A or refund_797d79 == 0:
-                break
-        for _ in range(0, 10):
-            balance_562f2b_A2 = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                         self.testData['562f2b'])[0]
-            if balance_562f2b_A2 > balance_562f2b_A or refund_562f2b == 0:
-                break
-            WAIT(10)
-        INFO("Contribution amount submitted 797d79 and 562f2b: %d & %d " % (
-            self.testData['amount_contribution_797d79'], self.testData['amount_contribution_562f2b']))
-        INFO("Expecting 797d79 and 562f2b contribution: %d & %d" % (
-            actual_797d79_contribution, actual_562f2b_contribution))
-        INFO("Actual 797d79 and 562f2b contribution: %d & %d" % (
-            balance_797d79_B - balance_797d79_A2, balance_562f2b_B - balance_562f2b_A2))
-        INFO("797d79 balance after contribution (after refund): " + str(balance_797d79_A2))
-        INFO("562f2b balance after contribution (after refund): " + str(balance_562f2b_A2))
-
-        assert_true(math.floor(
-            (actual_797d79_contribution * sum(owner_shareamount_B) / rate_B[0])
-            + owner_shareamount_B[0]) == owner_shareamount_A[0],
-                    "Contribution shares amount is wrong", "Contribution shares amount is correct")
-        assert_true(balance_797d79_A2 + actual_797d79_contribution == balance_797d79_B,
-                    "Balance 797d79 is wrong, refund is wrong", "Balance 797d79 is correct")
-        assert_true(balance_562f2b_A2 + actual_562f2b_contribution == balance_562f2b_B,
-                    "Balance 562f2b is wrong, refund is wrong", "Balance 562f2b is correct")
-
-    @pytest.mark.run
-    def test_DEX08_contributePRV(self):
+    def test_DEX10_contributePRV(self):
         print("""
         test_DEX01_contribute:
         - contribute a pair of token 797d79 vs 000004
@@ -675,7 +440,7 @@ class test_dex(unittest.TestCase):
                     "Balance 000004 is wrong, refund is wrong", "Balance 000004 is correct")
 
     @pytest.mark.run
-    def test_DEX08_contributePRV_revert(self):
+    def test_DEX11_contributePRV_revert(self):
         print("""
         test_DEX01_contribute_revert:
         - contribute a pair of token 000004 vs 797d79
@@ -803,7 +568,7 @@ class test_dex(unittest.TestCase):
                     "Balance 000004 is wrong, refund is wrong", "Balance 000004 is correct")
 
     @pytest.mark.run
-    def test_DEX02_bulkSwap_1Shard(self):
+    def test_DEX14_bulkSwap_1Shard(self):
         print("""
         test_DEX02_bulkSwap_1Shard:
         - 10 address make trading at same time
@@ -813,33 +578,32 @@ class test_dex(unittest.TestCase):
 
         STEP(0, "Checking balance")
         balance_797d79_B = []
-        balance_562f2b_B = []
+        balance_000004_B = []
         balance_797d79_A = []
-        balance_562f2b_A = []
+        balance_000004_A = []
         privatekey_alias = []
         trading_fee = [7, 2, 1, 6, 9, 2, 3, 5, 8, 4]
 
-        # trade_amount_562f2b = self.testData['trade_amount']
+        # trade_amount_000004 = self.testData['trade_amount']
         trade_amount_797d79 = self.testData['trade_amount']
 
         for i in range(0, len(self.testData['privateKey'][0])):
             balance_797d79_temp, _ = self.shard0_trx.get_customTokenBalance(self.testData['privateKey'][0][i],
                                                                             self.testData['797d79'])
-            balance_562f2b_temp, _ = self.shard0_trx.get_customTokenBalance(self.testData['privateKey'][0][i],
-                                                                            self.testData['562f2b'])
+            balance_000004_temp = self.shard0_trx.getBalance(self.testData['privateKey'][0][i])
 
             assert_true(balance_797d79_temp > trade_amount_797d79,
                         "This " + self.testData['privateKey'][0][i][-6:] + " balance 797d79 less than trading amount")
 
-            balance_562f2b_B.append(balance_562f2b_temp)
+            balance_000004_B.append(balance_000004_temp)
             balance_797d79_B.append(balance_797d79_temp)
             privatekey_alias.append(self.testData['privateKey'][0][i][-6:])
 
         INFO("Privatekey_alias                  : " + str(privatekey_alias))
         INFO("797d79 balance before trade       : " + str(balance_797d79_B))
-        INFO("562f2b balance before trade       : " + str(balance_562f2b_B))
-        rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("Rate 797d79 vs 562f2b - Before Trade : " + str(rate_B))
+        INFO("000004 balance before trade       : " + str(balance_000004_B))
+        rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["000004"])
+        INFO("Rate 797d79 vs 000004 - Before Trade : " + str(rate_B))
 
         # breakpoint()
 
@@ -849,7 +613,7 @@ class test_dex(unittest.TestCase):
             trade_txid = self.shard0.trade_token(self.testData['privateKey'][0][i],
                                                  self.testData['paymentAddr'][0][i],
                                                  self.testData['797d79'], trade_amount_797d79,
-                                                 self.testData['562f2b'],
+                                                 self.testData['000004'],
                                                  1, trading_fee[i])
             txid_list.append(trade_txid)
         INFO("Transaction id list               : " + str(txid_list))
@@ -873,32 +637,31 @@ class test_dex(unittest.TestCase):
         for i in range(0, len(self.testData['privateKey'][0])):
             tmp_token1Balance_A = False
             for _ in range(0, 10):
-                tmp_token1Balance_A, _ = self.shard0_trx.get_customTokenBalance(self.testData['privateKey'][0][i],
-                                                                                self.testData['562f2b'])
-                if tmp_token1Balance_A > balance_562f2b_B[i]:
+                tmp_token1Balance_A = self.shard0_trx.getBalance(self.testData['privateKey'][0][i])
+                if tmp_token1Balance_A > balance_000004_B[i]:
                     break
                 if i < 3:
                     WAIT(5)
             if tmp_token1Balance_A is not False:
-                balance_562f2b_A.append(tmp_token1Balance_A)
+                balance_000004_A.append(tmp_token1Balance_A)
                 tmp_token2Balance_A, _ = self.shard0_trx.get_customTokenBalance(self.testData['privateKey'][0][i],
                                                                                 self.testData['797d79'])
                 balance_797d79_A.append(tmp_token2Balance_A)
             else:
-                # ERROR("Wait time expired, 562f2b did NOT increasse")
-                assert_true(tmp_token1Balance_A != False, "Wait time expired, 562f2b did NOT increase")
+                # ERROR("Wait time expired, 000004 did NOT increasse")
+                assert_true(tmp_token1Balance_A != False, "Wait time expired, 000004 did NOT increase")
 
         INFO("Privatekey_alias                  : " + str(privatekey_alias))
         INFO("797d79 balance after trade        : " + str(balance_797d79_A))
-        INFO("562f2b balance after trade        : " + str(balance_562f2b_A))
+        INFO("000004 balance after trade        : " + str(balance_000004_A))
 
-        STEP(5, "Check rate 797d79 vs 562f2b")
-        rate_A = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("rate 797d79 vs 562f2b - After Trade  : " + str(rate_A))
+        STEP(5, "Check rate 797d79 vs 000004")
+        rate_A = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["000004"])
+        INFO("rate 797d79 vs 000004 - After Trade  : " + str(rate_A))
 
         STEP(6, "Double check the algorithm ")
         result_797d79 = []
-        result_562f2b = []
+        result_000004 = []
         result_rate = copy.deepcopy(rate_B)
         trade_priority = []
 
@@ -911,13 +674,13 @@ class test_dex(unittest.TestCase):
 
         for order in sort_order:
             print(str(order) + "--")
-            received_amount_562f2b = self.cal_actualReceived(trade_amount_797d79, result_rate[0], result_rate[1])
+            received_amount_000004 = self.cal_actualReceived(trade_amount_797d79, result_rate[0], result_rate[1])
 
-            if received_amount_562f2b == balance_562f2b_A[order] - balance_562f2b_B[order]:
-                result_562f2b.append(str(order) + "Received_True")
+            if received_amount_000004 == balance_000004_A[order] - balance_000004_B[order]:
+                result_000004.append(str(order) + "Received_True")
             else:
-                result_562f2b.append(str(order) + "Received_False")
-                print("  Actual received: %d" % (balance_562f2b_A[order] - balance_562f2b_B[order]))
+                result_000004.append(str(order) + "Received_False")
+                print("  Actual received: %d" % (balance_000004_A[order] - balance_000004_B[order]))
 
             if trade_amount_797d79 == balance_797d79_B[order] - balance_797d79_A[order] - trading_fee[order]:
                 result_797d79.append(str(order) + "Trade_True")
@@ -926,22 +689,22 @@ class test_dex(unittest.TestCase):
                 print("  Actual Trade amount: %d " % (
                         balance_797d79_B[order] - balance_797d79_A[order] - trading_fee[order]))
 
-            result_rate[1] = result_rate[1] - received_amount_562f2b
+            result_rate[1] = result_rate[1] - received_amount_000004
             result_rate[0] = result_rate[0] + trade_amount_797d79 + trading_fee[order]
 
         # sort result before print
         result_797d79.sort()
-        result_562f2b.sort()
+        result_000004.sort()
 
         INFO("result_797d79 : " + str(result_797d79))
-        INFO("result_562f2b : " + str(result_562f2b))
-        INFO("rate 797d79 vs 562f2b - Before Trade   : " + str(rate_B))
-        INFO("rate 797d79 vs 562f2b - After Trade    : " + str(rate_A))
-        INFO("rate 797d79 vs 562f2b - Calulated Trade: " + str(result_rate))
+        INFO("result_000004 : " + str(result_000004))
+        INFO("rate 797d79 vs 000004 - Before Trade   : " + str(rate_B))
+        INFO("rate 797d79 vs 000004 - After Trade    : " + str(rate_A))
+        INFO("rate 797d79 vs 000004 - Calulated Trade: " + str(result_rate))
         assert_true(result_rate == rate_A, "Pair Rate is WRONG after Trade", "Pair Rate is correct")
 
     @pytest.mark.run
-    def est_DEX02_bulkSwap_nShard(self):
+    def est_DEX15_bulkSwap_nShard(self):
         print("\n")
         INFO("test_DEX02_bulkSwap_nShard\n")
 
@@ -1069,474 +832,11 @@ class test_dex(unittest.TestCase):
         assert_true(result_rate == rate_A, "Pair Rate is WRONG after Trade", "Pair Rate is correct")
 
     @pytest.mark.run
-    def est_DEX02_bulkSwap_nShard_fullnode(self):
-        print("""
-        test_DEX02_bulkSwap_nShard_fullnode:
-        - privatekey list number 8 contain address from difference shard
-        - fullnode will handle trading request from each address
-        - trading fee is also a factor to decide which has the best price, but somehow trading request was put to 
-        another beacon block
-        """)
-
-        STEP(0, "Checking balance")
-        balance_797d79_B = []
-        balance_562f2b_B = []
-        balance_797d79_A = []
-        balance_562f2b_A = []
-        privatekey_alias = []
-        trading_fee = [44, 99, 33, 77, 88, 66, 11, 55, 22, 110]
-
-        # trade_amount_562f2b = self.testData['trade_amount']
-        trade_amount_797d79 = self.testData['trade_amount']
-
-        for i in range(0, len(self.testData['privateKey'][8])):
-            balance_797d79_B.append(self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][8][i],
-                                                                             self.testData['797d79'])[0])
-            balance_562f2b_temp, _ = self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][8][i],
-                                                                              self.testData['562f2b'])
-            balance_562f2b_B.append(balance_562f2b_temp)
-            privatekey_alias.append(self.testData['privateKey'][8][i][-6:])
-
-        INFO("Privatekey_alias                  : " + str(privatekey_alias))
-        INFO("797d79 balance before trade       : " + str(balance_797d79_B))
-        INFO("562f2b balance before trade       : " + str(balance_562f2b_B))
-        rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("Rate 797d79 vs 562f2b - Before Trade : " + str(rate_B))
-
-        # breakpoint()
-
-        STEP(2, "trade 797d79 at same time")
-        txid_list = []
-        for i in range(0, len(privatekey_alias)):
-            trade_txid = self.fullnode.trade_token(self.testData['privateKey'][8][i],
-                                                   self.testData['paymentAddr'][8][i],
-                                                   self.testData['797d79'], trade_amount_797d79,
-                                                   self.testData['562f2b'],
-                                                   1, trading_fee[i])
-            txid_list.append(trade_txid)
-        INFO("Transaction id list               : " + str(txid_list))
-
-        STEP(3, "Wait for Tx to be confirmed")
-        step3_result = False
-        for txid in txid_list:
-            print(txid[-6:])
-            for i in range(0, 10):
-                tx_confirm = self.fullnode_trx.get_txbyhash(txid)
-                if tx_confirm[0] != "":
-                    step3_result = True
-                    DEBUG("the " + txid + " is confirmed")
-                    break
-                else:
-                    print("shardid: " + str(tx_confirm[1]))
-                    WAIT(15)
-            assert_true(step3_result == True, "The " + txid + " is NOT yet confirmed")
-
-        STEP(4, "CHECK BALANCE AFTER")
-        for i in range(0, len(privatekey_alias)):
-            tmp_token1Balance_A = False
-            for _ in range(0, 10):
-                tmp_token1Balance_A, _ = self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][8][i],
-                                                                                  self.testData['562f2b'])
-                if tmp_token1Balance_A > balance_562f2b_B[i]:
-                    break
-                if i < 3:
-                    WAIT(15)
-            if tmp_token1Balance_A is not False:
-                balance_562f2b_A.append(tmp_token1Balance_A)
-                balance_797d79_A.append(self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][8][i],
-                                                                                 self.testData['797d79'])[0])
-            else:
-                # ERROR("Wait time expired, 562f2b did NOT increasse")
-                assert_true(tmp_token1Balance_A != False, "Wait time expired, 562f2b did NOT increase")
-
-        INFO("Privatekey_alias                  : " + str(privatekey_alias))
-        INFO("797d79 balance after trade        : " + str(balance_797d79_A))
-        INFO("562f2b balance after trade        : " + str(balance_562f2b_A))
-
-        STEP(5, "Check rate 797d79 vs 562f2b")
-        rate_A = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("rate 797d79 vs 562f2b - After Trade  : " + str(rate_A))
-
-        STEP(6, "Double check the algorithm ")
-        result_797d79 = []
-        result_562f2b = []
-        result_rate = copy.deepcopy(rate_B)
-        trade_priority = []
-
-        for i in range(0, len(trading_fee)):
-            trade_priority.append(trade_amount_797d79 / trading_fee[i])
-        print("Trade Priority: " + str(trade_priority))
-
-        sort_order = sorted(range(len(trade_priority)), key=lambda k: trade_priority[k])
-        print("Sort order: " + str(sort_order))
-
-        for order in sort_order:
-            print(str(order) + "--")
-            received_amount_562f2b = self.cal_actualReceived(trade_amount_797d79, result_rate[0], result_rate[1])
-
-            if received_amount_562f2b == balance_562f2b_A[order] - balance_562f2b_B[order]:
-                result_562f2b.append(str(order) + "Received_True")
-            else:
-                result_562f2b.append(str(order) + "Received_False")
-                print("%d != %d - %d" % (received_amount_562f2b, balance_562f2b_A[order], balance_562f2b_B[order]))
-                print("expected receive: %d" % (balance_562f2b_A[order] - balance_562f2b_B[order]))
-
-            if trade_amount_797d79 == balance_797d79_B[order] - balance_797d79_A[order] - trading_fee[order]:
-                result_797d79.append(str(order) + "Trade_True")
-            else:
-                result_797d79.append(str(order) + "Trade_False")
-                print("%d != %d - %d - %d" % (
-                    trade_amount_797d79, balance_797d79_B[order], balance_797d79_A[order], trading_fee[order]))
-                print("expected trade amount: %d" % (
-                        balance_797d79_B[order] - balance_797d79_A[order] - trading_fee[order]))
-
-            result_rate[1] = result_rate[1] - received_amount_562f2b
-            result_rate[0] = result_rate[0] + trade_amount_797d79 + trading_fee[order]
-
-        # sort result before print
-        result_797d79.sort()
-        result_562f2b.sort()
-
-        INFO("result_797d79 : " + str(result_797d79))
-        INFO("result_562f2b : " + str(result_562f2b))
-        INFO("rate 797d79 vs 562f2b - Before Trade   : " + str(rate_B))
-        INFO("rate 797d79 vs 562f2b - After Trade    : " + str(rate_A))
-        INFO("rate 797d79 vs 562f2b - Calulated Trade: " + str(result_rate))
-        assert_true(result_rate == rate_A, "Pair Rate is WRONG after Trade", "Pair Rate is correct")
-
-    def est_DEX02_bulkSwap_allShard_fullnode(self):
-        print("\n")
-        INFO("test_DEX02_bulkSwap_allShard_fullnode\n")
-
-        STEP(0, "Checking balance")
-        balance_797d79_B = []
-        balance_562f2b_B = []
-        balance_797d79_A = []
-        balance_562f2b_A = []
-        privatekey_alias = []
-        privatekey_list = []
-        paymentaddr_list = []
-        # trading_fee = [44, 99, 33, 77, 88, 66, 11, 55, 22, 110]
-
-        # trade_amount_562f2b = self.testData['trade_amount']
-        trade_amount_797d79 = self.testData['trade_amount']
-
-        for j in range(0, 8):
-            for i in range(0, len(self.testData['privateKey'][j])):
-                balance_797d79_temp = self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][j][i],
-                                                                               self.testData['797d79'])
-                balance_562f2b_temp = self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][j][i],
-                                                                               self.testData['562f2b'])
-                assert_true(balance_797d79_temp > trade_amount_797d79,
-                            "This " + self.testData['privateKey'][j][i][
-                                      -6:] + " balance 797d79 less than trading amount")
-
-                balance_562f2b_B.append(balance_562f2b_temp)
-                balance_797d79_B.append(balance_797d79_temp)
-                privatekey_alias.append(self.testData['privateKey'][j][i][-6:])
-                privatekey_list.append(self.testData['privateKey'][j][i])
-                paymentaddr_list.append(self.testData['paymentAddr'][j][i])
-
-        INFO("Privatekey_alias                  : " + str(privatekey_alias))
-        INFO("797d79 balance before trade       : " + str(balance_797d79_B))
-        INFO("562f2b balance before trade       : " + str(balance_562f2b_B))
-        rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("Rate 797d79 vs 562f2b - Before Trade : " + str(rate_B))
-
-        # breakpoint()
-
-        STEP(2, "trade 797d79 at same time")
-        txid_list = []
-        for i in range(0, len(privatekey_alias)):
-            trade_txid = self.fullnode.trade_token(privatekey_list[i],
-                                                   paymentaddr_list[i],
-                                                   self.testData['797d79'], trade_amount_797d79,
-                                                   self.testData['562f2b'],
-                                                   1, 0)
-            assert_true(trade_txid != "Unexpected error",
-                        "Unexpected error " + privatekey_alias[i])
-            txid_list.append(trade_txid)
-        INFO("Transaction id list               : " + str(txid_list))
-
-        STEP(3, "Wait for Tx to be confirmed")
-        step3_result = False
-        for txid in txid_list:
-            print(txid[-6:])
-            for i in range(0, 10):
-                tx_confirm = self.fullnode_trx.get_txbyhash(txid)
-                if tx_confirm[0] != "":
-                    step3_result = True
-                    DEBUG("the " + txid + " is confirmed")
-                    break
-                else:
-                    print("shardid: " + str(tx_confirm[1]))
-                    WAIT(15)
-            assert_true(step3_result == True, "The " + txid + " is NOT yet confirmed")
-
-        STEP(4, "CHECK BALANCE AFTER")
-        for i in range(0, len(privatekey_alias)):
-            tmp_token1Balance_A = False
-            for _ in range(0, 10):
-                tmp_token1Balance_A = self.fullnode_trx.get_customTokenBalance(privatekey_list[i],
-                                                                               self.testData['562f2b'])
-                if tmp_token1Balance_A > balance_562f2b_B[i]:
-                    break
-                if i < 3:
-                    WAIT(15)
-            if tmp_token1Balance_A is not False:
-                balance_562f2b_A.append(tmp_token1Balance_A)
-                balance_797d79_A.append(self.fullnode_trx.get_customTokenBalance(privatekey_list[i],
-                                                                                 self.testData['797d79']))
-            else:
-                # ERROR("Wait time expired, 562f2b did NOT increasse")
-                assert_true(tmp_token1Balance_A != False, "Wait time expired, 562f2b did NOT increase")
-
-        INFO("Privatekey_alias                  : " + str(privatekey_alias))
-        INFO("797d79 balance after trade        : " + str(balance_797d79_A))
-        INFO("562f2b balance after trade        : " + str(balance_562f2b_A))
-
-        STEP(5, "Check rate 797d79 vs 562f2b")
-        rate_A = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("rate 797d79 vs 562f2b - After Trade  : " + str(rate_A))
-
-        STEP(6, "Double check the algorithm ")
-        result_797d79 = []
-        result_562f2b = []
-        result_rate = copy.deepcopy(rate_B)
-        trade_priority = []
-
-        for i in range(0, len(privatekey_alias)):
-            print(str(i) + "--")
-            received_amount_562f2b = self.cal_actualReceived(trade_amount_797d79, result_rate[0], result_rate[1])
-
-            if received_amount_562f2b == balance_562f2b_A[i] - balance_562f2b_B[i]:
-                result_562f2b.append(str(i) + "Received_True")
-            else:
-                result_562f2b.append(str(i) + "Received_False")
-                print("%d != %d - %d" % (received_amount_562f2b, balance_562f2b_A[i], balance_562f2b_B[i]))
-                print("expected receive: %d" % (balance_562f2b_A[i] - balance_562f2b_B[i]))
-
-            if trade_amount_797d79 == balance_797d79_B[i] - balance_797d79_A[i]:
-                result_797d79.append(str(i) + "Trade_True")
-            else:
-                result_797d79.append(str(i) + "Trade_False")
-                print("%d != %d - %d" % (
-                    trade_amount_797d79, balance_797d79_B[i], balance_797d79_A[i]))
-                print("expected trade amount: %d" % (
-                        balance_797d79_B[i] - balance_797d79_A[i]))
-
-            result_rate[1] = result_rate[1] - received_amount_562f2b
-            result_rate[0] = result_rate[0] + trade_amount_797d79
-
-        # sort result before print
-        result_797d79.sort()
-        result_562f2b.sort()
-
-        INFO("result_797d79 : " + str(result_797d79))
-        INFO("result_562f2b : " + str(result_562f2b))
-        INFO("rate 797d79 vs 562f2b - Before Trade   : " + str(rate_B))
-        INFO("rate 797d79 vs 562f2b - After Trade    : " + str(rate_A))
-        INFO("rate 797d79 vs 562f2b - Calulated Trade: " + str(result_rate))
-        assert_true(result_rate == rate_A, "Pair Rate is WRONG after Trade", "Pair Rate is correct")
-
-    @pytest.mark.run
-    def test_DEX03_addLiquidity(self):
-        STEP(0, "Calculate contribution pair")
-        commit_797d79_B = []
-        balance_797d79_B = []
-        balance_562f2b_B = []
-        balance_797d79_A = []
-        balance_562f2b_A = []
-        privatekey_alias = []
-        # share_797d79_B = []
-        # share_797d79_A = []
-        rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-
-        for i in range(0, len(self.testData['privateKey'][0])):
-            balance_797d79_B.append(self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][0][i],
-                                                                             self.testData['797d79'])[0])
-            balance_562f2b_temp, _ = self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][0][i],
-                                                                              self.testData['562f2b'])
-            commit_797d79_temp = balance_562f2b_temp * rate_B[0] / rate_B[1]
-
-            balance_562f2b_B.append(balance_562f2b_temp)
-            commit_797d79_B.append(math.floor(commit_797d79_temp))
-            # commit_797d79_B.append(commit_797d79_temp)
-            privatekey_alias.append(self.testData['privateKey'][0][i][-6:])
-
-        share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
-                                                     [self.testData['token_ownerPaymentAddress'][0]] +
-                                                     self.testData['paymentAddr'][0] +
-                                                     self.testData['paymentAddr'][5])
-        share_l0_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
-                                                        self.testData['paymentAddr'][0])
-
-        INFO("Private key_alias                 : " + str(privatekey_alias))
-        INFO("797d79 amount to commit           : " + str(commit_797d79_B))
-        INFO("797d79 balance                    : " + str(balance_797d79_B))
-        INFO("562f2b balance                    : " + str(balance_562f2b_B))
-        INFO("797d79 share amount before commit : " + str(share_797d79_B))
-
-        STEP(1, "Contribute 562f2b")
-        for i in range(0, len(self.testData['privateKey'][0])):
-            contribute_562f2b = self.fullnode.contribute_token(self.testData['privateKey'][0][i],
-                                                               self.testData['paymentAddr'][0][i],
-                                                               self.testData['562f2b'],
-                                                               balance_562f2b_B[i], privatekey_alias[i])
-            INFO(str(i) + "-Contribute 562f2b Success, TxID: " + contribute_562f2b)
-
-        STEP(2, "Verifying contribution 562f2b")
-        for i in range(0, len(self.testData['privateKey'][0])):
-            step2_result = False
-            for _ in range(0, 10):
-                if self.fullnode.get_waitingContribution(self.testData['562f2b'],
-                                                         self.testData['paymentAddr'][0][i]):
-                    step2_result = True
-                    INFO(str(i) + "-The 562f2b found in waiting contribution list")
-                    break
-                WAIT(20)
-            assert_true(step2_result == True, "The 562f2b NOT found in waiting contribution list")
-
-        # breakpoint()
-
-        STEP(3, "Contribute 797d79")
-        for i in range(0, len(self.testData['privateKey'][0])):
-            contribute_797d79 = self.fullnode.contribute_token(self.testData['privateKey'][0][i],
-                                                               self.testData['paymentAddr'][0][i],
-                                                               self.testData['797d79'],
-                                                               commit_797d79_B[i], privatekey_alias[i])
-            INFO(str(i) + "-Contribute 797d79 Success, TxID: " + contribute_797d79)
-
-        STEP(4, "Verifying 562f2b disappeared in waiting list")
-        for i in range(0, len(self.testData['privateKey'][0])):
-            step4_result = False
-            for _ in range(0, 10):
-                if not self.fullnode.get_waitingContribution(self.testData['562f2b'],
-                                                             self.testData['paymentAddr'][0][i]):
-                    step4_result = True
-                    INFO(str(i) + "-The 562f2b NOT found in waiting contribution list")
-                    break
-                WAIT(15)
-            assert_true(step4_result == True, "The 562f2b is still found in waiting contribution list")
-
-        STEP(5, "Double check balance after contribution")
-        WAIT(30)
-        for i in range(0, len(self.testData['privateKey'][0])):
-            balance_797d79_A.append(self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][0][i],
-                                                                             self.testData['797d79'])[0])
-            balance_562f2b_A.append(self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][0][i],
-                                                                             self.testData['562f2b'])[0])
-        share_797d79_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
-                                                     [self.testData['token_ownerPaymentAddress'][0]] +
-                                                     self.testData['paymentAddr'][0] +
-                                                     self.testData['paymentAddr'][5])
-        share_l0_797d79_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
-                                                        self.testData['paymentAddr'][0])
-        print("\nSUMMARY:")
-        INFO("797d79 balance before contribution: " + str(balance_797d79_B))
-        INFO("797d79 amount committing          : " + str(commit_797d79_B))
-        INFO("797d79 balance after contribution : " + str(balance_797d79_A))
-        INFO("562f2b balance before contribution: " + str(balance_562f2b_B))
-        INFO("562f2b balance after contribution : " + str(balance_562f2b_A))
-        INFO("797d79 share amount before commit : " + str(share_797d79_B))
-        INFO("797d79 share amount after contrib : " + str(share_797d79_A))
-
-        STEP(6, "Check rate 797d79 vs 562f2b")
-        rate = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        INFO("rate 797d79 vs 562f2b" + str(rate))
-
-        for i in range(0, len(self.testData['privateKey'][0])):
-            expect_d79, expect_f2b, refund_d79, refund_f2b = self.cal_actualContribution(commit_797d79_B[i],
-                                                                                         balance_562f2b_B[i],
-                                                                                         rate_B[0], rate_B[1])
-            assert_true(balance_797d79_B[i] - expect_d79 == balance_797d79_A[i], "balance d79 of %d is wrong" % i,
-                        "balance d79 of %d is correct" % i)
-            assert_true(balance_562f2b_B[i] - expect_f2b == balance_562f2b_A[i], "balance f2b of %d is wrong" % i,
-                        "balance f2b of %d is correct" % i)
-
-    @pytest.mark.run
-    def test_DEX06_withdrawalLiquidity(self):
-        print("""
-                test_DEX05_withdrawalLiquidity:
-                - withdraw token from a contributor
-                - 15% shares
-                """)
-        STEP(1, "Get balance before withdraw")
-        balance_797d79_B, _ = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                       self.testData['797d79'])
-        balance_562f2b_B, _ = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                       self.testData['562f2b'])
-        # share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
-        #                                              [self.testData['token_ownerPaymentAddress'][0]])
-        share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
-                                                     [self.testData['token_ownerPaymentAddress'][0]] +
-                                                     self.testData['paymentAddr'][0] +
-                                                     self.testData['paymentAddr'][5])
-        rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        STEP(2, "Withdraw 15% from 1st share owner")
-        withdraw_amount = math.floor(share_797d79_B[0] / 6)
-        INFO("withdrawing: %d" % withdraw_amount)
-        txid = self.fullnode.withdrawal_contribution(self.testData['token_ownerPrivateKey'][0],
-                                                     self.testData['token_ownerPaymentAddress'][0],
-                                                     self.testData['797d79'], self.testData['562f2b'],
-                                                     withdraw_amount)
-
-        STEP(3, "Wait for Tx to be confirmed")
-        step3_result = False
-        for i in range(0, 10):
-            tx_confirm = self.shard0_trx.get_txbyhash(txid)
-            if tx_confirm[0] != "":
-                step3_result = True
-                DEBUG("the " + txid + " is confirmed")
-                break
-            else:
-                print("shardid: " + str(tx_confirm[1]))
-                WAIT(10)
-        assert_true(step3_result is True, "The " + txid + " is NOT yet confirmed")
-
-        STEP(4, "Verify balance after withdraw")
-        balance_562f2b_A = False
-        for _ in range(0, 10):
-            balance_562f2b_A, _ = self.shard0_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                         self.testData['562f2b'])
-            if balance_562f2b_A > balance_562f2b_B:
-                break
-            WAIT(10)
-        if balance_562f2b_A is not False:
-            balance_797d79_A, _ = self.shard0_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
-                                                                         self.testData['797d79'])
-        else:
-            # ERROR("Wait time expired, 562f2b did NOT increasse")
-            assert_true(balance_562f2b_A != False, "Wait time expired, 562f2b did NOT increase")
-
-        share_797d79_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
-                                                     [self.testData['token_ownerPaymentAddress'][0]] +
-                                                     self.testData['paymentAddr'][0] +
-                                                     self.testData['paymentAddr'][5])
-        rate_A = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        d79_withdrawal = math.floor(withdraw_amount * rate_B[0] / sum(share_797d79_B))
-        f2b_withdrawal = math.floor(withdraw_amount * rate_B[1] / sum(share_797d79_B))
-
-        INFO("SUMMARY:")
-        INFO("Balance d79 B: %s" % str(balance_797d79_B))
-        INFO("Balance d79 A: %s" % str(balance_797d79_A))
-        INFO("Balance f2b B: %s" % str(balance_562f2b_B))
-        INFO("Balance f2b A: %s" % str(balance_562f2b_A))
-        INFO("Withdrawal amount d79 vs f2b: %d vs %d" % (d79_withdrawal, f2b_withdrawal))
-        INFO("share d79 B: %s" % str(share_797d79_B))
-        INFO("share d79 A: %s" % str(share_797d79_A))
-        INFO("rate 797d79 vs 562f2b B" + str(rate_B))
-        INFO("rate 797d79 vs 562f2b A" + str(rate_A))
-
-        assert_true(balance_797d79_A - balance_797d79_B == d79_withdrawal, "Balance d79 invalid after withdraw")
-        assert_true(balance_562f2b_A - balance_562f2b_B == f2b_withdrawal, "Balance f2b invalid after withdraw")
-
-    @pytest.mark.run
-    def test_DEX05_withdrawalLiquidityPRV(self):
+    def test_DEX18_withdrawalLiquidityPRV(self):
         print("""
                     test_DEX05_withdrawalLiquidity:
                     - withdraw token from a contributor
-                    - 150% shares
+                    - 25% shares
                     """)
         STEP(1, "Get balance before withdraw")
         balance_797d79_B, _ = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
@@ -1551,8 +851,8 @@ class test_dex(unittest.TestCase):
                                                      self.testData['paymentAddr'][0] +
                                                      self.testData['paymentAddr'][5])
         rate_B = self.fullnode.get_latestRate(self.testData["000004"], self.testData["797d79"])
-        STEP(2, "Withdraw 150% from 1st share owner")
-        withdraw_share = math.floor(share_000004_B[0] * 3 / 2)
+        STEP(2, "Withdraw 25% from 1st share owner")
+        withdraw_share = math.floor(share_000004_B[0] / 4)
         INFO("withdrawing: %d share" % withdraw_share)
         txid = self.fullnode.withdrawal_contribution(self.testData['token_ownerPrivateKey'][0],
                                                      self.testData['token_ownerPaymentAddress'][0],
@@ -1595,8 +895,8 @@ class test_dex(unittest.TestCase):
                                                      self.testData['paymentAddr'][5])
         rate_A = self.fullnode.get_latestRate(self.testData["000004"], self.testData["797d79"])
         actual_withdrawal = min(withdraw_share, share_000004_B[0])
-        d79_withdrawal = math.floor(actual_withdrawal * rate_B[0] / sum(share_000004_B))
-        prv_withdrawal = math.floor(actual_withdrawal * rate_B[1] / sum(share_000004_B))
+        d79_withdrawal = math.floor(actual_withdrawal * rate_B[1] / sum(share_000004_B))
+        prv_withdrawal = math.floor(actual_withdrawal * rate_B[0] / sum(share_000004_B))
 
         INFO("SUMMARY:")
         INFO("Balance d79 B: %s" % str(balance_797d79_B))
@@ -1606,9 +906,14 @@ class test_dex(unittest.TestCase):
         INFO("Withdrawal amount prv & d79: %d vs %d" % (prv_withdrawal, d79_withdrawal))
         INFO("share prv B: %s" % str(share_000004_B))
         INFO("share prv A: %s" % str(share_000004_A))
-        INFO("rate 000004 & 797d79 B" + str(rate_B))
-        INFO("rate 000004 & 797d79 A" + str(rate_A))
+        INFO("rate 000004 & 797d79 B: " + str(rate_B))
+        INFO("rate 000004 & 797d79 A: " + str(rate_A))
 
-        assert_true(balance_797d79_A == d79_withdrawal + balance_797d79_B, "Balance d79 invalid after withdraw")
-        assert_true(balance_000004_A == prv_withdrawal + balance_000004_B + tx_fee,
-                    "Balance prv invalid after withdraw")
+        assert_true(balance_797d79_A == d79_withdrawal + balance_797d79_B,
+                    "Balance d79 invalid after withdraw %d != %d + %d " % (
+                        balance_797d79_A, d79_withdrawal, balance_797d79_B), "balance 79d is correct")
+        assert_true(balance_000004_A + tx_fee == prv_withdrawal + balance_000004_B,
+                    "Balance prv invalid after withdraw %d + %d != %d + %d" % (tx_fee,
+                                                                               balance_000004_A, prv_withdrawal,
+                                                                               balance_000004_B),
+                    "balance prv is correct")
