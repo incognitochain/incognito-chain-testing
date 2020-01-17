@@ -8,9 +8,13 @@ class Response:
         return False
 
     def get_error_trace(self):
+        if self.response['Error'] is None:
+            return ''
         return self.response['Error']['StackTrace'][0:256]
 
     def get_error_msg(self):
+        if self.response['Error'] is None:
+            return ""
         return self.response['Error']['Message']
 
     def find_in_result(self, string):
@@ -53,3 +57,9 @@ class Response:
 
     def get_contributed_2_amount(self):
         return self.get_result("Contributed2Amount")
+
+    def get_fee(self):
+        return self.response['Result']['Result']['Fee']
+
+    def get_privacy(self):
+        return self.get_result("IsPrivacy")
