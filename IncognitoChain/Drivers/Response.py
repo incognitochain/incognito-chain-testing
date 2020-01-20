@@ -1,6 +1,10 @@
+from libs.AutoLog import DEBUG
+
+
 class Response:
     def __init__(self, json_response):
         self.response = json_response
+        DEBUG(self.response)
 
     def is_success(self):
         if self.response['Error'] is None:

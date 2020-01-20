@@ -1,4 +1,4 @@
-from IncognitoChain import Constants as Const
+from IncognitoChain.Configs import Constants as Const
 from IncognitoChain.Drivers.Connections import RpcConnection
 
 

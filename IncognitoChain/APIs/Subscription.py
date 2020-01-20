@@ -1,4 +1,5 @@
 from IncognitoChain.Drivers.Connections import WebSocket
+from libs.AutoLog import INFO
 
 
 class SubscriptionWs:
@@ -22,5 +23,6 @@ class SubscriptionWs:
         self.ws_conn.close()
 
     def open_web_socket(self):
+        INFO(f"!!! Open web socket: {self.ws_conn._url}")
         self.ws_conn.open()
         return self

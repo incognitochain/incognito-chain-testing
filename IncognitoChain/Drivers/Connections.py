@@ -5,7 +5,7 @@ from requests.packages.urllib3.exceptions import NewConnectionError
 from websocket import create_connection
 
 from IncognitoChain.Drivers.Response import Response
-from libs.AutoLog import DEBUG
+from libs.AutoLog import DEBUG, INFO
 
 rpc_test_net = "http://test-node.incognito.org:9334"
 rpc_main_net = "http://main-node.incognito.org:9334"
@@ -72,7 +72,7 @@ class RpcConnection:
                 "id": self._id,
                 "method": self._method,
                 "params": self._params}
-        print(f'!!! exec RCP: {self._base_url} \n!!! {data} !!!')
+        INFO(f'exec RCP: {self._base_url} \n\t{data}')
         try:
             response = requests.post(self._base_url, data=json.dumps(data), headers=self._headers)
         except NewConnectionError:
@@ -100,16 +100,16 @@ class WebSocket(RpcConnection):
 
         if timeout is None:
             self.__timeout = 180
-        self.__url = url
+        self._url = url
         self._ws_conn = None
 
     def open(self):
-        self._ws_conn = create_connection(self.__url, self.__timeout)
+        self._ws_conn = create_connection(self._url, self.__timeout)
 
     def close(self):
         self._ws_conn.close()
         from libs.AutoLog import DEBUG
-        DEBUG(self.__url + " connection closed")
+        DEBUG(self._url + " connection closed")
 
     def is_alive(self):
         return self._ws_conn.connected
