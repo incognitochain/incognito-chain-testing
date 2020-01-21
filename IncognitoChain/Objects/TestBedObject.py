@@ -1,12 +1,12 @@
 from typing import List
 
+from IncognitoChain.Helpers.Logging import log
 from IncognitoChain.Objects.NodeObject import Node
 from IncognitoChain.Objects.ShardObject import Shard, Beacon
-from libs.AutoLog import INFO
 
 
 def load_test_data(name):
-    INFO(f'Loading {name} test data')
+    log.info(f'Loading {name} test data')
     return __import__(f'IncognitoChain.TestBeds.{name}', fromlist=['object'])
 
 

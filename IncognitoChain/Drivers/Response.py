@@ -1,10 +1,12 @@
-from libs.AutoLog import DEBUG
+import json
+
+from IncognitoChain.Helpers.Logging import log
 
 
 class Response:
     def __init__(self, json_response):
         self.response = json_response
-        DEBUG(self.response)
+        log.debug(f'\n{json.dumps(self.response, indent=3)}')
 
     def is_success(self):
         if self.response['Error'] is None:

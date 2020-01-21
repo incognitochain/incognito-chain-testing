@@ -4,7 +4,7 @@ from IncognitoChain.APIs.DEX import DexRpc
 from IncognitoChain.APIs.Subscription import SubscriptionWs
 from IncognitoChain.APIs.Transaction import TransactionRpc
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
-from libs.AutoLog import INFO
+from IncognitoChain.Helpers.Logging import log
 
 
 class Node:
@@ -29,17 +29,17 @@ class Node:
 
     def ssh_connect(self):
         if self._password is not None:
-            INFO(f'SSH logging in with password. User: {self._username}')
+            log.info(f'SSH logging in with password. User: {self._username}')
             self._spawn.login(self._address, self._username, password=self._password)
             return self
         if self._sshkey is not None:
-            INFO(f'SSH logging in with ssh key. User: {self._username}')
+            log.info(f'SSH logging in with ssh key. User: {self._username}')
             self._spawn.login(self._username, ssh_key=self._sshkey)
             return self
 
     def logout(self):
         self._spawn.logout()
-        INFO(f'SSH logout of: {self._address}')
+        log.info(f'SSH logout of: {self._address}')
 
     def send_cmd(self, command):
         if not self._spawn.isalive():
