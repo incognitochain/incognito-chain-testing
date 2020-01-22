@@ -26,8 +26,9 @@ def _log():
 
     # Gets the name of the class / method from where this method is called
     logger_name = os.path.basename(inspect.stack()[2][1])
+    line = {'line': inspect.stack()[2][2]}
     logger = logging.getLogger(logger_name)
-    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s: %(message)s', datefmt='%H:%M:%S')
+    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s:%(line)d %(message)s', datefmt='%H:%M:%S')
     if logger.hasHandlers():
         # Logger is already configured, remove all handlers
         logger.handlers = []
@@ -46,6 +47,7 @@ def _log():
     sys_out_handler.setFormatter(formatter)
     sys_out_handler.setLevel(log_level_console)
     logger.addHandler(sys_out_handler)
+    logger = logging.LoggerAdapter(logger, line)
     return logger
 
 
