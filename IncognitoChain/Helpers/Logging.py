@@ -3,18 +3,96 @@ import logging.config
 import os
 import sys
 from datetime import datetime
-from logging import Logger
 
-log_level = logging.DEBUG
+log_level_console = logging.DEBUG
+log_level_file = logging.DEBUG
+STEP_LVL = 12
+RESULT_LVL = 22
+
+_log_file = datetime.now().strftime("run_%d%m%y_%H%M%S.log")
+
+
+def _log():
+    """
+    Level       Numeric value
+    ----------------------------
+    CRITICAL    50
+    ERROR       40
+    WARNING     30
+    INFO        20
+    DEBUG       10
+    NOTSET      0
+    """
+
+    # Gets the name of the class / method from where this method is called
+    logger_name = os.path.basename(inspect.stack()[2][1])
+    logger = logging.getLogger(logger_name)
+    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s: %(message)s', datefmt='%H:%M:%S')
+    if logger.hasHandlers():
+        # Logger is already configured, remove all handlers
+        logger.handlers = []
+
+    # By default, log all messages
+    logger.setLevel(logging.DEBUG)
+
+    # create and add file logging handle
+    file_handler = logging.FileHandler(filename=os.path.join('log', _log_file))
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(log_level_file)
+    logger.addHandler(file_handler)
+
+    # create and add system out logging handle
+    sys_out_handler = logging.StreamHandler(sys.stdout)
+    sys_out_handler.setFormatter(formatter)
+    sys_out_handler.setLevel(log_level_console)
+    logger.addHandler(sys_out_handler)
+    return logger
+
+
+def DEBUG(msg):
+    _log().debug(msg)
+
+
+def INFO(msg):
+    _log().info(msg)
+
+
+def WARNING(msg):
+    _log().warning(msg)
+
+
+def ERROR(msg):
+    _log().error(msg)
+
+
+def CRITICAL(msg):
+    _log().critical(msg)
+
+
+logging.addLevelName(RESULT_LVL, "RESULT")
+
+
+def RESULT(msg, *args, **kws):
+    _log().log(RESULT_LVL, msg, *args, **kws)
+
+
+logging.Logger.step = RESULT
+
+
+def STEP(num, msg, *args, **kws):
+    logging.addLevelName(STEP_LVL, f"STEP {num}")
+    _log().log(STEP_LVL, msg, *args, **kws)
+
+
+logging.Logger.step = STEP
 
 
 def assert_true(expr, fail_msg, pass_msg=None):
     """
-    Throws Test Error with fail_msg if val != True,
-    else logs pass_msg
+    Throws exception with fail_msg if 'expr' not true, else logs pass_msg
 
     Args:
-      expr(expr evaluating to True / False):
+      expr: True/False expression
       fail_msg(String): Failure message.
       pass_msg(String): Passing message.
 
@@ -28,84 +106,4 @@ def assert_true(expr, fail_msg, pass_msg=None):
         raise Exception(fail_msg)
     else:
         if pass_msg is not None:
-            log.info(pass_msg)
-
-
-def __dummy():
-    i = 0
-    for info in inspect.stack():
-        print(f' {i} = {info}')
-        i += 1
-
-
-class Log:
-    def __init__(self):
-        self._logger: Logger = None
-        self._log_file = datetime.now().strftime("run_%d%m%y_%H%M%S.log")
-
-    def __log(self, level=logging.DEBUG):
-        """
-        Level       Numeric value
-        ----------------------------
-        CRITICAL    50
-        ERROR       40
-        WARNING     30
-        INFO        20
-        DEBUG       10
-        NOTSET      0
-        """
-
-        # Gets the name of the class / method from where this method is called
-        logger_name = os.path.basename(inspect.stack()[2][1])
-        self._logger = logging.getLogger(logger_name)
-        formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s: %(message)s',
-                                      datefmt='%H:%M:%S')
-        if self._logger.hasHandlers():
-            # Logger is already configured, remove all handlers
-            self._logger.handlers = []
-
-        # By default, log all messages
-        self._logger.setLevel(log_level)
-
-        # create and add file logging handle
-        file_handler = logging.FileHandler(filename=os.path.join('log', self._log_file))
-        file_handler.setFormatter(formatter)
-        self._logger.addHandler(file_handler)
-
-        # create and add system out logging handle
-        sys_out_handler = logging.StreamHandler(sys.stdout)
-        sys_out_handler.setFormatter(formatter)
-        self._logger.addHandler(sys_out_handler)
-        return self
-
-    def debug(self, msg):
-        self.__log()._logger.debug(msg)
-
-    def info(self, msg):
-        self.__log()._logger.info(msg)
-
-    def warning(self, msg):
-        self.__log()._logger.warning(msg)
-
-    def error(self, msg):
-        self.__log()._logger.error(msg)
-
-    def critical(self, msg):
-        self.__log()._logger.critical(msg)
-
-    def STEP(self, no, msg):
-        self.__log()._logger.info(f"[STEP {no}] {msg}")
-
-    def RESULT(self, msg):
-        self.__log()._logger.info(f"[RESULT] {msg}")
-
-
-log = Log()
-
-
-def STEP(num, msg):
-    log.STEP(num, msg)
-
-
-def RESULT(msg):
-    log.RESULT(msg)
+            INFO(pass_msg)

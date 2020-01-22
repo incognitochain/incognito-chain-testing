@@ -1,6 +1,6 @@
 import pytest
 
-from IncognitoChain.Helpers.Logging import log, STEP
+from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import *
 from IncognitoChain.Objects.IncognitoTestCase import SUT, ACCOUNTS
 
@@ -12,7 +12,6 @@ Test case: Send PRV
 @pytest.mark.parametrize('send_amount,shard_id', [(100, 2), (1000, 4), (1010, 4)])
 @pytest.mark.run
 def test_05_send_prv_no_privacy_same_shard_auto_fee(send_amount, shard_id):
-
     account_sender = get_accounts_in_shard(shard_id, account_list=ACCOUNTS)[0]
     account_receiver = get_accounts_in_shard(shard_id, account_list=ACCOUNTS)[1]
     full_node = SUT.full_node
@@ -20,34 +19,34 @@ def test_05_send_prv_no_privacy_same_shard_auto_fee(send_amount, shard_id):
     print("""
                Verify send PRV ( no privacy - Auto fee )to another address 1Shard successfully with no privacy
                """)
-    log.STEP(1, "get sender and receiver balance before sending")
+    STEP(1, "get sender and receiver balance before sending")
     sender_bal = account_sender.get_prv_balance()
-    log.info("sender balance before: " + str(sender_bal.get_result()))
+    INFO("sender balance before: " + str(sender_bal.get_result()))
     assert sender_bal.is_success(), "get sender balance wrong"
 
     receiver_bal = account_receiver.get_prv_balance()
-    log.info("receiver balance before: " + str(receiver_bal.get_result()))
+    INFO("receiver balance before: " + str(receiver_bal.get_result()))
     assert receiver_bal.is_success(), "get receiver balance wrong"
 
-    log.STEP(2, "send PRV")
+    STEP(2, "send PRV")
     send_result = account_sender.send_prv_to(account_receiver, send_amount, privacy=0)
-    log.info("transaction id: " + send_result.get_tx_id())
+    INFO("transaction id: " + send_result.get_tx_id())
     assert send_result.is_success(), "make transaction success"
 
-    log.STEP(3, " subscribe transaction")
+    STEP(3, " subscribe transaction")
     sub = full_node.subscription().open_web_socket()
     ws_res = sub.subscribe_pending_transaction(send_result.get_tx_id())
 
     STEP(4, "check sender balance")
     sender_bal_after = account_sender.get_prv_balance()
-    log.info("sender balance after: " + str(sender_bal_after.get_result()))
+    INFO("sender balance after: " + str(sender_bal_after.get_result()))
     # Balance after = balance before - amount - fee
     assert sender_bal_after.get_result() == sender_bal.get_result() - send_amount - ws_res.get_fee(), \
         "sender balance output incorrect"
 
     STEP(5, "check receiver balance")
     receiver_bal_after = account_receiver.get_prv_balance()
-    log.info("receiver balance after: " + str(receiver_bal_after.get_result()))
+    INFO("receiver balance after: " + str(receiver_bal_after.get_result()))
     # Balance after = balance before + amount
     assert receiver_bal_after.get_result() == receiver_bal.get_result() + send_amount, "receiver balance output incorrect"
 

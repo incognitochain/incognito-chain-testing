@@ -4,8 +4,8 @@ import requests
 from requests.packages.urllib3.exceptions import NewConnectionError
 from websocket import create_connection
 
+import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.Drivers.Response import Response
-from IncognitoChain.Helpers.Logging import log
 
 rpc_test_net = "http://test-node.incognito.org:9334"
 rpc_main_net = "http://main-node.incognito.org:9334"
@@ -72,7 +72,7 @@ class RpcConnection:
                 "id": self._id,
                 "method": self._method,
                 "params": self._params}
-        log.debug(f'exec RCP: {self._base_url} \n{json.dumps(data,indent=3)}')
+        Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(data, indent=3)}')
         try:
             response = requests.post(self._base_url, data=json.dumps(data), headers=self._headers)
         except NewConnectionError:
@@ -108,7 +108,7 @@ class WebSocket(RpcConnection):
 
     def close(self):
         self._ws_conn.close()
-        log.debug(self._url + " connection closed")
+        Log.DEBUG(self._url + " connection closed")
 
     def is_alive(self):
         return self._ws_conn.connected
@@ -120,8 +120,8 @@ class WebSocket(RpcConnection):
         data = {"request": {"jsonrpc": self._json_rpc, "method": self._method, "params": self._params,
                             "id": self._id},
                 "subcription": self.__subscription, "type": self.__type}
-        log.debug(f'exec WS: {self._base_url} \n{json.dumps(data,indent=3)}')
+        Log.DEBUG(f'exec WS: {self._base_url} \n{json.dumps(data, indent=3)}')
         self._ws_conn.send(json.dumps(data))
-        log.debug(f'Receiving response')
+        Log.DEBUG(f'Receiving response')
         result = self._ws_conn.recv()
         return Response(json.loads(result))
