@@ -1,2 +1,2 @@
 test_bed = 'TestNet'
-account_file = 'account_sample'
+test_data = 'account_sample'
