@@ -1,8 +1,17 @@
-from IncognitoChain.Objects.NodeObject import load_node
-from IncognitoChain.Objects.ShardObject import load_shard
+from typing import List
+
+import IncognitoChain.Helpers.Logging as Log
+from IncognitoChain.Objects.NodeObject import Node
+from IncognitoChain.Objects.ShardObject import Shard, Beacon
+
+
+def load_test_data(name):
+    Log.INFO(f'Loading: test data {name}')
+    return __import__(f'IncognitoChain.TestData.{name}', fromlist=['object'])
 
 
 def load_test_bed(name):
+    Log.INFO(f'Loading test bed: {name}')
     return __import__(f'IncognitoChain.TestBeds.{name}', fromlist=['object'])
 
 
@@ -10,13 +19,9 @@ class TestBed:
     def __init__(self, test_bed):
         tb = load_test_bed(test_bed)
 
-        self.full_node = load_node(tb.full_node)
-        self.beacon = load_shard(tb.beacon)
-        self.shards = [load_shard(tb.shard0),
-                       load_shard(tb.shard1),
-                       load_shard(tb.shard2),
-                       load_shard(tb.shard3),
-                       load_shard(tb.shard4),
-                       load_shard(tb.shard5),
-                       load_shard(tb.shard6),
-                       load_shard(tb.shard7)]
+        self.full_node: Node = tb.full_node
+        self.beacon: Beacon = tb.beacon
+        self.shards: List[Shard] = tb.shard_list
+
+    def precondition_check(self):
+        Log.INFO(f'Checking test bed')

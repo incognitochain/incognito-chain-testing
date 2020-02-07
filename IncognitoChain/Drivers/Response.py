@@ -1,6 +1,12 @@
+import json
+
+import IncognitoChain.Helpers.Logging as Log
+
+
 class Response:
     def __init__(self, json_response):
         self.response = json_response
+        Log.DEBUG(f'\n{json.dumps(self.response, indent=3)}')
 
     def is_success(self):
         if self.response['Error'] is None:
@@ -8,9 +14,13 @@ class Response:
         return False
 
     def get_error_trace(self):
+        if self.response['Error'] is None:
+            return ''
         return self.response['Error']['StackTrace'][0:256]
 
     def get_error_msg(self):
+        if self.response['Error'] is None:
+            return ""
         return self.response['Error']['Message']
 
     def find_in_result(self, string):
@@ -53,3 +63,19 @@ class Response:
 
     def get_contributed_2_amount(self):
         return self.get_result("Contributed2Amount")
+
+    def get_fee(self):
+        return self.response['Result']['Result']['Fee']
+
+    def get_privacy(self):
+        return self.get_result("IsPrivacy")
+
+    def get_balance(self):
+        return self.get_result()
+
+    def get_block_height(self):
+        return self.get_result("BlockHeight")
+
+    def subscribe_transaction(self):
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        return SUT.full_node.subscription().subscribe_pending_transaction(self.get_tx_id())

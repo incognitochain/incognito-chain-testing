@@ -1,10 +1,12 @@
 import json
 
 import requests
+from requests.packages.urllib3.exceptions import NewConnectionError
 from websocket import create_connection
 
+import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.Drivers.Response import Response
-from libs.AutoLog import DEBUG
+from IncognitoChain.Helpers.Logging import DEBUG
 
 rpc_test_net = "http://test-node.incognito.org:9334"
 rpc_main_net = "http://main-node.incognito.org:9334"
@@ -19,34 +21,34 @@ class RpcConnection:
 
     def __init__(self, url, headers=None, id_num=None, json_rpc=None):
         if headers is None:
-            self.headers = {'Content-Type': 'application/json'}
+            self._headers = {'Content-Type': 'application/json'}
         else:
-            self.headers = headers
+            self._headers = headers
 
         if id_num is None:
-            self.id = 1
+            self._id = 1
         else:
-            self.id = id_num
+            self._id = id_num
 
         if json_rpc is None:
-            self.json_rpc = "1.0"
+            self._json_rpc = "1.0"
         else:
-            self.json_rpc = json_rpc
+            self._json_rpc = json_rpc
 
-        self.base_url = url
-        self.params = None
-        self.method = None
+        self._base_url = url
+        self._params = None
+        self._method = None
 
     def with_id(self, new_id):
-        self.id = new_id
+        self._id = new_id
         return self
 
     def with_jsonrpc(self, json_rpc):
-        self.json_rpc = json_rpc
+        self._json_rpc = json_rpc
         return self
 
     def with_url(self, url):
-        self.base_url = url
+        self._base_url = url
         return self
 
     def with_test_net(self):
@@ -59,55 +61,78 @@ class RpcConnection:
         self.with_url(rpc_main_net)
 
     def with_params(self, params):
-        self.params = params
+        self._params = params
         return self
 
     def with_method(self, method):
-        self.method = method
+        self._method = method
         return self
 
     def execute(self):
-        data = {"jsonrpc": self.json_rpc,
-                "id": self.id,
-                "method": self.method,
-                "params": self.params}
-        print(f'!!! exec RCP {data} !!!')
-        response = requests.post(self.base_url, data=json.dumps(data), headers=self.headers)
+        data = {"jsonrpc": self._json_rpc,
+                "id": self._id,
+                "method": self._method,
+                "params": self._params}
+        Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(data, indent=3)}')
+        try:
+            response = requests.post(self._base_url, data=json.dumps(data), headers=self._headers)
+        except NewConnectionError:
+            print('Connection refused')
         return Response(json.loads(response.text))
 
 
 class WebSocket(RpcConnection):
+    """
+    must open connection before sending command on Web Socket
+    """
+
     def __init__(self, url, id_num=None, subscription=None, ws_type=None, timeout=None):
         super(WebSocket, self).__init__(url, None, id_num)
 
         if subscription is None:
-            self.subscription = "11"
+            self.__subscription = "11"
         else:
-            self.subscription = subscription
+            self.__subscription = subscription
 
         if ws_type is None:
-            self.type = 0
+            self.__type = 0
         else:
-            self.type = ws_type
+            self.__type = ws_type
 
         if timeout is None:
-            timeout = 180
-        self.url = url
-        self.ws_conn = create_connection(self.url, timeout)
+            self.__timeout = 180
+        self._url = url
+        self._ws_conn = None
 
-    def with_time_out(self, time: int):
-        self.ws_conn.settimeout(time)
+    def open(self):
+        DEBUG('Opening web socket')
+        if self._ws_conn is None:
+            self._ws_conn = create_connection(self._url, self.__timeout)
+            return
+        if not self.is_alive():
+            self._ws_conn = create_connection(self._url, self.__timeout)
 
     def close(self):
-        self.ws_conn.close()
-        from libs.AutoLog import DEBUG
-        DEBUG(self.url + " connection closed")
+        self._ws_conn.close()
+        Log.DEBUG(self._url + " Connection closed")
 
-    def execute(self):
-        data = {"request": {"jsonrpc": self.json_rpc, "method": self.method, "params": [self.params], "id": self.id},
-                "subcription": self.subscription, "type": self.type}
-        DEBUG(f'!!! Sending {self.method}')
-        self.ws_conn.send(json.dumps(data))
-        DEBUG(f'Receiving response')
-        result = self.ws_conn.recv()
+    def is_alive(self):
+        DEBUG(f"Is web socket connection alive?{self._ws_conn.connected}")
+        return self._ws_conn.connected
+
+    def with_time_out(self, time: int):
+        DEBUG(f'Setting timeout = {time} seconds')
+        self._ws_conn.settimeout(time)
+
+    def execute(self, close_when_done=False):
+        data = {"request": {"jsonrpc": self._json_rpc, "method": self._method, "params": self._params,
+                            "id": self._id},
+                "subcription": self.__subscription, "type": self.__type}
+        self.open()
+        Log.DEBUG(f'exec WS: {self._base_url} \n{json.dumps(data, indent=3)}')
+        self._ws_conn.send(json.dumps(data))
+        Log.DEBUG(f'Receiving response')
+        result = self._ws_conn.recv()
+        if close_when_done:
+            self.close()
         return Response(json.loads(result))

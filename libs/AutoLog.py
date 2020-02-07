@@ -10,8 +10,21 @@ import os, sys
 import time
 from datetime import datetime
 
+"""
+Level       Numeric value
+----------------------------
+CRITICAL    50
+ERROR       40
+WARNING     30
+INFO        20
+DEBUG       10
+NOTSET      0
+"""
+
 STEP_LEVEL_NUM = 32
 RESULT_LEVEL_NUM = 33
+
+log_file = datetime.now().strftime("run_%d%m%y_%H%M%S.log")
 
 
 def custom_logger(log_level=logging.DEBUG):
@@ -29,7 +42,6 @@ def custom_logger(log_level=logging.DEBUG):
 
     # By default, log all messages
     logger.setLevel(logging.DEBUG)
-    log_file = datetime.now().strftime("run_%b_%d_%Y.log")
     file_handler = logging.FileHandler(filename=os.path.join('log', log_file))
     file_handler.setLevel(log_level)
     file_handler.setFormatter(formatter)
