@@ -24,4 +24,4 @@ class TestBed:
         self.shards: List[Shard] = tb.shard_list
 
     def precondition_check(self):
-        print(f'Checking test bed')
+        Log.INFO(f'Checking test bed')

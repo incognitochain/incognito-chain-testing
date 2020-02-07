@@ -69,3 +69,13 @@ class Response:
 
     def get_privacy(self):
         return self.get_result("IsPrivacy")
+
+    def get_balance(self):
+        return self.get_result()
+
+    def get_block_height(self):
+        return self.get_result("BlockHeight")
+
+    def subscribe_transaction(self):
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        return SUT.full_node.subscription().subscribe_pending_transaction(self.get_tx_id())

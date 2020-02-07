@@ -4,10 +4,11 @@ import os
 import sys
 from datetime import datetime
 
-log_level_console = logging.DEBUG
-log_level_file = logging.DEBUG
 STEP_LVL = 12
 RESULT_LVL = 22
+
+log_level_console = STEP_LVL
+log_level_file = logging.DEBUG
 
 _log_file = datetime.now().strftime("run_%d%m%y_%H%M%S.log")
 
@@ -109,3 +110,8 @@ def assert_true(expr, fail_msg, pass_msg=None):
     else:
         if pass_msg is not None:
             INFO(pass_msg)
+
+
+def format_header(string):
+    length = len(string)
+

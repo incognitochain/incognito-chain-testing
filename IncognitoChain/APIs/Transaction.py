@@ -131,14 +131,34 @@ class TransactionRpc:
             with_params([payment_address]). \
             execute()
 
-    def get_reward_specific_token(self, payment_address, token_id):
+    def get_reward_specific_token(self, payment_address):
         return self.rpc_connection. \
             with_method("getrewardamount"). \
             with_params([payment_address]). \
             execute()
 
-    def check_reward_specific_token(self, payment_address, token_id):
+    def check_reward_specific_token(self, payment_address):
         return self.rpc_connection. \
             with_method("getrewardamount"). \
             with_params([payment_address]). \
+            execute()
+
+    def defragment_account(self, private_key, min_bill=1000000000000000):
+        return self.rpc_connection. \
+            with_method("defragmentaccount"). \
+            with_params([private_key, min_bill, -1, 0]). \
+            execute()
+
+    def list_unspent_output_coins(self, private_key):
+        return self.rpc_connection. \
+            with_method('listunspentoutputcoins'). \
+            with_params([0,
+                         999999,
+                         [
+                             {
+                                 "PrivateKey": private_key
+                             }
+                         ],
+                         ""
+                         ]). \
             execute()
