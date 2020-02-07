@@ -18,8 +18,8 @@ class test_withdrawReward(unittest.TestCase):
     """
     test_data = {
         's0_addr1': [
-            "112t8rnXbsJF4f5xtzM2jPW6dCYHChNksth7X64iUkLR4bGi2JBVjgJQRLeKRsdbiFaYMsxzrfbfKAp4TELGre45QkxHWCnwVXPGnnZjJKVL",
-            "12RpnCFbaD9sDcWzAr1McGpbk4u2PgXSGq2chygnUNpyyvPn1VHMJz23449HaWJSHif9DQ4KY9oSBJB6n9mM9GV8cADZqjrUkvirsWk"],
+            "112t8rnXB47RhSdyVRU41TEf78nxbtWGtmjutwSp9YqsNaCpFxQGXcnwcXTtBkCGDk1KLBRBeWMvb2aXG5SeDUJRHtFV8jTB3weHEkbMJ1AL",
+            "12S3wJTUwb8RjHPheQFwer9UPJgs3k1puFnuyAodokcJ7zEcPn6qL72kWCACuDEh5NYrKmz3ctdzd4W2L5P1rbwP75H2D117PVjuS7x"],
         's0_addr2': [
             "112t8rnY4DeSGZYb8r8sSN5WJr6ZL3NCafYAQ7f7Am9KXQDGSc3Qddpn7BfHW1i6CoVVk8vKEzJ25vA9uc9EdhoLU98eoUw7fMrPPrBdNB7Q",
             "12Rtn5fwsb7pTGn8YTCsouMXm73ouPeyQouJeVaVM9gP6HeyywGGBAFqyxzmYz3q7SNyFso85RV3eAemLnh7Kad93F3kfkoK8hwUqcW"],
@@ -28,9 +28,9 @@ class test_withdrawReward(unittest.TestCase):
 
     fullnode_tx = Transaction(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['rpc'])
     fullnode_ws = WebSocket(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['ws'])
+    shard0 = Transaction(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['rpc'])
+    shard0ws = WebSocket(NodeList.fullnode[0]['ip'], NodeList.fullnode[0]['ws'])
     print("ENV: " + str(NodeList.fullnode[0]))
-
-
 
     @pytest.mark.run
     def test_01_withdraw_reward_PRV(self):
@@ -53,7 +53,7 @@ class test_withdrawReward(unittest.TestCase):
         STEP(3, "withdraw reward")
         step3_result = self.fullnode_tx.withdrawReward(self.test_data["s0_addr1"][0], self.test_data["s0_addr1"][1],
                                                        self.test_data["token_prv_id"])
-        assert_true(step3_result[0] != "Can not send tx", "withdraw reward failed","withdraw reward success")
+        assert_true(step3_result[0] != "Can not send tx", "withdraw reward failed", "withdraw reward success")
 
         STEP(4, "subcribe transaction")
         self.fullnode_ws.createConnection()
@@ -117,6 +117,7 @@ class test_withdrawReward(unittest.TestCase):
 
         step1_result_add2 = self.fullnode_tx.getBalance(self.test_data["s0_addr2"][0])
         INFO("receiver 2 balance: " + str(step1_result_add2))
+
         assert_true(step1_result_add2 != "Invalid parameters", "get balance something wrong")
 
         STEP(2, "get current reward")
@@ -127,7 +128,7 @@ class test_withdrawReward(unittest.TestCase):
         STEP(3, "withdraw reward PRV of receiver 2 for payment receiver 1")
         step3_result = self.fullnode_tx.withdrawReward(self.test_data["s0_addr2"][0], self.test_data["s0_addr1"][1],
                                                        self.test_data["token_prv_id"])
-        assert_true(step3_result[0] != "Can not send tx", "withdraw reward failed","withdraw reward success")
+        assert_true(step3_result[0] != "Can not send tx", "withdraw reward failed", "withdraw reward success")
 
         STEP(4, "subcribe transaction")
         self.fullnode_ws.createConnection()
@@ -145,7 +146,8 @@ class test_withdrawReward(unittest.TestCase):
 
         step6_result_add2 = self.fullnode_tx.getBalance(self.test_data["s0_addr2"][0])
         INFO("receiver 2 balance : " + str(step6_result_add2))
-        assert_true(step6_result_add2 == step2_result[1] + step1_result_add2, "balance receiver not correct", "reward withdraw into receiver 2")
+        assert_true(step6_result_add2 == step2_result[1] + step1_result_add2, "balance receiver not correct",
+                    "reward withdraw into receiver 2")
 
     @pytest.mark.run
     def test_04_withdraw_reward_pToken(self):
@@ -212,8 +214,103 @@ class test_withdrawReward(unittest.TestCase):
         INFO("Token pay out")
 
     @pytest.mark.run
+    def test_05_withdraw_full_reward(self):
+        print("""
+           Withdraw full reward 
+           - check balance prv - token and token reward of address
+           - withdraw 
+           - check balance token increase - prv not change
+    
+           """)
+
+        STEP(1, "Check balance prv - token receiver")
+        step1_prv_add = self.fullnode_tx.getBalance(self.test_data["s0_addr1"][0])
+        assert_true(step1_prv_add != "Invalid parameters", " get balance prv something wrong")
+        INFO("Balance PRV : " + str(step1_prv_add))
+
+        step1_prv_reward = self.fullnode_tx.get_reward_prv(self.test_data["s0_addr1"][1])
+        INFO("PRV reward : " + str(step1_prv_reward[1]))
+        assert_true(step1_prv_reward[1] != "Unexpected error", " get reward something wrong")
+
+        step1_token_reward = self.fullnode_tx.get_full_reward(self.test_data["s0_addr1"][1])
+        assert_true(step1_token_reward[0] != "NoToken" or not step1_token_reward[0] != "Unexpected error",
+                    "don't have token to withdraw")
+        for i in range(0, len(step1_token_reward[0])):
+            INFO("Token id : " + str(step1_token_reward[0][i]))
+            INFO("Token reward : " + str(step1_token_reward[1][i]))
+
+        token_bf = []
+        for i in range(0, len(step1_token_reward[0])):
+            temp, _ = self.fullnode_tx.get_customTokenBalance(self.test_data["s0_addr1"][0],
+                                                              step1_token_reward[0][i])
+            assert_true(temp != "Invalid parameters", " get balance prv something wrong")
+            token_bf.append(temp)
+            INFO("Balance token  " + str(step1_token_reward[0][i]) + " : " + str(temp))
+
+        STEP(2, "Withdraw token")
+        step2_result_prv = self.fullnode_tx.withdrawReward(self.test_data["s0_addr1"][0], self.test_data["s0_addr1"][1],
+                                                           self.test_data["token_prv_id"])
+        print("\n")
+        txid_tk = []
+        for i in range(0, len(step1_token_reward[0])):
+            step2_result = self.fullnode_tx.withdrawReward(self.test_data["s0_addr1"][0], self.test_data["s0_addr1"][1],
+                                                           step1_token_reward[0][i])
+            print("\n")
+            txid_tk.append(step2_result[0])
+        print(txid_tk)
+        STEP(3, "subcribe transaction")
+        self.fullnode_ws.createConnection()
+        wsc = self.fullnode_ws.subcribePendingTransaction(step2_result_prv[0])
+
+
+        STEP(5, "check block ")
+        block_prv = self.fullnode_tx.get_txbyhash(step2_result_prv[0])
+        INFO(" BlockHash : " + block_prv[0])
+        block_hash = block_prv[0]
+        is_block = 1
+        WAIT(30)
+        for i in range(0, len(txid_tk)):
+            temp = self.fullnode_tx.get_txbyhash(txid_tk[i])
+            INFO(" BlockHash of tx " + str(txid_tk[i]) + " : " + temp[0])
+            if temp[0] != block_hash:
+                INFO(" not in block")
+                is_block = 0
+                break
+        if is_block == 1:
+            INFO("the same block")
+        else:
+            INFO("not same block")
+
+        STEP(4, "Check balance after withdraw token")
+        step4_prv_add = self.fullnode_tx.getBalance(self.test_data["s0_addr1"][0])
+        INFO("Balance PRV : " + str(step4_prv_add))
+        assert_true(step4_prv_add == step1_prv_add + step1_prv_reward[1], " get balance prv something wrong")
+        for i in range(0, len(step1_token_reward[0])):
+            step4_token_reward = self.fullnode_tx.check_reward_specific_token(self.test_data["s0_addr1"][1],
+                                                                          step1_token_reward[0][i])
+            assert_true(step4_token_reward[0] == "token not exist", "token doesn't pay correct yet ")
+            INFO("Token pay out")
+
+            step4_token_add = self.fullnode_tx.get_customTokenBalance(self.test_data["s0_addr1"][0], step1_token_reward[0][i])
+            assert_true(step4_token_add[0] == token_bf[i] + step1_token_reward[1][i],
+                    " get balance prv something wrong")
+            INFO("Balance token : " + str(step4_token_add[0]))
+
+
+    @pytest.mark.run
     def test_99_cleanup(self):
         print("""
             CLEAN UP
             """)
         self.fullnode_ws.closeConnection()
+
+    @pytest.mark.run
+    def test_xxx(self):
+        print("""
+                test function
+                """)
+        reward = self.fullnode_tx.get_full_reward(
+            "12RpnCFbaD9sDcWzAr1McGpbk4u2PgXSGq2chygnUNpyyvPn1VHMJz23449HaWJSHif9DQ4KY9oSBJB6n9mM9GV8cADZqjrUkvirsWk")
+        print(reward[0])
+        print(reward[1])
+        pass
