@@ -19,7 +19,7 @@ class Transaction():
         """
 
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
-        #print(response.text)
+        print(response.text)
         resp_json = json.loads(response.text)
 
         if resp_json['Error'] is None:
@@ -170,7 +170,7 @@ class Transaction():
                            "", token_privacy
                            ]}
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
-        #print(response.text)
+        # print(response.text)
         resp_json = json.loads(response.text)
         DEBUG(resp_json)
 
@@ -294,7 +294,7 @@ class Transaction():
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
         resp_json = json.loads(response.text)
         DEBUG(resp_json)
-        #print(resp_json)
+        print(resp_json)
         if resp_json['Error'] is None:
             return resp_json['Result']['TxID'], "SUCCESS"
         else:
@@ -363,3 +363,69 @@ class Transaction():
         else:
             WARN(resp_json['Error']['Message'])
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256], resp_json['Error']['Code']
+
+    def get_full_reward(self, payment_address):
+        headers = {'Content-Type': 'application/json'}
+        data = {"jsonrpc": "1.0", "method": "getrewardamount", "params": [payment_address], "id": 1}
+        response = requests.post(self.url, data=json.dumps(data), headers=headers)
+        resp_json = json.loads(response.text)
+
+        if resp_json['Error'] is None and len(resp_json["Result"]) == 1:
+            return "NoToken", "NoReward"
+        elif resp_json['Error'] is None and len(resp_json["Result"]) > 1:
+            result_token = dict()
+            for k, v in resp_json["Result"].items():
+                if k != "PRV" and v > 0:
+                    key = k
+                    value = v
+                    result_token[k] = v
+
+            if not result_token:
+                return "NoToken", "NoReward"
+            else:
+                return list(result_token.keys()), list(result_token.values())
+        else:
+            WARN(resp_json['Error']['Message'])
+            return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256], resp_json['Error']['Code']
+
+    ###############
+    # WITHDRAW REWARD
+    ###############
+
+    def defragment_prv(self, private_key, min_value, auto_fee=-1, is_privacy=1):
+        headers = {'Content-Type': 'application/json'}
+        data = {"jsonrpc": "1.0", "method": "defragmentaccount",
+                "params": [private_key, min_value, auto_fee, is_privacy,
+                           ],
+                "id": 1}
+        response = requests.post(self.url, data=json.dumps(data), headers=headers)
+        resp_json = json.loads(response.text)
+        DEBUG(resp_json)
+        print(resp_json)
+        if resp_json['Error'] is None:
+            return resp_json['Result']['TxID'], "SUCCESS"
+        else:
+            WARN(resp_json['Error']['Message'])
+            return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
+
+    def count_serial_number_prv(self, private_key, min_value=0):
+        headers = {'Content-Type': 'application/json'}
+        data = {"jsonrpc": "1.0", "method": "listunspentoutputcoins",
+                "params": [0, 999999, [{"PrivateKey": private_key}]
+                           ],
+                "id": 1}
+        response = requests.post(self.url, data=json.dumps(data), headers=headers)
+        resp_json = json.loads(response.text)
+        DEBUG(resp_json)
+        # print(resp_json)
+        total_serial = len(resp_json['Result']['Outputs'][private_key])
+        count = 0
+        for i in range(0, total_serial):
+            if int(resp_json['Result']['Outputs'][private_key][i]["Value"]) >= min_value:
+                count = count + 1
+
+        if resp_json['Error'] is None:
+            return total_serial, count
+        else:
+            WARN(resp_json['Error']['Message'])
+            return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
