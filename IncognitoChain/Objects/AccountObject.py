@@ -34,12 +34,16 @@ class Account:
         return self
 
     def __str__(self):
-        return f'Shard = {self.shard}\n' + \
-               f'Private key = {self.private_key}\n' + \
-               f'Payment key = {self.payment_key}\n' + \
-               f'Read only key = {self.read_only_key}\n' + \
-               f'Validator key = {self.validator_key}\n' + \
-               f'Public key = {self.public_key}\n'
+        string = f'Shard = {self.shard}\n' + \
+                 f'Private key = {self.private_key}\n' + \
+                 f'Payment key = {self.payment_key}\n'
+        if self.read_only_key is not None:
+            string += f'Read only key = {self.read_only_key}\n'
+        if self.validator_key is not None:
+            string += f'Validator key = {self.validator_key}\n'
+        if self.public_key is not None:
+            string += f'Public key = {self.public_key}\n'
+        return string
 
     def _where_am_i(self, a_list: list):
         """
@@ -143,6 +147,11 @@ class Account:
             return SUT.full_node.transaction().defragment_account(self.private_key)
         INFO('No need to defrag!')
         return None
+
+    def subscribe_cross_output_coin(self):
+        INFO('Subscribe output coin')
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        return SUT.full_node.subscription().subscribe_cross_output_coin_by_private_key(self.private_key)
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:

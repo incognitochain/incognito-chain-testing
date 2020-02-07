@@ -26,7 +26,7 @@ def _log():
     """
 
     # Gets the name of the class / method from where this method is called
-    logger_name = os.path.basename(inspect.stack()[2][1])
+    logger_name = os.path.basename(inspect.stack()[2][1])[:20]
     line = {'line': inspect.stack()[2][2]}
     logger = logging.getLogger(logger_name)
     formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s:%(line)d %(message)s', datefmt='%H:%M:%S')
