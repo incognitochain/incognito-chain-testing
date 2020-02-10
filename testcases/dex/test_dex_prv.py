@@ -31,9 +31,9 @@ class test_dex(unittest.TestCase):
         # "797d79": "0c1e0dded579a13cb5f9034d810b892d6109fd2ad269f545ee2df0e760cda5d6",
         # "562f2b": "a78c34f9dd6adb186d7f371f676b0d6de1603c87a31c281aedf769aad6a57661",
 
-        "amount_contribution_797d79": 300000,
-        "amount_contribution_562f2b": 500,
-        "amount_contribution_000004": 200000,
+        "amount_contribution_797d79": 30000000,
+        "amount_contribution_562f2b": 50000,
+        "amount_contribution_000004": 20000000,
         # "amount_contribution_797d79": 29461,
         # "amount_contribution_562f2b": 24623623,
 
@@ -863,7 +863,7 @@ class test_dex(unittest.TestCase):
                                                      self.testData['paymentAddr'][5])
         rate_B = self.fullnode.get_latestRate(self.testData["000004"], self.testData["797d79"])
         STEP(2, "Withdraw 25% from 1st share owner")
-        withdraw_share = math.floor(share_000004_B[0] / 4)
+        withdraw_share = math.floor(share_000004_B[0] * 0.25)
         INFO("withdrawing: %d share" % withdraw_share)
         txid = self.fullnode.withdrawal_contribution(self.testData['token_ownerPrivateKey'][0],
                                                      self.testData['token_ownerPaymentAddress'][0],
