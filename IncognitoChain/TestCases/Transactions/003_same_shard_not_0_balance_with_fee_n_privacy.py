@@ -45,3 +45,6 @@ def test_send_prv_1shard_with_fee_privacy(fee, privacy):
     if privacy == 1:
         assert send_transaction.is_private_transaction() and INFO(
             "transaction is privacy"), "transaction must be privacy "
+
+    STEP(7, "Return the money")
+    receiver_account.send_prv_to(sender_account, send_amount).subscribe_transaction()

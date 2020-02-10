@@ -8,7 +8,7 @@ sender = get_accounts_in_shard(4)[0]
 send_amount = 1000
 
 
-@pytest.mark.parametrize('fee,privacy', [(-1, 1), (2, 1), (-1, 0), (2, 0)])
+@pytest.mark.parametrize('fee,privacy', [(-1, 1), (-1, 0), (2, 1), (2, 0)])
 def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
     INFO(f"Verify send PRV to another address Xshard successfully with privacy={privacy} fee={fee}")
     STEP(1, "Get sender balance")
@@ -51,5 +51,3 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
     if privacy == 1:
         assert send_transaction.is_private_transaction() and INFO('transaction is privacy'), \
             "transaction must be private "
-
-

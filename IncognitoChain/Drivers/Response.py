@@ -1,4 +1,6 @@
 import json
+import re
+from tokenize import group
 
 import IncognitoChain.Helpers.Logging as Log
 
@@ -16,7 +18,7 @@ class Response:
     def get_error_trace(self):
         if self.response['Error'] is None:
             return ''
-        return self.response['Error']['StackTrace'][0:256]
+        return StackTrace(self.response['Error']['StackTrace'][0:256])
 
     def get_error_msg(self):
         if self.response['Error'] is None:
@@ -79,6 +81,7 @@ class Response:
     def get_block_height(self):
         return self.get_result("BlockHeight")
 
+    # !!!!!!!! Next actions base on response
     def subscribe_transaction(self):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         return SUT.full_node.subscription().subscribe_pending_transaction(self.get_tx_id())
@@ -94,3 +97,23 @@ class Response:
     def get_transaction_by_hash(self):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         return SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
+
+
+class StackTrace:
+    def __init__(self, stack_string):
+        self.stack_string = stack_string
+
+    def __str__(self):
+        return self.stack_string
+
+    def get_error_codes(self):
+        code_list = re.findall("(-[0-9]\\w+: )", self.stack_string)
+        return ''.join([str(elem) for elem in code_list])
+
+    def get_message(self):
+        i_start = len(self.get_error_codes())
+        i_end = str.index(self.stack_string, 'github.com')
+        return str(self.stack_string[i_start:i_end])
+
+    def get_estimated_fee(self):
+        return re.search("fee=(.*)", self.stack_string).group(1)
