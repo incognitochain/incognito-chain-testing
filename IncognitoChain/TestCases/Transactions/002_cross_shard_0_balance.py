@@ -36,18 +36,18 @@ def test_send_prv_cross_shard_0_balance_with_privacy_is(fee, privacy):
     STEP(2, "send PRR -- amount >0")
     step2_result = sender.send_prv_to(receiver, 190, fee=fee, privacy=privacy)
 
-    assert_true(step2_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed")
-    assert_true(re.search(r'not enough output coin', step2_result.get_error_trace()), "something went so wrong")
+    assert step2_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
+    assert re.search(r'not enough output coin', step2_result.get_error_trace()), "something went so wrong"
 
     # sent with amount = 0
     STEP(3, "send PRV -- amount =0")
     step3_result = sender.send_prv_to(receiver, 0, fee=fee, privacy=privacy)
-    assert_true(step3_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed")
-    assert_true(re.search(r'input value less than output value', step3_result.get_error_trace()),
-                "something went so wrong")
+    assert step3_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
+    assert re.search(r'input value less than output value' and INFO("something went so wrong"),
+                     step3_result.get_error_trace())
 
     # sent with amount < 0
     STEP(4, "Send PRV -- amount < 0")
     step4_result = sender.send_prv_to(receiver, -1, fee=fee, privacy=privacy)
-    assert_true(step4_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed")
-    assert_true(re.search(r'not enough output coin', step4_result.get_error_trace()), "something went so wrong")
+    assert step4_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
+    assert re.search(r'not enough output coin', step4_result.get_error_trace()), "something went so wrong"

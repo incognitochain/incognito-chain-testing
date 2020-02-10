@@ -20,7 +20,7 @@ def test_send_prv_1shard_with_fee_privacy(fee, privacy):
 
     STEP(2, "send PRV")
     send_transaction = sender_account.send_prv_to(receiver_account, send_amount, fee=fee, privacy=privacy)
-    assert_true(send_transaction.get_error_msg() is None, "transaction failed", "make transaction success")
+    assert send_transaction.get_error_msg() is None and INFO("make transaction success"), "transaction failed"
 
     STEP(3, " subcribe transaction")
     transaction_result = send_transaction.subscribe_transaction()
@@ -29,19 +29,19 @@ def test_send_prv_1shard_with_fee_privacy(fee, privacy):
     balance1a = sender_account.get_prv_balance()
     INFO(f" Sender balance after: {balance1a}")
     # Balance after = balance before - amount - fee
-    assert_true(balance1a == balance1b - send_amount - transaction_result.get_fee(),
-                "sender balance output incorrect")
+    assert balance1a == balance1b - send_amount - transaction_result.get_fee(), \
+        "sender balance output incorrect"
 
     STEP(5, "check receiver balance")
     balance2a = receiver_account.get_prv_balance()
     INFO(f"receiver balance after: {balance2a}")
     # Balance after = balance before + amount
-    assert_true(balance2a == balance2b + send_amount, "receiver balance output incorrect")
+    assert balance2a == balance2b + send_amount, "receiver balance output incorrect"
 
     STEP(6, "Check transaction privacy")
     if privacy == 0:
-        assert_true(not send_transaction.is_private_transaction(), "transaction must be no privacy ",
-                    "transaction is no privacy")
+        assert not send_transaction.is_private_transaction() and INFO(
+            "transaction is no privacy"), "transaction must be no privacy "
     if privacy == 1:
-        assert_true(send_transaction.is_private_transaction(), "transaction must be privacy ",
-                    "transaction is privacy")
+        assert send_transaction.is_private_transaction() and INFO(
+            "transaction is privacy"), "transaction must be privacy "

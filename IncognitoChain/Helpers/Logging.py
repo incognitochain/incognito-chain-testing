@@ -58,6 +58,7 @@ def DEBUG(msg):
 
 def INFO(msg):
     _log().info(msg)
+    return True
 
 
 def WARNING(msg):
@@ -90,28 +91,6 @@ def STEP(num, msg, *args, **kws):
 logging.Logger.step = STEP
 
 
-def assert_true(expr, fail_msg, pass_msg=None):
-    """
-    Throws exception with fail_msg if 'expr' not true, else logs pass_msg
-
-    Args:
-      expr: True/False expression
-      fail_msg(String): Failure message.
-      pass_msg(String): Passing message.
-
-    Returns:
-      None
-
-    Raises:
-      Exception if expr != True
-    """
-    if not expr:
-        raise Exception(fail_msg)
-    else:
-        if pass_msg is not None:
-            INFO(pass_msg)
-
-
 def format_header(string):
+    # TBD
     length = len(string)
-
