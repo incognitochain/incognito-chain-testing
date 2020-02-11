@@ -13,6 +13,7 @@ class Account:
         self.public_key = public_key
         self.read_only_key = read_only_key
         self.shard = shard
+        self.prv_balance = None
 
     def __eq__(self, other):
         if self.private_key == other.private_key:
@@ -36,18 +37,21 @@ class Account:
     def __str__(self):
         string = f'Shard = {self.shard}\n' + \
                  f'Private key = {self.private_key}\n' + \
-                 f'Payment key = {self.payment_key}\n'
+                 f'Payment key = {self.payment_key}'
         if self.read_only_key is not None:
-            string += f'Read only key = {self.read_only_key}\n'
+            string += f'\nRead only key = {self.read_only_key}'
         if self.validator_key is not None:
-            string += f'Validator key = {self.validator_key}\n'
+            string += f'\nValidator key = {self.validator_key}'
         if self.public_key is not None:
-            string += f'Public key = {self.public_key}\n'
-        return string
+            string += f'\nPublic key = {self.public_key}'
+        if self.prv_balance is not None:
+            string += f'\nBalance = {self.prv_balance}'
+        return f'{string}\n'
 
     def _where_am_i(self, a_list: list):
         """
         find index of self in a_list of account
+
         :param a_list:
         :return: if self is in a_list then return index of self in the list or else return -1
         """
@@ -59,6 +63,7 @@ class Account:
     def get_token_balance(self, token_id, shard_id=None):
         """
         get balance by token_id
+
         :param token_id:
         :param shard_id: default = None, if not specified, will ask full_node. or else, will ask on shard_id
         :return:
@@ -72,13 +77,14 @@ class Account:
         else:
             shard_to_ask = shard_id
         return SUT.shards[shard_to_ask].get_representative_node().transaction().get_custom_token_balance(
-            self.private_key, token_id)
+            self.private_key, token_id).get_result()
 
     def get_prv_balance(self, shard_id=None):
         """
         get account's prv balance, by default it will ask the full node.
         when the shard_id is specify, then it will on that shard
         if shard if = -1, it will ask for the balance on it own shard
+
         :param shard_id:
         :return:
         """
@@ -94,11 +100,13 @@ class Account:
             balance = SUT.shards[shard_to_ask].get_representative_node().transaction().get_balance(
                 self.private_key).get_balance()
         INFO(f"Balance = {balance}")
+        self.prv_balance = balance
         return balance
 
     def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1):
         """
         send amount_prv of prv to to_account. by default fee=-1 and privacy=1
+
         :param receiver_account:
         :param amount:
         :param fee:
@@ -108,11 +116,31 @@ class Account:
         INFO(f'Sending {amount} prv to {receiver_account}')
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         return SUT.full_node.transaction(). \
-            send_transaction(self.private_key, receiver_account.payment_key, amount, fee, privacy)
+            send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
+
+    def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1):
+        """
+
+        :param dict_to_account_and_amount: a dictionary of {receiver account : amount}
+        :param fee:
+        :param privacy:
+        :return:
+        """
+        send_param = dict()
+        for account, amount in dict_to_account_and_amount.items():
+            INFO("Sending prv to multiple accounts: ------------------------------------------------ ")
+            INFO(f'{amount} prv to {account}')
+            send_param[account.payment_key] = amount
+        INFO("---------------------------------------------------------------------------------- ")
+
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        return SUT.full_node.transaction(). \
+            send_transaction(self.private_key, send_param, fee, privacy)
 
     def send_all_prv_to(self, to_account, privacy=0):
         """
         send all prv to another account
+
         :param to_account:
         :param privacy:
         :return:
@@ -128,6 +156,7 @@ class Account:
     def count_unspent_output_coins(self):
         """
         count number of unspent coin
+
         :return: int
         """
         INFO('Count unspent coin')
@@ -137,8 +166,9 @@ class Account:
 
     def defragment_account(self):
         """
-            check if account need to be defrag by count unspent coin
+        check if account need to be defrag by count unspent coin,
             if count > 1 then defrag
+
         :return: Response object if need to defrag, None if not to
         """
         INFO('Defrag account')
@@ -157,6 +187,7 @@ class Account:
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:
     """
     iterate through accounts in account_list, check if they're in the same shard_number
+
     :param shard_number: shard id to check
     :param account_list: account list to check, by default it's TestData
     :return: list of Account which is in the same shard_number
@@ -175,6 +206,7 @@ def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]
 def find_0_balance_accounts(token_id=None, account_list=None) -> List[Account]:
     """
     find all account in account_list which prv balance = 0
+
     :param token_id:
     :param account_list: Default is TestData
     :return:  Account list
@@ -200,6 +232,7 @@ def find_0_balance_accounts(token_id=None, account_list=None) -> List[Account]:
 def find_same_shard_accounts_with(account: Account, account_list=None):
     """
     find all accounts which is in the same shard with param:account bellow
+
     :param account:
     :param account_list:
     :return: Account list
