@@ -5,14 +5,14 @@ class TransactionRpc:
     def __init__(self, url):
         self.rpc_connection = Connections.RpcConnection(url=url)
 
-    def send_transaction(self, sender_private_key, receiver_payment_address, amount_prv, fee=-1, privacy=1):
+    def send_transaction(self, sender_private_key, dict_payment_address_amount_prv, fee=-1, privacy=1):
         """
         3rd param: -1 => auto estimate fee; >0 => fee * transaction size (KB)
         4th param: 0 => no privacy ; 1 => privacy
         """
         return self.rpc_connection. \
             with_method("createandsendtransaction"). \
-            with_params([sender_private_key, {receiver_payment_address: amount_prv}, fee, privacy]). \
+            with_params([sender_private_key, dict_payment_address_amount_prv, fee, privacy]). \
             execute()
 
     def get_balance(self, private_key):
@@ -58,6 +58,20 @@ class TransactionRpc:
 
     def send_custom_token_transaction(self, sender_private_key, receiver_payment_address, token_id, amount_custom_token,
                                       prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
+        """
+        Can be use to send not only custom token but also PRV, can also send both at the same time
+
+        :param sender_private_key:
+        :param receiver_payment_address:
+        :param token_id:
+        :param amount_custom_token:
+        :param prv_fee: using prv to pay for fee
+        :param token_fee: using custom token to pay for fee
+        :param prv_amount: amount of prv to be sent
+        :param prv_privacy:
+        :param token_privacy:
+        :return: Response Object
+        """
         return self.rpc_connection. \
             with_method("createandsendprivacycustomtokentransaction"). \
             with_params([sender_private_key, {receiver_payment_address: prv_amount}, prv_fee,

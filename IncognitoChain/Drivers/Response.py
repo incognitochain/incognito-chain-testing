@@ -1,6 +1,5 @@
 import json
 import re
-from tokenize import group
 
 import IncognitoChain.Helpers.Logging as Log
 
@@ -48,11 +47,14 @@ class Response:
     def get_pde_share(self):
         return self.get_result("PDEShares")
 
-    def get_token_id_1(self):
+    def get_token_id_1_str(self):
         return self.get_result("TokenID1Str")
 
-    def get_token_id_2(self):
+    def get_token_id_2_str(self):
         return self.get_result("TokenID2Str")
+
+    def get_token_id(self):
+        return self.get_result("TokenID")
 
     def get_returned_1_amount(self):
         return self.get_result("Returned1Amount")
@@ -82,9 +84,17 @@ class Response:
         return self.get_result("BlockHeight")
 
     # !!!!!!!! Next actions base on response
-    def subscribe_transaction(self):
+    def subscribe_transaction(self, tx_id=None):
+        """
+        Subscribe transaction by txid
+
+        :param tx_id: if not specified, use tx id from self
+        :return: Response Object
+        """
+        if tx_id is None:
+            tx_id = self.get_tx_id()
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.subscription().subscribe_pending_transaction(self.get_tx_id())
+        return SUT.full_node.subscription().subscribe_pending_transaction(tx_id)
 
     def is_private_transaction(self):
         from IncognitoChain.Objects.IncognitoTestCase import SUT

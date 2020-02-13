@@ -80,7 +80,7 @@ class Node:
         Decentralize Exchange APIs by RPC
         :return: DexRpc Object
         """
-        return DexRpc(self._get_ws_url())
+        return DexRpc(self._get_rpc_url())
 
     def subscription(self) -> SubscriptionWs:
         """
@@ -90,3 +90,20 @@ class Node:
         if self._web_socket is None:
             self._web_socket = WebSocket(self._get_ws_url())
         return SubscriptionWs(self._web_socket)
+
+    def get_latest_rate_between(self, token_id_1, token_id_2):
+        best_state = self.dex().get_beacon_best_state()
+        beacon_height = best_state.get_beacon_height()
+
+        pde_state = self.dex().get_pde_state(beacon_height)
+
+        try:
+            pool_pair = f"pdepool-{beacon_height}-{token_id_1}-{token_id_2}"
+            pool = pde_state.get_pde_pool_pairs()[pool_pair]
+            rate = [pool["Token1PoolValue"], pool["Token2PoolValue"]]
+        except Exception:
+            pool_pair = f"pdepool-{beacon_height}-{token_id_2}-{token_id_1}"
+            pool = pde_state.get_pde_pool_pairs()[pool_pair]
+            rate = [pool["Token2PoolValue"], pool["Token1PoolValue"]]
+
+        return rate

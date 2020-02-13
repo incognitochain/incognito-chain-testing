@@ -25,6 +25,10 @@ class Account:
             return False
         return True
 
+    def __hash__(self):
+        # for using Account object as 'key' in dictionary
+        return int(str(self.private_key).encode('utf8').hex(), 16)
+
     def from_json(self, json_string):
         self.public_key = json_string.get('public')
         self.private_key = json_string.get('private')
@@ -71,7 +75,7 @@ class Account:
         INFO(f'Get token balance, token id = {token_id}')
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         if shard_id is None:
-            return SUT.full_node.transaction().get_custom_token_balance(self.private_key, token_id)
+            return SUT.full_node.transaction().get_custom_token_balance(self.private_key, token_id).get_result()
         if shard_id is None:
             shard_to_ask = self.shard
         else:
@@ -127,8 +131,8 @@ class Account:
         :return:
         """
         send_param = dict()
+        INFO("Sending prv to multiple accounts: ------------------------------------------------ ")
         for account, amount in dict_to_account_and_amount.items():
-            INFO("Sending prv to multiple accounts: ------------------------------------------------ ")
             INFO(f'{amount} prv to {account}')
             send_param[account.payment_key] = amount
         INFO("---------------------------------------------------------------------------------- ")
@@ -178,10 +182,71 @@ class Account:
         INFO('No need to defrag!')
         return None
 
-    def subscribe_cross_output_coin(self):
+    def subscribe_cross_output_coin(self, timeout=180):
         INFO('Subscribe output coin')
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.subscription().subscribe_cross_output_coin_by_private_key(self.private_key)
+        return SUT.full_node.subscription().subscribe_cross_output_coin_by_private_key(self.private_key, timeout)
+
+    def init_custom_token_self(self, token_symbol, amount):
+        """
+        Init custom token to self payment address
+
+        :param token_symbol:
+        :param amount
+        :return:
+        """
+        INFO(f'Init custom token to self: {self.payment_key}')
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        return SUT.full_node.transaction().init_custom_token(self.private_key, self.payment_key, token_symbol, amount)
+
+    def init_custom_token_to(self, account, symbol, amount):
+        """
+        Init custom token to other account's payment address
+
+        :param account:
+        :param symbol:
+        :param amount
+        :return:
+        """
+        INFO(f'Init custom token to: {account.payment_key}')
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        return SUT.full_node.transaction().init_custom_token(self.private_key, account.payment_key, symbol, amount)
+
+    def contribute_token(self, contribute_token_id, amount, contribution_pair_id):
+        INFO(f'Contribute token: {contribute_token_id}')
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        return SUT.full_node.dex().contribute_token(self.private_key, self.payment_key, contribute_token_id, amount,
+                                                    contribution_pair_id)
+
+    def contribute_prv(self, amount, contribution_pair_id):
+        INFO(f'Contribute PRV')
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        return SUT.full_node.dex().contribute_prv(self.private_key, self.payment_key, amount, contribution_pair_id)
+
+    def withdraw_contribution(self, token_id_1, token_id_2, amount):
+        INFO(f'Withdraw contribution')
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        return SUT.full_node.dex().withdrawal_contribution(self.private_key, self.payment_key, token_id_1, token_id_2,
+                                                           amount)
+
+    def send_token_to(self, receiver, token_id, amount_custom_token,
+                      prv_fee=0, token_fee=0, token_privacy=0):
+        """
+        Send token to receiver (custom token only, not prv)
+
+        :param receiver: Account
+        :param token_id:
+        :param amount_custom_token:
+        :param prv_fee:
+        :param token_fee:
+        :param token_privacy:
+        :return: Response object
+        """
+        INFO(f'Withdraw contribution')
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        return SUT.full_node.transaction().send_custom_token_transaction(self.private_key, receiver.payment_key,
+                                                                         token_id, amount_custom_token, prv_fee,
+                                                                         token_fee, 0, 0, token_privacy)
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:

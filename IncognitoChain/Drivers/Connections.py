@@ -1,12 +1,12 @@
 import json
 
 import requests
-from requests.packages.urllib3.exceptions import NewConnectionError
+from urllib3.exceptions import NewConnectionError
 from websocket import create_connection
 
 import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.Drivers.Response import Response
-from IncognitoChain.Helpers.Logging import DEBUG
+from IncognitoChain.Helpers.Logging import DEBUG, ERROR
 
 rpc_test_net = "http://test-node.incognito.org:9334"
 rpc_main_net = "http://main-node.incognito.org:9334"
@@ -77,7 +77,7 @@ class RpcConnection:
         try:
             response = requests.post(self._base_url, data=json.dumps(data), headers=self._headers)
         except NewConnectionError:
-            print('Connection refused')
+            ERROR('Connection refused')
         return Response(json.loads(response.text))
 
 
@@ -105,12 +105,12 @@ class WebSocket(RpcConnection):
         self._ws_conn = None
 
     def open(self):
-        DEBUG('Opening web socket')
         if self._ws_conn is None:
             self._ws_conn = create_connection(self._url, self.__timeout)
             return
         if not self.is_alive():
             self._ws_conn = create_connection(self._url, self.__timeout)
+        DEBUG('Open web socket')
 
     def close(self):
         self._ws_conn.close()
@@ -123,8 +123,9 @@ class WebSocket(RpcConnection):
     def with_time_out(self, time: int):
         DEBUG(f'Setting timeout = {time} seconds')
         self._ws_conn.settimeout(time)
+        return self
 
-    def execute(self, close_when_done=False):
+    def execute(self, close_when_done=True):
         data = {"request": {"jsonrpc": self._json_rpc, "method": self._method, "params": self._params,
                             "id": self._id},
                 "subcription": self.__subscription, "type": self.__type}

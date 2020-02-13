@@ -12,8 +12,9 @@ class SubscriptionWs:
     def subscribe_pending_transaction(self, tx_id):
         return self.ws_conn.with_method("subcribependingtransaction").with_params([tx_id]).execute()
 
-    def subscribe_cross_output_coin_by_private_key(self, private_key):
-        return self.ws_conn.with_method("subcribecrossoutputcoinbyprivatekey").with_params([private_key]).execute()
+    def subscribe_cross_output_coin_by_private_key(self, private_key, timeout=180):
+        return self.ws_conn.with_method("subcribecrossoutputcoinbyprivatekey").with_time_out(timeout).with_params(
+            [private_key]).execute()
 
     def subscribe_cross_custom_token_privacy_by_private_key(self, private_key):
         return self.ws_conn.with_method("subcribecrosscustomtokenprivacybyprivatekey"). \

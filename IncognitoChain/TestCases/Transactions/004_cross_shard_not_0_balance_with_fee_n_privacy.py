@@ -10,7 +10,7 @@ send_amount = 1000
 
 @pytest.mark.parametrize('fee,privacy', [(-1, 1), (-1, 0), (2, 1), (2, 0)])
 def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
-    INFO(f"Verify send PRV to another address Xshard successfully with privacy={privacy} fee={fee}")
+    INFO(f"Verify send PRV to another address Xshard successfully with fee={fee} privacy={privacy}")
     STEP(1, "Get sender balance")
     sender_bal = sender.get_prv_balance()
     INFO(f"Sender balance before: {sender_bal}")

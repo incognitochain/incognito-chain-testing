@@ -29,7 +29,7 @@ def _log():
     logger_name = os.path.basename(inspect.stack()[2][1])[:20]
     line = {'line': inspect.stack()[2][2]}
     logger = logging.getLogger(logger_name)
-    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s:%(line)d %(message)s', datefmt='%H:%M:%S')
+    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)-20s:%(line)d %(message)s', datefmt='%H:%M:%S')
     if logger.hasHandlers():
         # Logger is already configured, remove all handlers
         logger.handlers = []
