@@ -1,0 +1,3 @@
+from IncognitoChain.Objects.IncognitoTestCase import SUT
+
+SUT.full_node.subscription().subscribe_pending_transaction("3083e21cad1229f8df489ea63dd9389debfcfdf937431e56ca9b57c5aaac5341")

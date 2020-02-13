@@ -1,10 +1,13 @@
 from pexpect import pxssh
 
 import IncognitoChain.Helpers.Logging as Log
+from IncognitoChain.APIs.Bridge import BridgeRpc
 from IncognitoChain.APIs.DEX import DexRpc
 from IncognitoChain.APIs.Subscription import SubscriptionWs
 from IncognitoChain.APIs.Transaction import TransactionRpc
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
+from IncognitoChain.Drivers.Response import Response
+from IncognitoChain.Objects.AccountObject import Account
 
 
 class Node:
@@ -82,6 +85,13 @@ class Node:
         """
         return DexRpc(self._get_rpc_url())
 
+    def bridge(self) -> BridgeRpc:
+        """
+        Bridge APIs by RPC
+        :return: BridgeRpc object
+        """
+        return BridgeRpc(self._get_rpc_url())
+
     def subscription(self) -> SubscriptionWs:
         """
         Subscription APIs on web socket
@@ -107,3 +117,25 @@ class Node:
             rate = [pool["Token2PoolValue"], pool["Token1PoolValue"]]
 
         return rate
+    ##########
+    # BRIDGE
+    ##########
+
+    def issue_centralize_token(self, account: Account, token_id, token_name, amount) -> Response:
+        """
+        initialize a new centralize token
+
+        :return: Response Object
+
+        """
+        return self.bridge().issue_centralized_bridge_token(account.payment_key, token_id, token_name, amount)
+
+    def withdraw_centralize_token(self, account: Account, token_id, amount) -> Response:
+        """
+        withdrawal a centralize token
+
+        :return: Response Object
+
+        """
+        return self.bridge().withdraw_centralized_bridge_token(account.private_key, token_id, amount)
+
