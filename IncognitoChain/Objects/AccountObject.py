@@ -155,7 +155,8 @@ class Account:
         if defrag is not None:
             defrag.subscribe_transaction()
         balance = self.get_prv_balance()
-        return self.send_prv_to(to_account, balance - 200, 100, privacy)
+        if balance > 0:
+            return self.send_prv_to(to_account, balance - 200, 100, privacy).subscribe_transaction()
 
     def count_unspent_output_coins(self):
         """

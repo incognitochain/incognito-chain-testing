@@ -7,12 +7,18 @@ from IncognitoChain.Objects.ShardObject import Shard, Beacon
 
 def load_test_data(name):
     Log.INFO(f'Loading: test data {name}')
-    return __import__(f'IncognitoChain.TestData.{name}', fromlist=['object'])
+    try:
+        return __import__(f'IncognitoChain.TestData.{name}', fromlist=['object'])
+    except ModuleNotFoundError:
+        raise Exception(f"!!! Test data not found: {name}")
 
 
 def load_test_bed(name):
     Log.INFO(f'Loading test bed: {name}')
-    return __import__(f'IncognitoChain.TestBeds.{name}', fromlist=['object'])
+    try:
+        return __import__(f'IncognitoChain.TestBeds.{name}', fromlist=['object'])
+    except ModuleNotFoundError:
+        raise Exception(f"!!! Test bed not found: {name}")
 
 
 class TestBed:
