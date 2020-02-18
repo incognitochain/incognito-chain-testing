@@ -6,20 +6,21 @@ from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 
 sender = get_accounts_in_shard(2)[0]
-sender_balance = sender.get_prv_balance()
+sender_balance_init = sender.get_prv_balance()
 
 receiver = get_accounts_in_shard(4)[0]
 receiver_balance = receiver.get_prv_balance()
 
 
 def setup_function():
+    sender_balance = sender.get_prv_balance()
     if sender_balance == 0:
         return
     sender.send_all_prv_to(receiver).subscribe_transaction()
 
 
 def teardown_function():
-    receiver.send_prv_to(sender, sender_balance)
+    receiver.send_prv_to(sender, sender_balance_init)
 
 
 @pytest.mark.parametrize('fee,privacy', [(-1, 0), (2, 0), (-1, 1), (2, 1)])

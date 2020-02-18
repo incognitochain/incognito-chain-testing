@@ -14,6 +14,8 @@ class Account:
         self.read_only_key = read_only_key
         self.shard = shard
         self.prv_balance = None
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        self.__SUT = SUT
 
     def __eq__(self, other):
         if self.private_key == other.private_key:
@@ -73,14 +75,14 @@ class Account:
         :return:
         """
         INFO(f'Get token balance, token id = {token_id}')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
+
         if shard_id is None:
-            return SUT.full_node.transaction().get_custom_token_balance(self.private_key, token_id).get_result()
+            return self.__SUT.full_node.transaction().get_custom_token_balance(self.private_key, token_id).get_result()
         if shard_id is None:
             shard_to_ask = self.shard
         else:
             shard_to_ask = shard_id
-        return SUT.shards[shard_to_ask].get_representative_node().transaction().get_custom_token_balance(
+        return self.__SUT.shards[shard_to_ask].get_representative_node().transaction().get_custom_token_balance(
             self.private_key, token_id).get_result()
 
     def get_prv_balance(self, shard_id=None):
@@ -93,15 +95,15 @@ class Account:
         :return:
         """
         INFO("Get prv balance")
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
+
         if shard_id is None:
-            balance = SUT.full_node.transaction().get_balance(self.private_key).get_balance()
+            balance = self.__SUT.full_node.transaction().get_balance(self.private_key).get_balance()
         else:
             if shard_id == -1:
                 shard_to_ask = self.shard
             else:
                 shard_to_ask = shard_id
-            balance = SUT.shards[shard_to_ask].get_representative_node().transaction().get_balance(
+            balance = self.__SUT.shards[shard_to_ask].get_representative_node().transaction().get_balance(
                 self.private_key).get_balance()
         INFO(f"Balance = {balance}")
         self.prv_balance = balance
@@ -118,8 +120,8 @@ class Account:
         :return:
         """
         INFO(f'Sending {amount} prv to {receiver_account}')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.transaction(). \
+
+        return self.__SUT.full_node.transaction(). \
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
 
     def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1):
@@ -137,8 +139,7 @@ class Account:
             send_param[account.payment_key] = amount
         INFO("---------------------------------------------------------------------------------- ")
 
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.transaction(). \
+        return self.__SUT.full_node.transaction(). \
             send_transaction(self.private_key, send_param, fee, privacy)
 
     def send_all_prv_to(self, to_account, privacy=0):
@@ -165,8 +166,8 @@ class Account:
         :return: int
         """
         INFO('Count unspent coin')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        response = SUT.full_node.transaction().list_unspent_output_coins(self.private_key).get_result("Outputs")
+
+        response = self.__SUT.full_node.transaction().list_unspent_output_coins(self.private_key).get_result("Outputs")
         return len(response[self.private_key])
 
     def defragment_account(self):
@@ -177,16 +178,16 @@ class Account:
         :return: Response object if need to defrag, None if not to
         """
         INFO('Defrag account')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        if self.count_unspent_output_coins() > 1:
-            return SUT.full_node.transaction().defragment_account(self.private_key)
+
+        if self.count_unspent_output_coins() > 4:
+            return self.__SUT.full_node.transaction().defragment_account(self.private_key)
         INFO('No need to defrag!')
         return None
 
     def subscribe_cross_output_coin(self, timeout=180):
         INFO('Subscribe output coin')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.subscription().subscribe_cross_output_coin_by_private_key(self.private_key, timeout)
+
+        return self.__SUT.full_node.subscription().subscribe_cross_output_coin_by_private_key(self.private_key, timeout)
 
     def init_custom_token_self(self, token_symbol, amount):
         """
@@ -197,8 +198,9 @@ class Account:
         :return:
         """
         INFO(f'Init custom token to self: {self.payment_key}')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.transaction().init_custom_token(self.private_key, self.payment_key, token_symbol, amount)
+
+        return self.__SUT.full_node.transaction().init_custom_token(self.private_key, self.payment_key, token_symbol,
+                                                                    amount)
 
     def init_custom_token_to(self, account, symbol, amount):
         """
@@ -210,31 +212,37 @@ class Account:
         :return:
         """
         INFO(f'Init custom token to: {account.payment_key}')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.transaction().init_custom_token(self.private_key, account.payment_key, symbol, amount)
+
+        return self.__SUT.full_node.transaction().init_custom_token(self.private_key, account.payment_key, symbol,
+                                                                    amount)
 
     def contribute_token(self, contribute_token_id, amount, contribution_pair_id):
         INFO(f'Contribute token: {contribute_token_id}')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.dex().contribute_token(self.private_key, self.payment_key, contribute_token_id, amount,
-                                                    contribution_pair_id)
+
+        return self.__SUT.full_node.dex().contribute_token(self.private_key, self.payment_key, contribute_token_id,
+                                                           amount,
+                                                           contribution_pair_id)
 
     def contribute_prv(self, amount, contribution_pair_id):
         INFO(f'Contribute PRV')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.dex().contribute_prv(self.private_key, self.payment_key, amount, contribution_pair_id)
+
+        return self.__SUT.full_node.dex().contribute_prv(self.private_key, self.payment_key, amount,
+                                                         contribution_pair_id)
 
     def withdraw_contribution(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw contribution')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.dex().withdrawal_contribution(self.private_key, self.payment_key, token_id_1, token_id_2,
-                                                           amount)
+
+        return self.__SUT.full_node.dex().withdrawal_contribution(self.private_key, self.payment_key, token_id_1,
+                                                                  token_id_2,
+                                                                  amount)
 
     def send_token_to(self, receiver, token_id, amount_custom_token,
-                      prv_fee=0, token_fee=0, token_privacy=0):
+                      prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
         """
         Send token to receiver (custom token only, not prv)
 
+        :param prv_privacy:
+        :param prv_amount:
         :param receiver: Account
         :param token_id:
         :param amount_custom_token:
@@ -243,11 +251,12 @@ class Account:
         :param token_privacy:
         :return: Response object
         """
-        INFO(f'Withdraw contribution')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.transaction().send_custom_token_transaction(self.private_key, receiver.payment_key,
-                                                                         token_id, amount_custom_token, prv_fee,
-                                                                         token_fee, 0, 0, token_privacy)
+        INFO(f'Sending token')
+
+        return self.__SUT.full_node.transaction().send_custom_token_transaction(self.private_key, receiver.payment_key,
+                                                                                token_id, amount_custom_token, prv_fee,
+                                                                                token_fee, prv_amount, prv_privacy,
+                                                                                token_privacy)
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:

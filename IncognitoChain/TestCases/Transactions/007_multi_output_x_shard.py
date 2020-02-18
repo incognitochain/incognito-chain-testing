@@ -68,7 +68,7 @@ def test_send_prv_multi_output_privacy_x_shard_no_auto_fee():
                 receiver_account_list_before.remove(acc_before)
 
     STEP(7, "check transaction privacy")
-    assert send_result.is_private_transaction() and INFO(
+    assert send_result.is_prv_privacy() and INFO(
         "transaction is privacy"), "transaction must be privacy"
 
 

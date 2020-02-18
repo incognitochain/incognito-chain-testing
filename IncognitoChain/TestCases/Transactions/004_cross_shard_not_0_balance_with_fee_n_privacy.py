@@ -45,9 +45,9 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
 
     STEP(8, "Check transaction privacy")
     if privacy == 0:
-        assert not send_transaction.is_private_transaction() and INFO("transaction is not privacy"), \
+        assert not send_transaction.is_prv_privacy() and INFO("transaction is not privacy"), \
             "transaction must be no privacy "
 
     if privacy == 1:
-        assert send_transaction.is_private_transaction() and INFO('transaction is privacy'), \
+        assert send_transaction.is_prv_privacy() and INFO('transaction is privacy'), \
             "transaction must be private "

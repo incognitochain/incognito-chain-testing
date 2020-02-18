@@ -102,6 +102,13 @@ class Node:
         return SubscriptionWs(self._web_socket)
 
     def get_latest_rate_between(self, token_id_1, token_id_2):
+        """
+        find latest rate between input tokens, return None if cannot find rate
+
+        :param token_id_1:
+        :param token_id_2:
+        :return: List of [token 1 contributed amount, token 2 contributed amount]
+        """
         best_state = self.dex().get_beacon_best_state()
         beacon_height = best_state.get_beacon_height()
 
@@ -111,12 +118,17 @@ class Node:
             pool_pair = f"pdepool-{beacon_height}-{token_id_1}-{token_id_2}"
             pool = pde_state.get_pde_pool_pairs()[pool_pair]
             rate = [pool["Token1PoolValue"], pool["Token2PoolValue"]]
-        except Exception:
-            pool_pair = f"pdepool-{beacon_height}-{token_id_2}-{token_id_1}"
-            pool = pde_state.get_pde_pool_pairs()[pool_pair]
-            rate = [pool["Token2PoolValue"], pool["Token1PoolValue"]]
+            return rate
+        except KeyError:
+            try:
+                pool_pair = f"pdepool-{beacon_height}-{token_id_2}-{token_id_1}"
+                pool = pde_state.get_pde_pool_pairs()[pool_pair]
+                rate = [pool["Token2PoolValue"], pool["Token1PoolValue"]]
+                return rate
+            except KeyError:
+                return None
+        return None
 
-        return rate
     ##########
     # BRIDGE
     ##########
@@ -138,4 +150,3 @@ class Node:
 
         """
         return self.bridge().withdraw_centralized_bridge_token(account.private_key, token_id, amount)
-

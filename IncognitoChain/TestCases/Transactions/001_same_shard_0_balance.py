@@ -18,7 +18,7 @@ def setup_module():
 
 def teardown_module():
     if init_sender_balance > 0:
-        receiver_account.send_prv_to(sender_account, init_sender_balance, privacy=0).subscribe_transaction()
+        receiver_account.send_prv_to(sender_account, init_sender_balance, privacy=0)
 
 
 @pytest.mark.parametrize('fee,privacy', [(-1, 0), (2, 0), (-1, 1), (2, 1)])
