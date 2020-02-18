@@ -1,5 +1,6 @@
 from typing import List
 
+from IncognitoChain.Configs import Constants
 from IncognitoChain.Helpers.Logging import INFO
 
 
@@ -258,6 +259,24 @@ class Account:
                                                                                 token_fee, prv_amount, prv_privacy,
                                                                                 token_privacy)
 
+    def burn_token(self, token_id, amount_custom_token):
+        """
+        Burning token (this mean send token to burning address)
+
+        :param receiver: Account
+        :param token_id: Token ID
+        :param amount_custom_token: amount to burn
+        :param prv_fee: -1 (auto estimate fee)
+        :param token_fee: 0
+        :param token_privacy: 0 (no privacy burning allowed)
+        :return: Response object
+        """
+        INFO(f'Send custom token transaction')
+        return self.__SUT.full_node.transaction().send_custom_token_transaction(self.private_key, Constants.burning_address,
+                                                                         token_id, amount_custom_token, prv_fee=-1,
+                                                                         token_fee=0, prv_amount=0, prv_privacy=0,
+                                                                         token_privacy=0)
+
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:
     """
@@ -323,3 +342,4 @@ def find_same_shard_accounts_with(account: Account, account_list=None):
             if account_in_list.shard == account.shard:
                 same_shard_list.append(account_in_list)
     return same_shard_list
+
