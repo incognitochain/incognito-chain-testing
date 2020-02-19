@@ -271,12 +271,28 @@ class Account:
         :param token_privacy: 0 (no privacy burning allowed)
         :return: Response object
         """
-        INFO(f'Send custom token transaction')
+        INFO(f'Send custom token transaction to burning address')
         return self.__SUT.full_node.transaction().send_custom_token_transaction(self.private_key, Constants.burning_address,
                                                                          token_id, amount_custom_token, prv_fee=-1,
                                                                          token_fee=0, prv_amount=0, prv_privacy=0,
                                                                          token_privacy=0)
+    ########
+    # BRIDGE
+    ########
+    def withdraw_centralize_token(self, token_id, amount_custom_token):
+        """
+        Withdraw token (this mean send token to burning address, but receive your token on ETH network)
 
+        :param receiver: Account
+        :param token_id: Token ID
+        :param amount_custom_token: amount to withdraw
+        :param prv_fee: -1 (auto estimate fee)
+        :param token_fee: 0
+        :param token_privacy: 0 (no privacy burning allowed)
+        :return: Response object
+        """
+        INFO(f'Withdraw centralize token')
+        return self.__SUT.full_node.transaction().withdraw_centralize_token(self.private_key, token_id, amount_custom_token)
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:
     """

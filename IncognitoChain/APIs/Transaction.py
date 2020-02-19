@@ -1,3 +1,4 @@
+from IncognitoChain.Configs import Constants
 from IncognitoChain.Drivers import Connections
 
 
@@ -33,9 +34,9 @@ class TransactionRpc:
             with_params([sender_private_key, {receiver_payment_address: amount_prv}, fee, privacy]). \
             execute()
 
-        ###############
-        # TOKEN SECTION
-        ###############
+    ###############
+    # TOKEN SECTION
+    ###############
 
     def init_custom_token(self, private_key, payment_address, symbol, amount, prv_fee=-1):
         return self.rpc_connection. \
@@ -114,6 +115,26 @@ class TransactionRpc:
                                  receiver_payment_address: amount_custom_token
                              },
                              "TokenFee": token_fee
+                         },
+                         "", 0
+                         ]). \
+            execute()
+
+    def withdraw_centralize_token(self, private_key, token_id, amount_custom_token):
+        return self.rpc_connection. \
+            with_method("createandsendcontractingrequest"). \
+            with_params([private_key, None, -1, 0,
+                         {
+                             "Privacy": True,
+                             "TokenID": token_id,
+                             "TokenName": "",
+                             "TokenSymbol": "",
+                             "TokenTxType": 1,
+                             "TokenAmount": amount_custom_token,
+                             "TokenReceivers": {
+                                 Constants.burning_address: amount_custom_token
+                             },
+                             "TokenFee": 0
                          },
                          "", 0
                          ]). \

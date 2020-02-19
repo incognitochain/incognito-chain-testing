@@ -133,6 +133,7 @@ class Node:
     # BRIDGE
     ##########
 
+    # ISSUE centralize token is performed from a node
     def issue_centralize_token(self, account: Account, token_id, token_name, amount) -> Response:
         """
         initialize a new centralize token
@@ -142,11 +143,6 @@ class Node:
         """
         return self.bridge().issue_centralized_bridge_token(account.payment_key, token_id, token_name, amount)
 
-    def withdraw_centralize_token(self, account: Account, token_id, amount) -> Response:
-        """
-        withdrawal a centralize token
+    # WITHDRAW centralize token is performed from Account
+    # def withdraw_centralize_token(self, account: Account, token_id, amount) -> Response:
 
-        :return: Response Object
-
-        """
-        return self.bridge().withdraw_centralized_bridge_token(account.private_key, token_id, amount)
