@@ -12,4 +12,4 @@ if [ "$test_data" != "-" ]; then
   xoption+="-XtestData=$test_data "
 fi
 
-python $xoption -m pytest --show-capture=no -s -v --html="$html_report" "$3"
+python3 $xoption -m pytest --show-capture=no -s -v --html="$html_report" "$3"

@@ -73,24 +73,56 @@ class TransactionRpc:
         :param token_privacy:
         :return: Response Object
         """
+        param = [sender_private_key]
+        if prv_amount == 0:
+            param.append(None)
+        else:
+            param.append({receiver_payment_address: prv_amount})
+
+        param.append([prv_fee,
+                      prv_privacy,
+                      {
+                          "Privacy": True,
+                          "TokenID": token_id,
+                          "TokenName": "",
+                          "TokenSymbol": "",
+                          "TokenTxType": 1,
+                          "TokenAmount": 0,
+                          "TokenReceivers": {
+                              receiver_payment_address: amount_custom_token
+                          },
+                          "TokenFee": token_fee
+                      },
+                      "", token_privacy])
         return self.rpc_connection. \
             with_method("createandsendprivacycustomtokentransaction"). \
-            with_params([sender_private_key, {receiver_payment_address: prv_amount}, prv_fee,
-                         prv_privacy,
-                         {
-                             "Privacy": True,
-                             "TokenID": token_id,
-                             "TokenName": "",
-                             "TokenSymbol": "",
-                             "TokenTxType": 1,
-                             "TokenAmount": 0,
-                             "TokenReceivers": {
-                                 receiver_payment_address: amount_custom_token
-                             },
-                             "TokenFee": token_fee
-                         },
-                         "", token_privacy
-                         ]). \
+            with_params(param). \
+            execute()
+
+    def send_custom_token_multi_output(self, sender_private_key, receiver_payment_key_amount_dict: dict, token_id,
+                                       prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
+        param = [sender_private_key]
+        if prv_amount == 0:
+            param.append(None)
+        else:
+            param.append(prv_amount)
+
+        param.append([prv_fee,
+                      prv_privacy,
+                      {
+                          "Privacy": True,
+                          "TokenID": token_id,
+                          "TokenName": "",
+                          "TokenSymbol": "",
+                          "TokenTxType": 1,
+                          "TokenAmount": 0,
+                          "TokenReceivers": {
+                              receiver_payment_key_amount_dict
+                          },
+                          "TokenFee": token_fee
+                      },
+                      "", token_privacy])
+        return self.rpc_connection.with_method('createandsendprivacycustomtokentransaction').with_params(param). \
             execute()
 
     def get_custom_token_balance(self, private_key, token_id):

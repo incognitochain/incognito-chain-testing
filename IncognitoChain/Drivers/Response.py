@@ -77,6 +77,9 @@ class Response:
     def get_privacy(self):
         return self.get_result("IsPrivacy")
 
+    def get_custom_token_privacy(self):
+        return self.get_result("PrivacyCustomTokenIsPrivacy")
+
     def get_balance(self):
         return self.get_result()
 
@@ -96,11 +99,29 @@ class Response:
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         return SUT.full_node.subscription().subscribe_pending_transaction(tx_id)
 
-    def is_private_transaction(self):
+    def is_prv_privacy(self):
+        """
+        check if prv transaction is privacy or not
+
+        :return: True = privacy, False = no privacy
+        """
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         result = SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
         if result.get_privacy() is True and \
                 result.get_result()['ProofDetail']['InputCoins'][0]['CoinDetails']['Value'] == 0:
+            return True
+        return False
+
+    def is_token_privacy(self):
+        """
+        check if token transaction is privacy or not
+
+        :return: True = privacy, False = no privacy
+        """
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        result = SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
+        if result.get_custom_token_privacy() is True and \
+                result.get_result()['PrivacyCustomTokenProofDetail']['InputCoins'][0]['CoinDetails']['Value'] == 0:
             return True
         return False
 

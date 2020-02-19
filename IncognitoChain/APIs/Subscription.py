@@ -16,8 +16,9 @@ class SubscriptionWs:
         return self.ws_conn.with_method("subcribecrossoutputcoinbyprivatekey").with_time_out(timeout).with_params(
             [private_key]).execute()
 
-    def subscribe_cross_custom_token_privacy_by_private_key(self, private_key):
+    def subscribe_cross_custom_token_privacy_by_private_key(self, private_key, timeout=180):
         return self.ws_conn.with_method("subcribecrosscustomtokenprivacybyprivatekey"). \
+            with_time_out(timeout). \
             with_params([private_key]).execute()
 
     def close_web_socket(self):
