@@ -2,6 +2,7 @@ import json
 import re
 
 import IncognitoChain.Helpers.Logging as Log
+from IncognitoChain.Helpers.Logging import INFO
 
 
 class Response:
@@ -86,6 +87,9 @@ class Response:
     def get_block_height(self):
         return self.get_result("BlockHeight")
 
+    def get_tx_hashes(self):
+        return self.get_result("TxHashes")
+
     # !!!!!!!! Next actions base on response
     def subscribe_transaction(self, tx_id=None):
         """
@@ -96,6 +100,7 @@ class Response:
         """
         if tx_id is None:
             tx_id = self.get_tx_id()
+        INFO(f'Subscribe to transaction tx_id = {tx_id}')
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         return SUT.full_node.subscription().subscribe_pending_transaction(tx_id)
 

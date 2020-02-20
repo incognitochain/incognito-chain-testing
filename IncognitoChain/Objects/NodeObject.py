@@ -4,6 +4,7 @@ import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.APIs.Bridge import BridgeRpc
 from IncognitoChain.APIs.DEX import DexRpc
 from IncognitoChain.APIs.Subscription import SubscriptionWs
+from IncognitoChain.APIs.System import SystemRpc
 from IncognitoChain.APIs.Transaction import TransactionRpc
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
 from IncognitoChain.Drivers.Response import Response
@@ -78,6 +79,9 @@ class Node:
         """
         return TransactionRpc(self._get_rpc_url())
 
+    def system_rpc(self) -> SystemRpc:
+        return SystemRpc(self._get_rpc_url())
+
     def dex(self) -> DexRpc:
         """
         Decentralize Exchange APIs by RPC
@@ -145,4 +149,3 @@ class Node:
 
     # WITHDRAW centralize token is performed from Account
     # def withdraw_centralize_token(self, account: Account, token_id, amount) -> Response:
-

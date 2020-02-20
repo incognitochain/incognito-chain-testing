@@ -119,19 +119,20 @@ class Account:
         self.prv_balance = balance
         return balance
 
-    def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1):
+    def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1, shard_id=-1):
         """
         send amount_prv of prv to to_account. by default fee=-1 and privacy=1
 
+        :param shard_id: if = -1 then fullnode will handle the transaction.
+         otherwise shard with id = {shard_id} will handle the request
         :param receiver_account:
         :param amount:
-        :param fee:
-        :param privacy:
-        :return:
+        :param fee: default = auto
+        :param privacy: default = privacy on
+        :return: Response object
         """
-        INFO(f'Sending {amount} prv to {receiver_account}')
 
-        return self.__SUT.full_node.transaction(). \
+        return self.__SUT.get_request_handler(shard_id). \
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
 
     def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1):

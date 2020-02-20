@@ -31,3 +31,15 @@ class TestBed:
 
     def precondition_check(self):
         Log.INFO(f'Checking test bed')
+
+    def get_request_handler(self, shard_id):
+        """
+        :param shard_id: if = -1 then return fullnode to handle the request.
+         otherwise shard with id = {shard_id} will be returned
+        :return:
+        """
+        if shard_id == -1:
+            handler = self.__SUT.full_node
+        else:
+            handler = self.__SUT.shards[shard_id].get_representative_node()
+        return handler
