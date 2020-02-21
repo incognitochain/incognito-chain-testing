@@ -4,6 +4,7 @@ from IncognitoChain.Helpers.Time import get_current_date_time, WAIT
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 
+
 # sender_account = get_accounts_in_shard(0)[1]
 receiver_account = get_accounts_in_shard(0)[0]
 # init_sender_balance = sender_account.get_prv_balance()
@@ -136,6 +137,10 @@ def test_burn_centralize_token():
             found_token_id = True
             break
     assert found_token_id, f"tokenId {token_id} not found in listprivacycustomtoken"
+
+
+def test_send_decentralize_token():
+    pass
 
 
 def test_withdraw_centralize_token():
