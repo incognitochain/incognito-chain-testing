@@ -70,7 +70,7 @@ class DEX():
             return resp_json['Result']['TxID']
         else:
             WARN(resp_json['Error']['Message'])
-            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
+            return resp_json['Error']['StackTrace'][0:256]
 
     def trade_token(self, privatekey, paymentaddress, tokenid_toSell, amount_toSell, tokenid_toBuy,
                     minAmount_toBuy, trading_fee=0):
@@ -115,7 +115,7 @@ class DEX():
             return resp_json['Result']['TxID']
         else:
             WARN(resp_json['Error']['Message'])
-            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
+            return resp_json['Error']['StackTrace'][0:256]
 
     def trade_prv(self, privatekey, paymentaddress, amount_toSell, tokenid_toBuy, minAmount_toBuy, trading_fee=0):
         headers = {'Content-Type': 'application/json'}
