@@ -14,7 +14,7 @@ class Account:
         self.public_key = public_key
         self.read_only_key = read_only_key
         self.shard = shard
-        self.prv_balance = None
+        self.prv_balance_cache = None
         self.token_balance_cache = dict()
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         self.__SUT = SUT
@@ -52,8 +52,8 @@ class Account:
             string += f'\nValidator key = {self.validator_key}'
         if self.public_key is not None:
             string += f'\nPublic key = {self.public_key}'
-        if self.prv_balance is not None:
-            string += f'\nBalance = {self.prv_balance}'
+        if self.prv_balance_cache is not None:
+            string += f'\nBalance = {self.prv_balance_cache}'
         return f'{string}\n'
 
     def _where_am_i(self, a_list: list):
@@ -116,8 +116,11 @@ class Account:
             balance = self.__SUT.shards[shard_to_ask].get_representative_node().transaction().get_balance(
                 self.private_key).get_balance()
         INFO(f"Balance = {balance}")
-        self.prv_balance = balance
+        self.prv_balance_cache = balance
         return balance
+
+    def get_prv_balance_cache(self):
+        return self.prv_balance_cache
 
     def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1, shard_id=-1):
         """
@@ -131,8 +134,12 @@ class Account:
         :param privacy: default = privacy on
         :return: Response object
         """
+        INFO(f'''
+                From: {self.private_key}
+                Send {amount} prv 
+                To: {receiver_account.payment_key}''')
 
-        return self.__SUT.get_request_handler(shard_id). \
+        return self.__SUT.get_request_handler(shard_id).transaction(). \
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
 
     def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1):

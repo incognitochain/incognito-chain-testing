@@ -9,3 +9,6 @@ class SystemRpc:
         level = '1'
         return self.rpc_connection.with_method('retrieveblockbyheight').with_params(
             [block_height, shard_id, level]).execute()
+
+    def get_mem_pool(self):
+        return self.rpc_connection.with_method("getmempoolinfo").execute()

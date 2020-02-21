@@ -6,8 +6,11 @@ from IncognitoChain.Helpers.Logging import INFO
 
 
 class Response:
-    def __init__(self, json_response):
+    def __init__(self, json_response, more_info=None):
         self.response = json_response
+        self.more_info = more_info
+        if more_info is not None:
+            Log.DEBUG(more_info)
         Log.DEBUG(f'\n{json.dumps(self.response, indent=3)}')
 
     def is_success(self):
@@ -90,6 +93,9 @@ class Response:
     def get_tx_hashes(self):
         return self.get_result("TxHashes")
 
+    def get_list_txs(self):
+        return self.get_result("ListTxs")
+
     # !!!!!!!! Next actions base on response
     def subscribe_transaction(self, tx_id=None):
         """
@@ -133,6 +139,13 @@ class Response:
     def get_transaction_by_hash(self):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         return SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
+
+    def get_mem_pool_transactions_id_list(self) -> list:
+        hashes = self.get_list_txs()
+        tx_id_list = list()
+        for entry in hashes:
+            tx_id_list.append(entry['TxID'])
+        return tx_id_list
 
 
 class StackTrace:
