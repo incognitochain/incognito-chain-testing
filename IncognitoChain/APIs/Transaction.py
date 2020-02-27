@@ -79,7 +79,7 @@ class TransactionRpc:
         else:
             param.append({receiver_payment_address: prv_amount})
 
-        param.append([prv_fee,
+        param.extend([prv_fee,
                       prv_privacy,
                       {
                           "Privacy": True,
@@ -129,6 +129,12 @@ class TransactionRpc:
         return self.rpc_connection. \
             with_method("getbalanceprivacycustomtoken"). \
             with_params([private_key, token_id]). \
+            execute()
+
+    def list_custom_token_balance(self, private_key):
+        return self.rpc_connection. \
+            with_method("getlistprivacycustomtokenbalance"). \
+            with_params([private_key]). \
             execute()
 
     def estimate_fee_token(self, sender_private_key, receiver_payment_address, token_id, amount_custom_token,
@@ -228,4 +234,10 @@ class TransactionRpc:
                          ],
                          ""
                          ]). \
+            execute()
+
+    def get_public_key_by_payment_key(self, payment_key):
+        return self.rpc_connection. \
+            with_method("getpublickeyfrompaymentaddress"). \
+            with_params([payment_key]). \
             execute()

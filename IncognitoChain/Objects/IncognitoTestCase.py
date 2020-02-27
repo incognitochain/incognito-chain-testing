@@ -3,6 +3,7 @@ import sys
 from IncognitoChain.Configs import config
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.TestBedObject import *
+from IncognitoChain.Objects.TestBedObject import TestBed
 
 PARAMS = sys._xoptions
 if PARAMS.get("list"):
@@ -17,7 +18,7 @@ transaction_amount = PARAMS.get('amount')
 test_bed = config.test_bed
 if PARAMS.get("testBed") is not None:
     test_bed = PARAMS.get("testBed")
-SUT = TestBed(test_bed)
+SUT: TestBed = TestBed(test_bed)
 
 # check test bed
 SUT.precondition_check()

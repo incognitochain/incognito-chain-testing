@@ -63,7 +63,7 @@ def test_send_prv_multi_output_privacy_x_shard_no_auto_fee():
                         pass
                 acc_after.get_prv_balance()
                 sent_amount = receiver_account_dict_to_send[acc_after]
-                assert acc_after.prv_balance == acc_before.prv_balance + sent_amount and INFO(
+                assert acc_after.prv_balance_cache == acc_before.prv_balance_cache + sent_amount and INFO(
                     f"{acc_after.payment_key} received {sent_amount}")
                 receiver_account_list_before.remove(acc_before)
 

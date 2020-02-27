@@ -35,9 +35,12 @@ class Response:
         return False
 
     def get_result(self, string=None):
-        if string is None:
-            return self.response['Result']
-        return self.response['Result'][string]
+        try:
+            if string is None:
+                return self.response['Result']
+            return self.response['Result'][string]
+        except(KeyError, TypeError):
+            return None
 
     def get_tx_id(self):
         return self.get_result("TxID")

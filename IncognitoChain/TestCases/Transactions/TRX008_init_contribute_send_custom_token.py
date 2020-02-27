@@ -264,7 +264,7 @@ def test_send_token_insufficient_fund(sender, receiver):
 
     STEP(2, "From sender send token to receiver - Not enough coin")
     # send current balance + 10
-    step2_result = sender.send_token_to(receiver, custom_token_id, sender_prv_bal + 10)
+    step2_result = sender.send_token_to(receiver, custom_token_id, sender_token_bal + 10, prv_fee=-1)
     assert step2_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
 
     assert re.search(r'Not enough coin', step2_result.get_error_trace().get_message())
@@ -274,7 +274,7 @@ def test_send_token_insufficient_fund(sender, receiver):
     step3_result = sender.send_token_to(receiver, custom_token_id, sender_token_bal, token_fee=200)
     assert step3_result.get_error_msg() == 'Can not create tx'
 
-    STEP(4, "From address2 send prv to address3 - success")
+    STEP(4, "From sender send token to receiver - success")
     # send current balance - fee (100)
     estimated_fee = 10
     step4_result = sender.send_token_to(receiver, custom_token_id, sender_token_bal - estimated_fee,
@@ -367,7 +367,7 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
         balance_prv_after = account.get_prv_balance()
         for account_before in receiver_amount_dict_copy.keys():
             if account == account_before:
-                assert balance_prv_after == account_before.prv_balance + prv_amount
+                assert balance_prv_after == account_before.prv_balance_cache + prv_amount
                 assert balance_token_after == account_before.get_token_balance_cache(
                     custom_token_id) + amount_token_received
 

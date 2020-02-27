@@ -108,10 +108,10 @@ class WebSocket(RpcConnection):
     def open(self):
         if self._ws_conn is None:
             self._ws_conn = create_connection(self._url, self.__timeout)
+            DEBUG('Open web socket')
             return
         if not self.is_alive():
             self._ws_conn = create_connection(self._url, self.__timeout)
-        DEBUG('Open web socket')
 
     def close(self):
         self._ws_conn.close()
@@ -123,6 +123,7 @@ class WebSocket(RpcConnection):
 
     def with_time_out(self, time: int):
         DEBUG(f'Setting timeout = {time} seconds')
+        self.open()
         self._ws_conn.settimeout(time)
         return self
 

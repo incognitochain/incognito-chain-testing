@@ -6,6 +6,12 @@ class SystemRpc:
         self.rpc_connection = RpcConnection(url=url)
 
     def retrieve_block_by_height(self, block_height, shard_id):
+        """
+
+        :param block_height:
+        :param shard_id: shard id to retrieve data from
+        :return:
+        """
         level = '1'
         return self.rpc_connection.with_method('retrieveblockbyheight').with_params(
             [block_height, shard_id, level]).execute()
