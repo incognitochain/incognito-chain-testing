@@ -170,7 +170,7 @@ class Transaction():
                            "", token_privacy
                            ]}
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
-        # print(response.text)
+        print(response.text)
         resp_json = json.loads(response.text)
         DEBUG(resp_json)
 
@@ -280,15 +280,15 @@ class Transaction():
     # WITHDRAW REWARD
     ###############
 
-    def withdrawReward(self, privateKey, paymentAddress, tokenId):
+    def withdrawReward(self, privateKey, paymentAddress, tokenId, version=1):
         headers = {'Content-Type': 'application/json'}
         data = {"jsonrpc": "1.0", "method": "withdrawreward",
                 "params": [privateKey, 0, 0, 0,
                            {
                                "PaymentAddress": paymentAddress,
-                               "TokenID": tokenId
+                               "TokenID": tokenId,
+                               "Version": version
                            }
-
                            ],
                 "id": 1}
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
@@ -318,13 +318,14 @@ class Transaction():
         data = {"jsonrpc": "1.0", "method": "getrewardamount", "params": [payment_address], "id": 1}
         response = requests.post(self.url, data=json.dumps(data), headers=headers)
         resp_json = json.loads(response.text)
-
         if resp_json['Error'] is None and len(resp_json["Result"]) == 1:
             return "NoToken", "NoReward"
         elif resp_json['Error'] is None and len(resp_json["Result"]) > 1:
             result_token = dict()
             for k, v in resp_json["Result"].items():
-                if k != "PRV" and v > 0:
+                if k not in ("PRV",
+                             "8b162f5c8b9609a4cf66515ac5b9e55ba8d2349a295edd4e0bba5ecb0eba0fa2",
+                             "880ea0787f6c1555e59e3958a595086b7802fc7a38276bcd80d4525606557fbc") and v > 0:
                     key = k
                     value = v
                     result_token[k] = v
@@ -375,11 +376,11 @@ class Transaction():
         elif resp_json['Error'] is None and len(resp_json["Result"]) > 1:
             result_token = dict()
             for k, v in resp_json["Result"].items():
-                if k != "PRV" and v > 0:
+                if k not in ("PRV", "8b162f5c8b9609a4cf66515ac5b9e55ba8d2349a295edd4e0bba5ecb0eba0fa2",
+                             "880ea0787f6c1555e59e3958a595086b7802fc7a38276bcd80d4525606557fbc") and v > 0:
                     key = k
                     value = v
                     result_token[k] = v
-
             if not result_token:
                 return "NoToken", "NoReward"
             else:
@@ -389,7 +390,7 @@ class Transaction():
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256], resp_json['Error']['Code']
 
     ###############
-    # WITHDRAW REWARD
+    #  defragment
     ###############
 
     def defragment_prv(self, private_key, min_value, auto_fee=-1, is_privacy=1):
