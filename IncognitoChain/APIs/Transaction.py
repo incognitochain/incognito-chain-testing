@@ -100,14 +100,9 @@ class TransactionRpc:
             execute()
 
     def send_custom_token_multi_output(self, sender_private_key, receiver_payment_key_amount_dict: dict, token_id,
-                                       prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
-        param = [sender_private_key]
-        if prv_amount == 0:
-            param.append(None)
-        else:
-            param.append(prv_amount)
-
-        param.append([prv_fee,
+                                       prv_fee=0, token_fee=0, prv_privacy=0, token_privacy=0):
+        param = [sender_private_key, None]
+        param.extend([prv_fee,
                       prv_privacy,
                       {
                           "Privacy": True,
@@ -116,9 +111,9 @@ class TransactionRpc:
                           "TokenSymbol": "",
                           "TokenTxType": 1,
                           "TokenAmount": 0,
-                          "TokenReceivers": {
+                          "TokenReceivers":
                               receiver_payment_key_amount_dict
-                          },
+                          ,
                           "TokenFee": token_fee
                       },
                       "", token_privacy])

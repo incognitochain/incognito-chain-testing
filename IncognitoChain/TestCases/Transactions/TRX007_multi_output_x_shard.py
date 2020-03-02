@@ -17,7 +17,8 @@ receiver_account_dict_to_send = dict()
 for account in receiver_account_list_before:
     amount_to_be_received = random.randint(1000, 2000)
     total_sent_amount += amount_to_be_received
-    receiver_account_dict_to_send[copy.deepcopy(account)] = amount_to_be_received
+    cloned_acc = copy.copy(account)
+    receiver_account_dict_to_send[cloned_acc] = amount_to_be_received
 
 
 def test_send_prv_multi_output_privacy_x_shard_no_auto_fee():

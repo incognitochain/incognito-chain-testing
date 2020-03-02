@@ -9,6 +9,10 @@ receiver = get_accounts_in_shard(5)[0]
 sender = get_accounts_in_shard(4)[0]
 
 
+def setup_function():
+    sender.defragment_account()
+
+
 @pytest.mark.parametrize('privacy', [0, 1])
 def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
     INFO("""Verify send PRV to another address:
@@ -44,15 +48,12 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
     STEP(5, "send PRV - success")
     # send current balance - fee
     step5_result = sender.send_prv_to(receiver, sender_bal - int(estimated_fee), privacy=privacy)
-    if step5_result.get_error_msg() != 'Can not create tx':
-        # assert_true(step5_result[0] != 'Can not create tx', step5_result[1])
+    if step5_result.get_error_msg() is None:  # if tx success, then nothing happens
         INFO("TxID 1 : " + step5_result.get_tx_id())
-    else:
+    else:  # if tx failure, send again with new estimates fee
         estimated_fee = step5_result.get_error_trace().get_estimated_fee()
-    INFO("Estimated new fee: " + estimated_fee)
-    step5_result = sender.send_prv_to(receiver, sender_bal - int(estimated_fee), privacy=privacy)
-    assert step5_result.get_error_msg() != 'Can not create tx', step5_result.get_error_msg()
-    INFO("TxID: " + step5_result.get_tx_id())
+        INFO("NEW estimated fee: " + estimated_fee)
+        step5_result = sender.send_prv_to(receiver, sender_bal - int(estimated_fee), privacy=privacy)
 
     STEP(6, "Subcribe transaction")
     send_transaction = step5_result.subscribe_transaction()
@@ -69,9 +70,13 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
     INFO(f"sender balance after: {sender_bals_after}")
     assert sender_bals_after == 0, "something wrong"
 
-    STEP(10, "Check transaction privacy")
-    is_privacy = step5_result.is_prv_privacy()
-    assert is_privacy and INFO("transaction is privacy"), "transaction must be privacy "
+    STEP(10, f"Check transaction privacy, it must be {privacy}")
+    if privacy == 1:
+        is_privacy = step5_result.is_prv_privacy()
+        assert is_privacy and INFO("transaction is privacy"), "transaction must be privacy "
+    else:  # privacy =0
+        is_privacy = step5_result.is_prv_privacy()
+        assert not is_privacy and INFO("transaction is not privacy"), "transaction must not be privacy "
 
     STEP(11, "Return the money")
     receiver.send_prv_to(sender, sender_bal).subscribe_transaction()

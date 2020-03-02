@@ -1,3 +1,4 @@
+import copy
 from typing import List
 
 from IncognitoChain.Configs import Constants
@@ -19,6 +20,29 @@ class Account:
         self.token_balance_cache = dict()
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         self.__SUT = SUT
+
+    def __copy__(self):
+        copy_obj = Account(self.private_key,
+                           self.payment_key,
+                           self.shard,
+                           self.validator_key,
+                           self.public_key,
+                           self.read_only_key)
+        copy_obj.prv_balance_cache = self.prv_balance_cache
+        copy_obj.token_balance_cache = self.token_balance_cache
+        return copy_obj
+
+    def __deepcopy__(self, memo={}):
+        copy_obj = Account(copy.deepcopy(self.private_key),
+                           copy.deepcopy(self.payment_key),
+                           copy.deepcopy(self.shard),
+                           copy.deepcopy(self.validator_key),
+                           copy.deepcopy(self.public_key),
+                           copy.deepcopy(self.read_only_key))
+
+        copy_obj.prv_balance_cache = copy.deepcopy(self.prv_balance_cache)
+        copy_obj.token_balance_cache = copy.deepcopy(self.token_balance_cache)
+        return copy_obj
 
     def __eq__(self, other):
         if self.private_key == other.private_key:
@@ -112,7 +136,10 @@ class Account:
     def get_token_balance_cache(self, token_id=None):
         if token_id is None:
             return self.token_balance_cache
-        return self.token_balance_cache[token_id]
+        try:
+            return self.token_balance_cache[token_id]
+        except KeyError:
+            return None
 
     def get_prv_balance(self, shard_id=None):
         """
@@ -297,12 +324,15 @@ class Account:
                                                                                 token_fee, prv_amount, prv_privacy,
                                                                                 token_privacy)
 
-    def send_token_multi_output(self, receiver_token_amount_dict, token_id,
-                                prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
+    def send_token_multi_output(self, receiver_token_amount_dict, token_id, prv_fee=0, token_fee=0, prv_privacy=0,
+                                token_privacy=0):
         INFO(f'Sending token multi output')
+        payment_key_amount_dict = {}
+        for acc in receiver_token_amount_dict.keys():
+            payment_key_amount_dict[acc.payment_key] = receiver_token_amount_dict[acc]
         return self.__SUT.full_node.transaction().send_custom_token_multi_output(self.private_key,
-                                                                                 receiver_token_amount_dict, token_id,
-                                                                                 prv_fee, token_fee, prv_amount,
+                                                                                 payment_key_amount_dict, token_id,
+                                                                                 prv_fee, token_fee,
                                                                                  prv_privacy, token_privacy)
 
     def burn_token(self, token_id, amount_custom_token):

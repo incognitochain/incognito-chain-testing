@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+if [ $1 = "clear" ]; then
+  rm reports/*.html
+  rm log/*.log
+  exit
+fi
+
 html_report="reports/$(date '+%Y-%m-%d-%H-%M-%S').html"
 test_bed=$1
 test_data=$2

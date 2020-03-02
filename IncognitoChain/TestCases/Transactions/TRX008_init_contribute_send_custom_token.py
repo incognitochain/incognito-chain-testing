@@ -5,6 +5,7 @@ import re
 import pytest
 
 from IncognitoChain.Configs import Constants
+from IncognitoChain.Drivers.Response import Response
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Helpers.Time import get_current_date_time, WAIT
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
@@ -213,31 +214,38 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
     assert receiver_prv_balance_before == receiver_prv_balance_after, "incorrect prv balance of receiver"
 
     STEP(5, "privacy check")
+    sending_token_transaction: Response
+    transaction = sending_token_transaction.get_transaction_by_hash()
     if privacy == 0:  # if privacy = 0 then all privacy type must be the same
         INFO("Check transaction prv_privacy")
-        assert not sending_token_transaction.is_prv_privacy() and INFO(
+        assert transaction.get_proof_detail_input_coin_value_prv() != 0 and INFO(
             "info value PRV must be no privacy"), "info value PRV  is not privacy"
 
         INFO("Check transaction token privacy")
-        assert not sending_token_transaction.is_token_privacy() and INFO(
+        assert transaction.get_proof_detail_input_coin_value_custom_token() != 0 and INFO(
             "info value token  must be no privacy"), "info value token is NOT privacy"
 
     else:  # privacy =1
         if privacy_type == 'token':
             INFO("Check transaction prv_privacy")
-            assert not sending_token_transaction.is_prv_privacy() and INFO(
+            assert transaction.get_proof_detail_input_coin_value_prv() != 0 and INFO(
                 "info value PRV must be privacy"), "info value PRV  is privacy"
 
             INFO("Check transaction token privacy")
-            assert sending_token_transaction.is_token_privacy() and INFO(
+            assert transaction.get_proof_detail_input_coin_value_custom_token() == 0 and INFO(
                 "info value token must be privacy"), "info value token is NOT privacy"
-        else:  # privacy_type  = prv
-            INFO("Check transaction prv_privacy")
-            assert sending_token_transaction.is_prv_privacy() and INFO(
-                "info value PRV must be privacy"), "info value PRV is NOT privacy"
+        else:  # privacy_type  = prv while not sending prv, only token then only prv privacy will be applied
+            if fee_type == 'token':
+                INFO("Check transaction prv_privacy")
+                assert transaction.get_proof_detail_input_coin_value_prv() is None and INFO(
+                    "info value PRV is no privacy"), "info value PRV is privacy"
+            else:
+                INFO("Check transaction prv_privacy")
+                assert transaction.get_proof_detail_input_coin_value_prv() == 0 and INFO(
+                    "info value PRV is no privacy"), "info value PRV is privacy"
 
             INFO("Check transaction token privacy")
-            assert not sending_token_transaction.is_token_privacy() and INFO(
+            assert transaction.get_proof_detail_input_coin_value_custom_token() != 0 and INFO(
                 "info value token must be privacy"), "info value token is NOT privacy"
 
 
@@ -332,13 +340,15 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
         total_token_sent += receiver_amount_dict[account]
 
     # save output account state for later comparision
-    receiver_amount_dict_copy = copy.deepcopy(receiver_amount_dict)
+    receiver_amount_dict_copy = {}
+    for acc in receiver_amount_dict.keys():
+        acc_copy = copy.deepcopy(acc)
+        receiver_amount_dict_copy[acc_copy] = receiver_amount_dict[acc]
 
     STEP(3, "send PRV and Token - Fee PRV auto estimated")
-    prv_amount = 1  # amount prv send for each address
     token_fee = 200
     tx_result = sender_account.send_token_multi_output(receiver_amount_dict, custom_token_id, prv_fee=-1,
-                                                       token_fee=token_fee, prv_amount=prv_amount, prv_privacy=1,
+                                                       token_fee=token_fee, prv_privacy=1,
                                                        token_privacy=1)
     INFO(f"Transaction id: {tx_result.get_tx_id()}")
     assert tx_result.get_error_msg() != 'Can not create tx'
@@ -357,19 +367,23 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
 
     INFO(f"Sender prv balance after: {sender_prv_bal_after}")
     # Balance prv after = balance before - amount * n - fee
-    assert sender_token_bal_after == sender_prv_bal_before - transaction_result.get_fee() - (
-            prv_amount * len(receiver_amount_dict))
+    assert sender_prv_bal_after == sender_prv_bal_before - transaction_result.get_fee()
 
     STEP(6, "check receiver balance ")
     for account in receiver_amount_dict.keys():
+        try:
+            account.subscribe_cross_output_token()
+        except:
+            pass
         amount_token_received = receiver_amount_dict[account]
         balance_token_after = account.get_token_balance(custom_token_id)
-        balance_prv_after = account.get_prv_balance()
         for account_before in receiver_amount_dict_copy.keys():
             if account == account_before:
-                assert balance_prv_after == account_before.prv_balance_cache + prv_amount
-                assert balance_token_after == account_before.get_token_balance_cache(
-                    custom_token_id) + amount_token_received
+                if account_before.get_token_balance_cache(custom_token_id) is None:
+                    assert balance_token_after == amount_token_received
+                else:
+                    assert balance_token_after == amount_token_received + account_before.get_token_balance_cache(
+                        custom_token_id)
 
     STEP(7, "Check transaction privacy")
     INFO("Check transaction prv_privacy")

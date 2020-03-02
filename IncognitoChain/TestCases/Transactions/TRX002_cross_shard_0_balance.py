@@ -23,7 +23,12 @@ def teardown_function():
     receiver.send_prv_to(sender, sender_balance_init)
 
 
-@pytest.mark.parametrize('fee,privacy', [(-1, 0), (2, 0), (-1, 1), (2, 1)])
+@pytest.mark.parametrize('fee,privacy', [
+    (-1, 0),
+    (2, 0),
+    pytest.param(-1, 1, marks=pytest.mark.xfail(reason="bug #")),
+    pytest.param(2, 1, marks=pytest.mark.xfail(reason="bug #"))
+])
 def test_send_prv_cross_shard_0_balance_with_privacy_is(fee, privacy):
     INFO(f"Verify send PRV form account balance = 0  to another address XShard with privacy={privacy} fee={fee}")
     STEP(1, "get sender and receiver balance before sending")
