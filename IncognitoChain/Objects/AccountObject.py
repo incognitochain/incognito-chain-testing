@@ -1,6 +1,8 @@
+import copy
 from typing import List
 
 from IncognitoChain.Configs import Constants
+from IncognitoChain.Drivers.Response import Response
 from IncognitoChain.Helpers.Logging import INFO
 
 
@@ -14,10 +16,33 @@ class Account:
         self.public_key = public_key
         self.read_only_key = read_only_key
         self.shard = shard
-        self.prv_balance = None
+        self.prv_balance_cache = None
         self.token_balance_cache = dict()
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         self.__SUT = SUT
+
+    def __copy__(self):
+        copy_obj = Account(self.private_key,
+                           self.payment_key,
+                           self.shard,
+                           self.validator_key,
+                           self.public_key,
+                           self.read_only_key)
+        copy_obj.prv_balance_cache = self.prv_balance_cache
+        copy_obj.token_balance_cache = self.token_balance_cache
+        return copy_obj
+
+    def __deepcopy__(self, memo={}):
+        copy_obj = Account(copy.deepcopy(self.private_key),
+                           copy.deepcopy(self.payment_key),
+                           copy.deepcopy(self.shard),
+                           copy.deepcopy(self.validator_key),
+                           copy.deepcopy(self.public_key),
+                           copy.deepcopy(self.read_only_key))
+
+        copy_obj.prv_balance_cache = copy.deepcopy(self.prv_balance_cache)
+        copy_obj.token_balance_cache = copy.deepcopy(self.token_balance_cache)
+        return copy_obj
 
     def __eq__(self, other):
         if self.private_key == other.private_key:
@@ -32,6 +57,11 @@ class Account:
     def __hash__(self):
         # for using Account object as 'key' in dictionary
         return int(str(self.private_key).encode('utf8').hex(), 16)
+
+    def calculate_shard_id(self):
+        response = self.__SUT.full_node.transaction().get_public_key_by_payment_key(self.payment_key)
+        last_byte = response.get_result("PublicKeyInBytes")[-1]
+        return last_byte % 8
 
     def from_json(self, json_string):
         self.public_key = json_string.get('public')
@@ -52,8 +82,8 @@ class Account:
             string += f'\nValidator key = {self.validator_key}'
         if self.public_key is not None:
             string += f'\nPublic key = {self.public_key}'
-        if self.prv_balance is not None:
-            string += f'\nBalance = {self.prv_balance}'
+        if self.prv_balance_cache is not None:
+            string += f'\nBalance = {self.prv_balance_cache}'
         return f'{string}\n'
 
     def _where_am_i(self, a_list: list):
@@ -68,6 +98,19 @@ class Account:
                 return a_list.index(account)
         return -1
 
+    def is_my_tx(self, response: Response):
+        response.get_tx_id()
+
+    def find_payment_key(self):
+        """
+        find payment address from private key
+
+        :return:
+        """
+        tx = self.__SUT.full_node.transaction().list_custom_token_balance(self.private_key)
+        self.payment_key = tx.get_result('PaymentAddress')
+        return self.payment_key
+
     def get_token_balance(self, token_id, shard_id=None):
         """
         get balance by token_id
@@ -76,7 +119,6 @@ class Account:
         :param shard_id: default = None, if not specified, will ask full_node. or else, will ask on shard_id
         :return:
         """
-        INFO(f'Get token balance, token id = {token_id}')
 
         if shard_id is None:
             return self.__SUT.full_node.transaction().get_custom_token_balance(self.private_key, token_id).get_result()
@@ -87,13 +129,17 @@ class Account:
         balance = self.__SUT.shards[shard_to_ask].get_representative_node().transaction().get_custom_token_balance(
             self.private_key, token_id).get_result()
         self.token_balance_cache[token_id] = balance
-        INFO(f"Balance = {balance}")
+        INFO(f"""Token Bal = {balance}, private key = {self.private_key}
+            token id = {token_id}""")
         return balance
 
     def get_token_balance_cache(self, token_id=None):
         if token_id is None:
             return self.token_balance_cache
-        return self.token_balance_cache[token_id]
+        try:
+            return self.token_balance_cache[token_id]
+        except KeyError:
+            return None
 
     def get_prv_balance(self, shard_id=None):
         """
@@ -104,8 +150,6 @@ class Account:
         :param shard_id:
         :return:
         """
-        INFO("Get prv balance")
-
         if shard_id is None:
             balance = self.__SUT.full_node.transaction().get_balance(self.private_key).get_balance()
         else:
@@ -115,9 +159,12 @@ class Account:
                 shard_to_ask = shard_id
             balance = self.__SUT.shards[shard_to_ask].get_representative_node().transaction().get_balance(
                 self.private_key).get_balance()
-        INFO(f"Balance = {balance}")
-        self.prv_balance = balance
+        INFO(f"Prv bal = {balance}, private key = {self.private_key}")
+        self.prv_balance_cache = balance
         return balance
+
+    def get_prv_balance_cache(self):
+        return self.prv_balance_cache
 
     def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1, shard_id=-1):
         """
@@ -131,8 +178,12 @@ class Account:
         :param privacy: default = privacy on
         :return: Response object
         """
+        INFO(f'''
+                From: {self.private_key}
+                Send {amount} prv 
+                To: {receiver_account.payment_key}''')
 
-        return self.__SUT.get_request_handler(shard_id). \
+        return self.__SUT.get_request_handler(shard_id).transaction(). \
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
 
     def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1):
@@ -190,7 +241,7 @@ class Account:
         """
         INFO('Defrag account')
 
-        if self.count_unspent_output_coins() > 4:
+        if self.count_unspent_output_coins() > 1:
             return self.__SUT.full_node.transaction().defragment_account(self.private_key)
         INFO('No need to defrag!')
         return None
@@ -200,7 +251,7 @@ class Account:
         return self.__SUT.full_node.subscription().subscribe_cross_output_coin_by_private_key(self.private_key, timeout)
 
     def subscribe_cross_output_token(self, timeout=180):
-        INFO('Subscribe output token')
+        INFO('Subscribe cross output token')
         return self.__SUT.full_node.subscription().subscribe_cross_custom_token_privacy_by_private_key(self.private_key,
                                                                                                        timeout)
 
@@ -246,10 +297,8 @@ class Account:
 
     def withdraw_contribution(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw contribution')
-
         return self.__SUT.full_node.dex().withdrawal_contribution(self.private_key, self.payment_key, token_id_1,
-                                                                  token_id_2,
-                                                                  amount)
+                                                                  token_id_2, amount)
 
     def send_token_to(self, receiver, token_id, amount_custom_token,
                       prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
@@ -266,19 +315,24 @@ class Account:
         :param token_privacy:
         :return: Response object
         """
-        INFO(f'Sending token')
+        INFO(f'''Sending {amount_custom_token} token {token_id}'
+             to {receiver.payment_key}
+        ''')
 
         return self.__SUT.full_node.transaction().send_custom_token_transaction(self.private_key, receiver.payment_key,
                                                                                 token_id, amount_custom_token, prv_fee,
                                                                                 token_fee, prv_amount, prv_privacy,
                                                                                 token_privacy)
 
-    def send_token_multi_output(self, receiver_token_amount_dict, token_id,
-                                prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
+    def send_token_multi_output(self, receiver_token_amount_dict, token_id, prv_fee=0, token_fee=0, prv_privacy=0,
+                                token_privacy=0):
         INFO(f'Sending token multi output')
+        payment_key_amount_dict = {}
+        for acc in receiver_token_amount_dict.keys():
+            payment_key_amount_dict[acc.payment_key] = receiver_token_amount_dict[acc]
         return self.__SUT.full_node.transaction().send_custom_token_multi_output(self.private_key,
-                                                                                 receiver_token_amount_dict, token_id,
-                                                                                 prv_fee, token_fee, prv_amount,
+                                                                                 payment_key_amount_dict, token_id,
+                                                                                 prv_fee, token_fee,
                                                                                  prv_privacy, token_privacy)
 
     def burn_token(self, token_id, amount_custom_token):

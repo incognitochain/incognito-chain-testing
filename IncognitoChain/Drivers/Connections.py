@@ -71,14 +71,15 @@ class RpcConnection:
     def execute(self):
         data = {"jsonrpc": self._json_rpc,
                 "id": self._id,
-                "method": self._method,
-                "params": self._params}
+                "method": self._method}
+        if self._params is not None:
+            data["params"] = self._params
         Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(data, indent=3)}')
         try:
             response = requests.post(self._base_url, data=json.dumps(data), headers=self._headers)
         except NewConnectionError:
             ERROR('Connection refused')
-        return Response(json.loads(response.text))
+        return Response(json.loads(response.text), f'From: {self._base_url}')
 
 
 class WebSocket(RpcConnection):
@@ -107,10 +108,10 @@ class WebSocket(RpcConnection):
     def open(self):
         if self._ws_conn is None:
             self._ws_conn = create_connection(self._url, self.__timeout)
+            DEBUG('Open web socket')
             return
         if not self.is_alive():
             self._ws_conn = create_connection(self._url, self.__timeout)
-        DEBUG('Open web socket')
 
     def close(self):
         self._ws_conn.close()
@@ -122,6 +123,7 @@ class WebSocket(RpcConnection):
 
     def with_time_out(self, time: int):
         DEBUG(f'Setting timeout = {time} seconds')
+        self.open()
         self._ws_conn.settimeout(time)
         return self
 

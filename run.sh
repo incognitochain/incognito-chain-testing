@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+if [ $1 = "clear" ]; then
+  rm reports/*.html
+  rm log/*.log
+  exit
+fi
+
 html_report="reports/$(date '+%Y-%m-%d-%H-%M-%S').html"
 test_bed=$1
 test_data=$2
@@ -12,4 +18,12 @@ if [ "$test_data" != "-" ]; then
   xoption+="-XtestData=$test_data "
 fi
 
-python3 $xoption -m pytest --show-capture=no -s -v --html="$html_report" "$3"
+param4=""
+
+if [ -z "$4" ]; then
+  param4=""
+else
+  param4="-k $4"
+fi
+set -x
+python3 $xoption -m pytest --show-capture=no -s -v --html="$html_report" "$3" $param4

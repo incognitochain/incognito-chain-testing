@@ -19,7 +19,8 @@ class Node:
     default_ws_port = 19334
 
     def __init__(self, address=default_address, username=default_user, password=default_password,
-                 rpc_port=default_rpc_port, ws_port=default_ws_port, sshkey=None, node_name=None):
+                 rpc_port=default_rpc_port, ws_port=default_ws_port, validator: Account = None, sshkey=None,
+                 node_name=None):
         self._address = address
         self._username = username
         self._password = password
@@ -30,6 +31,7 @@ class Node:
         self._spawn = pxssh.pxssh()
         self._web_socket = None
         self._rpc_connection = RpcConnection(self._get_rpc_url())
+        self.validator: Account = validator
 
     def ssh_connect(self):
         if self._password is not None:
@@ -61,14 +63,14 @@ class Node:
     def rpc_connection(self) -> RpcConnection:
         """
         get RPC connection to send custom command
-        :return:
+        :return: RpcConnection object
         """
         return self._rpc_connection
 
     def web_socket_connection(self) -> WebSocket:
         """
         get web socket to send your custom command
-        :return: RpcConnection object
+        :return: WebSocket object
         """
         return self._web_socket
 
@@ -149,3 +151,4 @@ class Node:
 
     # WITHDRAW centralize token is performed from Account
     # def withdraw_centralize_token(self, account: Account, token_id, amount) -> Response:
+

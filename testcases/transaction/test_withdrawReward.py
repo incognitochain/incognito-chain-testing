@@ -18,11 +18,17 @@ class test_withdrawReward(unittest.TestCase):
     """
     test_data = {
         's0_addr1': [
-            "112t8rnXB47RhSdyVRU41TEf78nxbtWGtmjutwSp9YqsNaCpFxQGXcnwcXTtBkCGDk1KLBRBeWMvb2aXG5SeDUJRHtFV8jTB3weHEkbMJ1AL",
-            "12S3wJTUwb8RjHPheQFwer9UPJgs3k1puFnuyAodokcJ7zEcPn6qL72kWCACuDEh5NYrKmz3ctdzd4W2L5P1rbwP75H2D117PVjuS7x"],
+            "112t8rnXbsJF4f5xtzM2jPW6dCYHChNksth7X64iUkLR4bGi2JBVjgJQRLeKRsdbiFaYMsxzrfbfKAp4TELGre45QkxHWCnwVXPGnnZjJKVL",
+            "12RpnCFbaD9sDcWzAr1McGpbk4u2PgXSGq2chygnUNpyyvPn1VHMJz23449HaWJSHif9DQ4KY9oSBJB6n9mM9GV8cADZqjrUkvirsWk"],
         's0_addr2': [
             "112t8rnY4DeSGZYb8r8sSN5WJr6ZL3NCafYAQ7f7Am9KXQDGSc3Qddpn7BfHW1i6CoVVk8vKEzJ25vA9uc9EdhoLU98eoUw7fMrPPrBdNB7Q",
             "12Rtn5fwsb7pTGn8YTCsouMXm73ouPeyQouJeVaVM9gP6HeyywGGBAFqyxzmYz3q7SNyFso85RV3eAemLnh7Kad93F3kfkoK8hwUqcW"],
+        's0_addr3': [
+            "112t8rnXRrZ1gC7MYNFVUA1paZrE3iSiAb9AR7Z5quNBgR2ovrcfj8p4kTb3ynx6ddjnoPey3qA2vRiP17tCvpCHU9xBDwMq8D1Mg2GBM9eC",
+            "12RuevVrDvyotvPTQz8qthB9uRAKU21du9AFzjRDydwKjXTfjyapnaaCdUsrrCucsxTRfVhMoAwLGMAdBN1YRac21sJ8MUdRPUqC98E"],
+        's0_addr4': [
+            "112t8rnXCwpzeEpcoYgJKp4c6TVFRQgVUxSPz3uywCAMntqDV6Wq3euXcWUPMm63fAvmG1KnpNfkobT3g3nHzigupGzQ5dLTJGF6WacwHyoG",
+            "12RxLMe9XW85R8qBiPHM9gYBcgEJKS1jQnhPxtvpkhSXXCwzM55SFBtwLnSMrY5ndxXvddUmU6uPAxkov72maWnYgxP7wyu92eiMFxe"],
         'token_prv_id': "0000000000000000000000000000000000000000000000000000000000000004"
     }
 
@@ -90,7 +96,7 @@ class test_withdrawReward(unittest.TestCase):
         STEP(3, "withdraw reward")
         step3_result = self.fullnode_tx.withdrawReward(self.test_data["s0_addr1"][0], self.test_data["s0_addr1"][1],
                                                        self.test_data["token_prv_id"])
-        assert_true(step3_result[0] == "Can not send tx", "withdraw reward success", "withdraw reward success")
+        assert_true(re.search(r'Not enough reward', step3_result[1]), "withdraw reward must be failed", "withdraw reward success")
 
         STEP(5, "check remain reward  ")
         step5_result = self.fullnode_tx.get_reward_prv(self.test_data["s0_addr1"][1])
@@ -128,7 +134,7 @@ class test_withdrawReward(unittest.TestCase):
         STEP(3, "withdraw reward PRV of receiver 2 for payment receiver 1")
         step3_result = self.fullnode_tx.withdrawReward(self.test_data["s0_addr2"][0], self.test_data["s0_addr1"][1],
                                                        self.test_data["token_prv_id"])
-        assert_true(step3_result[0] != "Can not send tx", "withdraw reward failed", "withdraw reward success")
+        assert_true(step3_result[0] != "Can not send tx", "withdraw reward failed", "withdraw reward failed")
 
         STEP(4, "subcribe transaction")
         self.fullnode_ws.createConnection()
@@ -201,7 +207,7 @@ class test_withdrawReward(unittest.TestCase):
         STEP(5, "retry withdraw reward again")
         step5_result = self.fullnode_tx.withdrawReward(self.test_data["s0_addr1"][0], self.test_data["s0_addr1"][1],
                                                        step1_token_reward[0])
-        assert_true(step5_result[0] == "Can not send tx", "withdraw reward must be failed")
+        assert_true(re.search(r'Not enough reward', step5_result[1]), "withdraw reward must be failed", "withdraw reward failed")
 
         STEP(6, "Check balance after withdraw token again")
         step6_prv_add = self.fullnode_tx.getBalance(self.test_data["s0_addr1"][0])
@@ -214,25 +220,24 @@ class test_withdrawReward(unittest.TestCase):
         INFO("Token pay out")
 
     @pytest.mark.run
-    def test_05_withdraw_full_reward(self):
+    def test_05_withdraw_full_token_reward(self):
         print("""
            Withdraw full reward 
            - check balance prv - token and token reward of address
            - withdraw 
-           - check balance token increase - prv not change
-    
+           - check balance token increase and prv not change 
            """)
 
         STEP(1, "Check balance prv - token receiver")
-        step1_prv_add = self.fullnode_tx.getBalance(self.test_data["s0_addr1"][0])
+        step1_prv_add = self.fullnode_tx.getBalance(self.test_data["s0_addr3"][0])
         assert_true(step1_prv_add != "Invalid parameters", " get balance prv something wrong")
         INFO("Balance PRV : " + str(step1_prv_add))
 
-        step1_prv_reward = self.fullnode_tx.get_reward_prv(self.test_data["s0_addr1"][1])
+        step1_prv_reward = self.fullnode_tx.get_reward_prv(self.test_data["s0_addr3"][1])
         INFO("PRV reward : " + str(step1_prv_reward[1]))
         assert_true(step1_prv_reward[1] != "Unexpected error", " get reward something wrong")
 
-        step1_token_reward = self.fullnode_tx.get_full_reward(self.test_data["s0_addr1"][1])
+        step1_token_reward = self.fullnode_tx.get_full_reward(self.test_data["s0_addr3"][1])
         assert_true(step1_token_reward[0] != "NoToken" or not step1_token_reward[0] != "Unexpected error",
                     "don't have token to withdraw")
         for i in range(0, len(step1_token_reward[0])):
@@ -241,19 +246,98 @@ class test_withdrawReward(unittest.TestCase):
 
         token_bf = []
         for i in range(0, len(step1_token_reward[0])):
-            temp, _ = self.fullnode_tx.get_customTokenBalance(self.test_data["s0_addr1"][0],
+            temp, _ = self.fullnode_tx.get_customTokenBalance(self.test_data["s0_addr3"][0],
                                                               step1_token_reward[0][i])
             assert_true(temp != "Invalid parameters", " get balance prv something wrong")
             token_bf.append(temp)
             INFO("Balance token  " + str(step1_token_reward[0][i]) + " : " + str(temp))
 
         STEP(2, "Withdraw token")
-        step2_result_prv = self.fullnode_tx.withdrawReward(self.test_data["s0_addr1"][0], self.test_data["s0_addr1"][1],
+        txid_tk = []
+        for i in range(0, len(step1_token_reward[0])):
+            step2_result = self.fullnode_tx.withdrawReward(self.test_data["s0_addr3"][0], self.test_data["s0_addr3"][1],
+                                                           step1_token_reward[0][i])
+            print("\n")
+            txid_tk.append(step2_result[0])
+        print(txid_tk)
+        STEP(3, "subcribe transaction")
+        self.fullnode_ws.createConnection()
+        wsc = self.fullnode_ws.subcribePendingTransaction(txid_tk[0])
+        #WAIT(100)
+        STEP(5, "check block ")
+        block = self.fullnode_tx.get_txbyhash(txid_tk[0])
+        INFO(" BlockHash : " + block[0])
+        block_hash = block[0]
+        is_block = 1
+        WAIT(30)
+        for i in range(1, len(txid_tk)):
+            temp = self.fullnode_tx.get_txbyhash(txid_tk[i])
+            INFO(" BlockHash of tx " + str(txid_tk[i]) + " : " + temp[0])
+            if temp[0] != block_hash:
+                INFO(" not in block")
+                is_block = 0
+                break
+        if is_block == 1:
+            INFO("the same block")
+        else:
+            INFO("not same block")
+
+        STEP(4, "Check balance after withdraw token")
+        step4_prv_add = self.fullnode_tx.getBalance(self.test_data["s0_addr3"][0])
+        INFO("Balance PRV : " + str(step4_prv_add))
+        assert_true(step4_prv_add == step1_prv_add , " get balance prv something wrong")
+        for i in range(0, len(step1_token_reward[0])):
+            step4_token_reward = self.fullnode_tx.check_reward_specific_token(self.test_data["s0_addr3"][1],
+                                                                              step1_token_reward[0][i])
+            assert_true(step4_token_reward[0] == "token not exist", "token doesn't pay correct yet ")
+            INFO("Token pay out")
+
+            step4_token_add = self.fullnode_tx.get_customTokenBalance(self.test_data["s0_addr3"][0],
+                                                                      step1_token_reward[0][i])
+            assert_true(step4_token_add[0] == token_bf[i] + step1_token_reward[1][i],
+                        " get balance prv something wrong")
+            INFO("Balance token : " + str(step4_token_add[0]))
+
+    @pytest.mark.run
+    def test_06_withdraw_full_reward(self):
+        print("""
+              Withdraw full reward 
+              - check balance prv - token and token reward of address
+              - withdraw 
+              - check balance token and prv increase 
+              """)
+
+        STEP(1, "Check balance prv - token receiver")
+        step1_prv_add = self.fullnode_tx.getBalance(self.test_data["s0_addr4"][0])
+        assert_true(step1_prv_add != "Invalid parameters", " get balance prv something wrong")
+        INFO("Balance PRV : " + str(step1_prv_add))
+
+        step1_prv_reward = self.fullnode_tx.get_reward_prv(self.test_data["s0_addr4"][1])
+        INFO("PRV reward : " + str(step1_prv_reward[1]))
+        assert_true(step1_prv_reward[1] != "Unexpected error", " get reward something wrong")
+
+        step1_token_reward = self.fullnode_tx.get_full_reward(self.test_data["s0_addr4"][1])
+        assert_true(step1_token_reward[0] != "NoToken" or not step1_token_reward[0] != "Unexpected error",
+                    "don't have token to withdraw")
+        for i in range(0, len(step1_token_reward[0])):
+            INFO("Token id : " + str(step1_token_reward[0][i]))
+            INFO("Token reward : " + str(step1_token_reward[1][i]))
+
+        token_bf = []
+        for i in range(0, len(step1_token_reward[0])):
+            temp, _ = self.fullnode_tx.get_customTokenBalance(self.test_data["s0_addr4"][0],
+                                                              step1_token_reward[0][i])
+            assert_true(temp != "Invalid parameters", " get balance prv something wrong")
+            token_bf.append(temp)
+            INFO("Balance token  " + str(step1_token_reward[0][i]) + " : " + str(temp))
+
+        STEP(2, "Withdraw token")
+        step2_result_prv = self.fullnode_tx.withdrawReward(self.test_data["s0_addr4"][0], self.test_data["s0_addr4"][1],
                                                            self.test_data["token_prv_id"])
         print("\n")
         txid_tk = []
         for i in range(0, len(step1_token_reward[0])):
-            step2_result = self.fullnode_tx.withdrawReward(self.test_data["s0_addr1"][0], self.test_data["s0_addr1"][1],
+            step2_result = self.fullnode_tx.withdrawReward(self.test_data["s0_addr4"][0], self.test_data["s0_addr4"][1],
                                                            step1_token_reward[0][i])
             print("\n")
             txid_tk.append(step2_result[0])
@@ -261,8 +345,7 @@ class test_withdrawReward(unittest.TestCase):
         STEP(3, "subcribe transaction")
         self.fullnode_ws.createConnection()
         wsc = self.fullnode_ws.subcribePendingTransaction(step2_result_prv[0])
-
-
+        # WAIT(100)
         STEP(5, "check block ")
         block_prv = self.fullnode_tx.get_txbyhash(step2_result_prv[0])
         INFO(" BlockHash : " + block_prv[0])
@@ -282,20 +365,20 @@ class test_withdrawReward(unittest.TestCase):
             INFO("not same block")
 
         STEP(4, "Check balance after withdraw token")
-        step4_prv_add = self.fullnode_tx.getBalance(self.test_data["s0_addr1"][0])
+        step4_prv_add = self.fullnode_tx.getBalance(self.test_data["s0_addr4"][0])
         INFO("Balance PRV : " + str(step4_prv_add))
         assert_true(step4_prv_add == step1_prv_add + step1_prv_reward[1], " get balance prv something wrong")
         for i in range(0, len(step1_token_reward[0])):
-            step4_token_reward = self.fullnode_tx.check_reward_specific_token(self.test_data["s0_addr1"][1],
-                                                                          step1_token_reward[0][i])
+            step4_token_reward = self.fullnode_tx.check_reward_specific_token(self.test_data["s0_addr4"][1],
+                                                                              step1_token_reward[0][i])
             assert_true(step4_token_reward[0] == "token not exist", "token doesn't pay correct yet ")
             INFO("Token pay out")
 
-            step4_token_add = self.fullnode_tx.get_customTokenBalance(self.test_data["s0_addr1"][0], step1_token_reward[0][i])
+            step4_token_add = self.fullnode_tx.get_customTokenBalance(self.test_data["s0_addr4"][0],
+                                                                      step1_token_reward[0][i])
             assert_true(step4_token_add[0] == token_bf[i] + step1_token_reward[1][i],
-                    " get balance prv something wrong")
+                        " get balance prv something wrong")
             INFO("Balance token : " + str(step4_token_add[0]))
-
 
     @pytest.mark.run
     def test_99_cleanup(self):
@@ -305,12 +388,12 @@ class test_withdrawReward(unittest.TestCase):
         self.fullnode_ws.closeConnection()
 
     @pytest.mark.run
-    def test_xxx(self):
+    def est_xxx(self):
         print("""
                 test function
                 """)
         reward = self.fullnode_tx.get_full_reward(
-            "12RpnCFbaD9sDcWzAr1McGpbk4u2PgXSGq2chygnUNpyyvPn1VHMJz23449HaWJSHif9DQ4KY9oSBJB6n9mM9GV8cADZqjrUkvirsWk")
+            self.test_data["s0_addr1"][1])
         print(reward[0])
         print(reward[1])
         pass
