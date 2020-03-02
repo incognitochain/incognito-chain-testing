@@ -4,7 +4,7 @@ import unittest
 
 import pytest
 
-import topology.NodeList as NodeList
+import topology.NodeList_devnet as NodeList
 from libs.AutoLog import INFO, WAIT, STEP, assert_true, DEBUG
 from libs.DecentralizedExchange import DEX
 from libs.Transaction import Transaction
@@ -46,7 +46,7 @@ class test_dex(unittest.TestCase):
             "12RxiiobVPEoo4djdueSsDcT79BgcBQtiZfwMTwTt9a6tfN9gEbsor7BgxsHxb8DeufMo2BTDxn11wnm3ANDHGL1e8Y7NXWZmQLMiLC",
         ],
         "privateKey": {
-            0: [
+            5: [
                 "112t8rnakdKxvk7VMKUB9qmsPY4czwnP24b82BnepcxHLX6kJ1dYQsR8d6xNTzwC9nEhJdocr9u19NAr4iSYXCeTBRu3YET8iADMAP3szdfw",
                 "112t8rnbTkezohA4GLeUDpLFnuDbFvPcoCS1MxctvEu3rmUkvmoWJ37MnXDSscpVy6bKfSwjWigi9L3qhcUFo8yZLLsgPvYAn9fs1E62qNPS",
                 "112t8rnjzNW1iKLjpNW9oJoD38pnVVgCiZWRuqGmMvcEgZEHjtg4tLRTAcfTCxNXrdzKcEmY9JVfX2Wb3JLaCjfRDEyGhXGK67VB297mZuwH",
@@ -110,7 +110,7 @@ class test_dex(unittest.TestCase):
                 "112t8rnpq9pGi2DLqp5yWqwPxRAWkRVGtyb1xGKXUmW5Dxox7pwT6twao3RBugiMj9pDZizmi9ohfqAEv4ggRaXhoPzXnvutV4YU2qekJg5M"
 
             ],
-            5: [
+            0: [
                 "112t8rnYwrzsk7bQgYM6duFMfQsHDvoF3bLLEXQGSXayLzFhH2MDyHRFpYenM9qaPXRFcwVK2b7jFG8WHLgYamaqG8PzAJuC7sqhSw2RzaKx",
                 "112t8rneWAhErTC8YUFTnfcKHvB1x6uAVdehy1S8GP2psgqDxK3RHouUcd69fz88oAL9XuMyQ8mBY5FmmGJdcyrpwXjWBXRpoWwgJXjsxi4j",
                 "112t8rni5FF2cEVMZmmCzpnr4QuFnUvYymbkjk3LGp5GJs8c8wTMURmJbZGx8WgwkPodtwGr34Vu8KZat7gxZmSXu5h9LDuppnyzcEXSgKff",
@@ -147,20 +147,20 @@ class test_dex(unittest.TestCase):
                 "112t8rnoNEkkhKQ3BS267985dik9ivyu7qMYXMqJpAeAEksxYLF1fXBPZMwCZk9DNsYYAvQruJWx9MF4LB12DLunV4eLE4dRg758AMVtPrbu"
             ],
             8: [
-                "112t8rnakdKxvk7VMKUB9qmsPY4czwnP24b82BnepcxHLX6kJ1dYQsR8d6xNTzwC9nEhJdocr9u19NAr4iSYXCeTBRu3YET8iADMAP3szdfw",
-                "112t8rnXHSFhmnyduga9tE5vh5CpTX1Ydu8murPuyQi3FYwxESW6eCPVG7vy62vjeRuM8PDfDDLf6wfXekJM5QbdHAryj2XcN4JAZq5y1Tri",
-                "112t8rnZ5UZouZU9nFmYLfpHUp8NrvQkGLPD564mjzNDM8rMp9nc9sXZ6CFxCGEMuvHQpYN7af6KCPJnq9MfEnXQfntbM8hpy9LW8p4qzPxS",
-                "112t8rnYE7yUhkfy6Cgac1QkkkXDtxgoHtnWQLMBWimKS3neKov7m11FicLLgsV5PJdxmSBhN9aURP3PmQdbAUKdYLp8hWwoyVNZUSgjP5yq",
-                "112t8rnXMLt6jfCTH36GwDPkh9AUDvaAD2JDdrdBqVrxiBcKMaeyuXh6HD18iAP38HN5icCqSw7UwCqWPCyruYsjqBzmK6WwMjCdVJ322UMw",
-                "112t8rnYwrzsk7bQgYM6duFMfQsHDvoF3bLLEXQGSXayLzFhH2MDyHRFpYenM9qaPXRFcwVK2b7jFG8WHLgYamaqG8PzAJuC7sqhSw2RzaKx",
-                "112t8rnaPYWa3YFQ1GXC6XHJawYQKbsHs5GShFtxtwRtUaGkyiWkrtPNv5gdbHPEgubuZQbZrh4Sbj3jb94BSZtsUVEeg97xZ67sibxKEwcb",
-                "112t8rnYTc4aAM4wy5h7oWKs1RAusVHmVG9M2tFKYWhjLndnfHnKDd193sjkiiR2aN5NWc1XM1ryxFv67NjAdRHHEnAosPy2UY8NepVMbHHB",
-                "112t8rnZUndVHejwoZT7P5mnHNzA5QMTxJrJWpboPuXS7Ka6nKYr7KvCJboYx4mWTcfPwUvKzFUMP9PmWmM7DTht94aYFZZnwbxJubLTPbMM",
-                "112t8rnbzh8o8ufBJ847bH9chDUpMRbfqdYRDVi8H5pwr2oX5poTEm6LXdPw23e69KTJJKbHPcsfX3HAJvz3sK2NUYdmag21PrbdYLXK7cwe"
+                "112t8rnb3xwqqd3ZUU1HooFkQhdaKJshqcEepYKxds6DNH5w3d5ExpcjW4J5eAUyGnoPcXbbfkDv6fzbaikEnRke3TTvKc7mPAQBWMFekR6M",
+                "112t8rnXuCwHHCimQ8JhsQhtVx3sfxyYtnCh2n5ZNb2u948Ya2Jgj8csPttBHK6aiLDn7KpxpQ89Bp1PH6Fy6ZxkWeCGWQ8D4eSBejpDNNnh",
+                "112t8rnXMRrjgSsyKqtovrcMxTQWXUAwECWkGkk9SwxjcR9KuFUZDL4FrTZ9qPr7wZeEPuoYdu7SW3PYz5ZN5ZCaDcSHpJPJ7ij1VY7zTXpz",
+                "112t8rnZ1Y85WUcruY1micAgAho9Q6WULZhYbUKiSUV37t6b59UEA8GAw3qiH6KZQxFBsDPk5AVzdDDAgDSpn7UVSp2zRZ9FkqUnrWGCFeku",
+                "112t8rnXhx8AUDiyCPxwQkmScqGduf3sbkqb1E4TbQQiqsCCNDtUzz7peGtrcA42ig95fcrMP9EbuV3Djrh2n8uRs1PzrtUZikGUt4JLFCuh",
+                "112t8rnXHUZhuLgEygYaDWQ6RYqcJqWdjNic9xtUbvrKFVK9pUoNcBvPcweY6d1r3v6VB77GMHq9oeH6U3igeZ2RafvSm6DHP7L1GVYBidMZ",
+                "112t8rnZqpBtD4HwAsD7s1ihgd4UmrqCcb91ZzE2kLRtAckcTKvL8PcD45i6o4p2sa8ByanRAcFvyRKhZwfpB2UWpcQTZ6u8bdy4KA2Hpxjo",
+                "112t8rna6Mhu6RqHzvwSDF4nSoVU33pwn1Vta6pSmeFUbX2QaaTm4LbC837VVvyaKiybbKcL6xrVLdfRj9VukYupbS1sw9qJ8qL6DWPozMNN",
+                "112t8rnedoadSV8GAgFBTCxU3fsBg4oeKwwdb1PL1Kpffr3Yo9MudwBndVNfcRPScSZrukJRF31YQakqLbfqvx4JfbDAZWX1D8R68UFeK3B9",
+                "112t8rngM8HHKPyrR1vkxPn7doRkT29az1vY7G8APuPJSagTk8tkHZMjn8qBsvesCqYYzfCfsL6dvJ7NMR6afhK8LKjGxKiuDZFUT2JpGURX"
             ]
         },
         "paymentAddr": {
-            0: [
+            5: [
                 "12RxnTs5KqyQUzGF4R2w68j3biJD29iDsFiVgC4GRy5X85anUrq1rg8P4aUyDRuS5desg9WANRptifcissMBPETyMeBE8KEh7LmQ6m7",
                 "12Rv7iLGR4m2116m6X44yyY531WQ4j7Eroxnkv2CZKHeieDtmHUEeerq9RkPkvb8N4S3NxcBdJPDe4jHKeapzTxSVpRcGGK7NPUc1eF",
                 "12Rryj5pw8jmf6Pxs4FFxWs6YW8eBbJd1m2vGiFaguyH9rSQwuqeTqvDuUrReNSVd2w6mfr1SrCZYocU1Wrh9xhWS9rXEYGWuDz2VAp",
@@ -221,7 +221,7 @@ class test_dex(unittest.TestCase):
                 "12S44xGxJjNiuJze9V9AoqsLSAy7N32T3xCBkH5ockymfqgMkTk246LXigfApoDCiYxyyDszVwYwhsYg7pP5YMMKP4PbWNZUGR1z35p",
                 "12S6i33cVoMZCw8QPkvrPssTjaqpxpgGTgaPTjBdDESQPHSRnGSd4kTViYTmLN8NXmEQuJhCiDuc4H3Q1avAw5hCUMTCpx5bxSFdx2z"
             ],
-            5: [
+            0: [
                 "12RxdaQkg3HzYAzfWb53osy9pbyHVqTd5m1hN6eghfjAXLwpy2m3QgGBRWVnmhH6sq1YScnYLC9aESWitaLTw9TNsJkhXiv88CAn6kf",
                 "12Rx2NqWi5uEmMrT3fRVjhosBoGpjAQ9yxFmHckxZjyekU9YPdN622iVrwL3NwERvepotM6TDxPUo2SV4iDpW3NUukxeNCwJb2QTN9H",
                 "12Rvic7Pnf1d12ZB2hnYwGV6W9RLfHpkaSt2N5Xr5up8Hj93s2z8SQKRqQZ6ye2tFD2WKy28XTSQ1w9wiYN8RZtFbPipjxSUycJvbPT",
@@ -258,16 +258,16 @@ class test_dex(unittest.TestCase):
                 "12RvMo7KYYc38aeC25XbDzfV13WHB5WPGoeLgp6pbx5xUQs6xJDEQqzm9mA8fegA2uuDUGLVQEFvePT5hCdCrGmVyDpYJ2YoX7Bkm6R"
             ],
             8: [
-                "12RxnTs5KqyQUzGF4R2w68j3biJD29iDsFiVgC4GRy5X85anUrq1rg8P4aUyDRuS5desg9WANRptifcissMBPETyMeBE8KEh7LmQ6m7",
-                "12Rqdqkv3w4uyfSTYTkoegWSHSoex75QLuHiS4C1MzwMztieSPai59mprYovV6WC963SP4p9sH5uS3eFYomefPrvvMKhuafER6YV3Kv",
-                "12Rw9oesEgd8t5NGrfqxtWTCzh1eDif55miqZ1kFzj5zeQ6UQnNB9JXRn5Vc5QVbBaiFhoYdYPnQZ5tWwcBpse5EJXM3Av6qEV2wspv",
-                "12RzEtZfyexVDnoTzsTwPNVSyhvN6ZgfxNE3C6fNzJWCp2UJjYbfNJ4CuhxhHspsU2AFCPM9Tb4gwtL2B713FtabgkyJcv5BPXd96rP",
-                "12S4GsG1Gp479rAM8XZWuzBU9vwKMk7csbxS6LjLdvphXffkYN2Tx7LWCwvmddsZe8WenpF1ZmN7nCoeuecgynGE8whLs7MUuC7t27K",
-                "12RxdaQkg3HzYAzfWb53osy9pbyHVqTd5m1hN6eghfjAXLwpy2m3QgGBRWVnmhH6sq1YScnYLC9aESWitaLTw9TNsJkhXiv88CAn6kf",
-                "12S11Dwh2dkmUZNcvv16rb9vrsQMytN5YjoVvHsgfTuKSVHTk3jSYbh4QFRpAQjQvBeuHirFEqMmMZoe83af4pDKLSYWe8u5AieSxFJ",
-                "12RvkfiH36X9tDMFXWyzvSHTXRPy45LrfJgmT57wK2T1diTiMSQUDqAMm84a8V5kDEQXjWe1FbFGmgBUhhuP9s8Mih4xzWd83eNDSCG",
-                "12RsB8NVfdGBJiyCqYeAa43V9eDCrXQge5hT6CjwkYKjnv7mjU774dFbmTQ7KgXYAcJk8yuayJA3U5rdoMAuLYQ2BHPhrx6j3vjTsej",
-                "12S3PGWSdw1aMQw3fDyo3h6dH3HBixx3SLhghBh8vwY6jxrQHArFinrJAjLkxsciwHo7FzAYqsxhAXgPdRH1TAxd8uBQzm1jzroU6jb"
+                "12RrPp11mPovVGLLYAF31TAXnpRYMxL1Lzhn5XnYsrJZhuP136BuEtHyo8ZLzwbeFGLUycxrcyfa9cATkF3cbJoGPeisZ7jwx2TFiYn",
+                "12RwSij6ep5oB6TnzcRStonLR3GU1GAx4epV8pEUACZQJk95caKTtr1iZF25wmCpwRMDcrfEbuRpHo5PpdzSGhtNnvFeSumW8P9z44z",
+                "12S2QGPpbShZZhd3fMtWPuBoZLTSSFFUk1FVkefGh1GtbBvnsXXhYiLCM6Vx8aMoN2SLaNmVkfVnA8CMxhEBfjbMoiU31vzmDdn3NBG",
+                "12RymW5bBZBq6e5Eo6nAgk3umeqawASUaiBtvWMQ2cusZWTWaSCqcAjNtUPonah9Ke9Y7s7BYsAA82kqpzzybPXcQdvxqaxG8LJ2i5S",
+                "12RtJMc4pWTUW9iCiaQ6AJgP6LQJsfYCmHUMbjcFehadyHpFhw27UxG1rQsbVSRiV6RRB8kYFHt7mYRrqNY4msNDKEWkh29Ykqq16vb",
+                "12S13ciK8obsDCYSh2XGnahkAS2QcGLL1kQyAmMdE19h3qxUcpGcis7DmfmwbmBv4a6sHLtPDHF97qjbiP3BCBCM5C7gHBKmpEDZQz1",
+                "12S58N3X96FxvThCjXmbSaPoM57oMkdwMYkmyR8otvXMZmHGDff2ZLLk9X98f7t9jhyE7nvR7ajk9n7Bx1Q83BQHyckHhbH9mqJ9cpZ",
+                "12RrodoPoJThjotapCt5WeLKnZzPi17k8cHk3HYguXnvobaqfa1Dbhhsboax3oj11nfDNd6HnSseWKtcyrrCiZ48bWwkhR7Mwec6JUT",
+                "12RpnJ65EAJiJH8LYGyzKBQQEBLs3Um2YRTFf7v79tnnM7fF27bVDWeJ3bZTwSucbDC3VoUqMi3NuDGodAfmH88nHJmhv8AWgRfXeNv",
+                "12RyiCu4kFCjbwqh3w2yuug2Xq24iACa6Ndbu4RdetVYjfW6j7XkpGGiv9rHVcCKQXEjCMBz4qT3yCvDbm9awaZPW1MJSEto2KCpBPY"
             ]
         }
     }
@@ -436,13 +436,17 @@ class test_dex(unittest.TestCase):
         INFO("797d79 balance after contribution (after refund): " + str(balance_797d79_A2))
         INFO("562f2b balance after contribution (after refund): " + str(balance_562f2b_A2))
 
+        # assert_true(math.floor(
+        #     (expecting_797d79_contribution * sum(owner_shareamount_B) / rate_B[0])
+        #     + owner_shareamount_B[0]) == owner_shareamount_A[0],
+        #             "Contribution shares amount is wrong", "Contribution shares amount is correct")
         assert_true(math.floor(
-            (expecting_797d79_contribution * sum(owner_shareamount_B) / rate_B[0])
+            ((balance_797d79_B - balance_797d79_A2) * sum(owner_shareamount_B) / rate_B[0])
             + owner_shareamount_B[0]) == owner_shareamount_A[0],
                     "Contribution shares amount is wrong", "Contribution shares amount is correct")
-        assert_true(balance_797d79_A2 + expecting_797d79_contribution == balance_797d79_B,
+        assert_true(balance_797d79_A2 + balance_797d79_B - balance_797d79_A2 == balance_797d79_B,
                     "Balance 797d79 is wrong, refund is wrong", "Balance 797d79 is correct")
-        assert_true(balance_562f2b_A2 + expecting_562f2b_contribution == balance_562f2b_B,
+        assert_true(balance_562f2b_A2 + balance_562f2b_B - balance_562f2b_A2 == balance_562f2b_B,
                     "Balance 562f2b is wrong, refund is wrong", "Balance 562f2b is correct")
 
     @pytest.mark.run

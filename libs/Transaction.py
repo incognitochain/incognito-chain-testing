@@ -62,7 +62,7 @@ class Transaction():
             return resp_json['Result']
         else:
             WARN(resp_json['Error']['Message'])
-            return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256], resp_json['Error']['Code']
+            return str([resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256], resp_json['Error']['Code']])
 
     def get_txbyhash(self, txid):
         headers = {'Content-Type': 'application/json'}
@@ -74,6 +74,19 @@ class Transaction():
         if resp_json['Error'] is None:
             return resp_json['Result']['BlockHash'], resp_json['Result']['ShardID'], resp_json['Result']['IsPrivacy'], \
                    resp_json['Result']['PrivacyCustomTokenIsPrivacy']
+        else:
+            WARN(resp_json['Error']['Message'])
+            return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
+
+    def get_txfee(self, txid):
+        headers = {'Content-Type': 'application/json'}
+        data = {"jsonrpc": "1.0", "method": "gettransactionbyhash", "params": [txid], "id": 1}
+        response = requests.post(self.url, data=json.dumps(data), headers=headers)
+        resp_json = json.loads(response.text)
+        DEBUG(resp_json)
+
+        if resp_json['Error'] is None:
+            return resp_json['Result']['Fee'], resp_json['Result']['ShardID']
         else:
             WARN(resp_json['Error']['Message'])
             return resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256]
