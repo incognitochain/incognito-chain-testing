@@ -3,7 +3,7 @@ from typing import List
 
 from IncognitoChain.Configs import Constants
 from IncognitoChain.Drivers.Response import Response
-from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Helpers.Logging import INFO, ERROR
 
 
 class Account:
@@ -59,9 +59,14 @@ class Account:
         return int(str(self.private_key).encode('utf8').hex(), 16)
 
     def calculate_shard_id(self):
+        if self.payment_key is None:
+            self.find_payment_key()
+        if self.public_key is None:
+            self.find_public_key()
         response = self.__SUT.full_node.transaction().get_public_key_by_payment_key(self.payment_key)
         last_byte = response.get_result("PublicKeyInBytes")[-1]
-        return last_byte % 8
+        self.shard = last_byte % 8
+        return self.shard
 
     def from_json(self, json_string):
         self.public_key = json_string.get('public')
@@ -111,6 +116,15 @@ class Account:
         self.payment_key = tx.get_result('PaymentAddress')
         return self.payment_key
 
+    def find_public_key(self):
+        """
+
+        :return:
+        """
+        tx = self.__SUT.full_node.transaction().get_public_key_by_payment_key(self.payment_key)
+        self.public_key = tx.get_result('PublicKeyInBase58Check')
+        return self.public_key
+
     def get_token_balance(self, token_id, shard_id=None):
         """
         get balance by token_id
@@ -132,6 +146,40 @@ class Account:
         INFO(f"""Token Bal = {balance}, private key = {self.private_key}
             token id = {token_id}""")
         return balance
+
+    def stake_and_reward_me(self, stake_amount=None):
+        """
+
+        :return:
+        """
+        if self.payment_key is None:
+            self.find_payment_key()
+        if self.public_key is None:
+            self.find_public_key()
+        if self.validator_key is None:
+            raise Exception("Validator key is not specified")
+
+        return self.__SUT.full_node.transaction(). \
+            create_and_send_staking_transaction(self.private_key, self.payment_key, self.validator_key,
+                                                self.payment_key, stake_amount)
+
+    def stake_someone_reward_me(self, someone, stake_amount=None):
+        """
+
+        :return:
+        """
+        return self.__SUT.full_node.transaction(). \
+            create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
+                                                self.payment_key, stake_amount)
+
+    def stake_someone_reward_him(self, someone, stake_amount=None):
+        """
+
+        :return:
+        """
+        return self.__SUT.full_node.transaction(). \
+            create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
+                                                someone.payment_key, stake_amount)
 
     def get_token_balance_cache(self, token_id=None):
         if token_id is None:
@@ -315,7 +363,7 @@ class Account:
         :param token_privacy:
         :return: Response object
         """
-        INFO(f'''Sending {amount_custom_token} token {token_id}'
+        INFO(f'''Sending {amount_custom_token} token {token_id}
              to {receiver.payment_key}
         ''')
 
@@ -334,6 +382,20 @@ class Account:
                                                                                  payment_key_amount_dict, token_id,
                                                                                  prv_fee, token_fee,
                                                                                  prv_privacy, token_privacy)
+
+    def am_i_a_committee(self):
+        best = self.__SUT.full_node.system_rpc().get_beacon_best_state_detail()
+        shard_committee_list = best.get_result()['ShardCommittee']
+        shard_id = 0
+        for i in range(0, 8):
+            committees_in_shard = shard_committee_list[f'{i}']
+            for committee in committees_in_shard:
+                if committee['IncPubKey'] == self.public_key:
+                    INFO(f"You're a committee in shard {shard_id}")
+                    return True
+            shard_id += 1
+        INFO(f"You're NOT a committee in any shard")
+        return False
 
     def burn_token(self, token_id, amount_custom_token):
         """
@@ -372,6 +434,43 @@ class Account:
         INFO(f'Withdraw centralize token')
         return self.__SUT.full_node.transaction().withdraw_centralize_token(self.private_key, token_id,
                                                                             amount_custom_token)
+
+    ########
+    # Stake
+    ########
+
+    def get_reward_amount(self, token_id=None):
+        """
+
+        :return:
+        """
+        result = self.__SUT.full_node.transaction().get_reward_amount(self.payment_key)
+        try:
+            if token_id is None:
+                return result.get_result("PRV")
+            else:
+                return result.get_result(token_id)
+        except KeyError:
+            return None
+
+    def get_reward_amount_all_token(self):
+        """
+
+        :return:
+        """
+        try:
+            return self.__SUT.full_node.transaction().get_reward_amount(self.payment_key).get_result()
+        except KeyError:
+            return None
+
+    def withdraw_reward_to(self, reward_receiver, token_id):
+        INFO(f"""Withdraw token reward {token_id}
+            to {reward_receiver.payment_key}""")
+        return self.__SUT.full_node.transaction().withdraw_reward(self.private_key, reward_receiver.payment_key,
+                                                                  token_id)
+
+    def withdraw_reward_to_me(self, token_id):
+        return self.withdraw_reward_to(self, token_id)
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:

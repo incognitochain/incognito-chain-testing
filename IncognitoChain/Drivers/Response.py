@@ -94,7 +94,11 @@ class Response:
         return self.get_result("BlockHeight")
 
     def get_tx_hashes(self):
+        # for retrieveblockbyheight database v2
+        # return self.get_result()[0]["TxHashes"]
+        # for retrieveblockbyheight database v1
         return self.get_result("TxHashes")
+
 
     def get_list_txs(self):
         return self.get_result("ListTxs")

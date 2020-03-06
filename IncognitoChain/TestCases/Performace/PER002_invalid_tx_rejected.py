@@ -7,14 +7,14 @@ from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Helpers.ThreadHelper import wait_threads_to_complete
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, Account
 from IncognitoChain.Objects.IncognitoTestCase import SUT
-from IncognitoChain.TestCases.Performace import sending_prv_thread
+from IncognitoChain.TestCases.Performace import sending_prv_thread, account_list
 
 sender_account_list = []
 dict_tx_save_fullnode = dict()
 dict_tx_save_shard = dict()
 # sender_account_payment_address_list = []
-sender_account_list = get_accounts_in_shard(1)
-receiver_account = get_accounts_in_shard(0)[0]
+sender_account_list = get_accounts_in_shard(0, account_list)
+receiver_account = get_accounts_in_shard(1, account_list)[0]
 master_account = Account(master_address_private_key, master_address_payment_key)
 
 
@@ -25,7 +25,6 @@ def setup_function():
     for account in sender_account_list:
         account.get_prv_balance()
     receiver_account.get_prv_balance()
-    breakpoint()
 
 
 def teardown_function():
@@ -171,6 +170,8 @@ def test_max_tx_in_same_block_with_some_fail():
     STEP(5.2, "Verify block tx hashes > 10")
     count_tx_in_block = 0
     tx_hashes_in_block = SUT.full_node.system_rpc().retrieve_block_by_height(block_height_0, 1).get_tx_hashes()
+    INFO(f'block {block_height_0}'
+         f'{tx_hashes_in_block}')
     for account, tx in dict_tx_save_fullnode.items():
         if tx.get_tx_id() in tx_hashes_in_block:
             count_tx_in_block += 1
