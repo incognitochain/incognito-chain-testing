@@ -3,7 +3,7 @@ import re
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 
-sender = get_accounts_in_shard(4)[0]
+sender = get_accounts_in_shard(2)[0]
 receiver = get_accounts_in_shard(5)[0]
 send_amount = 10000
 max_fee = 900000000000000
@@ -36,12 +36,13 @@ def test_send_prv_privacy_x_shard_max_value():
     assert step3_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
     assert re.search(r'Not enough coin', step3_result.get_error_trace().get_message()), "something went so wrong"
 
-    STEP(4, "From address3 send prv to address1 - max value fee, expect create tx fail")
-    # send with fee = 10000000000000 PRV
-    step4_result = sender.send_prv_to(receiver, send_amount, fee=max_fee)
-    assert step4_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
-    assert re.search(r'input value less than output value',
-                     step4_result.get_error_trace().get_message()), "something went so wrong"
+    STEP(4, 'Skip this step, no longer check for max fee')
+    # STEP(4, "From address3 send prv to address1 - max value fee, expect create tx fail")
+    # # send with fee = 10000000000000 PRV
+    # step4_result = sender.send_prv_to(receiver, send_amount, fee=max_fee)
+    # assert step4_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
+    # assert re.search(r'input value less than output value',
+    #                  step4_result.get_error_trace().get_message()), "something went so wrong"
 
     STEP(5, f"Check balance sender and receiver")
     assert receiver.get_prv_balance_cache() == receiver.get_prv_balance()

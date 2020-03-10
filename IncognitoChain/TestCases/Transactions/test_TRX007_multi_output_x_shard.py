@@ -1,12 +1,15 @@
 import copy
 import random
 
+from IncognitoChain.Configs.Constants import master_address_private_key, master_address_payment_key
 from IncognitoChain.Helpers.Logging import *
+from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
 
 sender_account = ACCOUNTS[0]
 is_sent = False
-
+coin_master = Account(master_address_private_key, master_address_payment_key)
+coin_master.calculate_shard_id()
 # create receiver list
 receiver_account_list_before = ACCOUNTS.copy()
 receiver_account_list_before.remove(sender_account)
@@ -14,11 +17,22 @@ receiver_account_list_before.remove(sender_account)
 # Generate dict of account : amount to send
 total_sent_amount = 0
 receiver_account_dict_to_send = dict()
-for account in receiver_account_list_before:
-    amount_to_be_received = random.randint(1000, 2000)
-    total_sent_amount += amount_to_be_received
-    cloned_acc = copy.copy(account)
-    receiver_account_dict_to_send[cloned_acc] = amount_to_be_received
+
+
+def setup_module():
+    for account in receiver_account_list_before:
+        amount_to_be_received = random.randint(1000, 2000)
+        global total_sent_amount
+        total_sent_amount += amount_to_be_received
+        cloned_acc = copy.copy(account)
+        receiver_account_dict_to_send[cloned_acc] = amount_to_be_received
+    try:
+        if sender_account.get_prv_balance() < total_sent_amount + 1000:
+            coin_master.send_prv_to(sender_account, total_sent_amount + 1000).subscribe_transaction()
+            if coin_master.shard != sender_account.shard:
+                sender_account.subscribe_cross_output_coin()
+    except:
+        pass
 
 
 def test_send_prv_multi_output_privacy_x_shard_no_auto_fee():
@@ -59,7 +73,7 @@ def test_send_prv_multi_output_privacy_x_shard_no_auto_fee():
             if acc_before == acc_after:
                 if sender_account.shard != acc_after.shard:
                     try:
-                        acc_after.subscribe_cross_output_coin(timeout=360)
+                        acc_after.subscribe_cross_output_coin()
                     except Exception:
                         pass
                 acc_after.get_prv_balance()

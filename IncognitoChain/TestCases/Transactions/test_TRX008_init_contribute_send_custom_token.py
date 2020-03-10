@@ -14,7 +14,7 @@ from IncognitoChain.Objects.IncognitoTestCase import SUT
 amount_init_token = 1000000 * 1000000000
 amount_contribute = 20000 * 1000000000  # contribute rate 1:1
 contribute_rate = [amount_contribute, amount_contribute]
-account_init = get_accounts_in_shard(4)[0]
+account_init = get_accounts_in_shard(2)[0]
 
 custom_token_symbol = get_current_date_time()
 custom_token_id = None
@@ -24,9 +24,9 @@ token_amount_to_send = random.randrange(1000, 2000)
 
 sender_account = account_init
 
-receiver_account = get_accounts_in_shard(4)[1]
+receiver_account = get_accounts_in_shard(2)[1]
 
-receiver_x_shard = get_accounts_in_shard(2)[0]
+receiver_x_shard = get_accounts_in_shard(0)[0]
 
 pair_id = f"token1_1prv_{random.randrange(1000, 10000)}"
 
@@ -70,7 +70,7 @@ def test_init_ptoken():
     STEP(4, "contribute token & PRV")
     # Contribute TOKEN:
     contribute_token_result = account_init.contribute_token(custom_token_id, amount_contribute, pair_id)
-    INFO(f"Contribute {custom_token_id} +  Success, TxID: {contribute_token_result.get_tx_id()}")
+    INFO(f"Contribute {custom_token_id} Success, TxID: {contribute_token_result.get_tx_id()}")
     INFO("Subscribe contribution transaction")
     contribute_token_result.subscribe_transaction()
     # Contribute PRV:

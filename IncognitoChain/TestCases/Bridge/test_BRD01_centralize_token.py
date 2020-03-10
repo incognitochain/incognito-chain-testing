@@ -4,16 +4,15 @@ from IncognitoChain.Helpers.Time import get_current_date_time, WAIT
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 
-
 # sender_account = get_accounts_in_shard(0)[1]
-receiver_account = get_accounts_in_shard(0)[0]
+receiver_account = get_accounts_in_shard(2)[0]
 # init_sender_balance = sender_account.get_prv_balance()
 # init_receiver_balance = receiver_account.get_prv_balance()
 
-# token_name = get_current_date_time()
-# token_id = "0000000000000000000000000000000000000000000000000000" + token_name
-token_id = "0000000000000000000000000000000000000000000000000000190220114747"
-token_name = "190220114747"
+token_name = get_current_date_time()
+token_id = "0000000000000000000000000000000000000000000000000000" + token_name
+# token_id = "0000000000000000000000000000000000000000000000000000190220114747"
+# token_name = "190220114747"
 token_amount = int(token_name)
 burning_amount = 21012
 withdraw_amount = 12343
@@ -38,7 +37,7 @@ def teardown_function():
     # receiver_account.send_prv_to(sender_account, init_sender_balance, privacy=0).subscribe_transaction()
 
 
-def est_init_centralize_token():
+def test_init_centralize_token():
     """
     1Shard
     init new token id

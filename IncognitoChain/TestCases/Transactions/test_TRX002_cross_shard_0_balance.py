@@ -8,7 +8,7 @@ from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 sender = get_accounts_in_shard(2)[0]
 sender_balance_init = sender.get_prv_balance()
 
-receiver = get_accounts_in_shard(4)[0]
+receiver = get_accounts_in_shard(5)[0]
 receiver_balance = receiver.get_prv_balance()
 
 
