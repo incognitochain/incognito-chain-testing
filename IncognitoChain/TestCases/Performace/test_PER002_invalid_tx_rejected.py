@@ -113,22 +113,25 @@ def test_max_tx_in_same_block_with_some_fail():
     transactions_in_mem_pool = SUT.full_node.system_rpc().get_mem_pool().get_mem_pool_transactions_id_list()
     stuck_tx_count_fullnode = 0
     stuck_tx_count_shard = 0
-    for tx_id in transactions_in_mem_pool:
-        INFO(f' ____ tx in mem pool {tx_id}')
-        for account in dict_tx_save_fullnode.keys():
-            # INFO(f' ___ tx in trans {transaction.get_tx_id()}')
-            transaction = dict_tx_save_fullnode[account]
-            if tx_id == transaction.get_tx_id():
-                stuck_tx_count_fullnode += 1
-                INFO(f'tx found in mem pool {transaction.get_tx_id()}')
-                break
-        for account in dict_tx_save_shard.keys():
-            # INFO(f' ___ tx in trans {transaction.get_tx_id()}')
-            transaction = dict_tx_save_shard[account]
-            if tx_id == transaction.get_tx_id():
-                stuck_tx_count_shard += 1
-                INFO(f'tx found in mem pool {transaction.get_tx_id()}')
-                break
+    if transactions_in_mem_pool is None:
+        INFO("NO tx is stuck in mem pool")
+    else:
+        for tx_id in transactions_in_mem_pool:
+            INFO(f' ____ tx in mem pool {tx_id}')
+            for account in dict_tx_save_fullnode.keys():
+                # INFO(f' ___ tx in trans {transaction.get_tx_id()}')
+                transaction = dict_tx_save_fullnode[account]
+                if tx_id == transaction.get_tx_id():
+                    stuck_tx_count_fullnode += 1
+                    INFO(f'tx found in mem pool {transaction.get_tx_id()}')
+                    break
+            for account in dict_tx_save_shard.keys():
+                # INFO(f' ___ tx in trans {transaction.get_tx_id()}')
+                transaction = dict_tx_save_shard[account]
+                if tx_id == transaction.get_tx_id():
+                    stuck_tx_count_shard += 1
+                    INFO(f'tx found in mem pool {transaction.get_tx_id()}')
+                    break
 
     STEP(5.1,
          "Check all transactions sent to full node and shard, if they fall into the same block, except 2 fail ones")

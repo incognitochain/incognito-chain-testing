@@ -36,18 +36,27 @@ class SystemRpc:
     def remove_tx_in_mem_pool(self, tx_id):
         return self.rpc_connection.with_method('removetxinmempool').with_params([tx_id]).execute()
 
-    def clear_mem_pool(self):
+    # HELPERS ###############
+    def help_clear_mem_pool(self):
         list_tx = self.get_mem_pool().get_result('ListTxs')
         for tx in list_tx:
             self.remove_tx_in_mem_pool(tx['TxID'])
 
-    def count_shard_committee(self, refresh_cache=False):
+    def help_count_shard_committee(self, refresh_cache=False):
         best = self.get_beacon_best_state_detail(refresh_cache)
         shard_committee_list = best.get_result()['ShardCommittee']
         return len(shard_committee_list)
 
-    def count_committee_in_shard(self, shard_id, refresh_cache=False):
+    def help_count_committee_in_shard(self, shard_id, refresh_cache=False):
         best = self.get_beacon_best_state_detail(refresh_cache)
         shard_committee_list = best.get_result()['ShardCommittee']
         shard_committee = shard_committee_list[f'{shard_id}']
         return len(shard_committee)
+
+    def help_get_current_epoch(self, refresh_cache=True):
+        beacon_best_state = self.get_beacon_best_state_detail(refresh_cache)
+        return beacon_best_state.get_result('Epoch')
+
+    def help_get_beacon_height_in_best_state_detail(self, refresh_cache=True):
+        beacon_best_state = self.get_beacon_best_state_detail(refresh_cache)
+        return beacon_best_state.get_result('BeaconHeight')

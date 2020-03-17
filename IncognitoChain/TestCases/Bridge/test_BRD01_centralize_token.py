@@ -16,7 +16,7 @@ token_id = "0000000000000000000000000000000000000000000000000000" + token_name
 token_amount = int(token_name)
 burning_amount = 21012
 withdraw_amount = 12343
-time_out = 60
+time_out = 90
 
 
 def setup_function():

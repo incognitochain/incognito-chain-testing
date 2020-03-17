@@ -36,7 +36,7 @@ def test_max_tx_in_same_block():
     STEP(3, 'Get transaction by hash of each tx_id => check that them all in same block-height (or block-height + 1)')
     for tx in transactions_save_fullnode:
         if tx.get_tx_id() is not None:
-            block_height = transactions_save_fullnode[0].get_transaction_by_hash().get_block_height()
+            block_height = tx.get_transaction_by_hash().get_block_height()
             break
     # breakpoint()
     INFO(f'Expect all transactions must has same block height as {block_height} or {block_height} + 1')
@@ -49,6 +49,8 @@ def test_max_tx_in_same_block():
     STEP(4, 'Verify that block contains at least 10 tx')
     tx_in_block_count = 0
     tx_hashes = SUT.full_node.system_rpc().retrieve_block_by_height(block_height, shard).get_tx_hashes()
+    INFO(f""" Tx Hashes
+            {tx_hashes}""")
     for transaction in transactions_save_fullnode:
         if transaction.get_tx_id() in tx_hashes:
             tx_in_block_count += 1
