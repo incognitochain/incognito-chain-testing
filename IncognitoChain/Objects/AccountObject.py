@@ -151,7 +151,7 @@ class Account:
             token id = {token_id}""")
         return balance
 
-    def stake_and_reward_me(self, stake_amount=None):
+    def stake_and_reward_me(self, stake_amount=None, auto_re_stake=True):
         """
 
         :return:
@@ -165,7 +165,7 @@ class Account:
 
         return self.__SUT.full_node.transaction(). \
             create_and_send_staking_transaction(self.private_key, self.payment_key, self.validator_key,
-                                                self.payment_key, stake_amount)
+                                                self.payment_key, stake_amount, auto_re_stake)
 
     def stake_someone_reward_me(self, someone, stake_amount=None):
         """
@@ -184,6 +184,10 @@ class Account:
         return self.__SUT.full_node.transaction(). \
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
                                                 someone.payment_key, stake_amount)
+
+    def un_stake_me(self):
+        return self.__SUT.full_node.transaction(). \
+            create_and_send_stop_auto_staking_transaction(self.private_key, self.payment_key, self.validator_key)
 
     def get_token_balance_cache(self, token_id):
         try:
@@ -386,6 +390,10 @@ class Account:
                                                                                  prv_privacy, token_privacy)
 
     def am_i_a_committee(self):
+        '''
+
+        :return: shard id of which this account is a committee, if not a committee in any shard, return False
+        '''
         best = self.__SUT.full_node.system_rpc().get_beacon_best_state_detail()
         shard_committee_list = best.get_result()['ShardCommittee']
         shard_id = 0
@@ -396,11 +404,14 @@ class Account:
                     self.find_public_key()
 
                 if committee['IncPubKey'] == self.public_key:
-                    INFO(f"You're a committee in shard {shard_id}")
-                    return True
+                    INFO(f"You {self.validator_key} are a committee in shard {shard_id}")
+                    return shard_id
             shard_id += 1
-        INFO(f"You're NOT a committee in any shard")
+        INFO(f"You {self.validator_key} are NOT a committee")
         return False
+
+    def am_i_stake(self):
+        pass
 
     def burn_token(self, token_id, amount_custom_token):
         """
@@ -446,7 +457,7 @@ class Account:
 
     def get_reward_amount(self, token_id=None):
         """
-
+        when @token_id is None, return PRV reward amount
         :return:
         """
         result = self.__SUT.full_node.transaction().get_reward_amount(self.payment_key)

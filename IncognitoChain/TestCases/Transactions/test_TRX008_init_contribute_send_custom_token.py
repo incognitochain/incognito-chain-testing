@@ -5,15 +5,15 @@ import re
 import pytest
 
 from IncognitoChain.Configs import Constants
+from IncognitoChain.Configs.Constants import ONE_COIN
 from IncognitoChain.Drivers.Response import Response
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Helpers.Time import get_current_date_time, WAIT
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
-from IncognitoChain.Objects.IncognitoTestCase import SUT
+from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
 
-amount_init_token = 1000000 * 1000000000
-amount_contribute = 20000 * 1000000000  # contribute rate 1:1
-contribute_rate = [amount_contribute, amount_contribute]
+amount_init_token = 1000000 * ONE_COIN
+amount_contribute = 20000 * ONE_COIN  # contribute rate 1:1
 account_init = get_accounts_in_shard(2)[0]
 
 custom_token_symbol = get_current_date_time()
@@ -33,7 +33,11 @@ pair_id = f"token1_1prv_{random.randrange(1000, 10000)}"
 
 def setup_module():
     INFO("Test set up")
-    assert account_init.get_prv_balance() > amount_init_token, "Not enough prv to run this test, skip"
+    sender_bal = account_init.get_prv_balance()
+    if sender_bal <= amount_init_token:
+        COIN_MASTER.send_prv_to(account_init, amount_init_token - sender_bal + 10, privacy=0).subscribe_transaction()
+        if COIN_MASTER.shard != account_init.shard:
+            account_init.subscribe_cross_output_coin()
 
 
 def teardown_module():
@@ -46,14 +50,17 @@ def teardown_module():
 
 
 @pytest.mark.dependency()
-def test_init_ptoken():
+@pytest.mark.parametrize('prv_contribute_amount, token_contribute_amount,token_init_amount',
+                         [(amount_contribute, amount_contribute, amount_init_token)])
+def test_init_ptoken(prv_contribute_amount, token_contribute_amount, token_init_amount):
     INFO('''
     Init a pToken
     Contribute pToken-PRV to pDex (mapping rate) => use pToken to pay fee
     ''')
+    contribute_rate = [token_contribute_amount, prv_contribute_amount]
 
     STEP(1, "Initial new token")
-    step1_result = account_init.init_custom_token_self(custom_token_symbol, amount_init_token)
+    step1_result = account_init.init_custom_token_self(custom_token_symbol, token_init_amount)
 
     assert step1_result.get_error_msg() is None and INFO("Success to init new token"), "Failed to init new token"
     global custom_token_id
@@ -69,12 +76,12 @@ def test_init_ptoken():
 
     STEP(4, "contribute token & PRV")
     # Contribute TOKEN:
-    contribute_token_result = account_init.contribute_token(custom_token_id, amount_contribute, pair_id)
+    contribute_token_result = account_init.contribute_token(custom_token_id, token_contribute_amount, pair_id)
     INFO(f"Contribute {custom_token_id} Success, TxID: {contribute_token_result.get_tx_id()}")
     INFO("Subscribe contribution transaction")
     contribute_token_result.subscribe_transaction()
     # Contribute PRV:
-    contribute_prv_result = account_init.contribute_prv(amount_contribute, pair_id)
+    contribute_prv_result = account_init.contribute_prv(prv_contribute_amount, pair_id)
     global contribute_success
     contribute_success = True
 
@@ -91,6 +98,7 @@ def test_init_ptoken():
             break
     INFO(f"rate prv vs token: {rate}")
     assert rate == contribute_rate, "Contribution Failed"
+    # breakpoint()
 
 
 @pytest.mark.parametrize('sender,receiver,fee,fee_type,privacy,privacy_type', [

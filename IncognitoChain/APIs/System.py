@@ -1,4 +1,7 @@
+import time
+
 from IncognitoChain.Drivers.Connections import RpcConnection
+from IncognitoChain.Helpers.Logging import INFO
 
 
 class SystemRpc:
@@ -60,3 +63,16 @@ class SystemRpc:
     def help_get_beacon_height_in_best_state_detail(self, refresh_cache=True):
         beacon_best_state = self.get_beacon_best_state_detail(refresh_cache)
         return beacon_best_state.get_result('BeaconHeight')
+
+    def help_wait_till_epoch(self, epoch_number, pool_time=30, timeout=180):
+        epoch = self.help_get_current_epoch()
+        time_start = time.perf_counter()
+        while epoch < epoch_number:
+            time.sleep(pool_time)
+            epoch = self.help_get_current_epoch()
+            if epoch == epoch_number:
+                INFO(f"Now epoch = {epoch}")
+                return epoch
+            time_current = time.perf_counter()
+            if time_current - time_start > timeout:
+                return None
