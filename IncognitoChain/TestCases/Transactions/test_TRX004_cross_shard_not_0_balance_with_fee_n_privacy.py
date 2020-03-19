@@ -3,8 +3,8 @@ import pytest
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 
-receiver = get_accounts_in_shard(5)[0]
-sender = get_accounts_in_shard(4)[0]
+sender = get_accounts_in_shard(5)[0]
+receiver = get_accounts_in_shard(2)[0]
 send_amount = 1000
 
 
@@ -26,7 +26,10 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
         "make transaction success"), "transaction failed"
 
     STEP(4, "Subcribe transaction")
-    send_transaction_result = send_transaction.subscribe_transaction()
+    try:
+        send_transaction.subscribe_transaction()
+    except TimeoutError:
+        ERROR(f"Timeout while subscribing tx: {send_transaction.get_tx_id()}")
 
     STEP(5, "Subcribe cross transaction by privatekey")
     receiver.subscribe_cross_output_coin()

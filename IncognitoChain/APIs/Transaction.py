@@ -1,4 +1,5 @@
 from IncognitoChain.Configs import Constants
+from IncognitoChain.Configs.Constants import burning_address
 from IncognitoChain.Drivers import Connections
 
 
@@ -235,4 +236,42 @@ class TransactionRpc:
         return self.rpc_connection. \
             with_method("getpublickeyfrompaymentaddress"). \
             with_params([payment_key]). \
+            execute()
+
+    # stake
+    def create_and_send_staking_transaction(self, candidate_private_key, candidate_payment_key, candidate_validator_key,
+                                            reward_receiver_payment_key, stake_amount=None, auto_re_stake=True):
+        if stake_amount is None:
+            stake_amount = 1750000000000
+        return self.rpc_connection. \
+            with_method("createandsendstakingtransaction"). \
+            with_params([candidate_private_key,
+                         {burning_address: stake_amount},
+                         2, 0,
+                         {
+                             "StakingType": 63,
+                             "CandidatePaymentAddress": candidate_payment_key,
+                             "PrivateSeed": candidate_validator_key,
+                             "RewardReceiverPaymentAddress": reward_receiver_payment_key,
+                             "AutoReStaking": auto_re_stake
+                         }
+                         ]). \
+            execute()
+
+    def create_and_send_stop_auto_staking_transaction(self, private_key, candidate_payment_key, validator_key):
+        param = [private_key,
+                 {burning_address: 0},
+                 10, 0,
+                 {"StopAutoStakingType": 127,
+                  "CandidatePaymentAddress": candidate_payment_key,
+                  "PrivateSeed": validator_key}]
+        return self.rpc_connection. \
+            with_method('createandsendstopautostakingtransaction'). \
+            with_params(param). \
+            execute()
+
+    def get_reward_amount(self, validator_payment_key):
+        return self.rpc_connection. \
+            with_method('getrewardamount'). \
+            with_params([validator_payment_key]). \
             execute()

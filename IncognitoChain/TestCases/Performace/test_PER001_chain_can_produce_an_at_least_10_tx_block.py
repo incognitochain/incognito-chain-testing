@@ -1,16 +1,22 @@
 import random
 
+from IncognitoChain.Configs.Constants import master_address_private_key, master_address_payment_key
 from IncognitoChain.Helpers.Logging import STEP
 from IncognitoChain.Helpers.ThreadHelper import wait_threads_to_complete
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Performace import *
+
+coin_master = Account(master_address_private_key, master_address_payment_key)
 
 
 def setup_function():
     transactions_save_fullnode.clear()
     INFO('get balance all accounts')
     for account in accounts_send + accounts_receive:
-        account.get_prv_balance()
+        account.calculate_shard_id()
+        balance = account.get_prv_balance()
+        if balance < 1300:
+            coin_master.send_prv_to(account, 1300, privacy=0).subscribe_transaction()
 
 
 def test_max_tx_in_same_block():
@@ -22,11 +28,18 @@ def test_max_tx_in_same_block():
     wait_threads_to_complete(all_thread_list)
 
     # subscribe the last transaction to make sure all transactions are handled
-    transactions_save_fullnode[data_length - 1].subscribe_transaction()
+    for i in range(data_length - 1, -1, -1):
+        if transactions_save_fullnode[i].get_tx_id() is not None:
+            transactions_save_fullnode[i].subscribe_transaction()
+            break
 
     STEP(3, 'Get transaction by hash of each tx_id => check that them all in same block-height (or block-height + 1)')
-    block_height = transactions_save_fullnode[0].get_transaction_by_hash().get_block_height()
-    INFO(f'Expect all transactions must has same block height as {block_height} or {block_height + 1}')
+    for tx in transactions_save_fullnode:
+        if tx.get_tx_id() is not None:
+            block_height = tx.get_transaction_by_hash().get_block_height()
+            break
+    # breakpoint()
+    INFO(f'Expect all transactions must has same block height as {block_height} or {block_height} + 1')
     for index in range(0, data_length):
         transaction = transactions_save_fullnode[index]
         tx_block_height = transaction.get_transaction_by_hash().get_block_height()
@@ -36,6 +49,8 @@ def test_max_tx_in_same_block():
     STEP(4, 'Verify that block contains at least 10 tx')
     tx_in_block_count = 0
     tx_hashes = SUT.full_node.system_rpc().retrieve_block_by_height(block_height, shard).get_tx_hashes()
+    INFO(f""" Tx Hashes
+            {tx_hashes}""")
     for transaction in transactions_save_fullnode:
         if transaction.get_tx_id() in tx_hashes:
             tx_in_block_count += 1
@@ -82,17 +97,19 @@ def test_x_shard_prv_ptoken_send_with_mix_privacy():
 
     STEP(4, 'Check if all 20 transactions are in the same block or the next block only')
     block_height = prv_send_results[0].get_transaction_by_hash().get_block_height()
-    count_tx_in_block = dict()
-    count_tx_in_block[block_height] = 0
-    count_tx_in_block[block_height + 1] = 0
+    count_tx_in_block = {block_height: 0,
+                         block_height + 1: 0,
+                         0: 0}
 
     i = 1
     for result in prv_send_results + ptoken_send_results:
         tx_id = result.get_tx_id()
         block_h = result.get_transaction_by_hash().get_block_height()
         INFO(f'{i} tx: {tx_id}, block {block_h}')
-        count_tx_in_block[block_h] += 1
-        assert (block_h == block_height or block_h == block_height + 1)
+        if tx_id is not None:
+            count_tx_in_block[block_h] += 1
+            if block_height != 0:
+                assert (block_h == block_height or block_h == block_height + 1)
         i += 1
 
     STEP(5, f'Double check, must has at least 10 tx in block {block_height}')

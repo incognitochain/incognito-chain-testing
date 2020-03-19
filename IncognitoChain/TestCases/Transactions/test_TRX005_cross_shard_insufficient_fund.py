@@ -5,12 +5,15 @@ import pytest
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 
-receiver = get_accounts_in_shard(5)[0]
-sender = get_accounts_in_shard(4)[0]
+sender = get_accounts_in_shard(5)[0]
+receiver = get_accounts_in_shard(2)[0]
 
 
 def setup_function():
-    sender.defragment_account()
+    try:
+        sender.defragment_account().subscribe_transaction()
+    except:
+        pass
 
 
 @pytest.mark.parametrize('privacy', [0, 1])
@@ -33,8 +36,7 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
     step3_result = sender.send_prv_to(receiver, sender_bal + 10, privacy=privacy)
     assert step3_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
     assert re.search(r'Not enough coin', step3_result.get_error_trace().get_message()), "something went so wrong"
-
-    # breakpoint()
+    assert sender_bal == sender.get_prv_balance()
 
     STEP(4, "send all PRV - auto fee")
     # send current balance (auto fee)
@@ -42,6 +44,7 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
     assert step4_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
     assert re.search(r'Wrong input transaction',
                      step4_result.get_error_trace().get_message()), "something went so wrong"
+    assert sender_bal == sender.get_prv_balance()
     estimated_fee = step4_result.get_error_trace().get_estimated_fee()
     INFO("Estimated fee: " + estimated_fee)
 
