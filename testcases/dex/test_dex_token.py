@@ -4,7 +4,7 @@ import unittest
 
 import pytest
 
-import topology.NodeList_devnet as NodeList
+import topology.NodeList as NodeList
 from libs.AutoLog import INFO, WAIT, STEP, assert_true, DEBUG
 from libs.DecentralizedExchange import DEX
 from libs.Transaction import Transaction
@@ -1039,6 +1039,88 @@ class test_dex(unittest.TestCase):
             WAIT(10)
         if balance_562f2b_A is not False:
             balance_797d79_A, _ = self.shard0_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
+                                                                         self.testData['797d79'])
+        else:
+            # ERROR("Wait time expired, 562f2b did NOT increasse")
+            assert_true(balance_562f2b_A != False, "Wait time expired, 562f2b did NOT increase")
+
+        share_797d79_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
+                                                     [self.testData['token_ownerPaymentAddress'][0]] +
+                                                     self.testData['paymentAddr'][0] +
+                                                     self.testData['paymentAddr'][3] +
+                                                     self.testData['paymentAddr'][5])
+        rate_A = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
+        d79_withdrawal = math.floor(withdraw_amount * rate_B[0] / sum(share_797d79_B))
+        f2b_withdrawal = math.floor(withdraw_amount * rate_B[1] / sum(share_797d79_B))
+
+        INFO("SUMMARY:")
+        INFO("Balance d79 B: %s" % str(balance_797d79_B))
+        INFO("Balance d79 A: %s" % str(balance_797d79_A))
+        INFO("Balance f2b B: %s" % str(balance_562f2b_B))
+        INFO("Balance f2b A: %s" % str(balance_562f2b_A))
+        INFO("Withdrawal amount d79 vs f2b: %d vs %d" % (d79_withdrawal, f2b_withdrawal))
+        INFO("share d79 B: %s" % str(share_797d79_B))
+        INFO("share d79 A: %s" % str(share_797d79_A))
+        INFO("rate 797d79 vs 562f2b B" + str(rate_B))
+        INFO("rate 797d79 vs 562f2b A" + str(rate_A))
+
+        assert_true(balance_797d79_A - balance_797d79_B == d79_withdrawal, "Balance d79 invalid after withdraw")
+        assert_true(balance_562f2b_A - balance_562f2b_B == f2b_withdrawal, "Balance f2b invalid after withdraw")
+
+    @pytest.mark.run
+    def test_DEX07_withdrawalLiquidity_shard(self):
+        print("""
+                    test_DEX05_withdrawalLiquidity:
+                    - withdraw token from a contributor
+                    - 15% shares
+                    """)
+        STEP(1, "Get balance before withdraw")
+        shard = 0
+        account = 2
+        balance_797d79_B, _ = self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][shard][account],
+                                                                       self.testData['797d79'])
+        balance_562f2b_B, _ = self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][shard][account],
+                                                                       self.testData['562f2b'])
+        # share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
+        #                                              [self.testData['token_ownerPaymentAddress'][0]])
+        share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
+                                                     [self.testData['token_ownerPaymentAddress'][0]] +
+                                                     self.testData['paymentAddr'][0] +
+                                                     self.testData['paymentAddr'][3] +
+                                                     self.testData['paymentAddr'][5])
+        rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
+        STEP(2, "Withdraw 15% from 1st share owner")
+        withdraw_amount = math.floor(share_797d79_B[0] / 6)
+        INFO("withdrawing: %d" % withdraw_amount)
+        txid = self.fullnode.withdrawal_contribution(self.testData['privateKey'][shard][account],
+                                                     self.testData['paymentAddr'][shard][account],
+                                                     self.testData['797d79'], self.testData['562f2b'],
+                                                     withdraw_amount)
+
+        STEP(3, "Wait for Tx to be confirmed")
+        step3_result = False
+        for i in range(0, 10):
+            tx_confirm = self.shard0_trx.get_txbyhash(txid)
+            if tx_confirm[0] != "":
+                step3_result = True
+                DEBUG("the " + txid + " is confirmed")
+                print("shardid: " + str(tx_confirm[1]))
+                break
+            else:
+                print("shardid: " + str(tx_confirm[1]))
+                WAIT(10)
+        assert_true(step3_result is True, "The " + txid + " is NOT yet confirmed")
+
+        STEP(4, "Verify balance after withdraw")
+        balance_562f2b_A = False
+        for _ in range(0, 10):
+            balance_562f2b_A, _ = self.shard0_trx.get_customTokenBalance(self.testData['privateKey'][shard][account],
+                                                                         self.testData['562f2b'])
+            if balance_562f2b_A > balance_562f2b_B:
+                break
+            WAIT(10)
+        if balance_562f2b_A is not False:
+            balance_797d79_A, _ = self.shard0_trx.get_customTokenBalance(self.testData['privateKey'][shard][account],
                                                                          self.testData['797d79'])
         else:
             # ERROR("Wait time expired, 562f2b did NOT increasse")

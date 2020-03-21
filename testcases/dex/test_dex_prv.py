@@ -38,13 +38,13 @@ class test_dex(unittest.TestCase):
         # "amount_contribution_562f2b": 24623623,
 
         "token_ownerPrivateKey": [
-            "112t8rnxntm4qcc1kNxqQJEpz4DskFKXojYxaGVT3h7c7QjbWpgiVRv2qmLjQMUW8QxUm7HiyxqdQ35fdcAQ7SZ3cYmDADGfFkcENH6Pi8GH",
             "112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA",
+            "112t8rnxntm4qcc1kNxqQJEpz4DskFKXojYxaGVT3h7c7QjbWpgiVRv2qmLjQMUW8QxUm7HiyxqdQ35fdcAQ7SZ3cYmDADGfFkcENH6Pi8GH",
             "112t8rnX6ThEU1nYpyYeerYU47EmrTA1AWJguAAbJLyot8ETdUydT4yT4zahyyme78bAAbNZmhzHGva57b7XTf6BFiA9uzGiQMdxFfSGDdwi"
         ],
         "token_ownerPaymentAddress": [
-            "12S4kCdFmeW78Rxi2RrdgQqwDrKjkCXX6LeQpES1EVRCwfsTqefPDvSV9oi1DwvERvwRvCGFbgvbqbfusCN29HN5rukngGkp7U5EVHF",
             "12RxERBySmquLtM1R1Dk2s7J4LyPxqHxcZ956kupQX3FPhVo2KtoUYJWKet2nWqWqSh3asWmgGTYsvz3jX73HqD8Jr2LwhjhJfpG756",
+            "12S4kCdFmeW78Rxi2RrdgQqwDrKjkCXX6LeQpES1EVRCwfsTqefPDvSV9oi1DwvERvwRvCGFbgvbqbfusCN29HN5rukngGkp7U5EVHF",
             "12RxiiobVPEoo4djdueSsDcT79BgcBQtiZfwMTwTt9a6tfN9gEbsor7BgxsHxb8DeufMo2BTDxn11wnm3ANDHGL1e8Y7NXWZmQLMiLC"
         ],
         "privateKey": {
@@ -119,7 +119,7 @@ class test_dex(unittest.TestCase):
                 "112t8rnqawFcfb4TCLwvSMgza64EuC4HMPUnwrqG1wn1UFpyyuCBcGPMcuT7vxfFCehzpj3jexavU33qUUJcdSyz321b27JFZFj6smyyQRza",
                 "112t8rnr8swHUPwFhhw8THdVtXLZqo1AqnoKrg1YFpTYr7k7xyKS46jiquN32nDFMNG85cEoew8eCpFNxUw4VB8ifQhFnZSvqpcyXS7jg3NP",
                 "112t8rnuHvmcktny3u5p8WfgjPo7PEMHrWppz1y9verdCuMEL4D5esMsR5LUJeB5A4oR9u5SeTpkNocE4CE8NedJjbp3xBeZGLn7yMqS1ZQJ",
-                "112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA",
+                "112t8rnxntm4qcc1kNxqQJEpz4DskFKXojYxaGVT3h7c7QjbWpgiVRv2qmLjQMUW8QxUm7HiyxqdQ35fdcAQ7SZ3cYmDADGfFkcENH6Pi8GH",
                 "112t8rnzyZWHhboZMZYMmeMGj1nDuVNkXB3FzwpPbhnNbWcSrbytAeYjDdNLfLSJhauvzYLWM2DQkWW2hJ14BGvmFfH1iDFAxgc4ywU6qMqW",
                 "112t8ro1aB8Hno84bCGkoPv4fSgdnjghbd5xHg7NmriQGexqy6J7jKL3iDWAEytKwpH6U85MkAaZmEGcV3uBH8kZiUcBHpc1CpskuwyqZNU4",
                 "112t8ro3VxLStVFoFiZ2Grose15tyCXCbc9VR2YtHbZCd2GZQPYBMafmXws2DDNd8VKQqKhvw6wW51xyxvrTzLE5prRAjcWJiDWiU4EL3TUT"
@@ -243,7 +243,7 @@ class test_dex(unittest.TestCase):
                 "12S2DUBWE3shx2o5d14Nr9DVM6eocQMjbJZMrT9YXfbNwhg3sejnP1tqhaW8SrJ881Zo3vgdVPUf56WXrYnMjBRmeKWPKFiJKcoviUA",
                 "12S2ZZxMFr6kzDBd5jKWtAYsm47tbRDvRWC1RYTHZeXsG49JNMSsX4jSVYRTvfpTi11XPxqjmauRUX5myddMTwKuNZZw3CrsYUa82tc",
                 "12Rr9rsUiXbG3JgdJNeFtLjGhYEWPaEpzvV5YDSzst7sU3sxgMaXBY5uWbRXGRLYGDTrzZ9KEcbNYZT8SHMErDkm6h6PcJrKdBC4tye",
-                "12RxERBySmquLtM1R1Dk2s7J4LyPxqHxcZ956kupQX3FPhVo2KtoUYJWKet2nWqWqSh3asWmgGTYsvz3jX73HqD8Jr2LwhjhJfpG756",
+                "12S4kCdFmeW78Rxi2RrdgQqwDrKjkCXX6LeQpES1EVRCwfsTqefPDvSV9oi1DwvERvwRvCGFbgvbqbfusCN29HN5rukngGkp7U5EVHF",
                 "12RwumVV4Q84rKknv24yATBeQmu9rtEMro91BuKhLnpnRsR1iaXBRtrWJZ6Mg2rFCfauvNvhjkhVKbYJYMW6bQAWbAj11UTo2Dy3XeT",
                 "12RqFNrzjApKLSxg786YmRQwq46LqbJKpPbLXUZTH7rbzxJ55nyiPWFEQbg6ZGjWmefNo3rp8LSLe8JTRw17vc3NszuJSkHg4Mm54xU",
                 "12Rrz9C7QcD3x5sCyp8o9a3nc3HCPasqtWJZnsb5B5wiaDx38rE7Je2oJdWr1DQMjiPrN8GG1ZHqxVNydL8RCqf4FRdzMzfJoBf5NKz"
@@ -1107,6 +1107,102 @@ class test_dex(unittest.TestCase):
         INFO("Withdrawal amount prv & d79: %d vs %d" % (prv_withdrawal, d79_withdrawal))
         INFO("share prv B: %s" % str(share_000004_B))
         INFO("share prv A: %s" % str(share_000004_A))
+        INFO("rate 000004 & 797d79 B: " + str(rate_B))
+        INFO("rate 000004 & 797d79 A: " + str(rate_A))
+
+        assert_true(balance_797d79_A == d79_withdrawal + balance_797d79_B,
+                    "Balance d79 invalid after withdraw %d != %d + %d " % (
+                        balance_797d79_A, d79_withdrawal, balance_797d79_B), "balance 79d is correct")
+        assert_true(balance_000004_A + tx_fee == prv_withdrawal + balance_000004_B,
+                    "Balance prv invalid after withdraw %d + %d != %d + %d" % (
+                        tx_fee, balance_000004_A, prv_withdrawal, balance_000004_B), "balance prv is correct")
+
+    @pytest.mark.run
+    def test_DEX19_withdrawalLiquidityPRV(self):
+        print("""
+                    test_DEX05_withdrawalLiquidity:
+                    - withdraw token from a contributor
+                    - 70% shares
+                    """)
+        STEP(1, "Get balance before withdraw")
+        shard = 0
+        acct = 6
+        print (self.testData['paymentAddr'][shard][acct])
+        print(self.testData['privateKey'][shard][acct])
+        balance_797d79_B, _ = self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][shard][acct],
+                                                                       self.testData['797d79'])
+        balance_000004_B = self.fullnode_trx.getBalance(self.testData['privateKey'][shard][acct])
+
+        # share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['000004'],
+        #                                              [self.testData['token_ownerPaymentAddress'][0]])
+
+        share_000004_B = self.fullnode.get_pdeshares(self.testData['000004'], self.testData['797d79'],
+                                                     [self.testData['token_ownerPaymentAddress'][0]] +
+                                                     self.testData['paymentAddr'][0] +
+                                                     self.testData['paymentAddr'][5] +
+                                                     self.testData['paymentAddr'][9])
+        rate_B = self.fullnode.get_latestRate(self.testData["000004"], self.testData["797d79"])
+        STEP(2, "Withdraw 70% from 1st share owner")
+        lone_share_B = self.fullnode.get_pdeshares(self.testData['000004'], self.testData['797d79'],
+                                                                  [self.testData['paymentAddr'][shard][acct]])
+        withdraw_share = math.floor(lone_share_B[0] * 0.7)
+        INFO("withdrawing: %d share" % withdraw_share)
+        txid = self.fullnode.withdrawal_contribution(self.testData['privateKey'][shard][acct],
+                                                     self.testData['paymentAddr'][shard][acct],
+                                                     self.testData['000004'],
+                                                     self.testData['797d79'],
+                                                     withdraw_share)
+        ws_tx = self.fullnode_ws.subcribePendingTransaction(txid)
+        tx_fee = ws_tx[2]
+
+        STEP(3, "Wait for Tx to be confirmed")
+        step3_result = False
+        for i in range(0, 10):
+            tx_confirm = self.shard0_trx.get_txbyhash(txid)
+            if tx_confirm[0] != "":
+                step3_result = True
+                DEBUG("the " + txid + " is confirmed")
+                break
+            else:
+                print("shardid: " + str(tx_confirm[1]))
+                WAIT(10)
+        assert_true(step3_result is True, "The " + txid + " is NOT yet confirmed")
+
+        STEP(4, "Verify balance after withdraw")
+        balance_000004_A = False
+        for _ in range(0, 10):
+            balance_000004_A = self.shard0_trx.getBalance(self.testData['privateKey'][shard][acct])
+            if balance_000004_A > balance_000004_B:
+                break
+            WAIT(10)
+        if balance_000004_A is not False:
+            balance_797d79_A, _ = self.shard0_trx.get_customTokenBalance(self.testData['privateKey'][shard][acct],
+                                                                         self.testData['797d79'])
+        else:
+            # ERROR("Wait time expired, 000004 did NOT increasse")
+            assert_true(balance_000004_A != False, "Wait time expired, 000004 did NOT increase")
+
+        share_000004_A = self.fullnode.get_pdeshares(self.testData['000004'], self.testData['797d79'],
+                                                     [self.testData['token_ownerPaymentAddress'][0]] +
+                                                     self.testData['paymentAddr'][0] +
+                                                     self.testData['paymentAddr'][5] +
+                                                     self.testData['paymentAddr'][9])
+        lone_share_A = self.fullnode.get_pdeshares(self.testData['000004'], self.testData['797d79'],
+                                                                    [self.testData['paymentAddr'][shard][acct]])
+        rate_A = self.fullnode.get_latestRate(self.testData["000004"], self.testData["797d79"])
+        d79_withdrawal = math.floor(withdraw_share * rate_B[1] / sum(share_000004_B))
+        prv_withdrawal = math.floor(withdraw_share * rate_B[0] / sum(share_000004_B))
+
+        INFO("SUMMARY:")
+        INFO("Balance d79 B: %s" % str(balance_797d79_B))
+        INFO("Balance d79 A: %s" % str(balance_797d79_A))
+        INFO("Balance prv B: %s" % str(balance_000004_B))
+        INFO("Balance prv A: %s" % str(balance_000004_A))
+        INFO("Withdrawal amount prv & d79: %d vs %d" % (prv_withdrawal, d79_withdrawal))
+        INFO("list share prv B: %s" % str(share_000004_B))
+        INFO("list share prv A: %s" % str(share_000004_A))
+        INFO("acct share prv B: %s" % str(lone_share_B))
+        INFO("acct share prv A: %s" % str(lone_share_A))
         INFO("rate 000004 & 797d79 B: " + str(rate_B))
         INFO("rate 000004 & 797d79 A: " + str(rate_A))
 
