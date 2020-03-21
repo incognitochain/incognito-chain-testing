@@ -31,9 +31,9 @@ def test_self_stake_n_stake_other(self_stake):
         stake = stake_account
         staked = staked_account
 
-    STEP(1, "Stake 4 more with auto-stake")
-    for acc in auto_stake_acc:
-        acc.stake_and_reward_me()
+    # STEP(1, "Stake 4 more with auto-stake")
+    # for acc in auto_stake_acc:
+    #     acc.stake_and_reward_me() => skip step1, environment se setup san 6 node per shard (min4, max6)
 
     STEP(2, 'Get epoch number')
     # for loop, wait and check:
