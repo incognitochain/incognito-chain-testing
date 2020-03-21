@@ -36,9 +36,17 @@ def test_self_stake_n_stake_other(self_stake):
         acc.stake_and_reward_me()
 
     STEP(2, 'Get epoch number')
+    # for loop, wait and check:
+    # if 0 <= (beacon_height % 40) < 20:  #(nua dau cua epoch)
+    #   print("ready to stake")
+    #   print("current epoch: $epoch, current beacon height: $beacon_height
+    #   break
+    # else:
+    #   WAIT( (40 - (beacon_height % 40)) * 10) # 1 beacon block every 10 seconds
+
     epoch_number = SUT.full_node.system_rpc().help_get_current_epoch()
-    block_height = SUT.full_node.system_rpc().help_get_beacon_height_in_best_state_detail(refresh_cache=False)
-    INFO(f'epoch: {epoch_number}, block height: {block_height}')
+    beacon_height = SUT.full_node.system_rpc().help_get_beacon_height_in_best_state_detail(refresh_cache=False)
+    INFO(f'epoch: {epoch_number}, beacon height: {beacon_height}')
 
     STEP(3, 'Stake and check balance after stake')
     stake.get_prv_balance()
@@ -49,13 +57,14 @@ def test_self_stake_n_stake_other(self_stake):
     stake_response.subscribe_transaction()
     fee = stake_response.get_transaction_by_hash().get_fee()
     assert stake_account.get_prv_balance_cache() == stake_account.get_prv_balance() - fee - coin(1750)
-    assert not stake_account.am_i_a_committee()
+    assert not stake_account.am_i_a_committee() # need condition for case "stake for other"
 
     STEP(4, f'Wait until epoch {epoch_number} + 1 and Check if the stake become a committee')
     epoch_plus_1 = SUT.full_node.system_rpc().help_wait_till_epoch(epoch_number + 1)
     assert staked.am_i_a_committee() is not False
 
     STEP(5, "Sending token")
+    # token_id da contribute ung voi 10000 prv
     token_receiver.get_token_balance(token_id)
     token_sender.send_token_to(token_receiver, token_id, amount_token_send, token_fee=amount_token_fee) \
         .subscribe_transaction()
@@ -64,7 +73,7 @@ def test_self_stake_n_stake_other(self_stake):
         token_id)
 
     STEP(6, "Wait for the stake to be swapped out")
-    wait_time_out = 300
+    wait_time_out = 400 # wait 1 epoch = 40 beacon block * 10 sec
     time_wait_start = time.perf_counter()
     epoch_x = None
     while staked.am_i_a_committee() is not False:
@@ -72,20 +81,21 @@ def test_self_stake_n_stake_other(self_stake):
         time_wait_now = time.perf_counter()
         if time_wait_now - time_wait_start > wait_time_out:
             raise TimeoutError('time out while waiting for the stake to be swapped out')
+    # print INFO staked is not a committee anymore, epoch: $epoch
 
     STEP(7.1, "Calculate avg PRV reward per epoch")
     prv_reward = staked.get_reward_amount()
     avg_prv_reward = prv_reward / (epoch_x - epoch_plus_1)
     INFO(f'AVG prv reward = {avg_prv_reward}')
 
-    STEP(7.2, "Calculate avg token reward per epoch")
+    STEP(7.2, "Reward token at epoch_plus_1")
     token_reward = staked.get_reward_amount(token_id)
-    avg_token_reward = token_reward / (epoch_x - epoch_plus_1)
-    INFO(f'AVG token reward = {avg_token_reward}')
+    # avg_token_reward = token_reward / (epoch_x - epoch_plus_1) => vi cac epoch sau ko gui token, ko tra fee_token nen ko can tinh reward
+    INFO(f'Token reward at epoch plus 1 = {token_reward}')
 
     STEP(8, 'Unstake and verify staking refund')
     stake.get_prv_balance()
-    stake.un_stake_him(staked)
+    # stake.un_stake_him(staked) => skip boi vi step 2, auto restake = false, ko can send rpc unstake
     SUT.full_node.system_rpc().help_wait_till_epoch(epoch_x + 2)
     assert stake.get_prv_balance_cache() == stake.get_prv_balance() - coin(1750)
 
@@ -96,3 +106,6 @@ def test_self_stake_n_stake_other(self_stake):
     staked.subscribe_cross_output_token()
 
     assert staked.get_token_balance_cache(token_id) == staked.get_token_balance(token_id) - reward_amount
+
+    # withdraw prv va verify prv amount withdrawn
+    # de khoi can clean environment, lan sau chay se thay reward prv = 0
