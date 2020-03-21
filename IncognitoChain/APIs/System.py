@@ -66,6 +66,9 @@ class SystemRpc:
 
     def help_wait_till_epoch(self, epoch_number, pool_time=30, timeout=180):
         epoch = self.help_get_current_epoch()
+        if epoch >= epoch_number:
+            INFO(f"Now epoch = {epoch} already")
+            return epoch
         time_start = time.perf_counter()
         while epoch < epoch_number:
             time.sleep(pool_time)

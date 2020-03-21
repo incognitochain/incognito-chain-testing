@@ -29,7 +29,7 @@ class Account:
         copy_obj.cache = self.cache
         return copy_obj
 
-    def __deepcopy__(self):
+    def __deepcopy__(self, memo={}):
         copy_obj = Account(copy.deepcopy(self.private_key),
                            copy.deepcopy(self.payment_key),
                            copy.deepcopy(self.shard),
@@ -176,18 +176,22 @@ class Account:
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
                                                 self.payment_key, stake_amount)
 
-    def stake_someone_reward_him(self, someone, stake_amount=None):
+    def stake_someone_reward_him(self, someone, stake_amount=None, auto_re_stake=True):
         """
 
         :return:
         """
         return self.__SUT.full_node.transaction(). \
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
-                                                someone.payment_key, stake_amount)
+                                                someone.payment_key, stake_amount, auto_re_stake)
 
     def un_stake_me(self):
         return self.__SUT.full_node.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, self.payment_key, self.validator_key)
+
+    def un_stake_him(self, him):
+        return self.__SUT.full_node.transaction(). \
+            create_and_send_stop_auto_staking_transaction(self.private_key, him.payment_key, him.validator_key)
 
     def get_token_balance_cache(self, token_id):
         try:

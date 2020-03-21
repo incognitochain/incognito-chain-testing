@@ -9,7 +9,6 @@ from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, Account
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Performace import sending_prv_thread, account_list
 
-sender_account_list = []
 dict_tx_save_fullnode = dict()
 dict_tx_save_shard = dict()
 # sender_account_payment_address_list = []

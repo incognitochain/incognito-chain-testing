@@ -28,12 +28,13 @@ def test_max_tx_in_same_block():
     wait_threads_to_complete(all_thread_list)
 
     # subscribe the last transaction to make sure all transactions are handled
-    for i in range(data_length - 1, -1, -1):
-        if transactions_save_fullnode[i].get_tx_id() is not None:
-            transactions_save_fullnode[i].subscribe_transaction()
+    for index in range(data_length - 1, -1, -1):
+        if transactions_save_fullnode[index].get_tx_id() is not None:
+            transactions_save_fullnode[index].subscribe_transaction()
             break
 
     STEP(3, 'Get transaction by hash of each tx_id => check that them all in same block-height (or block-height + 1)')
+    block_height = None
     for tx in transactions_save_fullnode:
         if tx.get_tx_id() is not None:
             block_height = tx.get_transaction_by_hash().get_block_height()
@@ -43,8 +44,8 @@ def test_max_tx_in_same_block():
     for index in range(0, data_length):
         transaction = transactions_save_fullnode[index]
         tx_block_height = transaction.get_transaction_by_hash().get_block_height()
-        assert (block_height == tx_block_height or block_height + 1 == tx_block_height) \
-               and INFO(f'{index}: tx = {transaction.get_tx_id()}, block height = {tx_block_height}')
+        assert (block_height == tx_block_height or block_height + 1 == tx_block_height) and INFO(
+            f'{index}: tx = {transaction.get_tx_id()}, block height = {tx_block_height}')
 
     STEP(4, 'Verify that block contains at least 10 tx')
     tx_in_block_count = 0

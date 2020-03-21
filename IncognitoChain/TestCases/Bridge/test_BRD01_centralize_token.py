@@ -5,7 +5,7 @@ from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 
 # sender_account = get_accounts_in_shard(0)[1]
-receiver_account = get_accounts_in_shard(2)[0]
+receiver_account = get_accounts_in_shard(5)[0]
 # init_sender_balance = sender_account.get_prv_balance()
 # init_receiver_balance = receiver_account.get_prv_balance()
 
@@ -70,9 +70,9 @@ def test_init_centralize_token():
         if token['tokenId'] == token_id:
             assert token['amount'] == token_amount and INFO(
                 f"the getallbridgetokens has found TokenId with correct token amount: {token_amount}")
-            assert token['externalTokenId'] == None
+            assert token['externalTokenId'] is None
             assert token['network'] == ""
-            assert token['isCentralized'] == True
+            assert token['isCentralized'] is True
             found_token_id = True
             break
     assert found_token_id, f"tokenId {token_id} not found in getallbridgetokens"
