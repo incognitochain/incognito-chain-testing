@@ -4,7 +4,7 @@ import unittest
 
 import pytest
 
-import topology.NodeList_devnet as NodeList
+import topology.NodeList as NodeList
 from libs.AutoLog import INFO, WAIT, STEP, assert_true, DEBUG
 from libs.DecentralizedExchange import DEX
 from libs.Transaction import Transaction
@@ -31,22 +31,24 @@ class test_dex(unittest.TestCase):
         # "797d79": "0c1e0dded579a13cb5f9034d810b892d6109fd2ad269f545ee2df0e760cda5d6",
         # "562f2b": "a78c34f9dd6adb186d7f371f676b0d6de1603c87a31c281aedf769aad6a57661",
 
-        "amount_contribution_797d79": 60000000,
-        "amount_contribution_562f2b": 50000,
+        "amount_contribution_797d79": 30000000,
+        "amount_contribution_562f2b": 50000476,
         "amount_contribution_000004": 25000000,
         # "amount_contribution_797d79": 29461,
         # "amount_contribution_562f2b": 24623623,
 
         "token_ownerPrivateKey": [
+            "112t8rnxntm4qcc1kNxqQJEpz4DskFKXojYxaGVT3h7c7QjbWpgiVRv2qmLjQMUW8QxUm7HiyxqdQ35fdcAQ7SZ3cYmDADGfFkcENH6Pi8GH",
             "112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA",
-            "112t8rnX6ThEU1nYpyYeerYU47EmrTA1AWJguAAbJLyot8ETdUydT4yT4zahyyme78bAAbNZmhzHGva57b7XTf6BFiA9uzGiQMdxFfSGDdwi",
+            "112t8rnX6ThEU1nYpyYeerYU47EmrTA1AWJguAAbJLyot8ETdUydT4yT4zahyyme78bAAbNZmhzHGva57b7XTf6BFiA9uzGiQMdxFfSGDdwi"
         ],
         "token_ownerPaymentAddress": [
+            "12S4kCdFmeW78Rxi2RrdgQqwDrKjkCXX6LeQpES1EVRCwfsTqefPDvSV9oi1DwvERvwRvCGFbgvbqbfusCN29HN5rukngGkp7U5EVHF",
             "12RxERBySmquLtM1R1Dk2s7J4LyPxqHxcZ956kupQX3FPhVo2KtoUYJWKet2nWqWqSh3asWmgGTYsvz3jX73HqD8Jr2LwhjhJfpG756",
-            "12RxiiobVPEoo4djdueSsDcT79BgcBQtiZfwMTwTt9a6tfN9gEbsor7BgxsHxb8DeufMo2BTDxn11wnm3ANDHGL1e8Y7NXWZmQLMiLC",
+            "12RxiiobVPEoo4djdueSsDcT79BgcBQtiZfwMTwTt9a6tfN9gEbsor7BgxsHxb8DeufMo2BTDxn11wnm3ANDHGL1e8Y7NXWZmQLMiLC"
         ],
         "privateKey": {
-            0: [
+            5: [
                 "112t8rnakdKxvk7VMKUB9qmsPY4czwnP24b82BnepcxHLX6kJ1dYQsR8d6xNTzwC9nEhJdocr9u19NAr4iSYXCeTBRu3YET8iADMAP3szdfw",
                 "112t8rnbTkezohA4GLeUDpLFnuDbFvPcoCS1MxctvEu3rmUkvmoWJ37MnXDSscpVy6bKfSwjWigi9L3qhcUFo8yZLLsgPvYAn9fs1E62qNPS",
                 "112t8rnjzNW1iKLjpNW9oJoD38pnVVgCiZWRuqGmMvcEgZEHjtg4tLRTAcfTCxNXrdzKcEmY9JVfX2Wb3JLaCjfRDEyGhXGK67VB297mZuwH",
@@ -110,14 +112,14 @@ class test_dex(unittest.TestCase):
                 "112t8rnpq9pGi2DLqp5yWqwPxRAWkRVGtyb1xGKXUmW5Dxox7pwT6twao3RBugiMj9pDZizmi9ohfqAEv4ggRaXhoPzXnvutV4YU2qekJg5M"
 
             ],
-            5: [
+            0: [
                 "112t8rnYwrzsk7bQgYM6duFMfQsHDvoF3bLLEXQGSXayLzFhH2MDyHRFpYenM9qaPXRFcwVK2b7jFG8WHLgYamaqG8PzAJuC7sqhSw2RzaKx",
                 "112t8rneWAhErTC8YUFTnfcKHvB1x6uAVdehy1S8GP2psgqDxK3RHouUcd69fz88oAL9XuMyQ8mBY5FmmGJdcyrpwXjWBXRpoWwgJXjsxi4j",
                 "112t8rni5FF2cEVMZmmCzpnr4QuFnUvYymbkjk3LGp5GJs8c8wTMURmJbZGx8WgwkPodtwGr34Vu8KZat7gxZmSXu5h9LDuppnyzcEXSgKff",
                 "112t8rnqawFcfb4TCLwvSMgza64EuC4HMPUnwrqG1wn1UFpyyuCBcGPMcuT7vxfFCehzpj3jexavU33qUUJcdSyz321b27JFZFj6smyyQRza",
                 "112t8rnr8swHUPwFhhw8THdVtXLZqo1AqnoKrg1YFpTYr7k7xyKS46jiquN32nDFMNG85cEoew8eCpFNxUw4VB8ifQhFnZSvqpcyXS7jg3NP",
                 "112t8rnuHvmcktny3u5p8WfgjPo7PEMHrWppz1y9verdCuMEL4D5esMsR5LUJeB5A4oR9u5SeTpkNocE4CE8NedJjbp3xBeZGLn7yMqS1ZQJ",
-                "112t8rnxntm4qcc1kNxqQJEpz4DskFKXojYxaGVT3h7c7QjbWpgiVRv2qmLjQMUW8QxUm7HiyxqdQ35fdcAQ7SZ3cYmDADGfFkcENH6Pi8GH",
+                "112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA",
                 "112t8rnzyZWHhboZMZYMmeMGj1nDuVNkXB3FzwpPbhnNbWcSrbytAeYjDdNLfLSJhauvzYLWM2DQkWW2hJ14BGvmFfH1iDFAxgc4ywU6qMqW",
                 "112t8ro1aB8Hno84bCGkoPv4fSgdnjghbd5xHg7NmriQGexqy6J7jKL3iDWAEytKwpH6U85MkAaZmEGcV3uBH8kZiUcBHpc1CpskuwyqZNU4",
                 "112t8ro3VxLStVFoFiZ2Grose15tyCXCbc9VR2YtHbZCd2GZQPYBMafmXws2DDNd8VKQqKhvw6wW51xyxvrTzLE5prRAjcWJiDWiU4EL3TUT"
@@ -146,7 +148,7 @@ class test_dex(unittest.TestCase):
                 "112t8rnn4JiG8TejjT8XVWnXYnS4Qju8XhpnAcLPN3jTrGMB2E4waJjfP8faXN5GvVpMRumhUshANF6DvQUFUBULMoPpSjFdV6tqrERsVa13",
                 "112t8rnoNEkkhKQ3BS267985dik9ivyu7qMYXMqJpAeAEksxYLF1fXBPZMwCZk9DNsYYAvQruJWx9MF4LB12DLunV4eLE4dRg758AMVtPrbu"
             ],
-            8: [
+            9: [
                 "112t8rnb3xwqqd3ZUU1HooFkQhdaKJshqcEepYKxds6DNH5w3d5ExpcjW4J5eAUyGnoPcXbbfkDv6fzbaikEnRke3TTvKc7mPAQBWMFekR6M",
                 "112t8rnXuCwHHCimQ8JhsQhtVx3sfxyYtnCh2n5ZNb2u948Ya2Jgj8csPttBHK6aiLDn7KpxpQ89Bp1PH6Fy6ZxkWeCGWQ8D4eSBejpDNNnh",
                 "112t8rnXMRrjgSsyKqtovrcMxTQWXUAwECWkGkk9SwxjcR9KuFUZDL4FrTZ9qPr7wZeEPuoYdu7SW3PYz5ZN5ZCaDcSHpJPJ7ij1VY7zTXpz",
@@ -158,13 +160,22 @@ class test_dex(unittest.TestCase):
                 "112t8rnedoadSV8GAgFBTCxU3fsBg4oeKwwdb1PL1Kpffr3Yo9MudwBndVNfcRPScSZrukJRF31YQakqLbfqvx4JfbDAZWX1D8R68UFeK3B9",
                 "112t8rngM8HHKPyrR1vkxPn7doRkT29az1vY7G8APuPJSagTk8tkHZMjn8qBsvesCqYYzfCfsL6dvJ7NMR6afhK8LKjGxKiuDZFUT2JpGURX"
             ],
-            9: [
-                "112t8rnb3xwqqd3ZUU1HooFkQhdaKJshqcEepYKxds6DNH5w3d5ExpcjW4J5eAUyGnoPcXbbfkDv6fzbaikEnRke3TTvKc7mPAQBWMFekR6M"
+            8: [
+                "112t8rnakdKxvk7VMKUB9qmsPY4czwnP24b82BnepcxHLX6kJ1dYQsR8d6xNTzwC9nEhJdocr9u19NAr4iSYXCeTBRu3YET8iADMAP3szdfw",
+                "112t8rnbTkezohA4GLeUDpLFnuDbFvPcoCS1MxctvEu3rmUkvmoWJ37MnXDSscpVy6bKfSwjWigi9L3qhcUFo8yZLLsgPvYAn9fs1E62qNPS",
+                "112t8rnjzNW1iKLjpNW9oJoD38pnVVgCiZWRuqGmMvcEgZEHjtg4tLRTAcfTCxNXrdzKcEmY9JVfX2Wb3JLaCjfRDEyGhXGK67VB297mZuwH",
+                "112t8rnmcQXPkPG3nHhhmLjKeqZEjBHcFCSxBdwRy2L6nGXBwKopc5PYWPVXu14xmec34LXxu5JJcf3N6wUfsbbNWKVotAMNrswhE6adbBmu",
+                "112t8rns2sxbuHFAAhtMksGhK9S1mFcyiGpKypzJuXJSmHZE8d4SqM3XNSy6i9QacqTeVmrneuEmNzF1kcwAvvf6d137PVJun1qnsxKr1gW6",
+                "112t8rnuHvmcktny3u5p8WfgjPo7PEMHrWppz1y9verdCuMEL4D5esMsR5LUJeB5A4oR9u5SeTpkNocE4CE8NedJjbp3xBeZGLn7yMqS1ZQJ",
+                "112t8rnxntm4qcc1kNxqQJEpz4DskFKXojYxaGVT3h7c7QjbWpgiVRv2qmLjQMUW8QxUm7HiyxqdQ35fdcAQ7SZ3cYmDADGfFkcENH6Pi8GH",
+                "112t8rnzyZWHhboZMZYMmeMGj1nDuVNkXB3FzwpPbhnNbWcSrbytAeYjDdNLfLSJhauvzYLWM2DQkWW2hJ14BGvmFfH1iDFAxgc4ywU6qMqW",
+                "112t8ro1aB8Hno84bCGkoPv4fSgdnjghbd5xHg7NmriQGexqy6J7jKL3iDWAEytKwpH6U85MkAaZmEGcV3uBH8kZiUcBHpc1CpskuwyqZNU4",
+                "112t8ro3VxLStVFoFiZ2Grose15tyCXCbc9VR2YtHbZCd2GZQPYBMafmXws2DDNd8VKQqKhvw6wW51xyxvrTzLE5prRAjcWJiDWiU4EL3TUT"
 
             ]
         },
         "paymentAddr": {
-            0: [
+            5: [
                 "12RxnTs5KqyQUzGF4R2w68j3biJD29iDsFiVgC4GRy5X85anUrq1rg8P4aUyDRuS5desg9WANRptifcissMBPETyMeBE8KEh7LmQ6m7",
                 "12Rv7iLGR4m2116m6X44yyY531WQ4j7Eroxnkv2CZKHeieDtmHUEeerq9RkPkvb8N4S3NxcBdJPDe4jHKeapzTxSVpRcGGK7NPUc1eF",
                 "12Rryj5pw8jmf6Pxs4FFxWs6YW8eBbJd1m2vGiFaguyH9rSQwuqeTqvDuUrReNSVd2w6mfr1SrCZYocU1Wrh9xhWS9rXEYGWuDz2VAp",
@@ -225,14 +236,14 @@ class test_dex(unittest.TestCase):
                 "12S44xGxJjNiuJze9V9AoqsLSAy7N32T3xCBkH5ockymfqgMkTk246LXigfApoDCiYxyyDszVwYwhsYg7pP5YMMKP4PbWNZUGR1z35p",
                 "12S6i33cVoMZCw8QPkvrPssTjaqpxpgGTgaPTjBdDESQPHSRnGSd4kTViYTmLN8NXmEQuJhCiDuc4H3Q1avAw5hCUMTCpx5bxSFdx2z"
             ],
-            5: [
+            0: [
                 "12RxdaQkg3HzYAzfWb53osy9pbyHVqTd5m1hN6eghfjAXLwpy2m3QgGBRWVnmhH6sq1YScnYLC9aESWitaLTw9TNsJkhXiv88CAn6kf",
                 "12Rx2NqWi5uEmMrT3fRVjhosBoGpjAQ9yxFmHckxZjyekU9YPdN622iVrwL3NwERvepotM6TDxPUo2SV4iDpW3NUukxeNCwJb2QTN9H",
                 "12Rvic7Pnf1d12ZB2hnYwGV6W9RLfHpkaSt2N5Xr5up8Hj93s2z8SQKRqQZ6ye2tFD2WKy28XTSQ1w9wiYN8RZtFbPipjxSUycJvbPT",
                 "12S2DUBWE3shx2o5d14Nr9DVM6eocQMjbJZMrT9YXfbNwhg3sejnP1tqhaW8SrJ881Zo3vgdVPUf56WXrYnMjBRmeKWPKFiJKcoviUA",
                 "12S2ZZxMFr6kzDBd5jKWtAYsm47tbRDvRWC1RYTHZeXsG49JNMSsX4jSVYRTvfpTi11XPxqjmauRUX5myddMTwKuNZZw3CrsYUa82tc",
                 "12Rr9rsUiXbG3JgdJNeFtLjGhYEWPaEpzvV5YDSzst7sU3sxgMaXBY5uWbRXGRLYGDTrzZ9KEcbNYZT8SHMErDkm6h6PcJrKdBC4tye",
-                "12S4kCdFmeW78Rxi2RrdgQqwDrKjkCXX6LeQpES1EVRCwfsTqefPDvSV9oi1DwvERvwRvCGFbgvbqbfusCN29HN5rukngGkp7U5EVHF",
+                "12RxERBySmquLtM1R1Dk2s7J4LyPxqHxcZ956kupQX3FPhVo2KtoUYJWKet2nWqWqSh3asWmgGTYsvz3jX73HqD8Jr2LwhjhJfpG756",
                 "12RwumVV4Q84rKknv24yATBeQmu9rtEMro91BuKhLnpnRsR1iaXBRtrWJZ6Mg2rFCfauvNvhjkhVKbYJYMW6bQAWbAj11UTo2Dy3XeT",
                 "12RqFNrzjApKLSxg786YmRQwq46LqbJKpPbLXUZTH7rbzxJ55nyiPWFEQbg6ZGjWmefNo3rp8LSLe8JTRw17vc3NszuJSkHg4Mm54xU",
                 "12Rrz9C7QcD3x5sCyp8o9a3nc3HCPasqtWJZnsb5B5wiaDx38rE7Je2oJdWr1DQMjiPrN8GG1ZHqxVNydL8RCqf4FRdzMzfJoBf5NKz"
@@ -261,7 +272,7 @@ class test_dex(unittest.TestCase):
                 "12RrS73n9HSQEVCW9P6h65VHdzagHRsb6VwTzcpswwc1ncJxrdQt52Ftkeo5bENbY5hXMSKqCGom4961JS15qgaBhqCbA39mWp7cGCu",
                 "12RvMo7KYYc38aeC25XbDzfV13WHB5WPGoeLgp6pbx5xUQs6xJDEQqzm9mA8fegA2uuDUGLVQEFvePT5hCdCrGmVyDpYJ2YoX7Bkm6R"
             ],
-            8: [
+            9: [
                 "12RrPp11mPovVGLLYAF31TAXnpRYMxL1Lzhn5XnYsrJZhuP136BuEtHyo8ZLzwbeFGLUycxrcyfa9cATkF3cbJoGPeisZ7jwx2TFiYn",
                 "12RwSij6ep5oB6TnzcRStonLR3GU1GAx4epV8pEUACZQJk95caKTtr1iZF25wmCpwRMDcrfEbuRpHo5PpdzSGhtNnvFeSumW8P9z44z",
                 "12S2QGPpbShZZhd3fMtWPuBoZLTSSFFUk1FVkefGh1GtbBvnsXXhYiLCM6Vx8aMoN2SLaNmVkfVnA8CMxhEBfjbMoiU31vzmDdn3NBG",
@@ -273,8 +284,17 @@ class test_dex(unittest.TestCase):
                 "12RpnJ65EAJiJH8LYGyzKBQQEBLs3Um2YRTFf7v79tnnM7fF27bVDWeJ3bZTwSucbDC3VoUqMi3NuDGodAfmH88nHJmhv8AWgRfXeNv",
                 "12RyiCu4kFCjbwqh3w2yuug2Xq24iACa6Ndbu4RdetVYjfW6j7XkpGGiv9rHVcCKQXEjCMBz4qT3yCvDbm9awaZPW1MJSEto2KCpBPY"
             ],
-            9: [
-                "12RrPp11mPovVGLLYAF31TAXnpRYMxL1Lzhn5XnYsrJZhuP136BuEtHyo8ZLzwbeFGLUycxrcyfa9cATkF3cbJoGPeisZ7jwx2TFiYn"
+            8: [
+                "12RxnTs5KqyQUzGF4R2w68j3biJD29iDsFiVgC4GRy5X85anUrq1rg8P4aUyDRuS5desg9WANRptifcissMBPETyMeBE8KEh7LmQ6m7",
+                "12Rv7iLGR4m2116m6X44yyY531WQ4j7Eroxnkv2CZKHeieDtmHUEeerq9RkPkvb8N4S3NxcBdJPDe4jHKeapzTxSVpRcGGK7NPUc1eF",
+                "12Rryj5pw8jmf6Pxs4FFxWs6YW8eBbJd1m2vGiFaguyH9rSQwuqeTqvDuUrReNSVd2w6mfr1SrCZYocU1Wrh9xhWS9rXEYGWuDz2VAp",
+                "12S1hPUUsFFsWswuCUk8uMh5b4WHXzycsQWPVgqenJChvCTKSUyevZn8Fu3b9w6HoZYyi5UxgWdQuEER1adxW5xeDxbnc5sQzCZu2my",
+                "12RsetaMufaKaYpg7zJ3CL82n7Nhg9q4nRWNu4YHFms3BFVM2Ghm6jWfCJbYM1JV1aqDjBFCQFdL3MYQhX3xhETohBjcH2xjkyRBGi7",
+                "12Rr9rsUiXbG3JgdJNeFtLjGhYEWPaEpzvV5YDSzst7sU3sxgMaXBY5uWbRXGRLYGDTrzZ9KEcbNYZT8SHMErDkm6h6PcJrKdBC4tye",
+                "12S4kCdFmeW78Rxi2RrdgQqwDrKjkCXX6LeQpES1EVRCwfsTqefPDvSV9oi1DwvERvwRvCGFbgvbqbfusCN29HN5rukngGkp7U5EVHF",
+                "12RwumVV4Q84rKknv24yATBeQmu9rtEMro91BuKhLnpnRsR1iaXBRtrWJZ6Mg2rFCfauvNvhjkhVKbYJYMW6bQAWbAj11UTo2Dy3XeT",
+                "12RqFNrzjApKLSxg786YmRQwq46LqbJKpPbLXUZTH7rbzxJ55nyiPWFEQbg6ZGjWmefNo3rp8LSLe8JTRw17vc3NszuJSkHg4Mm54xU",
+                "12Rrz9C7QcD3x5sCyp8o9a3nc3HCPasqtWJZnsb5B5wiaDx38rE7Je2oJdWr1DQMjiPrN8GG1ZHqxVNydL8RCqf4FRdzMzfJoBf5NKz"
 
             ]
         }
@@ -342,7 +362,8 @@ class test_dex(unittest.TestCase):
         owner_shareamount_B = self.fullnode.get_pdeshares(self.testData['000004'], self.testData['797d79'],
                                                           [self.testData['token_ownerPaymentAddress'][0]] +
                                                           self.testData['paymentAddr'][0] +
-                                                          self.testData['paymentAddr'][8])
+                                                          self.testData['paymentAddr'][5] +
+                                                          self.testData['paymentAddr'][9])
         INFO("797d79 balance before contribution: " + str(balance_797d79_B))
         INFO("000004 balance before contribution: " + str(balance_000004_B))
         INFO("owner_shareamount before contribution: " + str(owner_shareamount_B))
@@ -406,7 +427,8 @@ class test_dex(unittest.TestCase):
         owner_shareamount_A = self.fullnode.get_pdeshares(self.testData['000004'], self.testData['797d79'],
                                                           [self.testData['token_ownerPaymentAddress'][0]] +
                                                           self.testData['paymentAddr'][0] +
-                                                          self.testData['paymentAddr'][8])
+                                                          self.testData['paymentAddr'][5] +
+                                                          self.testData['paymentAddr'][9])
         INFO("owner_shareamount after contribution: " + str(owner_shareamount_A))
 
         expect_797d79_contribution, expect_000004_contribution, refund_797d79, refund_000004 = \
@@ -472,7 +494,8 @@ class test_dex(unittest.TestCase):
         owner_shareamount_B = self.fullnode.get_pdeshares(self.testData['000004'], self.testData['797d79'],
                                                           [self.testData['token_ownerPaymentAddress'][0]] +
                                                           self.testData['paymentAddr'][0] +
-                                                          self.testData['paymentAddr'][8])
+                                                          self.testData['paymentAddr'][5] +
+                                                          self.testData['paymentAddr'][9])
         INFO("797d79 balance before contribution: " + str(balance_797d79_B))
         INFO("000004 balance before contribution: " + str(balance_000004_B))
         INFO("owner_shareamount before contribution: " + str(owner_shareamount_B))
@@ -535,7 +558,8 @@ class test_dex(unittest.TestCase):
         owner_shareamount_A = self.fullnode.get_pdeshares(self.testData['000004'], self.testData['797d79'],
                                                           [self.testData['token_ownerPaymentAddress'][0]] +
                                                           self.testData['paymentAddr'][0] +
-                                                          self.testData['paymentAddr'][8])
+                                                          self.testData['paymentAddr'][5] +
+                                                          self.testData['paymentAddr'][9])
         INFO("owner_shareamount after contribution: " + str(owner_shareamount_A))
 
         expect_000004_contribution, expect_797d79_contribution, refund_000004, refund_797d79 = \
@@ -875,21 +899,27 @@ class test_dex(unittest.TestCase):
         rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["000004"])
 
         for i in range(0, len(self.testData['privateKey'][8])):
-            balance_797d79_B.append(self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][8][i],
-                                                                             self.testData['797d79'])[0])
+            balance_797d79_temp = self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][8][i],
+                                                                           self.testData['797d79'])[0]
+
             balance_000004_temp = self.fullnode_trx.getBalance(self.testData['privateKey'][8][i])
 
-            commit_000004_temp = math.floor(balance_000004_temp * 0.3)  ## contribute 30% balance
-            commit_797d79_temp = commit_000004_temp * rate_B[0] / rate_B[1]
-            assert_true(balance_000004_temp != 0, "commit f2b %d is Zer0" % i)
+            ## commit_000004_temp = math.floor(balance_000004_temp * 0.1)  ## contribute 10% balance
+            commit_797d79_temp = math.floor(balance_797d79_temp * 0.1)  ## contribute 10% balance
+
+            commit_000004_temp = math.floor(commit_797d79_temp * rate_B[1] / rate_B[0])
+            assert_true(commit_000004_temp != 0, "commit f2b %d is Zer0" % i)
             assert_true(commit_797d79_temp != 0, "commit d79 %d is Zer0" % i)
+            balance_797d79_B.append(balance_797d79_temp)
             balance_000004_B.append(balance_000004_temp)
-            commit_797d79_B.append(math.floor(commit_797d79_temp))
+            commit_797d79_B.append(commit_797d79_temp)
             commit_000004_B.append(commit_000004_temp)
             privatekey_alias.append(self.testData['privateKey'][0][i][-6:])
 
         share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['000004'],
                                                      [self.testData['token_ownerPaymentAddress'][0]] +
+                                                     self.testData['paymentAddr'][0] +
+                                                     self.testData['paymentAddr'][5] +
                                                      self.testData['paymentAddr'][8])
         share_l0_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['000004'],
                                                         self.testData['paymentAddr'][0])
@@ -904,11 +934,14 @@ class test_dex(unittest.TestCase):
         STEP(1, "Contribute 000004")
         for i in range(0, len(self.testData['privateKey'][8])):
             contribute_000004 = self.fullnode.contribute_prv(self.testData['privateKey'][8][i],
-                                                               self.testData['paymentAddr'][8][i],
-                                                               commit_000004_B[i], privatekey_alias[i])
+                                                             self.testData['paymentAddr'][8][i],
+                                                             commit_000004_B[i], privatekey_alias[i])
             INFO(str(i) + "-Contribute 000004 Success, TxID: " + contribute_000004)
 
+        # breakpoint()
+
         STEP(2, "Verifying contribution 000004")
+        WAIT(20)
         for i in range(0, len(self.testData['privateKey'][8])):
             step2_result = False
             for _ in range(0, 10):
@@ -950,6 +983,8 @@ class test_dex(unittest.TestCase):
             balance_000004_A.append(self.fullnode_trx.getBalance(self.testData['privateKey'][8][i]))
         share_797d79_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['000004'],
                                                      [self.testData['token_ownerPaymentAddress'][0]] +
+                                                     self.testData['paymentAddr'][0] +
+                                                     self.testData['paymentAddr'][5] +
                                                      self.testData['paymentAddr'][8])
         share_l0_797d79_A = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['000004'],
                                                         self.testData['paymentAddr'][0])
@@ -1000,7 +1035,7 @@ class test_dex(unittest.TestCase):
         print("""
                     test_DEX05_withdrawalLiquidity:
                     - withdraw token from a contributor
-                    - 25% shares
+                    - 70% shares
                     """)
         STEP(1, "Get balance before withdraw")
         balance_797d79_B, _ = self.fullnode_trx.get_customTokenBalance(self.testData['token_ownerPrivateKey'][0],
@@ -1013,10 +1048,11 @@ class test_dex(unittest.TestCase):
         share_000004_B = self.fullnode.get_pdeshares(self.testData['000004'], self.testData['797d79'],
                                                      [self.testData['token_ownerPaymentAddress'][0]] +
                                                      self.testData['paymentAddr'][0] +
-                                                     self.testData['paymentAddr'][8])
+                                                     self.testData['paymentAddr'][5] +
+                                                     self.testData['paymentAddr'][9])
         rate_B = self.fullnode.get_latestRate(self.testData["000004"], self.testData["797d79"])
-        STEP(2, "Withdraw 25% from 1st share owner")
-        withdraw_share = math.floor(share_000004_B[0] * 0.25)
+        STEP(2, "Withdraw 70% from 1st share owner")
+        withdraw_share = math.floor(share_000004_B[0] * 0.7)
         INFO("withdrawing: %d share" % withdraw_share)
         txid = self.fullnode.withdrawal_contribution(self.testData['token_ownerPrivateKey'][0],
                                                      self.testData['token_ownerPaymentAddress'][0],
@@ -1056,7 +1092,8 @@ class test_dex(unittest.TestCase):
         share_000004_A = self.fullnode.get_pdeshares(self.testData['000004'], self.testData['797d79'],
                                                      [self.testData['token_ownerPaymentAddress'][0]] +
                                                      self.testData['paymentAddr'][0] +
-                                                     self.testData['paymentAddr'][8])
+                                                     self.testData['paymentAddr'][5] +
+                                                     self.testData['paymentAddr'][9])
         rate_A = self.fullnode.get_latestRate(self.testData["000004"], self.testData["797d79"])
         actual_withdrawal = min(withdraw_share, share_000004_B[0])
         d79_withdrawal = math.floor(actual_withdrawal * rate_B[1] / sum(share_000004_B))
@@ -1077,7 +1114,5 @@ class test_dex(unittest.TestCase):
                     "Balance d79 invalid after withdraw %d != %d + %d " % (
                         balance_797d79_A, d79_withdrawal, balance_797d79_B), "balance 79d is correct")
         assert_true(balance_000004_A + tx_fee == prv_withdrawal + balance_000004_B,
-                    "Balance prv invalid after withdraw %d + %d != %d + %d" % (tx_fee,
-                                                                               balance_000004_A, prv_withdrawal,
-                                                                               balance_000004_B),
-                    "balance prv is correct")
+                    "Balance prv invalid after withdraw %d + %d != %d + %d" % (
+                        tx_fee, balance_000004_A, prv_withdrawal, balance_000004_B), "balance prv is correct")
