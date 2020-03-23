@@ -17,28 +17,16 @@ import time
 import pytest
 
 from IncognitoChain.Configs.Constants import coin
-from IncognitoChain.Helpers.Logging import STEP
 from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Staking import *
 
 
-@pytest.mark.parametrize("self_stake", [True, False])
-def test_self_stake_n_stake_other(self_stake):
-    if self_stake:
-        stake = stake_account
-        staked = stake_account
-    else:
-        stake = stake_account
-        staked = staked_account
-
-    STEP(1, "Verify environment, 6 node per shard")
-    number_committee_shard_0 = SUT.full_node.system_rpc().help_count_committee_in_shard(0, refresh_cache=True)
-    number_committee_shard_1 = SUT.full_node.system_rpc().help_count_committee_in_shard(1, refresh_cache=False)
-    assert number_committee_shard_0 == 6
-    assert number_committee_shard_1 == 6
-
-    STEP(2, 'Get epoch number')
+@pytest.mark.parametrize("stake,staked", [
+    (stake_account, stake_account),  # self stake
+    (stake_account, staked_account)  # stake other
+])
+def test_self_stake_n_stake_other(stake, staked):
+    STEP(1, 'Get epoch number')
     beacon_height = SUT.full_node.system_rpc().help_get_beacon_height_in_best_state_detail(refresh_cache=True)
     epoch_number = None
     while beacon_height >= 20:
@@ -50,20 +38,17 @@ def test_self_stake_n_stake_other(self_stake):
 
     STEP(2, 'Stake and check balance after stake')
     stake.get_prv_balance()
-    if self_stake:
-        stake_response = stake.stake_and_reward_me(auto_re_stake=False)
-    else:
-        stake_response = stake.stake_someone_reward_him(staked, auto_re_stake=False)
+    stake_response = stake.stake_someone_reward_him(stake, auto_re_stake=False)
     stake_response.subscribe_transaction()
     fee = stake_response.get_transaction_by_hash().get_fee()
     assert stake.get_prv_balance_cache() == stake.get_prv_balance() - fee - coin(1750)
-    assert not stake_account.am_i_a_committee()
+    assert not stake.am_i_a_committee()
 
     STEP(3, f'Wait until epoch {epoch_number} + 1 and Check if the stake become a committee')
     epoch_plus_1 = SUT.full_node.system_rpc().help_wait_till_epoch(epoch_number + 1)
     assert staked.am_i_a_committee() is not False
 
-    STEP(5, "Sending token")
+    STEP(4, "Sending token")
     # token_id da contribute ung voi 10000 prv
     token_receiver.get_token_balance(token_id)
     token_sender.send_token_to(token_receiver, token_id, amount_token_send, token_fee=amount_token_fee) \
@@ -72,7 +57,7 @@ def test_self_stake_n_stake_other(self_stake):
     assert token_receiver.get_token_balance_cache(token_id) + amount_token_send == token_receiver.get_token_balance(
         token_id)
 
-    STEP(6, "Wait for the stake to be swapped out")
+    STEP(5, "Wait for the stake to be swapped out")
     wait_time_out = 400  # wait 1 epoch = 40 beacon block * 10 sec
     time_wait_start = time.perf_counter()
     epoch_x = None
@@ -88,7 +73,7 @@ def test_self_stake_n_stake_other(self_stake):
     avg_prv_reward = prv_reward / (epoch_x - epoch_plus_1)
     INFO(f'AVG prv reward = {avg_prv_reward}')
 
-    STEP(7.2, "Reward token at epoch_plus_1")
+    STEP(6.2, "Reward token at epoch_plus_1")
     token_reward = staked.get_reward_amount(token_id)
     INFO(f'Token reward at epoch plus 1 = {token_reward}')
 

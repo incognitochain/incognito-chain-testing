@@ -5,8 +5,9 @@ chain_committee_min = 4
 chain_committee_max = 6
 """
 from IncognitoChain.Configs.Constants import ONE_COIN
-from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Helpers.Logging import INFO, STEP
 from IncognitoChain.Objects.AccountObject import Account
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 auto_stake_acc = [
@@ -43,6 +44,12 @@ def setup_module():
     INFO(trx008.custom_token_id)
     global token_id
     token_id = trx008.custom_token_id
+
+    STEP(0, "Verify environment, 6 node per shard")
+    number_committee_shard_0 = SUT.full_node.system_rpc().help_count_committee_in_shard(0, refresh_cache=True)
+    number_committee_shard_1 = SUT.full_node.system_rpc().help_count_committee_in_shard(1, refresh_cache=False)
+    assert number_committee_shard_0 == 6
+    assert number_committee_shard_1 == 6
 
 
 def teardown_module():
