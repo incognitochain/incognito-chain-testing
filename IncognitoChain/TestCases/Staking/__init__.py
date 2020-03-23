@@ -6,7 +6,6 @@ chain_committee_max = 6
 """
 from IncognitoChain.Configs.Constants import ONE_COIN
 from IncognitoChain.Helpers.Logging import INFO
-from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
@@ -44,10 +43,6 @@ def setup_module():
     INFO(trx008.custom_token_id)
     global token_id
     token_id = trx008.custom_token_id
-    for acc in auto_stake_acc:
-        acc.stake_and_reward_me()
-        WAIT(1)
-    WAIT(180)  # wait for all 4 autostake accounts to become committee
 
 
 def teardown_module():

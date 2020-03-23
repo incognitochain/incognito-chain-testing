@@ -116,12 +116,6 @@ class DexRpc:
                          ]). \
             execute()
 
-    def get_beacon_best_state(self):
-        return self.rpc_connection. \
-            with_method("getbeaconbeststate"). \
-            with_params([]). \
-            execute()
-
     def get_pde_state(self, beacon_height):
         return self.rpc_connection. \
             with_method("getpdestate"). \

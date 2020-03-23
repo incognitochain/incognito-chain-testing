@@ -115,7 +115,7 @@ class Node:
         :param token_id_2:
         :return: List of [token 1 contributed amount, token 2 contributed amount]
         """
-        best_state = self.dex().get_beacon_best_state()
+        best_state = self.system_rpc().get_beacon_best_state()
         beacon_height = best_state.get_beacon_height()
 
         pde_state = self.dex().get_pde_state(beacon_height)
@@ -133,7 +133,6 @@ class Node:
                 return rate
             except KeyError:
                 return None
-        return None
 
     ##########
     # BRIDGE
@@ -151,4 +150,3 @@ class Node:
 
     # WITHDRAW centralize token is performed from Account
     # def withdraw_centralize_token(self, account: Account, token_id, amount) -> Response:
-

@@ -36,6 +36,12 @@ class SystemRpc:
                     []).execute()
         return beacon_best_state_detail
 
+    def get_beacon_best_state(self):
+        return self.rpc_connection. \
+            with_method("getbeaconbeststate"). \
+            with_params([]). \
+            execute()
+
     def remove_tx_in_mem_pool(self, tx_id):
         return self.rpc_connection.with_method('removetxinmempool').with_params([tx_id]).execute()
 
@@ -62,7 +68,11 @@ class SystemRpc:
 
     def help_get_beacon_height_in_best_state_detail(self, refresh_cache=True):
         beacon_best_state = self.get_beacon_best_state_detail(refresh_cache)
-        return beacon_best_state.get_result('BeaconHeight')
+        return beacon_best_state.get_beacon_height()
+
+    def help_get_beacon_height_in_best_state(self):
+        beacon_best_state = self.get_beacon_best_state()
+        return beacon_best_state.get_beacon_height()
 
     def help_wait_till_epoch(self, epoch_number, pool_time=30, timeout=180):
         epoch = self.help_get_current_epoch()
