@@ -5,16 +5,17 @@ import re
 import pytest
 
 from IncognitoChain.Configs import Constants
-from IncognitoChain.Configs.Constants import ONE_COIN
+from IncognitoChain.Configs.Constants import coin
 from IncognitoChain.Drivers.Response import Response
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Helpers.Time import get_current_date_time, WAIT
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
 
-amount_init_token = 1000000 * ONE_COIN
-amount_contribute = 20000 * ONE_COIN  # contribute rate 1:1
-account_init = get_accounts_in_shard(2)[0]
+token_init_amount = coin(1000000)
+prv_contribute_amount = coin(20000)  # contribute rate 1:1
+token_contribute_amount = coin(20000)  # contribute rate 1:1
+account_init = get_accounts_in_shard(5)[0]
 
 custom_token_symbol = get_current_date_time()
 custom_token_id = None
@@ -24,7 +25,7 @@ token_amount_to_send = random.randrange(1000, 2000)
 
 sender_account = account_init
 
-receiver_account = get_accounts_in_shard(2)[1]
+receiver_account = get_accounts_in_shard(5)[1]
 
 receiver_x_shard = get_accounts_in_shard(0)[0]
 
@@ -34,8 +35,8 @@ pair_id = f"token1_1prv_{random.randrange(1000, 10000)}"
 def setup_module():
     INFO("Test set up")
     sender_bal = account_init.get_prv_balance()
-    if sender_bal <= amount_init_token:
-        COIN_MASTER.send_prv_to(account_init, amount_init_token - sender_bal + 10, privacy=0).subscribe_transaction()
+    if sender_bal <= token_init_amount:
+        COIN_MASTER.send_prv_to(account_init, token_init_amount - sender_bal + 10, privacy=0).subscribe_transaction()
         if COIN_MASTER.shard != account_init.shard:
             account_init.subscribe_cross_output_coin()
 
@@ -45,14 +46,12 @@ def teardown_module():
     global contribute_success
     if contribute_success:
         account_init.withdraw_contribution(Constants.prv_token_id, custom_token_id,
-                                           amount_init_token).subscribe_transaction()
+                                           token_init_amount).subscribe_transaction()
     contribute_success = False
 
 
 @pytest.mark.dependency()
-@pytest.mark.parametrize('prv_contribute_amount, token_contribute_amount,token_init_amount',
-                         [(amount_contribute, amount_contribute, amount_init_token)])
-def test_init_ptoken(prv_contribute_amount, token_contribute_amount, token_init_amount):
+def test_init_ptoken():
     INFO('''
     Init a pToken
     Contribute pToken-PRV to pDex (mapping rate) => use pToken to pay fee

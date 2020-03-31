@@ -17,8 +17,11 @@ import time
 import pytest
 
 from IncognitoChain.Configs.Constants import coin
+from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.TestCases.Staking import *
+from IncognitoChain.Objects.IncognitoTestCase import SUT
+from IncognitoChain.TestCases.Staking import stake_account, staked_account, block_per_epoch, token_id, token_receiver, \
+    amount_token_send, amount_token_fee, token_sender
 
 
 @pytest.mark.parametrize("stake,staked", [
@@ -29,7 +32,7 @@ def test_self_stake_n_stake_other(stake, staked):
     STEP(1, 'Get epoch number')
     beacon_height = SUT.full_node.system_rpc().help_get_beacon_height_in_best_state_detail(refresh_cache=True)
     epoch_number = None
-    while beacon_height >= 20:
+    while beacon_height % block_per_epoch >= beacon_height/2:
         epoch_number = SUT.full_node.system_rpc().help_get_current_epoch(refresh_cache=False)
         WAIT((block_per_epoch - (beacon_height % block_per_epoch)) * 10)
         beacon_height = SUT.full_node.system_rpc().help_get_beacon_height_in_best_state_detail(refresh_cache=True)

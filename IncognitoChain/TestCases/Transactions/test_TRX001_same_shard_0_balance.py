@@ -5,8 +5,8 @@ import pytest
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 
-sender_account = get_accounts_in_shard(2)[0]
-receiver_account = get_accounts_in_shard(2)[1]
+sender_account = get_accounts_in_shard(5)[0]
+receiver_account = get_accounts_in_shard(5)[1]
 init_sender_balance = sender_account.get_prv_balance()
 init_receiver_balance = receiver_account.get_prv_balance()
 

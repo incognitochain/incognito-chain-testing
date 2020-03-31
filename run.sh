@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+python=./venv/bin/python3
+
 if [ $1 = "clear" ]; then
   rm reports/*.html
   rm log/*.log
@@ -26,4 +28,4 @@ else
   param4="-k $4"
 fi
 set -x
-python3 $xoption -m pytest --show-capture=no -s -v --html="$html_report" "$3" $param4
+$python $xoption -m pytest --show-capture=no -s -v --html="$html_report" "$3" $param4

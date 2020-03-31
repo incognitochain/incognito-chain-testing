@@ -25,9 +25,11 @@ account_list = \
         Account(
             "112t8rnZ9qPE7C6RbrK6Ygat1H94kEkYGSd84fAGiU396yQHu8CBHmV1DDHE947d7orfHnDtKA9WCffDk7NS5zUu5CMCUHK8nkRtrv4nw6uu",
             "12Rrk9r3Chmt5Wibkmu2VcFSUffGZbkz2rzMWdmmB3GEu8t8RF4v2wc1gBQtkJFZmPfUP29bSXR4Wn8kDveLQBTBK5Hck9BoGRnuM7n",
-            shard=5),
+            shard=5,
+            validator_key='12RqVU3SmFG8NNVhnC6LhTGyfq5Nk4R5w341Z55JmpVx9PGsfbu'),
         Account(
             "112t8rnaK4C17Chu8rEAPXHUaPYNeGz8VsjV7BzdeLA9VBc8oiYwQXNrc6XEABb4uNEfG9LFgvVfi4KQmVpQrwMWph4E1YoVS1m37HwrFDsE",
             "12RtmaJMoRbUCsYxLC4RatP2vWVR3QdZXpbkXR7LwZjVrZfXF46ZNL4QgpCU71SXjz2eCeruA7ZiHM91otTJXzqJiztq5mrdHA35yaf",
-            shard=5)
+            shard=5,
+            validator_key='126svgr8EXp2kW6H9iBa9V5ZCxC8zHeD81iJQVwHHAXGamgdPyb')
     ]

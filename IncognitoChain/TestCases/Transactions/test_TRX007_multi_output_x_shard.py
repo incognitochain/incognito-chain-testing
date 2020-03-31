@@ -11,7 +11,7 @@ is_sent = False
 coin_master = Account(master_address_private_key, master_address_payment_key)
 coin_master.calculate_shard_id()
 # create receiver list
-receiver_account_list_before = ACCOUNTS.copy()
+receiver_account_list_before = copy.deepcopy(ACCOUNTS)
 receiver_account_list_before.remove(sender_account)
 
 # Generate dict of account : amount to send
@@ -20,13 +20,13 @@ receiver_account_dict_to_send = dict()
 
 
 def setup_module():
-    for account in receiver_account_list_before:
+    global total_sent_amount
+    for account in receiver_account_list_before:  # create a {receiver: receive amount} dictionary
         amount_to_be_received = random.randint(1000, 2000)
-        global total_sent_amount
         total_sent_amount += amount_to_be_received
-        cloned_acc = copy.copy(account)
+        cloned_acc = copy.deepcopy(account)
         receiver_account_dict_to_send[cloned_acc] = amount_to_be_received
-    try:
+    try:  # check sender balance and add prv if not enough for the test
         if sender_account.get_prv_balance() < total_sent_amount + 1000:
             coin_master.send_prv_to(sender_account, total_sent_amount + 1000).subscribe_transaction()
             if coin_master.shard != sender_account.shard:
@@ -64,21 +64,22 @@ def test_send_prv_multi_output_privacy_x_shard_no_auto_fee():
     INFO(f"sender balance after : {sender_balance_after}")
 
     # Balance after = balance before - (amount x n_payment)  - fee
-    assert sender_balance_after == sender_balance - total_sent_amount - transaction_result.get_fee() \
-           and INFO("balance of sender correct"), "balance of sender wrong"
+    assert sender_balance_after == sender_balance - total_sent_amount - transaction_result.get_fee() and INFO(
+        "balance of sender correct"), "balance of sender wrong"
 
     STEP(6, "check receivers balance")
     for acc_before in receiver_account_list_before:
+        acc_before: Account
         for acc_after in receiver_account_dict_to_send.keys():
+            acc_after: Account
             if acc_before == acc_after:
                 if sender_account.shard != acc_after.shard:
                     try:
                         acc_after.subscribe_cross_output_coin()
                     except Exception:
                         pass
-                acc_after.get_prv_balance()
                 sent_amount = receiver_account_dict_to_send[acc_after]
-                assert acc_after.prv_balance_cache == acc_before.prv_balance_cache + sent_amount and INFO(
+                assert acc_after.get_prv_balance() == acc_before.get_prv_balance_cache() + sent_amount and INFO(
                     f"{acc_after.payment_key} received {sent_amount}")
                 receiver_account_list_before.remove(acc_before)
 

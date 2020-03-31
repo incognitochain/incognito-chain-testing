@@ -109,8 +109,8 @@ class Account:
         :return:
         """
         if not force:
-            if self.public_key is not None:
-                return self.public_key
+            if self.payment_key is not None:
+                return self.payment_key
 
         tx = self.__SUT.full_node.transaction().list_custom_token_balance(self.private_key)
         self.payment_key = tx.get_result('PaymentAddress')
@@ -401,7 +401,7 @@ class Account:
         best = self.__SUT.full_node.system_rpc().get_beacon_best_state_detail()
         shard_committee_list = best.get_result()['ShardCommittee']
         shard_id = 0
-        for i in range(0, 8):
+        for i in range(0, len(shard_committee_list)):
             committees_in_shard = shard_committee_list[f'{i}']
             for committee in committees_in_shard:
                 if self.public_key is None:
