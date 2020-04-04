@@ -16,5 +16,13 @@ def WAIT(_time):
     Args:
       _time(num): wait time in second
     """
+    pool = 5
     INFO(f"Wait for {_time} second(s)")
-    time.sleep(_time)
+    print(f'{_time:>10}s', end="\r", flush=True)
+    time.sleep(_time % pool)
+    _time -= (_time % pool)
+    while _time >= pool:
+        print(f'{_time:>10}s', end="\r", flush=True)
+        time.sleep(pool)
+        _time -= pool
+    print(f'{0:>10}s', end="\r", flush=True)

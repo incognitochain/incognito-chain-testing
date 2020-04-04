@@ -1,5 +1,7 @@
 import sys
 
+from websocket import WebSocketTimeoutException
+
 from IncognitoChain.Configs import config
 from IncognitoChain.Configs.Constants import master_address_private_key, master_address_payment_key, ONE_COIN
 from IncognitoChain.Objects.AccountObject import Account
@@ -39,4 +41,7 @@ for account in ACCOUNTS:
     if account.get_prv_balance() < ONE_COIN / 5:
         COIN_MASTER.send_prv_to(account, ONE_COIN - account.get_prv_balance_cache(), privacy=0).subscribe_transaction()
         if COIN_MASTER.shard != account.shard:
-            account.subscribe_cross_output_coin()
+            try:
+                account.subscribe_cross_output_coin()
+            except WebSocketTimeoutException:
+                pass

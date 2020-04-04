@@ -2,6 +2,7 @@ import time
 
 from IncognitoChain.Drivers.Connections import RpcConnection
 from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Helpers.Time import WAIT
 
 
 class SystemRpc:
@@ -64,11 +65,14 @@ class SystemRpc:
 
     def help_get_current_epoch(self, refresh_cache=True):
         beacon_best_state = self.get_beacon_best_state_detail(refresh_cache)
-        return beacon_best_state.get_result('Epoch')
+        epoch = beacon_best_state.get_result('Epoch')
+        INFO(f"Current epoch = {epoch}")
+        return epoch
 
     def help_get_beacon_height_in_best_state_detail(self, refresh_cache=True):
-        beacon_best_state = self.get_beacon_best_state_detail(refresh_cache)
-        return beacon_best_state.get_beacon_height()
+        beacon_height = self.get_beacon_best_state_detail(refresh_cache).get_beacon_height()
+        INFO(f"Current beacon height = {beacon_height}")
+        return beacon_height
 
     def help_get_beacon_height_in_best_state(self):
         beacon_best_state = self.get_beacon_best_state()
@@ -77,11 +81,10 @@ class SystemRpc:
     def help_wait_till_epoch(self, epoch_number, pool_time=30, timeout=180):
         epoch = self.help_get_current_epoch()
         if epoch >= epoch_number:
-            INFO(f"Now epoch = {epoch} already")
             return epoch
         time_start = time.perf_counter()
         while epoch < epoch_number:
-            time.sleep(pool_time)
+            WAIT(pool_time)
             epoch = self.help_get_current_epoch()
             if epoch == epoch_number:
                 INFO(f"Now epoch = {epoch}")

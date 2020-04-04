@@ -3,6 +3,7 @@ from typing import List
 
 from IncognitoChain.Configs import Constants
 from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Helpers.Time import WAIT
 
 
 class Account:
@@ -156,6 +157,7 @@ class Account:
 
         :return:
         """
+        INFO(f"Stake and reward me: {self.validator_key}")
         if self.payment_key is None:
             self.find_payment_key()
         if self.public_key is None:
@@ -172,6 +174,7 @@ class Account:
 
         :return:
         """
+        INFO(f'Stake {someone.validator_key} but reward me')
         return self.__SUT.full_node.transaction(). \
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
                                                 self.payment_key, stake_amount)
@@ -181,17 +184,67 @@ class Account:
 
         :return:
         """
+        INFO(f'Stake and reward other: f{someone.validator_key}')
         return self.__SUT.full_node.transaction(). \
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
                                                 someone.payment_key, stake_amount, auto_re_stake)
 
     def un_stake_me(self):
+        INFO('Un-stake me')
         return self.__SUT.full_node.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, self.payment_key, self.validator_key)
 
     def un_stake_him(self, him):
+        INFO(f"Un-stake other: {him.validator_key}")
         return self.__SUT.full_node.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, him.payment_key, him.validator_key)
+
+    def wait_till_i_am_committee(self, check_cycle=120, timeout=1000):
+        t = timeout
+        INFO(f"Wait until {self.validator_key} become a committee, check every {check_cycle}s, timeout: {timeout}s")
+        while timeout > check_cycle:
+            if self.am_i_a_committee() is False:
+                WAIT(check_cycle)
+                timeout -= check_cycle
+            else:
+                e2 = self.__SUT.full_node.system_rpc().help_get_current_epoch()
+                h = self.__SUT.full_node.system_rpc().help_get_beacon_height_in_best_state_detail(refresh_cache=False)
+                INFO(f"Promoted to committee at epoch {e2}, block height {h}")
+                return e2
+        INFO(f"Waited {t}s but still not yet become committee")
+        return None
+
+    def wait_till_i_am_swapped_out_of_committee(self, check_cycle=120, timeout=1000):
+        t = timeout
+        INFO(f"Wait until {self.validator_key} no longer a committee, check every {check_cycle}s, timeout: {timeout}s")
+        while timeout > check_cycle:
+            if not (self.am_i_a_committee() is False):  # am_i_a_committee returns False or shard number
+                # (number which is not False) so must use this comparision to cover the cases
+                WAIT(check_cycle)
+                timeout -= check_cycle
+            else:
+                e2 = self.__SUT.full_node.system_rpc().help_get_current_epoch()
+                INFO(f"Swapped out of committee at epoch {e2}")
+                return e2
+        INFO(f"Waited {t}s but still a committee")
+        return None
+
+    def wait_till_i_have_reward(self, token_id=None, check_cycle=120, timeout=1000):
+        t = timeout
+        if token_id is None:
+            token_id = 'PRV'
+        INFO(f'Wait until {self.validator_key} has reward: {token_id}, check every {check_cycle}s, timeout: {timeout}s')
+        while timeout > check_cycle:
+            reward = self.get_reward_amount(token_id)
+            if reward is None:
+                WAIT(check_cycle)
+                timeout -= check_cycle
+            else:
+                e2 = self.__SUT.full_node.system_rpc().help_get_current_epoch()
+                INFO(f"Rewarded {reward} : {token_id} at epoch {e2}")
+                return reward
+        INFO(f"Waited {t}s but still has no reward")
+        return None
 
     def get_token_balance_cache(self, token_id):
         try:
@@ -411,7 +464,7 @@ class Account:
                     INFO(f"You {self.validator_key} are a committee in shard {shard_id}")
                     return shard_id
             shard_id += 1
-        INFO(f"You {self.validator_key} are NOT a committee")
+        INFO(f"{self.validator_key} is NOT a committee")
         return False
 
     def am_i_stake(self):
@@ -483,13 +536,13 @@ class Account:
         except KeyError:
             return None
 
-    def withdraw_reward_to(self, reward_receiver, token_id):
+    def withdraw_reward_to(self, reward_receiver, token_id=None):
         INFO(f"""Withdraw token reward {token_id}
             to {reward_receiver.payment_key}""")
         return self.__SUT.full_node.transaction().withdraw_reward(self.private_key, reward_receiver.payment_key,
                                                                   token_id)
 
-    def withdraw_reward_to_me(self, token_id):
+    def withdraw_reward_to_me(self, token_id=None):
         return self.withdraw_reward_to(self, token_id)
 
 

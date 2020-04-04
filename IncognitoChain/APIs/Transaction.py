@@ -1,5 +1,5 @@
 from IncognitoChain.Configs import Constants
-from IncognitoChain.Configs.Constants import burning_address
+from IncognitoChain.Configs.Constants import burning_address, prv_token_id
 from IncognitoChain.Drivers import Connections
 
 
@@ -177,7 +177,9 @@ class TransactionRpc:
     ###############
     # WITHDRAW REWARD
     ###############
-    def withdraw_reward(self, private_key, payment_address, token_id):
+    def withdraw_reward(self, private_key, payment_address, token_id=None):
+        if token_id is None:
+            token_id = prv_token_id
         return self.rpc_connection. \
             with_method("withdrawreward"). \
             with_params([private_key, 0, 0, 0,
