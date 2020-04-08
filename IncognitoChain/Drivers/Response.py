@@ -6,33 +6,39 @@ from IncognitoChain.Helpers.Logging import INFO
 
 
 class Response:
-    def __init__(self, json_response, more_info=None):
-        self.response = json_response
+    def __init__(self, response, more_info=None):
+        self.response = response
         self.more_info = more_info
         if more_info is not None:
             Log.DEBUG(more_info)
         Log.DEBUG(self.__str__())
 
     def __str__(self):
-        return f'\n{json.dumps(self.response, indent=3)}'
+        return f'\n{json.dumps(self.response.json(), indent=3)}'
+
+    def size(self):
+        return len(self.response.content)
+
+    def response_time(self):
+        return self.response.elapsed.total_seconds()
 
     def is_success(self):
-        if self.response['Error'] is None:
+        if self.response.json()['Error'] is None:
             return True
         return False
 
     def get_error_trace(self):
-        if self.response['Error'] is None:
+        if self.response.json()['Error'] is None:
             return ''
-        return StackTrace(self.response['Error']['StackTrace'][0:256])
+        return StackTrace(self.response.json()['Error']['StackTrace'][0:256])
 
     def get_error_msg(self):
-        if self.response['Error'] is None:
+        if self.response.json()['Error'] is None:
             return None
-        return self.response['Error']['Message']
+        return self.response.json()['Error']['Message']
 
     def find_in_result(self, string):
-        for k, v in self.response["Result"].items():
+        for k, v in self.response.json()["Result"].items():
             if k == str(string):
                 return True
         return False
@@ -40,8 +46,8 @@ class Response:
     def get_result(self, string=None):
         try:
             if string is None:
-                return self.response['Result']
-            return self.response['Result'][string]
+                return self.response.json()['Result']
+            return self.response.json()['Result'][string]
         except(KeyError, TypeError):
             return None
 
@@ -80,9 +86,9 @@ class Response:
 
     def get_fee(self):
         try:
-            return self.response['Result']['Result']['Fee']
+            return self.response.json()['Result']['Result']['Fee']
         except KeyError:
-            return self.response['Result']['Fee']
+            return self.response.json()['Result']['Fee']
 
     def get_privacy(self):
         return self.get_result("IsPrivacy")

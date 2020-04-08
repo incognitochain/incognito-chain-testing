@@ -3,6 +3,7 @@ from pexpect import pxssh
 import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.APIs.Bridge import BridgeRpc
 from IncognitoChain.APIs.DEX import DexRpc
+from IncognitoChain.APIs.Explore import ExploreRpc
 from IncognitoChain.APIs.Subscription import SubscriptionWs
 from IncognitoChain.APIs.System import SystemRpc
 from IncognitoChain.APIs.Transaction import TransactionRpc
@@ -106,6 +107,9 @@ class Node:
         if self._web_socket is None:
             self._web_socket = WebSocket(self._get_ws_url())
         return SubscriptionWs(self._web_socket)
+
+    def explore_rpc(self) -> ExploreRpc:
+        return ExploreRpc(self._get_rpc_url())
 
     def get_latest_rate_between(self, token_id_1, token_id_2):
         """

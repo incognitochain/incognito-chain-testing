@@ -79,7 +79,7 @@ class RpcConnection:
             response = requests.post(self._base_url, data=json.dumps(data), headers=self._headers)
         except NewConnectionError:
             ERROR('Connection refused')
-        return Response(json.loads(response.text), f'From: {self._base_url}')
+        return Response(response, f'From: {self._base_url}')
 
 
 class WebSocket(RpcConnection):

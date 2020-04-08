@@ -135,18 +135,18 @@ class Account:
         get balance by token_id
 
         :param token_id:
-        :param shard_id: default = None, if not specified, will ask full_node. or else, will ask on shard_id
+        :param shard_id: when = None, will ask full_node. When = -1, ask on its own shard, or else will ask on shard_id
         :return:
         """
 
         if shard_id is None:
-            return self.__SUT.full_node.transaction().get_custom_token_balance(self.private_key, token_id).get_result()
-        if shard_id is None:
-            shard_to_ask = self.shard
+            where_to_ask = self.__SUT.full_node.transaction()
+        elif shard_id == -1:
+            where_to_ask = self.__SUT.shards[self.shard].get_representative_node().transaction()
         else:
-            shard_to_ask = shard_id
-        balance = self.__SUT.shards[shard_to_ask].get_representative_node().transaction().get_custom_token_balance(
-            self.private_key, token_id).get_result()
+            where_to_ask = self.__SUT.shards[shard_id].get_representative_node().transaction()
+        balance = where_to_ask.get_custom_token_balance(self.private_key, token_id).get_result()
+
         self.cache[f'balance_token_{token_id}'] = balance
         INFO(f"""Token Bal = {balance}, private key = {self.private_key}
             token id = {token_id}""")
@@ -446,12 +446,12 @@ class Account:
                                                                                  prv_fee, token_fee,
                                                                                  prv_privacy, token_privacy)
 
-    def am_i_a_committee(self):
+    def am_i_a_committee(self, refresh_cache=True):
         '''
 
         :return: shard id of which this account is a committee, if not a committee in any shard, return False
         '''
-        best = self.__SUT.full_node.system_rpc().get_beacon_best_state_detail()
+        best = self.__SUT.full_node.system_rpc().get_beacon_best_state_detail(refresh_cache=refresh_cache)
         shard_committee_list = best.get_result()['ShardCommittee']
         shard_id = 0
         for i in range(0, len(shard_committee_list)):
