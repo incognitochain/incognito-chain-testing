@@ -43,7 +43,7 @@ class RpcConnection:
         self._id = new_id
         return self
 
-    def with_jsonrpc(self, json_rpc):
+    def with_json_rpc(self, json_rpc):
         self._json_rpc = json_rpc
         return self
 
@@ -138,4 +138,4 @@ class WebSocket(RpcConnection):
         result = self._ws_conn.recv()
         if close_when_done:
             self.close()
-        return Response(json.loads(result))
+        return Response(result)

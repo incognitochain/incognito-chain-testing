@@ -14,31 +14,40 @@ class Response:
         Log.DEBUG(self.__str__())
 
     def __str__(self):
-        return f'\n{json.dumps(self.response.json(), indent=3)}'
+        return f'\n{json.dumps(self.__data(), indent=3)}'
+
+    def __data(self):
+        if type(self.response) is str:
+            return json.loads(self.response)  # response from WebSocket
+        return json.loads(self.response.text)  # response from rpc
 
     def size(self):
-        return len(self.response.content)
+        if self.response is str:  # response from WebSocket
+            return len(self.response)
+        return len(self.response.content)  # response from rpc
 
     def response_time(self):
-        return self.response.elapsed.total_seconds()
+        if self.response is str:  # response from WebSocket
+            return None
+        return self.response.elapsed.total_seconds()  # response from rpc
 
     def is_success(self):
-        if self.response.json()['Error'] is None:
+        if self.__data()['Error'] is None:
             return True
         return False
 
     def get_error_trace(self):
-        if self.response.json()['Error'] is None:
+        if self.__data()['Error'] is None:
             return ''
-        return StackTrace(self.response.json()['Error']['StackTrace'][0:256])
+        return StackTrace(self.__data()['Error']['StackTrace'][0:256])
 
     def get_error_msg(self):
-        if self.response.json()['Error'] is None:
+        if self.__data()['Error'] is None:
             return None
-        return self.response.json()['Error']['Message']
+        return self.__data()['Error']['Message']
 
     def find_in_result(self, string):
-        for k, v in self.response.json()["Result"].items():
+        for k, v in self.__data()["Result"].items():
             if k == str(string):
                 return True
         return False
@@ -46,8 +55,8 @@ class Response:
     def get_result(self, string=None):
         try:
             if string is None:
-                return self.response.json()['Result']
-            return self.response.json()['Result'][string]
+                return self.__data()['Result']
+            return self.__data()['Result'][string]
         except(KeyError, TypeError):
             return None
 
@@ -86,9 +95,9 @@ class Response:
 
     def get_fee(self):
         try:
-            return self.response.json()['Result']['Result']['Fee']
+            return self.__data()['Result']['Result']['Fee']
         except KeyError:
-            return self.response.json()['Result']['Fee']
+            return self.__data()['Result']['Fee']
 
     def get_privacy(self):
         return self.get_result("IsPrivacy")
@@ -140,8 +149,7 @@ class Response:
         :return: True = privacy, False = no privacy
         """
         result = self.get_transaction_by_hash()
-        if result.get_privacy() is True and \
-            result.get_proof_detail_input_coin_value_prv() == 0:
+        if result.get_privacy() is True and result.get_proof_detail_input_coin_value_prv() == 0:
             return True
         return False
 
@@ -159,8 +167,7 @@ class Response:
         """
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         result = SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
-        if result.get_custom_token_privacy() is True and \
-            result.get_proof_detail_input_coin_value_custom_token() == 0:
+        if result.get_custom_token_privacy() is True and result.get_proof_detail_input_coin_value_custom_token() == 0:
             return True
         return False
 
@@ -171,7 +178,7 @@ class Response:
     def get_mem_pool_transactions_id_list(self) -> list:
         hashes = self.get_list_txs()
         if hashes is None:
-            return None
+            return []
         tx_id_list = list()
         for entry in hashes:
             tx_id_list.append(entry['TxID'])
