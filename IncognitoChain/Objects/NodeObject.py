@@ -1,3 +1,6 @@
+import re
+from typing import List
+
 from pexpect import pxssh
 
 import IncognitoChain.Helpers.Logging as Log
@@ -9,6 +12,7 @@ from IncognitoChain.APIs.System import SystemRpc
 from IncognitoChain.APIs.Transaction import TransactionRpc
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
 from IncognitoChain.Drivers.Response import Response
+from IncognitoChain.Helpers.Logging import DEBUG
 from IncognitoChain.Objects.AccountObject import Account
 
 
@@ -138,11 +142,36 @@ class Node:
             except KeyError:
                 return None
 
-    ##########
-    # BRIDGE
-    ##########
+    def help_get_current_pde_status(self):
+        current_beacon_height = self.system_rpc().help_get_beacon_height_in_best_state()
+        return self.dex().get_pde_state(current_beacon_height)
 
-    # ISSUE centralize token is performed from a node
+    def help_get_pde_share_list(self, token_id_1, token_id_2, contributor_list: List[Account]):
+        pde_status = self.help_get_current_pde_status()
+        beacon_height = pde_status.params().get_beacon_height()
+        pde_share_list = []
+        for acc in contributor_list:
+            share_key_1_2 = f'pdeshare-{beacon_height}-{token_id_1}-{token_id_2}-{acc.payment_key}'
+            share_key_2_1 = f'pdeshare-{beacon_height}-{token_id_2}-{token_id_1}-{acc.payment_key}'
+            share_response = pde_status.get_pde_share()
+            if re.search(share_key_1_2, str(pde_status.get_pde_share())):
+                share = share_response[share_key_1_2]
+                DEBUG(f"Share of {token_id_1[-6]}-{token_id_2[-6]}-{acc.payment_key[-6]} is: {share}")
+                pde_share_list.append(share)
+            elif re.search(share_key_2_1, str(pde_status.get_pde_share())):
+                share = share_response[share_key_2_1]
+                DEBUG(f"Share of {token_id_2[-6]}-{token_id_1[-6]}-{acc.payment_key[-6]} is: {share}")
+                pde_share_list.append(share)
+            else:
+                DEBUG(f'{share_key_1_2} or {share_key_2_1} not found')
+        return pde_share_list
+
+        ##########
+        # BRIDGE
+        ##########
+
+        # ISSUE centralize token is performed from a node
+
     def issue_centralize_token(self, account: Account, token_id, token_name, amount) -> Response:
         """
         initialize a new centralize token
@@ -152,5 +181,5 @@ class Node:
         """
         return self.bridge().issue_centralized_bridge_token(account.payment_key, token_id, token_name, amount)
 
-    # WITHDRAW centralize token is performed from Account
-    # def withdraw_centralize_token(self, account: Account, token_id, amount) -> Response:
+        # WITHDRAW centralize token is performed from Account
+        # def withdraw_centralize_token(self, account: Account, token_id, amount) -> Response:

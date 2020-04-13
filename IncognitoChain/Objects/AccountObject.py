@@ -1,8 +1,9 @@
 import copy
+import re
 from typing import List
 
 from IncognitoChain.Configs import Constants
-from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Helpers.Logging import INFO, WARNING
 from IncognitoChain.Helpers.Time import WAIT
 
 
@@ -447,10 +448,10 @@ class Account:
                                                                                  prv_privacy, token_privacy)
 
     def am_i_a_committee(self, refresh_cache=True):
-        '''
+        """
 
         :return: shard id of which this account is a committee, if not a committee in any shard, return False
-        '''
+        """
         best = self.__SUT.full_node.system_rpc().get_beacon_best_state_detail(refresh_cache=refresh_cache)
         shard_committee_list = best.get_result()['ShardCommittee']
         shard_id = 0
@@ -544,6 +545,49 @@ class Account:
 
     def withdraw_reward_to_me(self, token_id=None):
         return self.withdraw_reward_to(self, token_id)
+
+    #######
+    # DEX
+    #######
+    def is_my_token_waiting_for_contribution(self, token_id):
+        INFO(f"Check if {token_id[-6:]} init by {self.payment_key[-6:]} is waiting for contribution ")
+        pde_state = self.__SUT.full_node.help_get_current_pde_status()
+        waiting_contribution_list = str(pde_state.get_result()['WaitingPDEContributions']).split(
+            'waitingpdecontribution')
+
+        for contribution in waiting_contribution_list:
+            if re.search(token_id, str(contribution)):
+                if re.search(self.payment_key, str(contribution)):
+                    INFO(f'{token_id[-6:]} was init by {self.payment_key[-6:]} and waiting for contribution')
+                    return True
+        WARNING("payment address and token id NOT found")
+        return False
+
+    def wait_till_my_token_in_waiting_for_contribution(self, token_id, timeout=100):
+        INFO(f"Wait until token {token_id[-6:]} is in waiting for contribution")
+        result = self.is_my_token_waiting_for_contribution(token_id)
+        while timeout >= 0:
+            if result:
+                INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
+                return result
+            timeout -= 10
+            WAIT(10)
+            result = self.is_my_token_waiting_for_contribution()
+        INFO(f'Token {token_id[-6:]} is NOT found in contribution waiting list')
+        return result
+
+    def wait_till_my_token_out_waiting_for_contribution(self, token_id, timeout=100):
+        INFO(f"Wait until token {token_id[-6:]} is out of waiting for contribution")
+        result = self.is_my_token_waiting_for_contribution(token_id)
+        while timeout >= 0:
+            if not result:
+                INFO(f'Token {token_id[-6:]} is NOT found in contribution waiting list')
+                return result
+            timeout -= 10
+            WAIT(10)
+            result = self.is_my_token_waiting_for_contribution()
+        INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
+        return result
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:

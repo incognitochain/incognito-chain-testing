@@ -14,12 +14,15 @@ class Response:
         Log.DEBUG(self.__str__())
 
     def __str__(self):
-        return f'\n{json.dumps(self.__data(), indent=3)}'
+        return f'\n{json.dumps(self.data(), indent=3)}'
 
-    def __data(self):
+    def data(self):
         if type(self.response) is str:
             return json.loads(self.response)  # response from WebSocket
         return json.loads(self.response.text)  # response from rpc
+
+    def params(self):
+        return Params(self)
 
     def size(self):
         if self.response is str:  # response from WebSocket
@@ -32,22 +35,22 @@ class Response:
         return self.response.elapsed.total_seconds()  # response from rpc
 
     def is_success(self):
-        if self.__data()['Error'] is None:
+        if self.data()['Error'] is None:
             return True
         return False
 
     def get_error_trace(self):
-        if self.__data()['Error'] is None:
+        if self.data()['Error'] is None:
             return ''
-        return StackTrace(self.__data()['Error']['StackTrace'][0:256])
+        return StackTrace(self.data()['Error']['StackTrace'][0:256])
 
     def get_error_msg(self):
-        if self.__data()['Error'] is None:
+        if self.data()['Error'] is None:
             return None
-        return self.__data()['Error']['Message']
+        return self.data()['Error']['Message']
 
     def find_in_result(self, string):
-        for k, v in self.__data()["Result"].items():
+        for k, v in self.data()["Result"].items():
             if k == str(string):
                 return True
         return False
@@ -55,8 +58,8 @@ class Response:
     def get_result(self, string=None):
         try:
             if string is None:
-                return self.__data()['Result']
-            return self.__data()['Result'][string]
+                return self.data()['Result']
+            return self.data()['Result'][string]
         except(KeyError, TypeError):
             return None
 
@@ -95,9 +98,9 @@ class Response:
 
     def get_fee(self):
         try:
-            return self.__data()['Result']['Result']['Fee']
+            return self.data()['Result']['Result']['Fee']
         except KeyError:
-            return self.__data()['Result']['Fee']
+            return self.data()['Result']['Fee']
 
     def get_privacy(self):
         return self.get_result("IsPrivacy")
@@ -203,3 +206,14 @@ class StackTrace:
 
     def get_estimated_fee(self):
         return re.search("fee=(.*)", self.stack_string).group(1)
+
+
+class Params:
+    def __init__(self, response: Response):
+        self.response = response
+
+    def params(self):
+        return self.response.data()['Params']
+
+    def get_beacon_height(self):
+        return self.params()[0]["BeaconHeight"]

@@ -3,22 +3,32 @@ import re
 import pytest
 
 from IncognitoChain.Helpers.Logging import *
-from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
+from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, Account
 
-sender_account = get_accounts_in_shard(5)[0]
-receiver_account = get_accounts_in_shard(5)[1]
-init_sender_balance = sender_account.get_prv_balance()
-init_receiver_balance = receiver_account.get_prv_balance()
+sender_account: Account = None
+receiver_account: Account = None
+init_sender_balance = None
+init_receiver_balance = None
 
 
 def setup_module():
+    global sender_account, receiver_account, init_sender_balance, init_receiver_balance
+    sender_account = get_accounts_in_shard(5)[0]
+    receiver_account = get_accounts_in_shard(5)[1]
+    init_sender_balance = sender_account.get_prv_balance()
+    init_receiver_balance = receiver_account.get_prv_balance()
     if init_sender_balance > 0:
         sender_account.send_all_prv_to(receiver_account)
 
 
 def teardown_module():
-    if init_sender_balance > 0:
-        receiver_account.send_prv_to(sender_account, init_sender_balance, privacy=0)
+    if init_sender_balance == 0:
+        receiver_account.send_prv_to(sender_account, init_sender_balance, privacy=0).subscribe_transaction()
+    if receiver_account.shard != sender_account.shard:
+        try:
+            sender_account.subscribe_cross_output_coin()
+        except:
+            pass
 
 
 @pytest.mark.parametrize('fee,privacy', [
