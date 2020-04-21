@@ -4,7 +4,7 @@ import unittest
 
 import pytest
 
-import topology.NodeList as NodeList
+import topology.NodeList_jenkins as NodeList
 from libs.AutoLog import INFO, WAIT, STEP, assert_true, DEBUG
 from libs.DecentralizedExchange import DEX
 from libs.Transaction import Transaction
@@ -31,8 +31,8 @@ class test_dex(unittest.TestCase):
         # "797d79": "0c1e0dded579a13cb5f9034d810b892d6109fd2ad269f545ee2df0e760cda5d6",
         # "562f2b": "a78c34f9dd6adb186d7f371f676b0d6de1603c87a31c281aedf769aad6a57661",
 
-        "amount_contribution_797d79": 623452,
-        "amount_contribution_562f2b": 20088,
+        "amount_contribution_797d79": 23742,
+        "amount_contribution_562f2b": 712,
         "amount_contribution_000004": 236523,
         # "amount_contribution_797d79": 29461,
         # "amount_contribution_562f2b": 24623623,
@@ -46,7 +46,7 @@ class test_dex(unittest.TestCase):
             "12RxiiobVPEoo4djdueSsDcT79BgcBQtiZfwMTwTt9a6tfN9gEbsor7BgxsHxb8DeufMo2BTDxn11wnm3ANDHGL1e8Y7NXWZmQLMiLC",
         ],
         "privateKey": {
-            5: [
+            0: [
                 "112t8rnakdKxvk7VMKUB9qmsPY4czwnP24b82BnepcxHLX6kJ1dYQsR8d6xNTzwC9nEhJdocr9u19NAr4iSYXCeTBRu3YET8iADMAP3szdfw",
                 "112t8rnbTkezohA4GLeUDpLFnuDbFvPcoCS1MxctvEu3rmUkvmoWJ37MnXDSscpVy6bKfSwjWigi9L3qhcUFo8yZLLsgPvYAn9fs1E62qNPS",
                 "112t8rnjzNW1iKLjpNW9oJoD38pnVVgCiZWRuqGmMvcEgZEHjtg4tLRTAcfTCxNXrdzKcEmY9JVfX2Wb3JLaCjfRDEyGhXGK67VB297mZuwH",
@@ -110,7 +110,7 @@ class test_dex(unittest.TestCase):
                 "112t8rnpq9pGi2DLqp5yWqwPxRAWkRVGtyb1xGKXUmW5Dxox7pwT6twao3RBugiMj9pDZizmi9ohfqAEv4ggRaXhoPzXnvutV4YU2qekJg5M"
 
             ],
-            0: [
+            5: [
                 "112t8rnYwrzsk7bQgYM6duFMfQsHDvoF3bLLEXQGSXayLzFhH2MDyHRFpYenM9qaPXRFcwVK2b7jFG8WHLgYamaqG8PzAJuC7sqhSw2RzaKx",
                 "112t8rneWAhErTC8YUFTnfcKHvB1x6uAVdehy1S8GP2psgqDxK3RHouUcd69fz88oAL9XuMyQ8mBY5FmmGJdcyrpwXjWBXRpoWwgJXjsxi4j",
                 "112t8rni5FF2cEVMZmmCzpnr4QuFnUvYymbkjk3LGp5GJs8c8wTMURmJbZGx8WgwkPodtwGr34Vu8KZat7gxZmSXu5h9LDuppnyzcEXSgKff",
@@ -160,7 +160,7 @@ class test_dex(unittest.TestCase):
             ]
         },
         "paymentAddr": {
-            5: [
+            0: [
                 "12RxnTs5KqyQUzGF4R2w68j3biJD29iDsFiVgC4GRy5X85anUrq1rg8P4aUyDRuS5desg9WANRptifcissMBPETyMeBE8KEh7LmQ6m7",
                 "12Rv7iLGR4m2116m6X44yyY531WQ4j7Eroxnkv2CZKHeieDtmHUEeerq9RkPkvb8N4S3NxcBdJPDe4jHKeapzTxSVpRcGGK7NPUc1eF",
                 "12Rryj5pw8jmf6Pxs4FFxWs6YW8eBbJd1m2vGiFaguyH9rSQwuqeTqvDuUrReNSVd2w6mfr1SrCZYocU1Wrh9xhWS9rXEYGWuDz2VAp",
@@ -221,7 +221,7 @@ class test_dex(unittest.TestCase):
                 "12S44xGxJjNiuJze9V9AoqsLSAy7N32T3xCBkH5ockymfqgMkTk246LXigfApoDCiYxyyDszVwYwhsYg7pP5YMMKP4PbWNZUGR1z35p",
                 "12S6i33cVoMZCw8QPkvrPssTjaqpxpgGTgaPTjBdDESQPHSRnGSd4kTViYTmLN8NXmEQuJhCiDuc4H3Q1avAw5hCUMTCpx5bxSFdx2z"
             ],
-            0: [
+            5: [
                 "12RxdaQkg3HzYAzfWb53osy9pbyHVqTd5m1hN6eghfjAXLwpy2m3QgGBRWVnmhH6sq1YScnYLC9aESWitaLTw9TNsJkhXiv88CAn6kf",
                 "12Rx2NqWi5uEmMrT3fRVjhosBoGpjAQ9yxFmHckxZjyekU9YPdN622iVrwL3NwERvepotM6TDxPUo2SV4iDpW3NUukxeNCwJb2QTN9H",
                 "12Rvic7Pnf1d12ZB2hnYwGV6W9RLfHpkaSt2N5Xr5up8Hj93s2z8SQKRqQZ6ye2tFD2WKy28XTSQ1w9wiYN8RZtFbPipjxSUycJvbPT",
@@ -1076,21 +1076,23 @@ class test_dex(unittest.TestCase):
                     """)
         STEP(1, "Get balance before withdraw")
         shard = 0
-        account = 2
+        account = 4
         balance_797d79_B, _ = self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][shard][account],
                                                                        self.testData['797d79'])
         balance_562f2b_B, _ = self.fullnode_trx.get_customTokenBalance(self.testData['privateKey'][shard][account],
                                                                        self.testData['562f2b'])
         # share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
         #                                              [self.testData['token_ownerPaymentAddress'][0]])
-        share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
+        total_share_797d79_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],
                                                      [self.testData['token_ownerPaymentAddress'][0]] +
                                                      self.testData['paymentAddr'][0] +
                                                      self.testData['paymentAddr'][3] +
                                                      self.testData['paymentAddr'][5])
+        print(f"total share: {total_share_797d79_B}")
+        share_account_B = self.fullnode.get_pdeshares(self.testData['797d79'], self.testData['562f2b'],[self.testData['paymentAddr'][shard][account]])
         rate_B = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
         STEP(2, "Withdraw 15% from 1st share owner")
-        withdraw_amount = math.floor(share_797d79_B[0] / 6)
+        withdraw_amount = math.floor(share_account_B[0] / 6)
         INFO("withdrawing: %d" % withdraw_amount)
         txid = self.fullnode.withdrawal_contribution(self.testData['privateKey'][shard][account],
                                                      self.testData['paymentAddr'][shard][account],
@@ -1132,8 +1134,8 @@ class test_dex(unittest.TestCase):
                                                      self.testData['paymentAddr'][3] +
                                                      self.testData['paymentAddr'][5])
         rate_A = self.fullnode.get_latestRate(self.testData["797d79"], self.testData["562f2b"])
-        d79_withdrawal = math.floor(withdraw_amount * rate_B[0] / sum(share_797d79_B))
-        f2b_withdrawal = math.floor(withdraw_amount * rate_B[1] / sum(share_797d79_B))
+        d79_withdrawal = math.floor(withdraw_amount * rate_B[0] / sum(total_share_797d79_B))
+        f2b_withdrawal = math.floor(withdraw_amount * rate_B[1] / sum(total_share_797d79_B))
 
         INFO("SUMMARY:")
         INFO("Balance d79 B: %s" % str(balance_797d79_B))
@@ -1141,7 +1143,7 @@ class test_dex(unittest.TestCase):
         INFO("Balance f2b B: %s" % str(balance_562f2b_B))
         INFO("Balance f2b A: %s" % str(balance_562f2b_A))
         INFO("Withdrawal amount d79 vs f2b: %d vs %d" % (d79_withdrawal, f2b_withdrawal))
-        INFO("share d79 B: %s" % str(share_797d79_B))
+        INFO("share d79 B: %s" % str(total_share_797d79_B))
         INFO("share d79 A: %s" % str(share_797d79_A))
         INFO("rate 797d79 vs 562f2b B" + str(rate_B))
         INFO("rate 797d79 vs 562f2b A" + str(rate_A))
