@@ -6,33 +6,51 @@ from IncognitoChain.Helpers.Logging import INFO
 
 
 class Response:
-    def __init__(self, json_response, more_info=None):
-        self.response = json_response
+    def __init__(self, response, more_info=None):
+        self.response = response
         self.more_info = more_info
         if more_info is not None:
             Log.DEBUG(more_info)
         Log.DEBUG(self.__str__())
 
     def __str__(self):
-        return f'\n{json.dumps(self.response, indent=3)}'
+        return f'\n{json.dumps(self.data(), indent=3)}'
+
+    def data(self):
+        if type(self.response) is str:
+            return json.loads(self.response)  # response from WebSocket
+        return json.loads(self.response.text)  # response from rpc
+
+    def params(self):
+        return Params(self)
+
+    def size(self):
+        if self.response is str:  # response from WebSocket
+            return len(self.response)
+        return len(self.response.content)  # response from rpc
+
+    def response_time(self):
+        if self.response is str:  # response from WebSocket
+            return None
+        return self.response.elapsed.total_seconds()  # response from rpc
 
     def is_success(self):
-        if self.response['Error'] is None:
+        if self.data()['Error'] is None:
             return True
         return False
 
     def get_error_trace(self):
-        if self.response['Error'] is None:
+        if self.data()['Error'] is None:
             return ''
-        return StackTrace(self.response['Error']['StackTrace'][0:256])
+        return StackTrace(self.data()['Error']['StackTrace'][0:256])
 
     def get_error_msg(self):
-        if self.response['Error'] is None:
+        if self.data()['Error'] is None:
             return None
-        return self.response['Error']['Message']
+        return self.data()['Error']['Message']
 
     def find_in_result(self, string):
-        for k, v in self.response["Result"].items():
+        for k, v in self.data()["Result"].items():
             if k == str(string):
                 return True
         return False
@@ -40,8 +58,8 @@ class Response:
     def get_result(self, string=None):
         try:
             if string is None:
-                return self.response['Result']
-            return self.response['Result'][string]
+                return self.data()['Result']
+            return self.data()['Result'][string]
         except(KeyError, TypeError):
             return None
 
@@ -80,9 +98,9 @@ class Response:
 
     def get_fee(self):
         try:
-            return self.response['Result']['Result']['Fee']
+            return self.data()['Result']['Result']['Fee']
         except KeyError:
-            return self.response['Result']['Fee']
+            return self.data()['Result']['Fee']
 
     def get_privacy(self):
         return self.get_result("IsPrivacy")
@@ -107,6 +125,11 @@ class Response:
     def get_list_txs(self):
         return self.get_result("ListTxs")
 
+    def get_block_hash(self):
+        return self.get_result("BlockHash")
+
+    def get_shard_id(self):
+        return self.get_result('ShardID')
     # !!!!!!!! Next actions base on response
     def subscribe_transaction(self, tx_id=None):
         """
@@ -134,8 +157,7 @@ class Response:
         :return: True = privacy, False = no privacy
         """
         result = self.get_transaction_by_hash()
-        if result.get_privacy() is True and \
-            result.get_proof_detail_input_coin_value_prv() == 0:
+        if result.get_privacy() is True and result.get_proof_detail_input_coin_value_prv() == 0:
             return True
         return False
 
@@ -153,8 +175,7 @@ class Response:
         """
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         result = SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
-        if result.get_custom_token_privacy() is True and \
-            result.get_proof_detail_input_coin_value_custom_token() == 0:
+        if result.get_custom_token_privacy() is True and result.get_proof_detail_input_coin_value_custom_token() == 0:
             return True
         return False
 
@@ -165,7 +186,7 @@ class Response:
     def get_mem_pool_transactions_id_list(self) -> list:
         hashes = self.get_list_txs()
         if hashes is None:
-            return None
+            return []
         tx_id_list = list()
         for entry in hashes:
             tx_id_list.append(entry['TxID'])
@@ -190,3 +211,14 @@ class StackTrace:
 
     def get_estimated_fee(self):
         return re.search("fee=(.*)", self.stack_string).group(1)
+
+
+class Params:
+    def __init__(self, response: Response):
+        self.response = response
+
+    def params(self):
+        return self.response.data()['Params']
+
+    def get_beacon_height(self):
+        return self.params()[0]["BeaconHeight"]

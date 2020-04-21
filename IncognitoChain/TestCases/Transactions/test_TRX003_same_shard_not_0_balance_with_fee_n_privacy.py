@@ -3,9 +3,16 @@ import pytest
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 
-sender_account = get_accounts_in_shard(5)[0]
-receiver_account = get_accounts_in_shard(5)[1]
-send_amount = 1000
+sender_account = None
+receiver_account = None
+send_amount = None
+
+
+def setup_module():
+    global sender_account, receiver_account, send_amount
+    sender_account = get_accounts_in_shard(5)[0]
+    receiver_account = get_accounts_in_shard(5)[1]
+    send_amount = 1000
 
 
 @pytest.mark.parametrize('fee,privacy', [(-1, 0), (2, 0), (-1, 1), (2, 1)])
@@ -48,3 +55,8 @@ def test_send_prv_1shard_with_fee_privacy(fee, privacy):
 
     STEP(7, "Return the money")
     receiver_account.send_prv_to(sender_account, send_amount).subscribe_transaction()
+    if receiver_account.shard != sender_account.shard:
+        try:
+            sender_account.subscribe_cross_output_coin()
+        except:
+            pass

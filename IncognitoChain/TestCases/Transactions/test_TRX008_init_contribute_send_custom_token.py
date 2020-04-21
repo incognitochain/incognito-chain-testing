@@ -13,32 +13,34 @@ from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
 
 token_init_amount = coin(1000000)
-prv_contribute_amount = coin(20000)  # contribute rate 1:1
-token_contribute_amount = coin(20000)  # contribute rate 1:1
-account_init = get_accounts_in_shard(5)[0]
+# contribute rate 1:2
+prv_contribute_amount = coin(10000)
+token_contribute_amount = coin(20000)
 
 custom_token_symbol = get_current_date_time()
-custom_token_id = None
 contribute_success = False
 
 token_amount_to_send = random.randrange(1000, 2000)
 
+custom_token_id = None
+account_init = get_accounts_in_shard(5)[0]
 sender_account = account_init
-
 receiver_account = get_accounts_in_shard(5)[1]
-
 receiver_x_shard = get_accounts_in_shard(0)[0]
-
-pair_id = f"token1_1prv_{random.randrange(1000, 10000)}"
 
 
 def setup_module():
     INFO("Test set up")
+
     sender_bal = account_init.get_prv_balance()
     if sender_bal <= token_init_amount:
-        COIN_MASTER.send_prv_to(account_init, token_init_amount - sender_bal + 10, privacy=0).subscribe_transaction()
+        COIN_MASTER.send_prv_to(account_init, token_init_amount - sender_bal + coin(1),
+                                privacy=0).subscribe_transaction()
         if COIN_MASTER.shard != account_init.shard:
-            account_init.subscribe_cross_output_coin()
+            try:
+                account_init.subscribe_cross_output_coin()
+            except:
+                pass
 
 
 def teardown_module():
@@ -46,7 +48,7 @@ def teardown_module():
     global contribute_success
     if contribute_success:
         account_init.withdraw_contribution(Constants.prv_token_id, custom_token_id,
-                                           token_init_amount).subscribe_transaction()
+                                           token_contribute_amount).subscribe_transaction()
     contribute_success = False
 
 
@@ -56,7 +58,8 @@ def test_init_ptoken():
     Init a pToken
     Contribute pToken-PRV to pDex (mapping rate) => use pToken to pay fee
     ''')
-    contribute_rate = [token_contribute_amount, prv_contribute_amount]
+    contribute_rate = [prv_contribute_amount, token_contribute_amount]
+    pair_id = f"token_prv_{random.randrange(1000, 10000)}"
 
     STEP(1, "Initial new token")
     step1_result = account_init.init_custom_token_self(custom_token_symbol, token_init_amount)
@@ -76,11 +79,14 @@ def test_init_ptoken():
     STEP(4, "contribute token & PRV")
     # Contribute TOKEN:
     contribute_token_result = account_init.contribute_token(custom_token_id, token_contribute_amount, pair_id)
+    assert contribute_token_result.get_error_msg() is None
     INFO(f"Contribute {custom_token_id} Success, TxID: {contribute_token_result.get_tx_id()}")
     INFO("Subscribe contribution transaction")
     contribute_token_result.subscribe_transaction()
-    # Contribute PRV:
+    # Contribute PRV:ken
+    WAIT(10)
     contribute_prv_result = account_init.contribute_prv(prv_contribute_amount, pair_id)
+    assert contribute_prv_result.get_error_msg() is None
     global contribute_success
     contribute_success = True
 

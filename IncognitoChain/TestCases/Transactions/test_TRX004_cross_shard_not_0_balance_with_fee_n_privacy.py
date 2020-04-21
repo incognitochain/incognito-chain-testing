@@ -3,9 +3,16 @@ import pytest
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 
-sender = get_accounts_in_shard(5)[0]
-receiver = get_accounts_in_shard(2)[0]
-send_amount = 1000
+sender = None
+receiver = None
+send_amount = None
+
+
+def setup_module():
+    global send_amount, sender, receiver
+    sender = get_accounts_in_shard(5)[0]
+    receiver = get_accounts_in_shard(2)[0]
+    send_amount = 1000
 
 
 @pytest.mark.parametrize('fee,privacy', [(-1, 1), (-1, 0), (2, 1), (2, 0)])

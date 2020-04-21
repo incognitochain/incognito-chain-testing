@@ -4,19 +4,24 @@ from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER
 
-sender = get_accounts_in_shard(2)[0]
-receiver = get_accounts_in_shard(5)[0]
-send_amount = 10000
-max_fee = 900000000000000
-max_send_amount = 1000000000000000001
+sender = receiver = send_amount = max_fee = max_send_amount = None
 
 
 def setup_function():
+    global sender, receiver, send_amount, max_fee, max_send_amount
+    sender = get_accounts_in_shard(2)[0]
+    receiver = get_accounts_in_shard(5)[0]
+    send_amount = 10000 
+    max_fee = 900000000000000
+    max_send_amount = 1000000000000000001
     sender_bal = sender.get_prv_balance()
     if sender_bal < max_fee + send_amount:
         COIN_MASTER.send_prv_to(sender, max_fee + send_amount - sender_bal + 10, privacy=0).subscribe_transaction()
         if COIN_MASTER.shard != sender.shard:
-            sender.subscribe_cross_output_coin()
+            try:
+                sender.subscribe_cross_output_coin()
+            except:
+                pass
 
 
 def test_send_prv_privacy_x_shard_max_value():

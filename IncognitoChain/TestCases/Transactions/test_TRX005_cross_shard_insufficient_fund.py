@@ -5,8 +5,13 @@ import pytest
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 
-sender = get_accounts_in_shard(5)[0]
-receiver = get_accounts_in_shard(2)[0]
+sender = receiver = None
+
+
+def setup_module():
+    global sender, receiver
+    sender = get_accounts_in_shard(5)[0]
+    receiver = get_accounts_in_shard(2)[0]
 
 
 def setup_function():

@@ -1,8 +1,11 @@
 import copy
+import re
 from typing import List
 
 from IncognitoChain.Configs import Constants
-from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Configs.Constants import prv_token_id
+from IncognitoChain.Helpers.Logging import INFO, WARNING
+from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
 
 
@@ -135,21 +138,20 @@ class Account:
         get balance by token_id
 
         :param token_id:
-        :param shard_id: default = None, if not specified, will ask full_node. or else, will ask on shard_id
+        :param shard_id: when = None, will ask full_node. When = -1, ask on its own shard, or else will ask on shard_id
         :return:
         """
 
         if shard_id is None:
-            return self.__SUT.full_node.transaction().get_custom_token_balance(self.private_key, token_id).get_result()
-        if shard_id is None:
-            shard_to_ask = self.shard
+            where_to_ask = self.__SUT.full_node.transaction()
+        elif shard_id == -1:
+            where_to_ask = self.__SUT.shards[self.shard].get_representative_node().transaction()
         else:
-            shard_to_ask = shard_id
-        balance = self.__SUT.shards[shard_to_ask].get_representative_node().transaction().get_custom_token_balance(
-            self.private_key, token_id).get_result()
+            where_to_ask = self.__SUT.shards[shard_id].get_representative_node().transaction()
+        balance = where_to_ask.get_custom_token_balance(self.private_key, token_id).get_result()
+
         self.cache[f'balance_token_{token_id}'] = balance
-        INFO(f"""Token Bal = {balance}, private key = {self.private_key}
-            token id = {token_id}""")
+        INFO(f"Token Bal = {balance}, private key = {l6(self.private_key)}, token id = {l6(token_id)}")
         return balance
 
     def stake_and_reward_me(self, stake_amount=None, auto_re_stake=True):
@@ -270,7 +272,7 @@ class Account:
                 shard_to_ask = shard_id
             balance = self.__SUT.shards[shard_to_ask].get_representative_node().transaction().get_balance(
                 self.private_key).get_balance()
-        INFO(f"Prv bal = {balance}, private key = {self.private_key}")
+        INFO(f"Prv bal = {balance}, private key = {l6(self.private_key)}")
         self.cache['balance_prv'] = balance
         return balance
 
@@ -394,20 +396,20 @@ class Account:
                                                                     amount)
 
     def contribute_token(self, contribute_token_id, amount, contribution_pair_id):
-        INFO(f'Contribute token: {contribute_token_id}')
+        INFO(f'Contribute token: {contribute_token_id[-6:]}, amount = {amount}, pair id = {contribution_pair_id}')
 
         return self.__SUT.full_node.dex().contribute_token(self.private_key, self.payment_key, contribute_token_id,
                                                            amount,
                                                            contribution_pair_id)
 
     def contribute_prv(self, amount, contribution_pair_id):
-        INFO(f'Contribute PRV')
+        INFO(f'Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
 
         return self.__SUT.full_node.dex().contribute_prv(self.private_key, self.payment_key, amount,
                                                          contribution_pair_id)
 
     def withdraw_contribution(self, token_id_1, token_id_2, amount):
-        INFO(f'Withdraw contribution')
+        INFO(f'Withdraw contribution {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
         return self.__SUT.full_node.dex().withdrawal_contribution(self.private_key, self.payment_key, token_id_1,
                                                                   token_id_2, amount)
 
@@ -426,9 +428,7 @@ class Account:
         :param token_privacy:
         :return: Response object
         """
-        INFO(f'''Sending {amount_custom_token} token {token_id}
-             to {receiver.payment_key}
-        ''')
+        INFO(f'Sending {amount_custom_token} token {l6(token_id)} to {l6(receiver.payment_key)}')
 
         return self.__SUT.full_node.transaction().send_custom_token_transaction(self.private_key, receiver.payment_key,
                                                                                 token_id, amount_custom_token, prv_fee,
@@ -446,12 +446,12 @@ class Account:
                                                                                  prv_fee, token_fee,
                                                                                  prv_privacy, token_privacy)
 
-    def am_i_a_committee(self):
-        '''
+    def am_i_a_committee(self, refresh_cache=True):
+        """
 
         :return: shard id of which this account is a committee, if not a committee in any shard, return False
-        '''
-        best = self.__SUT.full_node.system_rpc().get_beacon_best_state_detail()
+        """
+        best = self.__SUT.full_node.system_rpc().get_beacon_best_state_detail(refresh_cache=refresh_cache)
         shard_committee_list = best.get_result()['ShardCommittee']
         shard_id = 0
         for i in range(0, len(shard_committee_list)):
@@ -544,6 +544,108 @@ class Account:
 
     def withdraw_reward_to_me(self, token_id=None):
         return self.withdraw_reward_to(self, token_id)
+
+    #######
+    # DEX
+    #######
+    def is_my_token_waiting_for_contribution(self, token_id):
+        INFO(f"Check if {token_id[-6:]} init by {self.payment_key[-6:]} is waiting for contribution ")
+        pde_state = self.__SUT.full_node.help_get_current_pde_status()
+        waiting_contribution_list = str(pde_state.get_result()['WaitingPDEContributions']).split(
+            'waitingpdecontribution')
+
+        for contribution in waiting_contribution_list:
+            if re.search(token_id, str(contribution)):
+                if re.search(self.payment_key, str(contribution)):
+                    INFO(f'{token_id[-6:]} was init by {self.payment_key[-6:]} and waiting for contribution')
+                    return True
+        WARNING("payment address and token id NOT found")
+        return False
+
+    def wait_till_my_token_in_waiting_for_contribution(self, token_id, timeout=100):
+        INFO(f"Wait until token {token_id[-6:]} is in waiting for contribution")
+        result = self.is_my_token_waiting_for_contribution(token_id)
+        while timeout >= 0:
+            if result:
+                INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
+                return result
+            timeout -= 10
+            WAIT(10)
+            result = self.is_my_token_waiting_for_contribution(token_id)
+        INFO(f'Token {token_id[-6:]} is NOT found in contribution waiting list')
+        return result
+
+    def wait_till_my_token_out_waiting_for_contribution(self, token_id, timeout=100):
+        INFO(f"Wait until token {token_id[-6:]} is OUT of waiting for contribution")
+        result = self.is_my_token_waiting_for_contribution(token_id)
+        while timeout >= 0:
+            if not result:
+                INFO(f'Token {token_id[-6:]} is NOT found in contribution waiting list')
+                return result
+            timeout -= 10
+            WAIT(10)
+            result = self.is_my_token_waiting_for_contribution(token_id)
+        INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
+        return result
+
+    def wait_for_balance_change(self, token_id=prv_token_id, current_balance=None, change_amount=None, pool_time=10,
+                                timeout=100):
+        INFO(f'Wait for token: {token_id[-6:]} balance to change, amount: {change_amount}')
+        if current_balance is None:
+            current_balance = self.get_token_balance(token_id)
+            WAIT(pool_time)
+            timeout -= pool_time
+
+        while timeout >= 0:
+            bal_2 = self.get_token_balance(token_id)
+            if change_amount is None:
+                if bal_2 != current_balance:
+                    INFO(f'Balance is changed: {bal_2 - current_balance}')
+                    return bal_2
+            else:
+                if bal_2 == current_balance + change_amount:
+                    INFO(f'Balance changes with {change_amount}')
+                    return bal_2
+            WAIT(pool_time)
+            timeout -= pool_time
+        INFO('Balance not change a bit')
+        return bal_2
+
+    def trade_token(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
+        INFO(f'Trade {sell_amount} of token {token_id_to_sell[-6:]} for {token_id_to_buy[-6:]}')
+        return self.__SUT.full_node.dex().trade_token(self.private_key, self.payment_key, token_id_to_sell, sell_amount,
+                                                      token_id_to_buy, min_amount_to_buy, trading_fee)
+
+    def trade_prv(self, amount_to_sell, token_id_to_buy, min_amount_to_buy):
+        INFO(f'Trade {amount_to_sell} of PRV for {token_id_to_buy[-6:]}')
+        return self.__SUT.full_node.dex().trade_prv(self.private_key, self.payment_key, amount_to_sell, token_id_to_buy,
+                                                    min_amount_to_buy)
+
+    def get_my_current_pde_share(self, token_id_1, token_id_2):
+        """
+
+        :param token_id_1: token id to get share part
+        :param token_id_2:
+        :return: list of token 1 share
+        """
+        INFO(f"Get PDE share of me: payment key: {l6(token_id_1)}")
+        pde_status = self.__SUT.full_node.help_get_current_pde_status()
+        beacon_height = pde_status.params().get_beacon_height()
+        INFO(f"Checking pdeshare {l6(token_id_2)}-{l6(token_id_1)} or {l6(token_id_1)}-{l6(token_id_2)}")
+        share_key_1_2 = f'pdeshare-{beacon_height}-{token_id_2}-{token_id_1}-{self.payment_key}'
+        share_key_2_1 = f'pdeshare-{beacon_height}-{token_id_1}-{token_id_2}-{self.payment_key}'
+        share_response = pde_status.get_pde_share()
+        try:
+            INFO(f'Finding pdeshare-{beacon_height}-{l6(token_id_1)}-{l6(token_id_2)}-{l6(self.payment_key)}')
+            return share_response[share_key_1_2]
+        except KeyError:
+            INFO('Not found')
+        try:
+            INFO(f'Finding pdeshare-{beacon_height}-{l6(token_id_2)}-{l6(token_id_1)}-{l6(self.payment_key)}')
+            return share_response[share_key_2_1]
+        except KeyError:
+            INFO('Not found')
+        return None
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:
