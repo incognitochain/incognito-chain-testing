@@ -1,6 +1,3 @@
-import re
-from typing import List
-
 from pexpect import pxssh
 
 import IncognitoChain.Helpers.Logging as Log
@@ -12,7 +9,8 @@ from IncognitoChain.APIs.System import SystemRpc
 from IncognitoChain.APIs.Transaction import TransactionRpc
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
 from IncognitoChain.Drivers.Response import Response
-from IncognitoChain.Helpers.Logging import DEBUG
+from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects.AccountObject import Account
 
 
@@ -146,25 +144,34 @@ class Node:
         current_beacon_height = self.system_rpc().help_get_beacon_height_in_best_state()
         return self.dex().get_pde_state(current_beacon_height)
 
-    def help_get_pde_share_list(self, token_id_1, token_id_2, contributor_list: List[Account]):
+    def help_get_pde_share_list(self, token_id_1, token_id_2):
+        """
+
+        :param token_id_1: token id to get share part
+        :param token_id_2:
+        :return: list of token 1 share
+        """
+        INFO(f"Get sum PDE share of {l6(token_id_1)}-{l6(token_id_2)}")
         pde_status = self.help_get_current_pde_status()
         beacon_height = pde_status.params().get_beacon_height()
-        pde_share_list = []
-        for acc in contributor_list:
-            share_key_1_2 = f'pdeshare-{beacon_height}-{token_id_1}-{token_id_2}-{acc.payment_key}'
-            share_key_2_1 = f'pdeshare-{beacon_height}-{token_id_2}-{token_id_1}-{acc.payment_key}'
-            share_response = pde_status.get_pde_share()
-            if re.search(share_key_1_2, str(pde_status.get_pde_share())):
-                share = share_response[share_key_1_2]
-                DEBUG(f"Share of {token_id_1[-6]}-{token_id_2[-6]}-{acc.payment_key[-6]} is: {share}")
-                pde_share_list.append(share)
-            elif re.search(share_key_2_1, str(pde_status.get_pde_share())):
-                share = share_response[share_key_2_1]
-                DEBUG(f"Share of {token_id_2[-6]}-{token_id_1[-6]}-{acc.payment_key[-6]} is: {share}")
-                pde_share_list.append(share)
-            else:
-                DEBUG(f'{share_key_1_2} or {share_key_2_1} not found')
-        return pde_share_list
+        INFO(f"Checking pdeshare {l6(token_id_2)}-{l6(token_id_1)} or {l6(token_id_1)}-{l6(token_id_2)}")
+        share_key_1_2 = f'pdeshare-{beacon_height}-{token_id_2}-{token_id_1}'
+        share_key_2_1 = f'pdeshare-{beacon_height}-{token_id_1}-{token_id_2}'
+        share_response = pde_status.get_pde_share()
+
+        pde_share_list = [value for key, value in share_response.items() if share_key_1_2 in key.lower()]
+        if pde_share_list:
+            INFO(f'Found pdeshare-{beacon_height}-{l6(token_id_2)}-{l6(token_id_1)}')
+            return pde_share_list
+
+        pde_share_list = [value for key, value in share_response.items() if share_key_2_1 in key.lower()]
+        INFO(f'Found pdeshare-{beacon_height}-{l6(token_id_1)}-{l6(token_id_2)}')
+        if pde_share_list:
+            INFO(f'Found pdeshare-{beacon_height}-{l6(token_id_1)}-{l6(token_id_2)}')
+            return pde_share_list
+
+        INFO(f'{share_key_1_2} or {share_key_2_1} not found')
+        return None
 
         ##########
         # BRIDGE

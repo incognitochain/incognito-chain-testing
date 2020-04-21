@@ -13,14 +13,14 @@ from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
 
 token_init_amount = coin(1000000)
-prv_contribute_amount = coin(20000)  # contribute rate 1:1
-token_contribute_amount = coin(20000)  # contribute rate 1:1
+# contribute rate 1:2
+prv_contribute_amount = coin(10000)
+token_contribute_amount = coin(20000)
 
 custom_token_symbol = get_current_date_time()
 contribute_success = False
 
 token_amount_to_send = random.randrange(1000, 2000)
-pair_id = f"token1_1prv_{random.randrange(1000, 10000)}"
 
 custom_token_id = None
 account_init = get_accounts_in_shard(5)[0]
@@ -58,7 +58,8 @@ def test_init_ptoken():
     Init a pToken
     Contribute pToken-PRV to pDex (mapping rate) => use pToken to pay fee
     ''')
-    contribute_rate = [token_contribute_amount, prv_contribute_amount]
+    contribute_rate = [prv_contribute_amount, token_contribute_amount]
+    pair_id = f"token_prv_{random.randrange(1000, 10000)}"
 
     STEP(1, "Initial new token")
     step1_result = account_init.init_custom_token_self(custom_token_symbol, token_init_amount)

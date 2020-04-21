@@ -125,6 +125,11 @@ class Response:
     def get_list_txs(self):
         return self.get_result("ListTxs")
 
+    def get_block_hash(self):
+        return self.get_result("BlockHash")
+
+    def get_shard_id(self):
+        return self.get_result('ShardID')
     # !!!!!!!! Next actions base on response
     def subscribe_transaction(self, tx_id=None):
         """

@@ -1,12 +1,9 @@
 import random
 
-from IncognitoChain.Configs.Constants import master_address_private_key, master_address_payment_key
 from IncognitoChain.Helpers.Logging import STEP
 from IncognitoChain.Helpers.ThreadHelper import wait_threads_to_complete
-from IncognitoChain.Objects.IncognitoTestCase import SUT
+from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
 from IncognitoChain.TestCases.Performace import *
-
-coin_master = Account(master_address_private_key, master_address_payment_key)
 
 
 def setup_function():
@@ -16,7 +13,7 @@ def setup_function():
         account.calculate_shard_id()
         balance = account.get_prv_balance()
         if balance < 1300:
-            coin_master.send_prv_to(account, 1300, privacy=0).subscribe_transaction()
+            COIN_MASTER.send_prv_to(account, 1300, privacy=0).subscribe_transaction()
 
 
 def test_max_tx_in_same_block():
