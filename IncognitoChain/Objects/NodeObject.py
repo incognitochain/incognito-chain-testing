@@ -4,6 +4,7 @@ import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.APIs.Bridge import BridgeRpc
 from IncognitoChain.APIs.DEX import DexRpc
 from IncognitoChain.APIs.Explore import ExploreRpc
+from IncognitoChain.APIs.Portal import PortalRpc
 from IncognitoChain.APIs.Subscription import SubscriptionWs
 from IncognitoChain.APIs.System import SystemRpc
 from IncognitoChain.APIs.Transaction import TransactionRpc
@@ -100,6 +101,9 @@ class Node:
         :return: BridgeRpc object
         """
         return BridgeRpc(self._get_rpc_url())
+
+    def portal(self) -> PortalRpc:
+        return PortalRpc(self._get_rpc_url())
 
     def subscription(self) -> SubscriptionWs:
         """

@@ -6,7 +6,7 @@ from IncognitoChain.Configs import Constants
 from IncognitoChain.Configs.Constants import prv_token_id
 from IncognitoChain.Helpers.Logging import INFO, WARNING
 from IncognitoChain.Helpers.TestHelper import l6
-from IncognitoChain.Helpers.Time import WAIT
+from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
 
 
 class Account:
@@ -595,7 +595,7 @@ class Account:
             current_balance = self.get_token_balance(token_id)
             WAIT(pool_time)
             timeout -= pool_time
-
+        bal_2 = None
         while timeout >= 0:
             bal_2 = self.get_token_balance(token_id)
             if change_amount is None:
@@ -647,6 +647,58 @@ class Account:
             INFO('Not found')
         return None
 
+    #######
+    # Portal
+    #######
+    def create_portal_exchange_rate(self, rate_dict):
+        return self.__SUT.full_node.portal(). \
+            create_and_send_portal_exchange_rates(self.private_key, self.private_key, rate_dict)
+
+    def create_valid_porting_request(self, token_id, amount, fee=None, register_id=None):
+        if fee is None:
+            beacon_height = self.__SUT.full_node.system_rpc().help_get_beacon_height_in_best_state()
+            fee = self.__SUT.full_node.portal().get_porting_request_fee(token_id, amount, beacon_height).get_result(
+                token_id)
+        if register_id is None:
+            register_id = get_current_date_time()
+
+        return self.__SUT.full_node.portal(). \
+            create_and_send_register_porting_public_tokens(
+            self.private_key, self.payment_key, token_id, amount, burn_fee=fee, port_fee=fee, register_id=register_id)
+
+    def am_i_custodian(self, token_id=None):
+        INFO(f'Check if {l6(self.payment_key)} is a custodian')
+        current_beacon_height = self.__SUT.full_node.system_rpc().help_get_beacon_height_in_best_state()
+        custodian_pool: dict = self.__SUT.full_node.portal().get_portal_state(current_beacon_height).get_result(
+            'CustodianPool')
+        for key in custodian_pool.keys():
+            custodian = custodian_pool[key]
+            if custodian['IncognitoAddress'] == self.payment_key:
+                if token_id is not None:
+                    remote_addr = custodian['RemoteAddresses']
+                    for i in range(0, len(remote_addr)):
+                        addr = remote_addr[i]
+                        if addr['PTokenID'] == token_id:
+                            INFO(f"{l6(self.payment_key)} is a custodian of token {l6(token_id)}")
+                            return addr['Address']  # external address
+                else:
+                    INFO(f"{l6(self.payment_key)} is a custodian")
+                    return True
+        INFO("You're no custodian")
+        return False
+
+    def add_collateral(self, collateral, ptoken, remote_addr):
+        return self.__SUT.full_node.portal().create_and_send_tx_with_custodian_deposit(
+            self.private_key, self.payment_key, collateral, ptoken, remote_addr)
+
+    def make_me_custodian(self, collateral, ptoken, remote_addr):
+        """
+        just an alias of add_collateral
+        """
+        return self.make_me_custodian(collateral, ptoken, remote_addr)
+
+
+# end of class
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:
     """
