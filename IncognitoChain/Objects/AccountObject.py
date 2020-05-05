@@ -652,18 +652,18 @@ class Account:
     #######
     def create_portal_exchange_rate(self, rate_dict):
         return self.__SUT.full_node.portal(). \
-            create_and_send_portal_exchange_rates(self.private_key, self.private_key, rate_dict)
+            create_n_send_portal_exchange_rates(self.private_key, self.private_key, rate_dict)
 
     def create_valid_porting_request(self, token_id, amount, fee=None, register_id=None):
         if fee is None:
             beacon_height = self.__SUT.full_node.system_rpc().help_get_beacon_height_in_best_state()
-            fee = self.__SUT.full_node.portal().get_porting_request_fee(token_id, amount, beacon_height).get_result(
+            fee = self.__SUT.full_node.portal().get_porting_req_fee(token_id, amount, beacon_height).get_result(
                 token_id)
         if register_id is None:
             register_id = get_current_date_time()
 
         return self.__SUT.full_node.portal(). \
-            create_and_send_register_porting_public_tokens(
+            create_n_send_reg_porting_public_tokens(
             self.private_key, self.payment_key, token_id, amount, burn_fee=fee, port_fee=fee, register_id=register_id)
 
     def am_i_custodian(self, token_id=None):
@@ -688,7 +688,7 @@ class Account:
         return False
 
     def add_collateral(self, collateral, ptoken, remote_addr):
-        return self.__SUT.full_node.portal().create_and_send_tx_with_custodian_deposit(
+        return self.__SUT.full_node.portal().create_n_send_tx_with_custodian_deposit(
             self.private_key, self.payment_key, collateral, ptoken, remote_addr)
 
     def make_me_custodian(self, collateral, ptoken, remote_addr):
