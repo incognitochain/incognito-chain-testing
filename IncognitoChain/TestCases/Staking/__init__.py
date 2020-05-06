@@ -130,8 +130,8 @@ def setup_module():
     # SUT.full_node.system_rpc().help_wait_till_epoch(epoch + 2)
 
     STEP(0, "Verify environment, 6 node per shard")
-    number_committee_shard_0 = SUT.full_node.system_rpc().help_count_committee_in_shard(0, refresh_cache=True)
-    number_committee_shard_1 = SUT.full_node.system_rpc().help_count_committee_in_shard(1, refresh_cache=False)
+    number_committee_shard_0 = SUT.full_node.help_count_committee_in_shard(0, refresh_cache=True)
+    number_committee_shard_1 = SUT.full_node.help_count_committee_in_shard(1, refresh_cache=False)
     assert number_committee_shard_0 == 6
     assert number_committee_shard_1 == 6
 

@@ -40,14 +40,14 @@ def test_self_stake_n_stake_other_with_auto_stake_false(the_stake, the_staked):
     from IncognitoChain.TestCases.Staking import token_id
     INFO(f'Run test with token: {token_id}')
     STEP(1, 'Get epoch number')
-    beacon_height = SUT.full_node.system_rpc().help_get_beacon_height_in_best_state_detail(refresh_cache=True)
-    epoch_number = SUT.full_node.system_rpc().help_get_current_epoch(refresh_cache=False)
+    beacon_height = SUT.full_node.help_get_beacon_height_in_best_state_detail(refresh_cache=True)
+    epoch_number = SUT.full_node.help_get_current_epoch(refresh_cache=False)
     while beacon_height % block_per_epoch >= (block_per_epoch / 2) - 1:
         # -1 just to be sure that staking will be successful
         INFO(f'block height % block per epoch = {beacon_height % block_per_epoch}')
         WAIT((block_per_epoch - (beacon_height % block_per_epoch)) * 10)
-        epoch_number = SUT.full_node.system_rpc().help_get_current_epoch(refresh_cache=False)
-        beacon_height = SUT.full_node.system_rpc().help_get_beacon_height_in_best_state_detail(refresh_cache=True)
+        epoch_number = SUT.full_node.help_get_current_epoch(refresh_cache=False)
+        beacon_height = SUT.full_node.help_get_beacon_height_in_best_state_detail(refresh_cache=True)
 
     INFO(f'Ready to stake at epoch: {epoch_number}, beacon height: {beacon_height}')
 

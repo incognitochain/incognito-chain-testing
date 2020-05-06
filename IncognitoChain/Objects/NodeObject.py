@@ -1,3 +1,5 @@
+import time
+
 from pexpect import pxssh
 
 import IncognitoChain.Helpers.Logging as Log
@@ -12,6 +14,7 @@ from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
 from IncognitoChain.Drivers.Response import Response
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.TestHelper import l6
+from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account
 
 
@@ -145,7 +148,7 @@ class Node:
                 return None
 
     def help_get_current_pde_status(self):
-        current_beacon_height = self.system_rpc().help_get_beacon_height_in_best_state()
+        current_beacon_height = self.help_get_beacon_height_in_best_state()
         return self.dex().get_pde_state(current_beacon_height)
 
     def help_get_pde_share_list(self, token_id_1, token_id_2):
@@ -177,11 +180,57 @@ class Node:
         INFO(f'{share_key_1_2} or {share_key_2_1} not found')
         return None
 
-        ##########
-        # BRIDGE
-        ##########
+    def help_get_beacon_height_in_best_state(self):
+        beacon_best_state = self.system_rpc().get_beacon_best_state()
+        return beacon_best_state.get_beacon_height()
 
-        # ISSUE centralize token is performed from a node
+    def help_get_beacon_height_in_best_state_detail(self, refresh_cache=True):
+        beacon_height = self.system_rpc().get_beacon_best_state_detail(refresh_cache).get_beacon_height()
+        INFO(f"Current beacon height = {beacon_height}")
+        return beacon_height
+
+    def help_clear_mem_pool(self):
+        list_tx = self.system_rpc().get_mem_pool().get_result('ListTxs')
+        for tx in list_tx:
+            self.system_rpc().remove_tx_in_mem_pool(tx['TxID'])
+
+    def help_count_shard_committee(self, refresh_cache=False):
+        best = self.system_rpc().get_beacon_best_state_detail(refresh_cache)
+        shard_committee_list = best.get_result()['ShardCommittee']
+        return len(shard_committee_list)
+
+    def help_count_committee_in_shard(self, shard_id, refresh_cache=False):
+        best = self.system_rpc().get_beacon_best_state_detail(refresh_cache)
+        shard_committee_list = best.get_result()['ShardCommittee']
+        shard_committee = shard_committee_list[f'{shard_id}']
+        return len(shard_committee)
+
+    def help_get_current_epoch(self, refresh_cache=True):
+        beacon_best_state = self.system_rpc().get_beacon_best_state_detail(refresh_cache)
+        epoch = beacon_best_state.get_result('Epoch')
+        INFO(f"Current epoch = {epoch}")
+        return epoch
+
+    def help_wait_till_epoch(self, epoch_number, pool_time=30, timeout=180):
+        epoch = self.help_get_current_epoch()
+        if epoch >= epoch_number:
+            return epoch
+        time_start = time.perf_counter()
+        while epoch < epoch_number:
+            WAIT(pool_time)
+            epoch = self.help_get_current_epoch()
+            if epoch == epoch_number:
+                INFO(f"Now epoch = {epoch}")
+                return epoch
+            time_current = time.perf_counter()
+            if time_current - time_start > timeout:
+                return None
+
+    ##########
+    # BRIDGE
+    ##########
+
+    # ISSUE centralize token is performed from a node
 
     def issue_centralize_token(self, account: Account, token_id, token_name, amount) -> Response:
         """

@@ -33,8 +33,8 @@ def setup_module():
     INFO("Test set up")
 
     sender_bal = account_init.get_prv_balance()
-    if sender_bal <= token_init_amount:
-        COIN_MASTER.send_prv_to(account_init, token_init_amount - sender_bal + coin(1),
+    if sender_bal <= token_init_amount + prv_contribute_amount:
+        COIN_MASTER.send_prv_to(account_init, token_init_amount + prv_contribute_amount - sender_bal + coin(1),
                                 privacy=0).subscribe_transaction()
         if COIN_MASTER.shard != account_init.shard:
             try:

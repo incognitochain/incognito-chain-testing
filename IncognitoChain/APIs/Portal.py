@@ -116,9 +116,9 @@ class PortalRpc:
             with_params([{"ReqTxID": request_tx_id}]).execute()
 
     # redeem request ########################################################################################
-    def create_n_send_tx_with_ptoken_trade_req(self, redeemer_private_key, redeemer_payment_addr, remote_addr,
-                                               token_id, redeem_amount, redeem_fee, redeem_id, privacy):
-        return self.rpc_connection.with_method('createandsendtxwithptokentradereq'). \
+    def create_n_send_tx_with_redeem_req(self, redeemer_private_key, redeemer_payment_addr, remote_addr,
+                                         token_id, redeem_amount, redeem_fee, redeem_id, privacy=True):
+        return self.rpc_connection.with_method('createandsendtxwithredeemreq'). \
             with_params([redeemer_private_key,
                          {
                              burning_address: redeem_fee},

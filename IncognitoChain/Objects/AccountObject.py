@@ -209,8 +209,8 @@ class Account:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
-                e2 = self.__SUT.full_node.system_rpc().help_get_current_epoch()
-                h = self.__SUT.full_node.system_rpc().help_get_beacon_height_in_best_state_detail(refresh_cache=False)
+                e2 = self.__SUT.full_node.help_get_current_epoch()
+                h = self.__SUT.full_node.help_get_beacon_height_in_best_state_detail(refresh_cache=False)
                 INFO(f"Promoted to committee at epoch {e2}, block height {h}")
                 return e2
         INFO(f"Waited {t}s but still not yet become committee")
@@ -225,7 +225,7 @@ class Account:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
-                e2 = self.__SUT.full_node.system_rpc().help_get_current_epoch()
+                e2 = self.__SUT.full_node.help_get_current_epoch()
                 INFO(f"Swapped out of committee at epoch {e2}")
                 return e2
         INFO(f"Waited {t}s but still a committee")
@@ -242,7 +242,7 @@ class Account:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
-                e2 = self.__SUT.full_node.system_rpc().help_get_current_epoch()
+                e2 = self.__SUT.full_node.help_get_current_epoch()
                 INFO(f"Rewarded {reward} : {token_id} at epoch {e2}")
                 return reward
         INFO(f"Waited {t}s but still has no reward")
@@ -325,6 +325,7 @@ class Account:
         :param privacy:
         :return:
         """
+        fee_per_size = 700000
         INFO(f'Sending everything to {to_account}')
         # defrag account so that the custom fee = fee x 2 as below
         defrag = self.defragment_account()
@@ -332,7 +333,8 @@ class Account:
             defrag.subscribe_transaction()
         balance = self.get_prv_balance()
         if balance > 0:
-            return self.send_prv_to(to_account, balance - 200, 100, privacy).subscribe_transaction()
+            return self.send_prv_to(to_account, balance - fee_per_size * 2, fee_per_size,
+                                    privacy).subscribe_transaction()
 
     def count_unspent_output_coins(self):
         """
@@ -656,7 +658,7 @@ class Account:
 
     def create_valid_porting_request(self, token_id, amount, fee=None, register_id=None):
         if fee is None:
-            beacon_height = self.__SUT.full_node.system_rpc().help_get_beacon_height_in_best_state()
+            beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
             fee = self.__SUT.full_node.portal().get_porting_req_fee(token_id, amount, beacon_height).get_result(
                 token_id)
         if register_id is None:
@@ -668,7 +670,7 @@ class Account:
 
     def am_i_custodian(self, token_id=None):
         INFO(f'Check if {l6(self.payment_key)} is a custodian')
-        current_beacon_height = self.__SUT.full_node.system_rpc().help_get_beacon_height_in_best_state()
+        current_beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
         custodian_pool: dict = self.__SUT.full_node.portal().get_portal_state(current_beacon_height).get_result(
             'CustodianPool')
         for key in custodian_pool.keys():
@@ -695,7 +697,14 @@ class Account:
         """
         just an alias of add_collateral
         """
-        return self.make_me_custodian(collateral, ptoken, remote_addr)
+        return self.add_collateral(collateral, ptoken, remote_addr)
+
+    def req_redeem_my_token(self, remote_addr, token_id, redeem_amount):
+        block_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
+        redeem_fee = 0
+        return self.__SUT.full_node.portal().create_n_send_tx_with_redeem_req(self.private_key, self.payment_key,
+                                                                              remote_addr, token_id, redeem_amount,
+                                                                              redeem_fee)
 
 
 # end of class
