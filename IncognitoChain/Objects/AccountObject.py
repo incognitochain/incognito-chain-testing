@@ -41,7 +41,7 @@ class Account:
                            copy.deepcopy(self.public_key),
                            copy.deepcopy(self.read_only_key))
 
-        copy_obj.prv_balance_cache = copy.deepcopy(self.cache)
+        copy_obj.cache = copy.deepcopy(self.cache)
         return copy_obj
 
     def __eq__(self, other):
@@ -699,12 +699,23 @@ class Account:
         """
         return self.add_collateral(collateral, ptoken, remote_addr)
 
-    def req_redeem_my_token(self, remote_addr, token_id, redeem_amount):
-        block_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
-        redeem_fee = 0
+    def req_redeem_my_token(self, remote_addr, token_id, redeem_amount, privacy=True):
+        redeem_id = f"{l6(token_id)}_{get_current_date_time()}"
+        beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
+        redeem_fee = self.__SUT.full_node.portal().get_porting_req_fee(token_id, redeem_amount, beacon_height)
         return self.__SUT.full_node.portal().create_n_send_tx_with_redeem_req(self.private_key, self.payment_key,
                                                                               remote_addr, token_id, redeem_amount,
-                                                                              redeem_fee)
+                                                                              redeem_fee, redeem_id, privacy)
+
+    def withdraw_my_portal_collateral(self, amount):
+        return self.__SUT.full_node.portal().create_n_send_custodian_withdraw_req(self.private_key, self.payment_key,
+                                                                                  amount)
+
+    def get_my_portal_collateral_amount(self):
+        beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
+        custodian_pool = self.__SUT.full_node.portal().get_portal_state(beacon_height).get_result('CustodianPool')
+        custodian_pool['']
+        # to be continue
 
 
 # end of class

@@ -9,7 +9,16 @@ master_address_private_key = \
 master_address_payment_key = \
     "12S5Lrs1XeQLbqN4ySyKtjAjd2d7sBP2tjFijzmp6avrrkQCNFMpkXm3FPzj2Wcu2ZNqJEmh9JriVuRErVwhuQnLmWSaggobEWsBEci"
 ONE_COIN = 1000000000
+min_fee_per_kb = 200000
 
 
-def coin(amount):
-    return amount * ONE_COIN
+def coin(amount, nano=True):
+    """
+    :param amount:
+    :param nano: if nano = true, x1000000000. else /1000000000
+    :return:
+    """
+    if nano:
+        return amount * ONE_COIN
+    else:
+        return amount / ONE_COIN
