@@ -3,7 +3,7 @@ import sys
 from websocket import WebSocketTimeoutException
 
 from IncognitoChain.Configs import config
-from IncognitoChain.Configs.Constants import master_address_private_key, master_address_payment_key, ONE_COIN
+from IncognitoChain.Configs.Constants import master_address_private_key, master_address_payment_key, ONE_COIN, coin
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.TestBedObject import *
 from IncognitoChain.Objects.TestBedObject import TestBed
@@ -35,13 +35,25 @@ if PARAMS.get('testData') is not None:
 ACCOUNTS: List[Account] = load_test_data(__account_file).account_list
 
 # check balance and send some money
+# also send back if already have to much prv
 COIN_MASTER = Account(master_address_private_key, master_address_payment_key)
 COIN_MASTER.calculate_shard_id()
 for account in ACCOUNTS:
-    if account.get_prv_balance() < ONE_COIN / 5:
-        COIN_MASTER.send_prv_to(account, ONE_COIN - account.get_prv_balance_cache(), privacy=0).subscribe_transaction()
+    bal = account.get_prv_balance()
+    if bal < ONE_COIN / 5:
+        send_amount = ONE_COIN - account.get_prv_balance_cache()
+        COIN_MASTER.send_prv_to(account, send_amount, privacy=0).subscribe_transaction()
         if COIN_MASTER.shard != account.shard:
             try:
                 account.subscribe_cross_output_coin()
+            except WebSocketTimeoutException:
+                pass
+
+    elif bal > ONE_COIN:
+        send_amount = coin(bal // ONE_COIN)
+        account.send_prv_to(COIN_MASTER, send_amount, privacy=0).subscribe_transaction()
+        if COIN_MASTER.shard != account.shard:
+            try:
+                COIN_MASTER.subscribe_cross_output_coin()
             except WebSocketTimeoutException:
                 pass

@@ -225,11 +225,7 @@ class TransactionRpc:
             with_method('listunspentoutputcoins'). \
             with_params([0,
                          999999,
-                         [
-                             {
-                                 "PrivateKey": private_key
-                             }
-                         ],
+                         [{"PrivateKey": private_key}],
                          ""
                          ]). \
             execute()

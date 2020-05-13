@@ -27,14 +27,15 @@ account_init = get_accounts_in_shard(5)[0]
 sender_account = account_init
 receiver_account = get_accounts_in_shard(5)[1]
 receiver_x_shard = get_accounts_in_shard(0)[0]
+token_fee = 1400000
 
 
 def setup_module():
     INFO("Test set up")
 
     sender_bal = account_init.get_prv_balance()
-    if sender_bal <= token_init_amount:
-        COIN_MASTER.send_prv_to(account_init, token_init_amount - sender_bal + coin(1),
+    if sender_bal <= token_init_amount + prv_contribute_amount:
+        COIN_MASTER.send_prv_to(account_init, token_init_amount + prv_contribute_amount - sender_bal + coin(1),
                                 privacy=0).subscribe_transaction()
         if COIN_MASTER.shard != account_init.shard:
             try:
@@ -112,14 +113,14 @@ def test_init_ptoken():
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
     pytest.param(sender_account, receiver_account, -1, 'token', 0, 'prv',
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
-    (sender_account, receiver_account, 10, 'token', 1, 'prv'),
-    (sender_account, receiver_account, 10, 'token', 0, 'prv'),
+    (sender_account, receiver_account, token_fee, 'token', 1, 'prv'),
+    (sender_account, receiver_account, token_fee, 'token', 0, 'prv'),
     (sender_account, receiver_account, -1, 'prv', 1, 'prv'),
     (sender_account, receiver_account, -1, 'prv', 0, 'prv'),
     (sender_account, receiver_account, 1, 'prv', 1, 'prv'),
     (sender_account, receiver_account, 1, 'prv', 0, 'prv'),
-    (sender_account, receiver_account, 10, 'token', 1, 'token'),
-    (sender_account, receiver_account, 10, 'token', 0, 'token'),
+    (sender_account, receiver_account, token_fee, 'token', 1, 'token'),
+    (sender_account, receiver_account, token_fee, 'token', 0, 'token'),
     (sender_account, receiver_account, -1, 'prv', 1, 'token'),
     (sender_account, receiver_account, -1, 'prv', 0, 'token'),
     (sender_account, receiver_account, 1, 'prv', 1, 'token'),
@@ -129,14 +130,14 @@ def test_init_ptoken():
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
     pytest.param(sender_account, receiver_account, -1, 'token', 0, 'prv',
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
-    (sender_account, receiver_x_shard, 10, 'token', 1, 'prv'),
-    (sender_account, receiver_x_shard, 10, 'token', 0, 'prv'),
+    (sender_account, receiver_x_shard, token_fee, 'token', 1, 'prv'),
+    (sender_account, receiver_x_shard, token_fee, 'token', 0, 'prv'),
     (sender_account, receiver_x_shard, -1, 'prv', 1, 'prv'),
     (sender_account, receiver_x_shard, -1, 'prv', 0, 'prv'),
     (sender_account, receiver_x_shard, 1, 'prv', 1, 'prv'),
     (sender_account, receiver_x_shard, 1, 'prv', 0, 'prv'),
-    (sender_account, receiver_x_shard, 10, 'token', 1, 'token'),
-    (sender_account, receiver_x_shard, 10, 'token', 0, 'token'),
+    (sender_account, receiver_x_shard, token_fee, 'token', 1, 'token'),
+    (sender_account, receiver_x_shard, token_fee, 'token', 0, 'token'),
     (sender_account, receiver_x_shard, -1, 'prv', 1, 'token'),
     (sender_account, receiver_x_shard, -1, 'prv', 0, 'token'),
     (sender_account, receiver_x_shard, 1, 'prv', 1, 'token'),
@@ -297,9 +298,8 @@ def test_send_token_insufficient_fund(sender, receiver):
 
     STEP(4, "From sender send token to receiver - success")
     # send current balance - fee (100)
-    estimated_fee = 10
-    step4_result = sender.send_token_to(receiver, custom_token_id, sender_token_bal - estimated_fee,
-                                        token_fee=estimated_fee)
+    step4_result = sender.send_token_to(receiver, custom_token_id, sender_token_bal - token_fee,
+                                        token_fee=token_fee)
     assert step4_result.get_error_msg() != 'Can not create tx'
     INFO("TxID: " + step4_result.get_tx_id())
 
@@ -315,11 +315,11 @@ def test_send_token_insufficient_fund(sender, receiver):
 
     STEP(7, "Check receiver balance")
     receiver_token_bal_after = receiver.get_token_balance(custom_token_id)
-    assert receiver_token_bal_after == receiver_token_bal + sender_token_bal - estimated_fee
+    assert receiver_token_bal_after == receiver_token_bal + sender_token_bal - token_fee
 
     STEP(8, 'Return token to sender for the next run')
-    receiver.send_token_to(sender, custom_token_id, receiver_token_bal_after - estimated_fee,
-                           token_fee=estimated_fee).subscribe_transaction()
+    receiver.send_token_to(sender, custom_token_id, receiver_token_bal_after - token_fee,
+                           token_fee=token_fee).subscribe_transaction()
     if sender.shard != receiver.shard:
         sender.subscribe_cross_output_token()
 

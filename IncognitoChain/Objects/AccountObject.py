@@ -6,7 +6,7 @@ from IncognitoChain.Configs import Constants
 from IncognitoChain.Configs.Constants import prv_token_id
 from IncognitoChain.Helpers.Logging import INFO, WARNING
 from IncognitoChain.Helpers.TestHelper import l6
-from IncognitoChain.Helpers.Time import WAIT
+from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
 
 
 class Account:
@@ -41,7 +41,7 @@ class Account:
                            copy.deepcopy(self.public_key),
                            copy.deepcopy(self.read_only_key))
 
-        copy_obj.prv_balance_cache = copy.deepcopy(self.cache)
+        copy_obj.cache = copy.deepcopy(self.cache)
         return copy_obj
 
     def __eq__(self, other):
@@ -209,8 +209,8 @@ class Account:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
-                e2 = self.__SUT.full_node.system_rpc().help_get_current_epoch()
-                h = self.__SUT.full_node.system_rpc().help_get_beacon_height_in_best_state_detail(refresh_cache=False)
+                e2 = self.__SUT.full_node.help_get_current_epoch()
+                h = self.__SUT.full_node.help_get_beacon_height_in_best_state_detail(refresh_cache=False)
                 INFO(f"Promoted to committee at epoch {e2}, block height {h}")
                 return e2
         INFO(f"Waited {t}s but still not yet become committee")
@@ -225,7 +225,7 @@ class Account:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
-                e2 = self.__SUT.full_node.system_rpc().help_get_current_epoch()
+                e2 = self.__SUT.full_node.help_get_current_epoch()
                 INFO(f"Swapped out of committee at epoch {e2}")
                 return e2
         INFO(f"Waited {t}s but still a committee")
@@ -242,7 +242,7 @@ class Account:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
-                e2 = self.__SUT.full_node.system_rpc().help_get_current_epoch()
+                e2 = self.__SUT.full_node.help_get_current_epoch()
                 INFO(f"Rewarded {reward} : {token_id} at epoch {e2}")
                 return reward
         INFO(f"Waited {t}s but still has no reward")
@@ -325,6 +325,7 @@ class Account:
         :param privacy:
         :return:
         """
+        fee_per_size = 700000
         INFO(f'Sending everything to {to_account}')
         # defrag account so that the custom fee = fee x 2 as below
         defrag = self.defragment_account()
@@ -332,7 +333,8 @@ class Account:
             defrag.subscribe_transaction()
         balance = self.get_prv_balance()
         if balance > 0:
-            return self.send_prv_to(to_account, balance - 200, 100, privacy).subscribe_transaction()
+            return self.send_prv_to(to_account, balance - fee_per_size * 2, fee_per_size,
+                                    privacy).subscribe_transaction()
 
     def count_unspent_output_coins(self):
         """
@@ -595,7 +597,7 @@ class Account:
             current_balance = self.get_token_balance(token_id)
             WAIT(pool_time)
             timeout -= pool_time
-
+        bal_2 = None
         while timeout >= 0:
             bal_2 = self.get_token_balance(token_id)
             if change_amount is None:
@@ -647,6 +649,76 @@ class Account:
             INFO('Not found')
         return None
 
+    #######
+    # Portal
+    #######
+    def create_portal_exchange_rate(self, rate_dict):
+        return self.__SUT.full_node.portal(). \
+            create_n_send_portal_exchange_rates(self.private_key, self.private_key, rate_dict)
+
+    def create_valid_porting_request(self, token_id, amount, fee=None, register_id=None):
+        if fee is None:
+            beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
+            fee = self.__SUT.full_node.portal().get_porting_req_fee(token_id, amount, beacon_height).get_result(
+                token_id)
+        if register_id is None:
+            register_id = get_current_date_time()
+
+        return self.__SUT.full_node.portal(). \
+            create_n_send_reg_porting_public_tokens(
+            self.private_key, self.payment_key, token_id, amount, burn_fee=fee, port_fee=fee, register_id=register_id)
+
+    def am_i_custodian(self, token_id=None):
+        INFO(f'Check if {l6(self.payment_key)} is a custodian')
+        current_beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
+        custodian_pool: dict = self.__SUT.full_node.portal().get_portal_state(current_beacon_height).get_result(
+            'CustodianPool')
+        for key in custodian_pool.keys():
+            custodian = custodian_pool[key]
+            if custodian['IncognitoAddress'] == self.payment_key:
+                if token_id is not None:
+                    remote_addr = custodian['RemoteAddresses']
+                    for i in range(0, len(remote_addr)):
+                        addr = remote_addr[i]
+                        if addr['PTokenID'] == token_id:
+                            INFO(f"{l6(self.payment_key)} is a custodian of token {l6(token_id)}")
+                            return addr['Address']  # external address
+                else:
+                    INFO(f"{l6(self.payment_key)} is a custodian")
+                    return True
+        INFO("You're no custodian")
+        return False
+
+    def add_collateral(self, collateral, ptoken, remote_addr):
+        return self.__SUT.full_node.portal().create_n_send_tx_with_custodian_deposit(
+            self.private_key, self.payment_key, collateral, ptoken, remote_addr)
+
+    def make_me_custodian(self, collateral, ptoken, remote_addr):
+        """
+        just an alias of add_collateral
+        """
+        return self.add_collateral(collateral, ptoken, remote_addr)
+
+    def req_redeem_my_token(self, remote_addr, token_id, redeem_amount, privacy=True):
+        redeem_id = f"{l6(token_id)}_{get_current_date_time()}"
+        beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
+        redeem_fee = self.__SUT.full_node.portal().get_porting_req_fee(token_id, redeem_amount, beacon_height)
+        return self.__SUT.full_node.portal().create_n_send_tx_with_redeem_req(self.private_key, self.payment_key,
+                                                                              remote_addr, token_id, redeem_amount,
+                                                                              redeem_fee, redeem_id, privacy)
+
+    def withdraw_my_portal_collateral(self, amount):
+        return self.__SUT.full_node.portal().create_n_send_custodian_withdraw_req(self.private_key, self.payment_key,
+                                                                                  amount)
+
+    def get_my_portal_collateral_amount(self):
+        beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
+        custodian_pool = self.__SUT.full_node.portal().get_portal_state(beacon_height).get_result('CustodianPool')
+        custodian_pool['']
+        # to be continue
+
+
+# end of class
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:
     """
