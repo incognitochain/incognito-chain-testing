@@ -4,7 +4,7 @@ import unittest
 
 import pytest
 
-import topology.NodeList_jenkins as NodeList
+import topology.NodeList as NodeList
 from libs.AutoLog import INFO, WAIT, STEP, assert_true, DEBUG
 from libs.DecentralizedExchange import DEX
 from libs.Transaction import Transaction
@@ -18,7 +18,7 @@ class test_dex(unittest.TestCase):
         """)
     testData = {
         "count": 100,
-        "trade_amount": 1999,
+        "trade_amount": 1999 + 8000000000,
         "tx_fee": 5,
         "trading_fee": 0,
         "slippage": 7,
