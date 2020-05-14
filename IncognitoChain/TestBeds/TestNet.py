@@ -1,7 +1,7 @@
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.ShardObject import *
 
-full_node = Node(address="test-node.incognito.org", rpc_port=9334, ws_port=19334, node_name='fullnode-testnet')
+full_node = Node(address="51.83.36.184", rpc_port=9334, ws_port=19334, node_name='fullnode-testnet')
 
 beacon = Beacon([
     Node(address="51.79.76.116", rpc_port=20000, ws_port=30000, node_name='beacon0'),
