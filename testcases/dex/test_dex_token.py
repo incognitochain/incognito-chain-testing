@@ -18,7 +18,7 @@ class test_dex(unittest.TestCase):
         """)
     testData = {
         "count": 100,
-        "trade_amount": 1999 + 8000000000,
+        "trade_amount": 1999 * 100000,
         "tx_fee": 5,
         "trading_fee": 0,
         "slippage": 7,
@@ -31,8 +31,8 @@ class test_dex(unittest.TestCase):
         # "797d79": "0c1e0dded579a13cb5f9034d810b892d6109fd2ad269f545ee2df0e760cda5d6",
         # "562f2b": "a78c34f9dd6adb186d7f371f676b0d6de1603c87a31c281aedf769aad6a57661",
 
-        "amount_contribution_797d79": 23742,
-        "amount_contribution_562f2b": 712,
+        "amount_contribution_797d79": 23742 * 1000000000,
+        "amount_contribution_562f2b": 712 * 1000000000,
         "amount_contribution_000004": 236523,
         # "amount_contribution_797d79": 29461,
         # "amount_contribution_562f2b": 24623623,

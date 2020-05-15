@@ -35,7 +35,7 @@ class DEX():
             return resp_json['Result']['TxID']
         else:
             WARN(resp_json['Error']['Message'])
-            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
+            return resp_json['Error']['StackTrace'][0:256]
 
     def contribute_token(self, privatekey, paymentaddress, tokenid_toContribute, amount_toContribute,
                          contribution_pairID):
@@ -143,7 +143,7 @@ class DEX():
         else:
             WARN(resp_json['Error']['Message'])
             ERROR(resp_json['Error']['StackTrace'][0:256])
-            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
+            return resp_json['Error']['StackTrace'][0:256]
 
     def withdrawal_contribution(self, privatekey, paymentaddress, tokenid1, tokenid2, amount_withdrawal):
         headers = {'Content-Type': 'application/json'}
@@ -166,7 +166,7 @@ class DEX():
             return resp_json['Result']['TxID']
         else:
             WARN(resp_json['Error']['Message'])
-            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
+            return resp_json['Error']['StackTrace'][0:256]
 
     def get_latestRate(self, tokenid1, tokenid2):
         headers = {'Content-Type': 'application/json'}
@@ -210,7 +210,7 @@ class DEX():
                     return [0, 0]
         else:
             WARN(resp_json['Error']['Message'])
-            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
+            return resp_json['Error']['StackTrace'][0:256]
 
     def get_pdestatus(self):
         headers = {'Content-Type': 'application/json'}
@@ -248,7 +248,7 @@ class DEX():
             return False
         else:
             WARN(resp_json['Error']['Message'])
-            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
+            return resp_json['Error']['StackTrace'][0:256]
 
     def get_pdeshares(self, tokenid1, tokenid2, paymentaddress_list):
         pdestatus = self.get_pdestatus()
@@ -277,7 +277,7 @@ class DEX():
             return pde_share_list
         else:
             WARN(resp_json['Error']['Message'])
-            return str(resp_json['Error']['Message'], resp_json['Error']['StackTrace'][0:256])
+            return resp_json['Error']['StackTrace'][0:256]
 
     def get_contributionStatus(self, pairId):
         headers = {'Content-Type': 'application/json'}

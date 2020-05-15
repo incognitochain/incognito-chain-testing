@@ -18,7 +18,7 @@ class test_dex(unittest.TestCase):
         """)
     testData = {
         "count": 100,
-        "trade_amount": 8712 + 1140000,
+        "trade_amount": 8712 * 100000,
         "tx_fee": 5,
         "trading_fee": 0,
         "slippage": 7,
