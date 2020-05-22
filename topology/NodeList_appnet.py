@@ -2,7 +2,7 @@
 fullnode = {
     "localhost": {'ip': '127.0.0.1', 'rpc': 9354},
     0: {'ip': '128.199.178.247', 'rpc': 29351, 'ws': 39351, 'username': 'root', 'password': 'xxx',
-        'sshkey': '/Users/khanhlh/stagging', 'fullnodename': 'fullnode0'}
+        'sshkey': '/Users/khanhlh/stagging', 'fullnodename': 'fullnode0'},
          1: {'ip': '128.199.182.88', 'rpc': 29334, 'ws': 39334, 'username': 'root', 'password': 'xxx',
         'sshkey': '/Users/khanhlh/stagging', 'fullnodename': 'fullnode0'}
         
