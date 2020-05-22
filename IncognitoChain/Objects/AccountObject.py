@@ -4,9 +4,11 @@ from typing import List
 
 from IncognitoChain.Configs import Constants
 from IncognitoChain.Configs.Constants import prv_token_id
-from IncognitoChain.Helpers.Logging import INFO, WARNING
+from IncognitoChain.Drivers.Response import Response
+from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
+from IncognitoChain.Objects.PortalObjects import PortingReqInfo, RedeemReqInfo, PortalState
 
 
 class Account:
@@ -68,7 +70,7 @@ class Account:
         self.shard = last_byte % 8
         return self.shard
 
-    def from_json(self, json_string):
+    def __init_from_json(self, json_string):
         self.public_key = json_string.get('public')
         self.private_key = json_string.get('private')
         self.payment_key = json_string.get('payment')
@@ -148,6 +150,7 @@ class Account:
             where_to_ask = self.__SUT.shards[self.shard].get_representative_node().transaction()
         else:
             where_to_ask = self.__SUT.shards[shard_id].get_representative_node().transaction()
+
         balance = where_to_ask.get_custom_token_balance(self.private_key, token_id).get_result()
 
         self.cache[f'balance_token_{token_id}'] = balance
@@ -291,10 +294,7 @@ class Account:
         :param privacy: default = privacy on
         :return: Response object
         """
-        INFO(f'''
-                From: {self.private_key}
-                Send {amount} prv 
-                To: {receiver_account.payment_key}''')
+        INFO(f'From: {l6(self.private_key)}. Send {amount} prv to: {l6(receiver_account.payment_key)}')
 
         return self.__SUT.get_request_handler(shard_id).transaction(). \
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
@@ -592,6 +592,15 @@ class Account:
 
     def wait_for_balance_change(self, token_id=prv_token_id, current_balance=None, change_amount=None, pool_time=10,
                                 timeout=100):
+        """
+
+        :param token_id:
+        :param current_balance:
+        :param change_amount:
+        :param pool_time:
+        :param timeout:
+        :return: new balance
+        """
         INFO(f'Wait for token: {token_id[-6:]} balance to change, amount: {change_amount}')
         if current_balance is None:
             current_balance = self.get_token_balance(token_id)
@@ -653,43 +662,30 @@ class Account:
     # Portal
     #######
     def create_portal_exchange_rate(self, rate_dict):
+        INFO()
+        INFO(f'Portal | User {l6(self.payment_key)} | create rate')
         return self.__SUT.full_node.portal(). \
-            create_n_send_portal_exchange_rates(self.private_key, self.private_key, rate_dict)
+            create_n_send_portal_exchange_rates(self.private_key, self.payment_key, rate_dict)
 
-    def create_valid_porting_request(self, token_id, amount, fee=None, register_id=None):
-        if fee is None:
+    def create_porting_request(self, token_id, amount, porting_fee=None, register_id=None):
+        INFO()
+        INFO(f'Portal | User {l6(self.payment_key)} | create porting req')
+        if porting_fee is None:
             beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
-            fee = self.__SUT.full_node.portal().get_porting_req_fee(token_id, amount, beacon_height).get_result(
+            porting_fee = self.__SUT.full_node.portal().get_porting_req_fees(token_id, amount,
+                                                                             beacon_height).get_result(
                 token_id)
         if register_id is None:
-            register_id = get_current_date_time()
+            register_id = f"{l6(token_id)}_{get_current_date_time()}"
 
         return self.__SUT.full_node.portal(). \
             create_n_send_reg_porting_public_tokens(
-            self.private_key, self.payment_key, token_id, amount, burn_fee=fee, port_fee=fee, register_id=register_id)
-
-    def am_i_custodian(self, token_id=None):
-        INFO(f'Check if {l6(self.payment_key)} is a custodian')
-        current_beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
-        custodian_pool: dict = self.__SUT.full_node.portal().get_portal_state(current_beacon_height).get_result(
-            'CustodianPool')
-        for key in custodian_pool.keys():
-            custodian = custodian_pool[key]
-            if custodian['IncognitoAddress'] == self.payment_key:
-                if token_id is not None:
-                    remote_addr = custodian['RemoteAddresses']
-                    for i in range(0, len(remote_addr)):
-                        addr = remote_addr[i]
-                        if addr['PTokenID'] == token_id:
-                            INFO(f"{l6(self.payment_key)} is a custodian of token {l6(token_id)}")
-                            return addr['Address']  # external address
-                else:
-                    INFO(f"{l6(self.payment_key)} is a custodian")
-                    return True
-        INFO("You're no custodian")
-        return False
+            self.private_key, self.payment_key, token_id, amount, burn_fee=porting_fee, port_fee=porting_fee,
+            register_id=register_id)
 
     def add_collateral(self, collateral, ptoken, remote_addr):
+        INFO()
+        INFO(f'Portal | Custodian {l6(self.payment_key)} | Add collateral to become custodian')
         return self.__SUT.full_node.portal().create_n_send_tx_with_custodian_deposit(
             self.private_key, self.payment_key, collateral, ptoken, remote_addr)
 
@@ -699,23 +695,137 @@ class Account:
         """
         return self.add_collateral(collateral, ptoken, remote_addr)
 
-    def req_redeem_my_token(self, remote_addr, token_id, redeem_amount, privacy=True):
+    def req_redeem_my_token(self, remote_addr, token_id, redeem_amount, redeem_fee=None, privacy=True):
+        INFO()
         redeem_id = f"{l6(token_id)}_{get_current_date_time()}"
+        INFO(f'Portal | Custodian {l6(self.payment_key)} | req redeem token | ID: {redeem_id}')
+
         beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
-        redeem_fee = self.__SUT.full_node.portal().get_porting_req_fee(token_id, redeem_amount, beacon_height)
+
+        if redeem_fee is None:
+            redeem_fee = self.__SUT.full_node.portal().get_porting_req_fees(token_id, redeem_amount,
+                                                                            beacon_height).get_result(token_id) + 1
         return self.__SUT.full_node.portal().create_n_send_tx_with_redeem_req(self.private_key, self.payment_key,
                                                                               remote_addr, token_id, redeem_amount,
                                                                               redeem_fee, redeem_id, privacy)
 
     def withdraw_my_portal_collateral(self, amount):
+        INFO()
+        INFO(f'Portal | Custodian {l6(self.payment_key)} | Withdraw collateral: {amount}')
         return self.__SUT.full_node.portal().create_n_send_custodian_withdraw_req(self.private_key, self.payment_key,
                                                                                   amount)
 
-    def get_my_portal_collateral_amount(self):
-        beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
-        custodian_pool = self.__SUT.full_node.portal().get_portal_state(beacon_height).get_result('CustodianPool')
-        custodian_pool['']
-        # to be continue
+    def req_ported_ptoken(self, porting_id, token_id, amount, proof):
+        """
+
+        :param porting_id:
+        :param token_id:
+        :param amount:
+        :param proof:
+        :return:
+        """
+        INFO()
+        INFO(f'Portal | User {l6(self.payment_key)} | req for ported token')
+        return self.__SUT.full_node.portal().create_n_send_tx_with_req_ptoken(self.private_key, self.payment_key,
+                                                                              porting_id, token_id, amount, proof)
+
+    def get_my_portal_custodian_status(self, portal_state: Response = None):
+        if portal_state is None:
+            portal_state = self.__SUT.full_node.get_latest_portal_state()
+        portal_state.get_result('CustodianPool')
+        custodian_list = PortalState(portal_state.get_result()).get_custodian_pool()
+        for custodian in custodian_list:
+            DEBUG(f'Checking {l6(custodian.get_incognito_addr())}')
+            if custodian.get_incognito_addr() == self.payment_key:
+                DEBUG(f'Match: {l6(self.payment_key)}')
+                return custodian
+        return None
+
+    def get_my_custodian_portal_porting_waiting_req(self, portal_state: Response = None) -> List[PortingReqInfo]:
+        INFO()
+        INFO(f'Portal | Custodian {l6(self.payment_key)} | get porting waiting req')
+        if portal_state is None:
+            portal_state = self.__SUT.full_node.get_latest_portal_state()
+        porting_waiting_req = portal_state.get_result('WaitingPortingRequests')
+        req_list = [value for key, value in porting_waiting_req.items()]
+        my_req_list = []
+        for req in req_list:
+            req_info = PortingReqInfo(req)
+            custodians_of_req = req_info.get_custodians()
+            for custodian in custodians_of_req:
+                if custodian.get_incognito_addr() == self.payment_key:
+                    my_req_list += [req_info]
+        return my_req_list
+
+    def get_my_custodian_portal_redeem_waiting_req(self, portal_state: Response = None) -> List[RedeemReqInfo]:
+        INFO()
+        INFO(f'Portal | Custodian {l6(self.payment_key)} | get redeem waiting req')
+        if portal_state is None:
+            portal_state = self.__SUT.full_node.get_latest_portal_state()
+        redeem_waiting_req = portal_state.get_result('WaitingRedeemRequests')
+        req_list = [value for key, value in redeem_waiting_req.items()]
+        my_req_list = []
+        for req in req_list:
+            req_info = RedeemReqInfo(req)
+            custodians_of_req = req_info.get_custodians()
+            for custodian in custodians_of_req:
+                if custodian.get_incognito_addr() == self.payment_key:
+                    my_req_list += [req_info]
+                    break
+        return my_req_list
+
+    def sum_my_waiting_porting_req_locked_collateral(self, token_id):
+        porting_rqs = self.get_my_custodian_portal_porting_waiting_req()
+        sum_amount = 0
+        for req in porting_rqs:
+            if req.get_token_id() == token_id:
+                sum_amount += req.get_custodian(self).get_locked_collateral()
+        return sum_amount
+
+    def sum_my_waiting_redeem_req_holding_token(self, token_id):
+        redeem_rqs = self.get_my_custodian_portal_redeem_waiting_req()
+        sum_amount = 0
+        for req in redeem_rqs:
+            if req.get_token_id() == token_id:
+                sum_amount += req.get_custodian(self).get_amount()
+        return sum_amount
+
+    def get_my_portal_rate_of_token(self, token_id, portal_state: Response = None):
+        if portal_state is None:
+            portal_state = self.__SUT.full_node.get_latest_portal_state()
+        my_custodian_info = self.get_my_portal_custodian_status(portal_state)
+        custodian_locked_collateral = my_custodian_info.get_locked_collateral(token_id)
+        custodian_holding_token = my_custodian_info.get_holding_token_amount(token_id)
+        sum_porting_waiting_collateral_lock = self.sum_my_waiting_porting_req_locked_collateral(token_id)
+        sum_redeem_waiting_holding_token = self.sum_my_waiting_redeem_req_holding_token(token_id)
+        print(f'sum collateral lock              : {custodian_locked_collateral}')
+        print(f'sum porting waiting lock         : {sum_porting_waiting_collateral_lock}')
+        print(f'sum holding token                : {custodian_holding_token}')
+        print(f'sum redeem waiting holding token : {sum_redeem_waiting_holding_token}')
+        X = custodian_locked_collateral - sum_porting_waiting_collateral_lock
+        Y = custodian_holding_token + sum_redeem_waiting_holding_token
+        return [X, Y]
+
+    def is_liquidated(self, token_id, portal_state: Response = None):
+        if portal_state is None:
+            portal_state = self.__SUT.full_node.get_latest_portal_state()
+        my_rate = self.get_my_portal_rate_of_token(token_id, portal_state)
+        X = my_rate[0]
+        Y = my_rate[1]
+        exchange_rate = portal_state.get_result('FinalExchangeRatesState')['Rates']
+        prv_rate = exchange_rate[prv_token_id]['Amount']
+        tok_rate = exchange_rate[token_id]['Amount']
+        try:
+            if (X * prv_rate) / (Y * tok_rate) <= 1.2:
+                return True
+        except ZeroDivisionError:
+            pass
+        return False
+
+    def req_unlock_collateral(self, token_id, amount_redeem, redeem_id, proof):
+        return self.__SUT.full_node.portal(). \
+            create_n_send_tx_with_req_unlock_collateral(self.private_key, self.payment_key, token_id, amount_redeem,
+                                                        redeem_id, proof)
 
 
 # end of class

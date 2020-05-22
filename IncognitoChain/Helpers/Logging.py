@@ -4,6 +4,8 @@ import os
 import sys
 from datetime import datetime
 
+LOG_SEPARATOR = '=========================================================================='
+
 STEP_LVL = 12
 RESULT_LVL = 22
 
@@ -56,7 +58,9 @@ def DEBUG(msg):
     _log().debug(msg)
 
 
-def INFO(msg):
+def INFO(msg=None):
+    if msg is None:
+        msg = LOG_SEPARATOR
     _log().info(msg)
     return True
 

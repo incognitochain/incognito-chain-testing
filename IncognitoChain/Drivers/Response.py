@@ -22,7 +22,7 @@ class Response:
         return json.loads(self.response.text)  # response from rpc
 
     def params(self):
-        return Params(self)
+        return Params(self.data()["Params"])
 
     def size(self):
         if self.response is str:  # response from WebSocket
@@ -98,9 +98,12 @@ class Response:
 
     def get_fee(self):
         try:
-            return self.data()['Result']['Result']['Fee']
-        except KeyError:
-            return self.data()['Result']['Fee']
+            return self.get_result('Result')['Fee']
+        except (KeyError, TypeError):
+            return self.get_result('Fee')
+
+    def get_tx_size(self):
+        return self.get_result('TxSize')
 
     def get_privacy(self):
         return self.get_result("IsPrivacy")
@@ -130,6 +133,7 @@ class Response:
 
     def get_shard_id(self):
         return self.get_result('ShardID')
+
     # !!!!!!!! Next actions base on response
     def subscribe_transaction(self, tx_id=None):
         """
@@ -146,7 +150,7 @@ class Response:
 
     def get_proof_detail_input_coin_value_prv(self):
         try:
-            return self.get_result()['ProofDetail']['InputCoins'][0]['CoinDetails']['Value']
+            return self.get_result('ProofDetail')['InputCoins'][0]['CoinDetails']['Value']
         except TypeError:
             return None
 
@@ -163,7 +167,7 @@ class Response:
 
     def get_proof_detail_input_coin_value_custom_token(self):
         try:
-            return self.get_result()['PrivacyCustomTokenProofDetail']['InputCoins'][0]['CoinDetails']['Value']
+            return self.get_result('PrivacyCustomTokenProofDetail')['InputCoins'][0]['CoinDetails']['Value']
         except TypeError:
             return None
 
@@ -192,6 +196,15 @@ class Response:
             tx_id_list.append(entry['TxID'])
         return tx_id_list
 
+    def get_tx_proof(self):
+        """
+        :return: tx proof from the response it self
+        """
+        return self.get_result('Proof')
+
+    def dummy(self):
+        print('dummy function for testing')
+
 
 class StackTrace:
     def __init__(self, stack_string):
@@ -214,11 +227,26 @@ class StackTrace:
 
 
 class Params:
-    def __init__(self, response: Response):
-        self.response = response
-
-    def params(self):
-        return self.response.data()['Params']
+    def __init__(self, data):
+        self.data = data
 
     def get_beacon_height(self):
-        return self.params()[0]["BeaconHeight"]
+        return self.data[0]["BeaconHeight"]
+
+    def get_portal_redeem_req_id(self):
+        return self.data[4]["UniqueRedeemID"]
+
+    def get_portal_register_id(self):
+        return self.data[4]['UniqueRegisterId']
+
+    def get_portal_porting_fee(self):
+        return self.data[4]['PortingFee']
+
+    def get_portal_register_amount(self):
+        return self.data[4]['RegisterAmount']
+
+    def get_portal_redeem_amount(self):
+        return self.data[4]['TokenAmount']
+
+    def get_portal_redeem_fee(self):
+        return self.data[4]['RedeemFee']

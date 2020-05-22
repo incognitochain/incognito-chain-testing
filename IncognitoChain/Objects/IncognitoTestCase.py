@@ -34,12 +34,11 @@ if PARAMS.get('testData') is not None:
     __account_file = PARAMS.get('testData')
 ACCOUNTS: List[Account] = load_test_data(__account_file).account_list
 
-# check balance and send some money
-# also send back if already have to much prv
 COIN_MASTER = Account(master_address_private_key, master_address_payment_key)
 COIN_MASTER.calculate_shard_id()
 for account in ACCOUNTS:
     bal = account.get_prv_balance()
+    # check balance and send some money if need
     if bal < ONE_COIN / 5:
         send_amount = ONE_COIN - account.get_prv_balance_cache()
         COIN_MASTER.send_prv_to(account, send_amount, privacy=0).subscribe_transaction()
@@ -49,11 +48,12 @@ for account in ACCOUNTS:
             except WebSocketTimeoutException:
                 pass
 
-    elif bal > ONE_COIN:
-        send_amount = coin(bal // ONE_COIN)
-        account.send_prv_to(COIN_MASTER, send_amount, privacy=0).subscribe_transaction()
-        if COIN_MASTER.shard != account.shard:
-            try:
-                COIN_MASTER.subscribe_cross_output_coin()
-            except WebSocketTimeoutException:
-                pass
+    # # also send back if already have to much prv
+    # elif bal > ONE_COIN:
+    #     send_amount = coin(bal // ONE_COIN)
+    #     account.send_prv_to(COIN_MASTER, send_amount, privacy=0).subscribe_transaction()
+    #     if COIN_MASTER.shard != account.shard:
+    #         try:
+    #             COIN_MASTER.subscribe_cross_output_coin()
+    #         except WebSocketTimeoutException:
+    #             pass

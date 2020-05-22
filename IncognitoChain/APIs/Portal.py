@@ -27,7 +27,7 @@ class PortalRpc:
             with_params([signer_private_key, None, -1, 0,
                          {
                              'SenderAddress': signer_payment_key,
-                             'Rates': {rate_dict}
+                             'Rates': rate_dict
                          }]).execute()
 
     def convert_exchange_rates(self, amount, token_id, beacon_height):
@@ -63,8 +63,8 @@ class PortalRpc:
         return self.rpc_connection.with_method('getportalportingrequestbyportingid'). \
             with_params([{'PortingId': porting_id}]).execute()
 
-    def get_porting_req_fee(self, token_id, amount, beacon_height):
-        return self.rpc_connection.with_method(''). \
+    def get_porting_req_fees(self, token_id, amount, beacon_height):
+        return self.rpc_connection.with_method('getportingrequestfees'). \
             with_params([{"BeaconHeight": beacon_height,
                           "ValuePToken": amount,
                           "TokenID": token_id
@@ -98,7 +98,8 @@ class PortalRpc:
             execute()
 
     # user request token ########################################################################################
-    def create_n_send_tx_with_req_ptoken(self, requester_private_key, requester_payment_key, porting_id, amount,
+    def create_n_send_tx_with_req_ptoken(self, requester_private_key, requester_payment_key, porting_id, token_id,
+                                         amount,
                                          proof):
         return self.rpc_connection.with_method('createandsendtxwithreqptoken'). \
             with_params([requester_private_key,
@@ -106,6 +107,7 @@ class PortalRpc:
                          {
                              "UniquePortingID": porting_id,
                              "IncogAddressStr": requester_payment_key,
+                             "TokenID": token_id,
                              "PortingAmount": amount,
                              "PortingProof": proof
                          }
@@ -122,7 +124,7 @@ class PortalRpc:
             with_params([redeemer_private_key,
                          {
                              burning_address: redeem_fee},
-                         0, -1,
+                         -1, -1,
                          {
                              "Privacy": privacy,
                              "TokenID": token_id,
@@ -150,14 +152,14 @@ class PortalRpc:
             with_params([{"ReqTxID": req_tx_id}]).execute()
 
     def create_n_send_tx_with_req_unlock_collateral(self, requester_private_key, custodian_payment_key, token_id,
-                                                    amount, proof):
+                                                    amount_redeem, redeem_id, proof):
         return self.rpc_connection.with_method('createandsendtxwithrequnlockcollateral'). \
             with_params([requester_private_key, None, -1, 0,
                          {
-                             "UniqueRedeemID": "12",
+                             "UniqueRedeemID": redeem_id,
                              "CustodianAddressStr": custodian_payment_key,
                              "TokenID": token_id,
-                             "RedeemAmount": amount,
+                             "RedeemAmount": amount_redeem,
                              "RedeemProof": proof
                          }]).execute()
 

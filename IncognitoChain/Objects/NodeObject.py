@@ -206,12 +206,16 @@ class Node:
         return len(shard_committee)
 
     def help_get_current_epoch(self, refresh_cache=True):
+        INFO()
+        INFO(f'Get current epoch number')
         beacon_best_state = self.system_rpc().get_beacon_best_state_detail(refresh_cache)
         epoch = beacon_best_state.get_result('Epoch')
         INFO(f"Current epoch = {epoch}")
         return epoch
 
     def help_wait_till_epoch(self, epoch_number, pool_time=30, timeout=180):
+        INFO()
+        INFO(f'Wait until epoch {epoch_number}, check every {pool_time}s, timeout {timeout}s')
         epoch = self.help_get_current_epoch()
         if epoch >= epoch_number:
             return epoch
@@ -225,6 +229,16 @@ class Node:
             time_current = time.perf_counter()
             if time_current - time_start > timeout:
                 return None
+
+    def get_latest_portal_state(self):
+        INFO()
+        INFO(f'Get latest portal state')
+        beacon_height = self.help_get_beacon_height_in_best_state()
+        return self.portal().get_portal_state(beacon_height)
+
+    def help_get_most_free_collateral_custodian(self):
+        latest_portal_state = self.get_latest_portal_state()
+        latest_portal_state.get_result('CustodianPool')
 
     ##########
     # BRIDGE

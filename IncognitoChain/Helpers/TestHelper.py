@@ -39,3 +39,8 @@ def calculate_actual_trade_received(trade_amount, pool_token2_sell, pool_token2_
     received_amount = pool_token2_buy - remain
     print("-expecting received amount: " + str(received_amount))
     return received_amount
+
+
+def cal_lock_collateral(token_mount, token_rate, prv_rate):
+    prv_amount_equivalent = token_mount * token_rate / prv_rate
+    return prv_amount_equivalent * 1.5

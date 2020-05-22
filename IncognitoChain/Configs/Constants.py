@@ -9,7 +9,7 @@ master_address_private_key = \
 master_address_payment_key = \
     "12S5Lrs1XeQLbqN4ySyKtjAjd2d7sBP2tjFijzmp6avrrkQCNFMpkXm3FPzj2Wcu2ZNqJEmh9JriVuRErVwhuQnLmWSaggobEWsBEci"
 ONE_COIN = 1000000000
-min_fee_per_kb = 200000
+min_fee_per_kb = 100000
 
 
 def coin(amount, nano=True):
@@ -22,3 +22,31 @@ def coin(amount, nano=True):
         return amount * ONE_COIN
     else:
         return amount / ONE_COIN
+
+
+class PortalPortingStatusByPortingId:
+    SUCCESS = 1
+    WAITING = 2
+    EXPIRED = 3
+    LIQUIDATED = 4
+
+
+class PortalPortingStatusByTxId:
+    ACCEPTED = 1
+    REJECTED = 3
+
+
+class PortalRedeemStatus:
+    SUCCESS = 1
+    WAITING = 2
+    LIQUIDATED = 3
+
+
+class PortalPtokenReqStatus:
+    ACCEPTED = 1
+    REJECTED = 2
+
+
+class PortalUnloclCollateralReqStatus:
+    ACCEPTED = 1
+    REJECTED = 2
