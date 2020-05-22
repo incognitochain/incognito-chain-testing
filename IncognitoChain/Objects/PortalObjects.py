@@ -39,7 +39,7 @@ class CustodianInfo(PortalInfoObj):
     def get_holding_token_amount(self, token_id):
         try:
             return self.data['HoldingPubTokens'][token_id]
-        except KeyError:
+        except (KeyError, TypeError):
             DEBUG(f"{l6(token_id)} not found in HoldingPubTokens")
             return None
 
