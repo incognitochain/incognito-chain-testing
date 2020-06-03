@@ -41,6 +41,21 @@ def calculate_actual_trade_received(trade_amount, pool_token2_sell, pool_token2_
     return received_amount
 
 
-def cal_lock_collateral(token_mount, token_rate, prv_rate):
-    prv_amount_equivalent = token_mount * token_rate / prv_rate
-    return prv_amount_equivalent * 1.5
+class PortalHelper:
+
+    @staticmethod
+    def cal_lock_collateral(token_amount, token_rate, prv_rate):
+        estimated_lock_collateral = (int(token_amount) * 150 // 100) * int(token_rate) // int(prv_rate)
+        return estimated_lock_collateral
+
+    @staticmethod
+    def cal_portal_exchange_to_prv(token_amount, token_rate, prv_rate):
+        return int(token_amount) * int(token_rate) // int(prv_rate)
+
+    @staticmethod
+    def cal_portal_exchange_to_token(prv_amount, prv_rate, token_rate):
+        return round(int(prv_amount) * int(prv_rate) / int(token_rate))
+
+    @staticmethod
+    def cal_portal_portal_fee(token_amount, token_rate, prv_rate):
+        return round((int(token_amount) * int(token_rate) / int(prv_rate)) / 10000)  # fee = 0.01%

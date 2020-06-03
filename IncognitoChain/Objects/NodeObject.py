@@ -1,4 +1,5 @@
 import time
+from typing import List
 
 from pexpect import pxssh
 
@@ -16,6 +17,7 @@ from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account
+from IncognitoChain.Objects.PortalObjects import PortalStateInfo, CustodianInfo
 
 
 class Node:
@@ -206,7 +208,6 @@ class Node:
         return len(shard_committee)
 
     def help_get_current_epoch(self, refresh_cache=True):
-        INFO()
         INFO(f'Get current epoch number')
         beacon_best_state = self.system_rpc().get_beacon_best_state_detail(refresh_cache)
         epoch = beacon_best_state.get_result('Epoch')
@@ -214,7 +215,6 @@ class Node:
         return epoch
 
     def help_wait_till_epoch(self, epoch_number, pool_time=30, timeout=180):
-        INFO()
         INFO(f'Wait until epoch {epoch_number}, check every {pool_time}s, timeout {timeout}s')
         epoch = self.help_get_current_epoch()
         if epoch >= epoch_number:
@@ -228,17 +228,44 @@ class Node:
                 return epoch
             time_current = time.perf_counter()
             if time_current - time_start > timeout:
+                INFO('Timeout')
                 return None
 
+    def help_wait_till_next_epoch(self):
+        current_epoch = self.help_get_current_epoch()
+        return self.help_wait_till_epoch(current_epoch + 1)
+
     def get_latest_portal_state(self):
-        INFO()
         INFO(f'Get latest portal state')
         beacon_height = self.help_get_beacon_height_in_best_state()
         return self.portal().get_portal_state(beacon_height)
 
-    def help_get_most_free_collateral_custodian(self):
-        latest_portal_state = self.get_latest_portal_state()
-        latest_portal_state.get_result('CustodianPool')
+    def help_get_highest_free_collateral_custodian(self, portal_state=None) -> CustodianInfo:
+        if portal_state is None:
+            portal_state = self.get_latest_portal_state()
+        custodian_pool = self.help_get_portal_custodian_pool(portal_state)
+        highest_free_collateral_custodian_info = custodian_pool[0]
+        for info in custodian_pool:
+            if info.get_free_collateral() > highest_free_collateral_custodian_info.get_free_collateral():
+                highest_free_collateral_custodian_info = info
+
+        return highest_free_collateral_custodian_info
+
+    def help_get_highest_holding_token_custodian(self, token_id, portal_state=None) -> CustodianInfo:
+        if portal_state is None:
+            portal_state = self.get_latest_portal_state()
+        custodian_pool = self.help_get_portal_custodian_pool(portal_state)
+        highest_holding = custodian_pool[0]
+        for info in custodian_pool:
+            if info.get_holding_token_amount(token_id) > highest_holding.get_holding_token_amount(token_id):
+                highest_holding = info
+
+        return highest_holding
+
+    def help_get_portal_custodian_pool(self, portal_state=None) -> List[CustodianInfo]:
+        if portal_state is None:
+            portal_state = self.get_latest_portal_state()
+        return PortalStateInfo(portal_state.get_result()).get_custodian_pool()
 
     ##########
     # BRIDGE

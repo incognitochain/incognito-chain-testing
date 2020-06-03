@@ -50,3 +50,7 @@ class PortalPtokenReqStatus:
 class PortalUnloclCollateralReqStatus:
     ACCEPTED = 1
     REJECTED = 2
+
+
+class PortalCustodianReqMatchingStatus:
+    ACCEPT = 1

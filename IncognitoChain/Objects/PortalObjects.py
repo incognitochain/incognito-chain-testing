@@ -7,6 +7,7 @@ from IncognitoChain.Helpers.TestHelper import l6
 class PortalInfoObj:
     def __init__(self, dict_data=None):
         self.data = dict_data
+        self.err = None
 
     def get_status(self):
         return self.data['Status']
@@ -15,7 +16,12 @@ class PortalInfoObj:
         return self.data['TokenID']
 
     def get_amount(self):
-        return self.data['Amount']
+        return int(self.data['Amount'])
+
+    def is_none(self):
+        if self.data is None:
+            return True
+        return False
 
 
 class CustodianInfo(PortalInfoObj):
@@ -28,17 +34,17 @@ class CustodianInfo(PortalInfoObj):
 
     def get_total_collateral(self):
         ret = self.data['TotalCollateral']
-        return ret
+        return int(ret)
 
     def get_free_collateral(self):
-        return self.data['FreeCollateral']
+        return int(self.data['FreeCollateral'])
 
     def get_holding_tokens(self):
         return self.data['HoldingPubTokens']
 
     def get_holding_token_amount(self, token_id):
         try:
-            return self.data['HoldingPubTokens'][token_id]
+            return int(self.get_holding_tokens()[token_id])
         except (KeyError, TypeError):
             DEBUG(f"{l6(token_id)} not found in HoldingPubTokens")
             return None
@@ -48,29 +54,18 @@ class CustodianInfo(PortalInfoObj):
             ret = self.data['LockedAmountCollateral']
         else:
             try:
-                ret = self.data['LockedAmountCollateral'][token_id]
+                ret = int(self.data['LockedAmountCollateral'][token_id])
             except (KeyError, TypeError):
                 ret = None
-        INFO(f'{l6(self.get_incognito_addr())} : LockedAmountCollateral={ret}')
         return ret
-
-    def get_remote_addresses(self):
-        return self.data['RemoteAddresses']
 
     def get_remote_address(self):
         return self.data['RemoteAddress']
 
-    def get_remote_address_token(self, token_id):
-        addresses = self.data['RemoteAddresses']
-        for address in addresses:
-            if address['PTokenID'] == token_id:
-                return address['Address']
-        return None
-
     def get_reward_amount(self, token_id=None):
         if token_id is None:
             return self.data['RewardAmount']
-        return self.data['RewardAmount'][token_id]
+        return int(self.data['RewardAmount'][token_id])
 
 
 class PortingReqInfo(PortalInfoObj):
@@ -84,7 +79,8 @@ class PortingReqInfo(PortalInfoObj):
         INFO()
         INFO(f'Get porting req info, tx_id = {tx_id}')
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_portal_porting_req_by_key(tx_id).get_result('PortingRequest')
+        response = SUT.full_node.portal().get_portal_porting_req_by_key(tx_id)
+        self.data = response.get_result('PortingRequest')
         return self
 
     def get_porting_req_by_porting_id(self, porting_id):
@@ -116,10 +112,10 @@ class PortingReqInfo(PortalInfoObj):
         return None
 
     def get_porting_fee(self):
-        return self.data['PortingFee']
+        return int(self.data['PortingFee'])
 
     def get_beacon_height(self):
-        return self.data['BeaconHeight']
+        return int(self.data['BeaconHeight'])
 
 
 class RedeemReqInfo(PortalInfoObj):
@@ -129,30 +125,32 @@ class RedeemReqInfo(PortalInfoObj):
         self.data = SUT.full_node.portal().get_portal_redeem_status(redeem_id).get_result()
         return self
 
-    def get_matching_custodians(self):
-        custodian_dict = self.data['MatchingCustodianDetail']
+    def get_req_matching_redeem_status(self, tx_id):
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        self.data = SUT.full_node.portal().get_req_matching_redeem_status(tx_id).get_result()
+        return self
+
+    def get_redeem_matching_custodians(self):
+        try:
+            custodian_dict = self.data['MatchingCustodianDetail']
+        except KeyError:
+            custodian_dict = self.data['Custodians']
+
         custodian_obj_list = []
         for item in custodian_dict:
             cus = CustodianInfo(item)
             custodian_obj_list.append(cus)
         return custodian_obj_list
 
-    def get_custodians(self):
-        custodian_info_list = self.data['Custodians']
-        result = []
-        for info in custodian_info_list:
-            result.append(CustodianInfo(info))
-        return result
-
     def get_custodian(self, account):
-        custodian_list = self.get_custodians()
+        custodian_list = self.get_redeem_matching_custodians()
         for custodian in custodian_list:
             if custodian.get_incognito_addr() == account.payment_key:
                 return custodian
         return None
 
     def get_redeem_amount(self):
-        return self.data['RedeemAmount']
+        return int(self.data['RedeemAmount'])
 
 
 class PTokenReqInfo(PortalInfoObj):
@@ -162,11 +160,38 @@ class PTokenReqInfo(PortalInfoObj):
         return self
 
 
-class PortalState(PortalInfoObj):
+class PortalStateInfo(PortalInfoObj):
     def get_custodian_pool(self) -> List[CustodianInfo]:
         custodian_pool = self.data['CustodianPool']
         custodian_list = [CustodianInfo(value) for key, value in custodian_pool.items()]
         return custodian_list
+
+    def get_portal_rate(self, token_id=None):
+        if token_id is None:
+            return self.data['FinalExchangeRatesState']['Rates']
+        else:
+            return int(self.data['FinalExchangeRatesState']['Rates'][token_id]['Amount'])
+
+    def get_porting_waiting_req(self) -> List[PortingReqInfo]:
+        req_list = []
+        req_data = self.data['WaitingPortingRequests']
+        for req in req_data.keys():
+            req_list.append(PortingReqInfo(req_data[req]))
+        return req_list
+
+    def get_redeem_waiting_req(self) -> List[RedeemReqInfo]:
+        req_list = []
+        req_data = self.data['WaitingRedeemRequests']
+        for req in req_data.keys():
+            req_list.append(RedeemReqInfo(req_data[req]))
+        return req_list
+
+    def get_redeem_matched_req(self) -> List[RedeemReqInfo]:
+        req_list = []
+        req_data = self.data['MatchedRedeemRequests']
+        for req in req_data.keys():
+            req_list.append(RedeemReqInfo(req_data[req]))
+        return req_list
 
 
 class UnlockCollateralReqInfo(PortalInfoObj):

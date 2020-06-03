@@ -9,7 +9,7 @@ class PortalRpc:
     # rate ########################################################################################
     def get_portal_final_exchange_rates(self, beacon_height):
         return self.rpc_connection.with_method('getportalfinalexchangerates'). \
-            with_params([beacon_height]).execute()
+            with_params([{"BeaconHeight": str(beacon_height)}]).execute()
 
     def create_n_send_portal_exchange_rates(self, signer_private_key, signer_payment_key, rate_dict):
         """
@@ -32,9 +32,9 @@ class PortalRpc:
 
     def convert_exchange_rates(self, amount, token_id, beacon_height):
         return self.rpc_connection.with_method('convertexchangerates'). \
-            with_params([{'ValuePToken': amount,
+            with_params([{'ValuePToken': str(amount),
                           'TokenID': token_id,
-                          'BeaconHeight': beacon_height
+                          'BeaconHeight': str(beacon_height)
                           }]).execute()
 
     # porting ########################################################################################
@@ -43,14 +43,14 @@ class PortalRpc:
                                                 amount, burn_fee, port_fee, register_id, ):
         return self.rpc_connection.with_method('createandsendregisterportingpublictokens'). \
             with_params([requester_private_key,
-                         {burning_address: burn_fee},
+                         {burning_address: str(burn_fee)},
                          -1, 0,
                          {
                              "UniqueRegisterId": register_id,
                              "IncogAddressStr": requester_payment_key,
                              "PTokenId": token_id,
-                             "RegisterAmount": amount,
-                             "PortingFee": port_fee
+                             "RegisterAmount": str(amount),
+                             "PortingFee": str(port_fee)
                          }
                          ]).execute()
 
@@ -65,8 +65,8 @@ class PortalRpc:
 
     def get_porting_req_fees(self, token_id, amount, beacon_height):
         return self.rpc_connection.with_method('getportingrequestfees'). \
-            with_params([{"BeaconHeight": beacon_height,
-                          "ValuePToken": amount,
+            with_params([{"BeaconHeight": str(beacon_height),
+                          "ValuePToken": str(amount),
                           "TokenID": token_id
                           }]).execute()
 
@@ -84,13 +84,13 @@ class PortalRpc:
         """
         return self.rpc_connection.with_method('createandsendtxwithcustodiandeposit'). \
             with_params([private_key,
-                         {burning_address: deposit_amount},
+                         {burning_address: str(deposit_amount)},
                          -1, 0,
                          {"IncognitoAddress": payment_key,
                           "RemoteAddresses": {
                               ptoken_id: remote_addr
                           },
-                          "DepositedAmount": deposit_amount}]).execute()
+                          "DepositedAmount": str(deposit_amount)}]).execute()
 
     def get_portal_custodian_deposit_status(self, deposit_tx_id):
         return self.rpc_connection.with_method('getportalcustodiandepositstatus'). \
@@ -108,7 +108,7 @@ class PortalRpc:
                              "UniquePortingID": porting_id,
                              "IncogAddressStr": requester_payment_key,
                              "TokenID": token_id,
-                             "PortingAmount": amount,
+                             "PortingAmount": str(amount),
                              "PortingProof": proof
                          }
                          ]).execute()
@@ -123,7 +123,7 @@ class PortalRpc:
         return self.rpc_connection.with_method('createandsendtxwithredeemreq'). \
             with_params([redeemer_private_key,
                          {
-                             burning_address: redeem_fee},
+                             burning_address: str(redeem_fee)},
                          -1, -1,
                          {
                              "Privacy": privacy,
@@ -131,13 +131,13 @@ class PortalRpc:
                              "TokenTxType": 1,
                              "TokenName": "",
                              "TokenSymbol": "",
-                             "TokenAmount": redeem_amount,
-                             "TokenReceivers": {burning_address: redeem_amount},
-                             "TokenFee": 0,
+                             "TokenAmount": str(redeem_amount),
+                             "TokenReceivers": {burning_address: str(redeem_amount)},
+                             "TokenFee": "0",
                              "UniqueRedeemID": redeem_id,
                              "RedeemTokenID": token_id,
-                             "RedeemAmount": redeem_amount,
-                             "RedeemFee": redeem_fee,
+                             "RedeemAmount": str(redeem_amount),
+                             "RedeemFee": str(redeem_fee),
                              "RedeemerIncAddressStr": redeemer_payment_addr,
                              "RemoteAddress": remote_addr},
                          "", 0]).execute()
@@ -159,7 +159,7 @@ class PortalRpc:
                              "UniqueRedeemID": redeem_id,
                              "CustodianAddressStr": custodian_payment_key,
                              "TokenID": token_id,
-                             "RedeemAmount": amount_redeem,
+                             "RedeemAmount": str(amount_redeem),
                              "RedeemProof": proof
                          }]).execute()
 
@@ -173,13 +173,13 @@ class PortalRpc:
     # custodian req withdraw reward ########################################################################
     def get_liquidation_tp_exchange_rates(self, custodian_payment_key, beacon_height):
         return self.rpc_connection.with_method('getliquidationtpexchangerates'). \
-            with_params([{"BeaconHeight": beacon_height,
+            with_params([{"BeaconHeight": str(beacon_height),
                           "CustodianAddress": custodian_payment_key
                           }]).execute()
 
     def get_liquidation_exchange_rates_by_token_id(self, custodian_payment_key, token_id, beacon_height):
         return self.rpc_connection.with_method('getliquidationexchangeratesbytokenid'). \
-            with_params([{"BeaconHeight": beacon_height,
+            with_params([{"BeaconHeight": str(beacon_height),
                           "TokenID": token_id,
                           "CustodianAddress": custodian_payment_key
                           }]).execute()
@@ -188,10 +188,10 @@ class PortalRpc:
                                                     free_collateral_selected=False):
         return self.rpc_connection.with_method('createandsendliquidationcustodiandeposit'). \
             with_params([private_key,
-                         {burning_address: amount},
+                         {burning_address: str(amount)},
                          -1, 0, {
                              "IncognitoAddress": payment_key,
-                             "DepositedAmount": amount,
+                             "DepositedAmount": str(amount),
                              "PTokenId": token_id,
                              "FreeCollateralSelected": free_collateral_selected
                          }]).execute()
@@ -199,7 +199,7 @@ class PortalRpc:
     def get_amount_needed_for_custodian_deposit_liquidation(self, beacon_height, token_id, payment_key,
                                                             is_free_collateral_selected=False):
         return self.rpc_connection.with_method('getamountneededforcustodiandepositliquidation'). \
-            with_params([{"BeaconHeight": beacon_height,
+            with_params([{"BeaconHeight": str(beacon_height),
                           "IsFreeCollateralSelected": is_free_collateral_selected,
                           "TokenID": token_id,
                           "CustodianAddress": payment_key}]).execute()
@@ -208,26 +208,26 @@ class PortalRpc:
                                                         token_amount, token_id, privacy=True):
         return self.rpc_connection.with_method('createandsendredeemliquidationexchangerates'). \
             with_params([private_key,
-                         {burning_address: prv_fee}, -1, -1,
+                         {burning_address: str(prv_fee)}, -1, -1,
                          {
                              "Privacy": privacy,
                              "TokenID": token_id,
                              "TokenTxType": 1,
                              "TokenName": "",
                              "TokenSymbol": "",
-                             "TokenAmount": token_amount,
-                             "TokenReceivers": {burning_address: token_amount},
+                             "TokenAmount": str(token_amount),
+                             "TokenReceivers": {burning_address: str(token_amount)},
                              "TokenFee": 0,
                              "RedeemTokenID": token_id,
-                             "RedeemAmount": token_amount,
-                             "RedeemFee": prv_fee,
+                             "RedeemAmount": str(token_amount),
+                             "RedeemFee": str(prv_fee),
                              "RedeemerIncAddressStr": payment_key,
                              "RemoteAddress": remote_addr
                          }, "", 0]).execute()
 
     def get_liquidation_tp_exchange_rates_pool(self, token_id, beacon_height):
         return self.rpc_connection.with_method('getliquidationtpexchangeratespool'). \
-            with_params([{"BeaconHeight": beacon_height,
+            with_params([{"BeaconHeight": str(beacon_height),
                           "TokenID": token_id
                           }]).execute()
 
@@ -235,7 +235,7 @@ class PortalRpc:
     def create_n_send_custodian_withdraw_req(self, private_key, payment_key, amount):
         return self.rpc_connection.with_method("createandsendcustodianwithdrawrequest"). \
             with_params([private_key, None, -1, 0,
-                         {"Amount": amount,
+                         {"Amount": str(amount),
                           "PaymentAddress": payment_key}]).execute()
 
     def get_custodian_withdraw_by_tx_id(self, tx_id):
@@ -243,7 +243,19 @@ class PortalRpc:
             with_params([{"TxId": tx_id}]).execute()
 
     # relaying ########################################################################################
+    # custodian manual redeem picking
+    def create_n_send_tx_with_req_matching_redeem(self, private_key, payment_key, redeem_id):
+        return self.rpc_connection.with_method("createandsendtxwithreqmatchingredeem"). \
+            with_params([private_key, None, -1, 0,
+                         {
+                             "CustodianAddressStr": payment_key,
+                             "RedeemID": str(redeem_id)}]).execute()
+
+    def get_req_matching_redeem_status(self, tx_id):
+        return self.rpc_connection.with_method("getreqmatchingredeemstatus"). \
+            with_params([{"ReqTxID": tx_id}]).execute()
+
     # get state #####################################
     def get_portal_state(self, beacon_height):
         return self.rpc_connection.with_method('getportalstate'). \
-            with_params([{"BeaconHeight": beacon_height}]).execute()
+            with_params([{"BeaconHeight": f'{beacon_height}'}]).execute()

@@ -77,6 +77,13 @@ def CRITICAL(msg):
     _log().critical(msg)
 
 
+def INFO_HEADLINE(msg):
+    INFO(f"""
+        {LOG_SEPARATOR}
+        | {msg}
+        {LOG_SEPARATOR}""")
+
+
 logging.addLevelName(RESULT_LVL, "RESULT")
 
 

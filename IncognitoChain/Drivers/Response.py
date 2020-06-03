@@ -202,9 +202,6 @@ class Response:
         """
         return self.get_result('Proof')
 
-    def dummy(self):
-        print('dummy function for testing')
-
 
 class StackTrace:
     def __init__(self, stack_string):
@@ -231,7 +228,7 @@ class Params:
         self.data = data
 
     def get_beacon_height(self):
-        return self.data[0]["BeaconHeight"]
+        return int(self.data[0]["BeaconHeight"])
 
     def get_portal_redeem_req_id(self):
         return self.data[4]["UniqueRedeemID"]
@@ -240,13 +237,13 @@ class Params:
         return self.data[4]['UniqueRegisterId']
 
     def get_portal_porting_fee(self):
-        return self.data[4]['PortingFee']
+        return int(self.data[4]['PortingFee'])
 
     def get_portal_register_amount(self):
-        return self.data[4]['RegisterAmount']
+        return int(self.data[4]['RegisterAmount'])
 
     def get_portal_redeem_amount(self):
-        return self.data[4]['TokenAmount']
+        return int(self.data[4]['TokenAmount'])
 
     def get_portal_redeem_fee(self):
-        return self.data[4]['RedeemFee']
+        return int(self.data[4]['RedeemFee'])
