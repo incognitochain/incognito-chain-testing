@@ -1,4 +1,4 @@
-from IncognitoChain.Configs.Constants import burning_address
+from IncognitoChain.Configs.Constants import BURNING_ADDR
 from IncognitoChain.Drivers.Connections import RpcConnection
 
 
@@ -43,7 +43,7 @@ class PortalRpc:
                                                 amount, burn_fee, port_fee, register_id, ):
         return self.rpc_connection.with_method('createandsendregisterportingpublictokens'). \
             with_params([requester_private_key,
-                         {burning_address: str(burn_fee)},
+                         {BURNING_ADDR: str(burn_fee)},
                          -1, 0,
                          {
                              "UniqueRegisterId": register_id,
@@ -84,7 +84,7 @@ class PortalRpc:
         """
         return self.rpc_connection.with_method('createandsendtxwithcustodiandeposit'). \
             with_params([private_key,
-                         {burning_address: str(deposit_amount)},
+                         {BURNING_ADDR: str(deposit_amount)},
                          -1, 0,
                          {"IncognitoAddress": payment_key,
                           "RemoteAddresses": {
@@ -123,7 +123,7 @@ class PortalRpc:
         return self.rpc_connection.with_method('createandsendtxwithredeemreq'). \
             with_params([redeemer_private_key,
                          {
-                             burning_address: str(redeem_fee)},
+                             BURNING_ADDR: str(redeem_fee)},
                          -1, -1,
                          {
                              "Privacy": privacy,
@@ -132,7 +132,7 @@ class PortalRpc:
                              "TokenName": "",
                              "TokenSymbol": "",
                              "TokenAmount": str(redeem_amount),
-                             "TokenReceivers": {burning_address: str(redeem_amount)},
+                             "TokenReceivers": {BURNING_ADDR: str(redeem_amount)},
                              "TokenFee": "0",
                              "UniqueRedeemID": redeem_id,
                              "RedeemTokenID": token_id,
@@ -188,7 +188,7 @@ class PortalRpc:
                                                     free_collateral_selected=False):
         return self.rpc_connection.with_method('createandsendliquidationcustodiandeposit'). \
             with_params([private_key,
-                         {burning_address: str(amount)},
+                         {BURNING_ADDR: str(amount)},
                          -1, 0, {
                              "IncognitoAddress": payment_key,
                              "DepositedAmount": str(amount),
@@ -204,11 +204,10 @@ class PortalRpc:
                           "TokenID": token_id,
                           "CustodianAddress": payment_key}]).execute()
 
-    def create_n_send_redeem_liquidation_exchange_rates(self, private_key, payment_key, remote_addr, prv_fee,
+    def create_n_send_redeem_liquidation_exchange_rates(self, private_key, payment_key,
                                                         token_amount, token_id, privacy=True):
         return self.rpc_connection.with_method('createandsendredeemliquidationexchangerates'). \
-            with_params([private_key,
-                         {burning_address: str(prv_fee)}, -1, -1,
+            with_params([private_key, None, -1, -1,
                          {
                              "Privacy": privacy,
                              "TokenID": token_id,
@@ -216,13 +215,11 @@ class PortalRpc:
                              "TokenName": "",
                              "TokenSymbol": "",
                              "TokenAmount": str(token_amount),
-                             "TokenReceivers": {burning_address: str(token_amount)},
-                             "TokenFee": 0,
+                             "TokenReceivers": {BURNING_ADDR: str(token_amount)},
+                             "TokenFee": "0",
                              "RedeemTokenID": token_id,
                              "RedeemAmount": str(token_amount),
-                             "RedeemFee": str(prv_fee),
                              "RedeemerIncAddressStr": payment_key,
-                             "RemoteAddress": remote_addr
                          }, "", 0]).execute()
 
     def get_liquidation_tp_exchange_rates_pool(self, token_id, beacon_height):
@@ -258,4 +255,12 @@ class PortalRpc:
     # get state #####################################
     def get_portal_state(self, beacon_height):
         return self.rpc_connection.with_method('getportalstate'). \
-            with_params([{"BeaconHeight": f'{beacon_height}'}]).execute()
+            with_params([{"BeaconHeight": str(beacon_height)}]).execute()
+
+    # portal reward
+    def create_n_send_tx_with_req_withdraw_reward_portal(self, private_key, payment_key, token_id):
+        return self.rpc_connection.with_method('createandsendtxwithreqwithdrawrewardportal'). \
+            with_params([private_key, None, -1, 0,
+                         {
+                             "CustodianAddressStr": payment_key,
+                             "TokenID": token_id}]).execute()

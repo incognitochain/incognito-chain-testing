@@ -3,7 +3,7 @@ import random
 
 import pytest
 
-from IncognitoChain.Configs.Constants import prv_token_id
+from IncognitoChain.Configs.Constants import PRV_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO, DEBUG
 from IncognitoChain.Helpers.TestHelper import calculate_actual_trade_received, l6
 from IncognitoChain.Helpers.Time import WAIT
@@ -41,8 +41,8 @@ def setup_module():
 
 
 @pytest.mark.parametrize('test_mode,token1,token2', (
-    ["1 shard", token_id_1, prv_token_id],
-    ["n shard", token_id_1, prv_token_id],
+    ["1 shard", token_id_1, PRV_ID],
+    ["n shard", token_id_1, PRV_ID],
     ["1 shard", token_id_1, token_id_2],
     ["n shard", token_id_1, token_id_2]
 ))

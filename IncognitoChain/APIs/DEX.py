@@ -10,7 +10,7 @@ class DexRpc:
         return self.rpc_connection.with_method("createandsendtxwithprvcontribution"). \
             with_params([private_key,
                          {
-                             Const.burning_address: amount_to_contribute
+                             Const.BURNING_ADDR: amount_to_contribute
                          },
                          100, -1,
                          {
@@ -18,7 +18,7 @@ class DexRpc:
                              "ContributorAddressStr":
                                  payment_address,
                              "ContributedAmount": amount_to_contribute,
-                             "TokenIDStr": Const.prv_token_id
+                             "TokenIDStr": Const.PRV_ID
                          }
                          ]). \
             execute()
@@ -37,7 +37,7 @@ class DexRpc:
                              "TokenSymbol": "",
                              "TokenAmount": amount_to_contribute,
                              "TokenReceivers": {
-                                 Const.burning_address: amount_to_contribute
+                                 Const.BURNING_ADDR: amount_to_contribute
                              },
                              "TokenFee": 0,
                              "PDEContributionPairID": contribution_pair_id,
@@ -66,7 +66,7 @@ class DexRpc:
                              "TokenSymbol": "",
                              "TokenAmount": total_amount,
                              "TokenReceivers": {
-                                 Const.burning_address: total_amount
+                                 Const.BURNING_ADDR: total_amount
                              },
                              "TokenFee": 0,
 
@@ -88,11 +88,11 @@ class DexRpc:
             with_method("createandsendtxwithprvtradereq"). \
             with_params([private_key,
                          {
-                             Const.burning_address: amount_to_sell
+                             Const.BURNING_ADDR: amount_to_sell
                          }, -1, -1,
                          {
                              "TokenIDToBuyStr": token_id_to_buy,
-                             "TokenIDToSellStr": Const.prv_token_id,
+                             "TokenIDToSellStr": Const.PRV_ID,
                              "SellAmount": amount_to_sell,
                              "MinAcceptableAmount": min_amount_to_buy,
                              "TraderAddressStr": payment_address
@@ -105,7 +105,7 @@ class DexRpc:
             with_method("createandsendtxwithwithdrawalreq"). \
             with_params([private_key,
                          {
-                             Const.burning_address: 0
+                             Const.BURNING_ADDR: 0
                          }, -1, 0,
                          {
                              "WithdrawerAddressStr": payment_address,

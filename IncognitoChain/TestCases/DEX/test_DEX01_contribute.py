@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from IncognitoChain.Configs.Constants import prv_token_id, coin
+from IncognitoChain.Configs.Constants import PRV_ID, coin
 from IncognitoChain.Helpers.Logging import INFO, STEP
 from IncognitoChain.Helpers.TestHelper import calculate_contribution, l6
 from IncognitoChain.Helpers.Time import get_current_date_time
@@ -15,8 +15,8 @@ from IncognitoChain.TestCases.DEX import token_id_1, token_owner, token_id_2
     # last 2 always fail on jenkins testbed,
     # the very last case offend fail by missing 1 nano prv calculation of bal after contribute
     # the other fail because contribute amount from api is always 0
-    [token_id_1, prv_token_id],
-    [prv_token_id, token_id_1],
+    [token_id_1, PRV_ID],
+    [PRV_ID, token_id_1],
     [token_id_1, token_id_2],
     [token_id_2, token_id_1]
 ))
@@ -48,7 +48,7 @@ def test_contribute_prv(token1, token2):
     INFO(f'Rate {l6(token2)}:{l6(token1)} is {rate}')
     # breakpoint()
     STEP(1, f"Contribute {l6(token1)}")
-    if token1 == prv_token_id:
+    if token1 == PRV_ID:
         contribute_token1_result = token_owner.contribute_prv(tok1_contrib_amount, pair_id)
     else:
         contribute_token1_result = token_owner.contribute_token(token1, tok1_contrib_amount, pair_id)
@@ -58,7 +58,7 @@ def test_contribute_prv(token1, token2):
     assert token_owner.wait_till_my_token_in_waiting_for_contribution(token1)
 
     STEP(3, f'Contribute {l6(token2)}')
-    if token2 == prv_token_id:
+    if token2 == PRV_ID:
         contribute_token2_result = token_owner.contribute_prv(tok2_contrib_amount, pair_id)
     else:
         contribute_token2_result = token_owner.contribute_token(token2, tok2_contrib_amount, pair_id)
@@ -72,10 +72,10 @@ def test_contribute_prv(token1, token2):
     INFO(f'{l6(token1)} after contribute (before refund): {bal_tok1_aft_contrib}')
     INFO(f'{l6(token2)} after contribute (before refund): {bal_tok2_aft_contrib}')
 
-    if token1 == prv_token_id:
+    if token1 == PRV_ID:
         assert bal_tok1_be4_contrib == bal_tok1_aft_contrib + tok1_contrib_amount + contrib_fee_sum
         assert bal_tok2_be4_contrib == bal_tok2_aft_contrib + tok2_contrib_amount
-    elif token2 == prv_token_id:
+    elif token2 == PRV_ID:
         assert bal_tok1_be4_contrib == bal_tok1_aft_contrib + tok1_contrib_amount
         assert bal_tok2_be4_contrib == bal_tok2_aft_contrib + tok2_contrib_amount + contrib_fee_sum
     else:
@@ -135,10 +135,10 @@ def test_contribute_prv(token1, token2):
         assert calculated_owner_share_amount_after == owner_share_amount_after and INFO(
             "Contribution shares amount is correct")
 
-    if token1 == prv_token_id:
+    if token1 == PRV_ID:
         assert bal_tok1_be4_contrib == bal_tok1_aft_refund + api_contrib_tok1 + contrib_fee_sum
         assert bal_tok2_be4_contrib == bal_tok2_aft_refund + api_contrib_tok2
-    elif token2 == prv_token_id:
+    elif token2 == PRV_ID:
         assert bal_tok1_be4_contrib == bal_tok1_aft_refund + api_contrib_tok1
         assert bal_tok2_be4_contrib == bal_tok2_aft_refund + api_contrib_tok2 + contrib_fee_sum
     else:

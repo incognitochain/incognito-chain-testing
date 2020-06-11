@@ -29,7 +29,7 @@ class BridgeRpc:
     def issue_centralized_bridge_token(self, receiver, token_id, token_name, amount):
         return self.rpc_connection. \
             with_method("createandsendissuingrequest"). \
-            with_params([Constants.master_address_private_key,
+            with_params([Constants.DAO_private_key,
                          None, 100, -1,
                          {
                              "ReceiveAddress": receiver,
@@ -45,7 +45,7 @@ class BridgeRpc:
             with_method("createandsendissuingrequest"). \
             with_params([withdrawer_private_key,
                          {
-                             Constants.burning_address: 0
+                             Constants.BURNING_ADDR: 0
                          }, 100, -1,
                          {
                              "TokenID": token_id,
@@ -54,7 +54,7 @@ class BridgeRpc:
                              "TokenSymbol": "",
                              "TokenAmount": amount,
                              "TokenReceivers": {
-                                 Constants.burning_address: amount
+                                 Constants.BURNING_ADDR: amount
                              },
                              "Privacy": True,
                              "TokenFee": 0

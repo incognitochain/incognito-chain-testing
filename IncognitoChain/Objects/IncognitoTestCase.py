@@ -3,7 +3,7 @@ import sys
 from websocket import WebSocketTimeoutException
 
 from IncognitoChain.Configs import config
-from IncognitoChain.Configs.Constants import master_address_private_key, master_address_payment_key, ONE_COIN
+from IncognitoChain.Configs.Constants import DAO_private_key, DAO_payment_key, ONE_COIN
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.TestBedObject import *
 from IncognitoChain.Objects.TestBedObject import TestBed
@@ -37,7 +37,7 @@ ACCOUNTS: List[Account] = load_test_data(__account_file).account_list
 PORTAL_FEEDER = Account(
     '112t8roezimTQwKbmsoxY9h494xhMZNBe94ux6hCH4SaFYBFnFXS9JoNbUjmeFLQiFWHeFP9MLPcy1sEiDasdW4ZkzEDzXDLG3wmwMU551tv',
     '12S2ciPBja9XCnEVEcsPvmCLeQH44vF8DMwSqgkH7wFETem5FiqiEpFfimETcNqDkARfht1Zpph9u5eQkjEnWsmZ5GB5vhc928EoNYH')
-COIN_MASTER = Account(master_address_private_key, master_address_payment_key)
+COIN_MASTER = Account(DAO_private_key, DAO_payment_key)
 COIN_MASTER.calculate_shard_id()
 for account in ACCOUNTS:
     bal = account.get_prv_balance()

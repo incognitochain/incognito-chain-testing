@@ -48,7 +48,7 @@ def teardown_module():
     INFO("Tear down")
     global contribute_success
     if contribute_success:
-        account_init.withdraw_contribution(Constants.prv_token_id, custom_token_id,
+        account_init.withdraw_contribution(Constants.PRV_ID, custom_token_id,
                                            token_contribute_amount).subscribe_transaction()
     contribute_success = False
 
@@ -99,7 +99,7 @@ def test_init_ptoken():
     rate = []
     for _ in range(0, 10):
         WAIT(10)
-        rate = SUT.full_node.get_latest_rate_between(Constants.prv_token_id, custom_token_id)
+        rate = SUT.full_node.get_latest_rate_between(Constants.PRV_ID, custom_token_id)
         if rate is not None:
             break
     INFO(f"rate prv vs token: {rate}")

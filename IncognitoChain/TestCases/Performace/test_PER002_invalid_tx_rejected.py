@@ -1,7 +1,7 @@
 import math
 from threading import Thread
 
-from IncognitoChain.Configs.Constants import master_address_private_key, master_address_payment_key
+from IncognitoChain.Configs.Constants import DAO_private_key, DAO_payment_key
 from IncognitoChain.Drivers.Response import Response
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Helpers.ThreadHelper import wait_threads_to_complete
@@ -14,7 +14,7 @@ dict_tx_save_shard = dict()
 # sender_account_payment_address_list = []
 sender_account_list = get_accounts_in_shard(0, account_list)
 receiver_account = get_accounts_in_shard(1, account_list)[0]
-master_account = Account(master_address_private_key, master_address_payment_key)
+master_account = Account(DAO_private_key, DAO_payment_key)
 
 
 def setup_function():

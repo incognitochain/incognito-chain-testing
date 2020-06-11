@@ -1,5 +1,5 @@
 from IncognitoChain.Configs import Constants
-from IncognitoChain.Configs.Constants import burning_address, prv_token_id
+from IncognitoChain.Configs.Constants import BURNING_ADDR, PRV_ID
 from IncognitoChain.Drivers import Connections
 
 
@@ -166,7 +166,7 @@ class TransactionRpc:
                              "TokenTxType": 1,
                              "TokenAmount": amount_custom_token,
                              "TokenReceivers": {
-                                 Constants.burning_address: amount_custom_token
+                                 Constants.BURNING_ADDR: amount_custom_token
                              },
                              "TokenFee": 0
                          },
@@ -179,7 +179,7 @@ class TransactionRpc:
     ###############
     def withdraw_reward(self, private_key, payment_address, token_id=None):
         if token_id is None:
-            token_id = prv_token_id
+            token_id = PRV_ID
         return self.rpc_connection. \
             with_method("withdrawreward"). \
             with_params([private_key, 0, 0, 0,
@@ -244,7 +244,7 @@ class TransactionRpc:
         return self.rpc_connection. \
             with_method("createandsendstakingtransaction"). \
             with_params([candidate_private_key,
-                         {burning_address: stake_amount},
+                         {BURNING_ADDR: stake_amount},
                          2, 0,
                          {
                              "StakingType": 63,
@@ -258,7 +258,7 @@ class TransactionRpc:
 
     def create_and_send_stop_auto_staking_transaction(self, private_key, candidate_payment_key, validator_key):
         param = [private_key,
-                 {burning_address: 0},
+                 {BURNING_ADDR: 0},
                  10, 0,
                  {"StopAutoStakingType": 127,
                   "CandidatePaymentAddress": candidate_payment_key,

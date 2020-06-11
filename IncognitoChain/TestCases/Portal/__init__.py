@@ -1,30 +1,50 @@
-from IncognitoChain.Configs.Constants import coin, pbnb_id, prv_token_id, pbtc_id
-from IncognitoChain.Helpers.Logging import INFO
-from IncognitoChain.Helpers.TestHelper import l6
-from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, COIN_MASTER, SUT
+from IncognitoChain.Configs.Constants import coin, PBNB_ID, PRV_ID, PBTC_ID
+from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
+from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
+from IncognitoChain.Objects.AccountObject import Account
+from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, COIN_MASTER, SUT, PORTAL_FEEDER
+from IncognitoChain.Objects.PortalObjects import PortalStateInfo
 
-portal_user = ACCOUNTS[2]
-custodian = ACCOUNTS[4]
+portal_user = ACCOUNTS[1]
+self_pick_custodian = ACCOUNTS[6]
 
-deposit_amount = coin(10)
-porting_amount = 100
-redeem_amount = 10
-custodian_remote_address = 'tbnb19cmxazhx5ujlhhlvj9qz0wv8a4vvsx8vuy9cyc'
+TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
+TEST_SETTING_PORTING_AMOUNT = 100
+TEST_SETTING_REDEEM_AMOUNT = 10
+custodian_remote_address = 'tbnb1d90lad6rg5ldh8vxgtuwzxd8n6rhhx7mfqek38'
 portal_user_remote_addr = 'tbnb1zyqrky9zcumc2e4smh3xwh2u8kudpdc56gafuk'
 bnb_pass_phrase = '123123Az'
 
 all_custodians = {
-    custodian: custodian_remote_address,
+    ACCOUNTS[3]: 'tbnb172pnrmd0409237jwlq5qjhw2s2r7lq6ukmaeke',
+    ACCOUNTS[4]: 'tbnb19cmxazhx5ujlhhlvj9qz0wv8a4vvsx8vuy9cyc',
     ACCOUNTS[5]: 'tbnb1n5lrzass9l28djvv7drst53dcw7y9yj4pyvksf',
-    ACCOUNTS[6]: 'tbnb1d90lad6rg5ldh8vxgtuwzxd8n6rhhx7mfqek38',
-    ACCOUNTS[3]: 'tbnb172pnrmd0409237jwlq5qjhw2s2r7lq6ukmaeke'
+    self_pick_custodian: custodian_remote_address
 }
 
 init_portal_rate = {
-    prv_token_id: 83159,
-    pbnb_id: 208525400,
-    pbtc_id: 105873200000
+    PRV_ID: '83159',
+    PBNB_ID: '208525400',
+    PBTC_ID: '105873200000'
 }
+
+# special case
+fat_custodian = Account()
+# fat_custodian.get_prv_balance()
+big_porting_amount = coin(10)
+big_bnb_rate = {PBNB_ID: '105873200000'}
+# 19097127190081650
+# 37772966455153490
+# 37772966455153487
+
+for acc in all_custodians:
+    if fat_custodian.get_prv_balance_cache() is None:
+        fat_custodian = acc
+    elif acc.get_prv_balance_cache() >= fat_custodian.get_prv_balance_cache():
+        fat_custodian = acc
+big_collateral = PortalHelper.cal_lock_collateral(big_porting_amount, big_bnb_rate[PBNB_ID],
+                                                  init_portal_rate[PRV_ID])
+fat_custodian_prv = big_collateral + coin(1)
 
 
 def find_custodian_account_by_incognito_addr(incognito_addr):
@@ -38,55 +58,85 @@ def setup_module():
     INFO()
     INFO('SETUP TEST MODULE')
     INFO("Create portal rate")
-    custodian.create_portal_exchange_rate(init_portal_rate)
+    PORTAL_FEEDER.portal_create_exchange_rate(init_portal_rate).subscribe_transaction()
+    SUT.full_node.help_wait_till_next_epoch()
 
     portal_state = SUT.full_node.get_latest_portal_state()
     for cus in all_custodians.keys():
         INFO("Check if user has enough prv for portal testing")
-        if cus.get_prv_balance() < deposit_amount + coin(1):
+        if cus.get_prv_balance() < TEST_SETTING_DEPOSIT_AMOUNT * 2:
             INFO("Balance is too low")
-            COIN_MASTER.send_prv_to(cus,
-                                    deposit_amount + coin(1) - cus.get_prv_balance_cache()).subscribe_transaction()
+            COIN_MASTER.send_prv_to(cus, TEST_SETTING_DEPOSIT_AMOUNT * 2 + coin(
+                1) - cus.get_prv_balance_cache()).subscribe_transaction()
             if cus.shard != COIN_MASTER.shard:
                 try:
                     cus.subscribe_cross_output_coin()
                 except:
                     pass
 
-        cus_stat = cus.get_my_portal_custodian_status(portal_state)
+        cus_stat = cus.portal_get_my_custodian_info(portal_state)
 
         INFO("Check if custodian need to add more collateral")
         if cus_stat is None:
-            INFO(f'{l6(cus.payment_key)} is not custodian')
-            cus.add_collateral(deposit_amount, pbnb_id,
-                               all_custodians[cus]).subscribe_transaction()
-        elif cus_stat.get_total_collateral() > deposit_amount:
-            INFO(f'{l6(cus.payment_key)} total collateral = {cus_stat.get_total_collateral()} > {deposit_amount}, '
-                 f'withdraw a bit of collateral')
-            current_total_collateral = cus_stat.get_total_collateral()
-            cus.withdraw_my_portal_collateral(current_total_collateral - deposit_amount).subscribe_transaction()
+            INFO(f'{l6(cus.payment_key)} is not yet custodian, make him one')
+            cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT, PBNB_ID,
+                                      all_custodians[cus]).subscribe_transaction()
+        elif cus_stat.get_free_collateral() < TEST_SETTING_DEPOSIT_AMOUNT / 10:
+            free_collateral = cus_stat.get_free_collateral()
+            INFO(f'{l6(cus.payment_key)} free collateral = {free_collateral} <= {TEST_SETTING_DEPOSIT_AMOUNT} / 10,'
+                 f' deposit a bit more of collateral')
+            cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT - free_collateral, PBNB_ID,
+                                      all_custodians[cus]).subscribe_transaction()
         else:
-            INFO(f'{l6(cus.payment_key)} total collateral = {cus_stat.get_total_collateral()} <= {deposit_amount}, '
-                 f'deposit a bit more of collateral')
-            cus.add_collateral(deposit_amount - cus_stat.get_total_collateral(), pbnb_id,
-                               all_custodians[cus]).subscribe_transaction()
+            INFO(f'{l6(cus.payment_key)} '
+                 f'{TEST_SETTING_DEPOSIT_AMOUNT} / 10 <= total collateral = {cus_stat.get_total_collateral()} '
+                 f'which is fine')
+
+    if PORTAL_FEEDER.get_prv_balance() < 100:
+        COIN_MASTER.send_prv_to(PORTAL_FEEDER, coin(1), privacy=0).subscribe_transaction()
+        if PORTAL_FEEDER.shard != COIN_MASTER.shard:
+            try:
+                PORTAL_FEEDER.subscribe_cross_output_coin()
+            except:
+                pass
 
 
 def teardown_module():
-    INFO()
-    INFO('TEARDOWN TEST MODULE')
-    stats = []
+    breakpoint()
+    INFO_HEADLINE(f'TEST MODULE TEAR DOWN: Withdraw all free collateral')
     latest_portal_state = SUT.full_node.get_latest_portal_state()
     for cus in all_custodians.keys():
-        cus_stat = cus.get_my_portal_custodian_status(latest_portal_state)
-        stats.append(cus_stat)
+        cus_stat = cus.portal_get_my_custodian_info(latest_portal_state)
+        cus.portal_withdraw_my_collateral(cus_stat.get_free_collateral()).subscribe_transaction()
 
-    for stat in stats:
-        if stat is not None:
-            INFO(f"Custodian {l6(stat.get_incognito_addr())} | "
-                 f"Total collat: {stat.get_total_collateral()} | "
-                 f"Locked BNB collat: {stat.get_locked_collateral(pbnb_id)} | "
-                 f"Hold BNB: {stat.get_holding_token_amount(pbnb_id)} | "
-                 f"Locked BTC collat: {stat.get_locked_collateral(pbtc_id)} | "
-                 f"Hold BTC : {stat.get_holding_token_amount(pbtc_id)}"
-                 )
+    # clean up redeem special case: big fat custodian send back prv to COIN_MASTER and return rate back to default
+    # if not fat_custodian.is_empty:
+    #     assert fat_custodian.withdraw_my_portal_collateral(big_collateral).get_error_msg() is None, "must redeem first"
+    #     fat_custodian.send_prv_to(COIN_MASTER, fat_custodian.get_prv_balance() - coin(2),
+    #                               privacy=0).subscribe_transaction()
+    #     PORTAL_FEEDER.create_portal_exchange_rate(init_portal_rate)
+
+
+def setup_function():
+    INFO_HEADLINE('Portal Info before test')
+    portal_state = SUT.full_node.get_latest_portal_state()
+    portal_state_info = PortalStateInfo(portal_state.get_result())
+    custodian_pool_info = portal_state_info.get_custodian_pool()
+    sum_total_collateral = 0
+    sum_free_collateral = 0
+    for custodian_info in custodian_pool_info:
+        if custodian_info is not None:
+            sum_total_collateral += custodian_info.get_total_collateral()
+            sum_free_collateral += custodian_info.get_free_collateral()
+            INFO(f"--------------------------------------------------------------\n"
+                 f"\t\tCustodian             : {l6(custodian_info.get_incognito_addr())}\n"
+                 f"\t\tTotal collateral      : {custodian_info.get_total_collateral()}\n"
+                 f"\t\tFree collateral       : {custodian_info.get_free_collateral()}\n"
+                 f"\t\tLocked BNB collateral : {custodian_info.get_locked_collateral(PBNB_ID)}\n"
+                 f"\t\tHold BNB              : {custodian_info.get_holding_token_amount(PBNB_ID)} \n"
+                 f"\t\tLocked BTC collateral : {custodian_info.get_locked_collateral(PBTC_ID)} \n"
+                 f"\t\tHold BTC              : {custodian_info.get_holding_token_amount(PBTC_ID)}")
+    INFO(f"--------------------------------------------------------------\n"
+         f"\t\tSum total collateral: {sum_total_collateral}\n"
+         f"\t\tSum free collateral : {sum_free_collateral}")
+    INFO_HEADLINE('End of portal Info before test')

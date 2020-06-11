@@ -1,6 +1,6 @@
 import pytest
 
-from IncognitoChain.Configs.Constants import pbnb_id, PortalRedeemStatus, PortalUnloclCollateralReqStatus, prv_token_id
+from IncognitoChain.Configs.Constants import PBNB_ID, PortalRedeemStatus, PortalUnlockCollateralReqStatus, PRV_ID
 from IncognitoChain.Drivers.BnbCli import BnbCli, encode_redeem_memo, build_bnb_proof
 from IncognitoChain.Helpers.Logging import STEP, INFO, WARNING
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
@@ -10,7 +10,7 @@ from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, UnlockCollateral
 from IncognitoChain.TestCases.Portal import portal_user, custodian_remote_address, portal_user_remote_addr, \
     find_custodian_account_by_incognito_addr, bnb_pass_phrase, TEST_SETTING_REDEEM_AMOUNT, self_pick_custodian
 
-token = pbnb_id
+token = PBNB_ID
 
 
 @pytest.mark.parametrize("redeem_fee,custodian_picking,expected", [
@@ -27,8 +27,8 @@ def test_create_redeem_req_1_1(redeem_fee, custodian_picking, expected):
         test_redeem_amount = TEST_SETTING_REDEEM_AMOUNT * 10
 
     STEP(1.1, 'Create redeem req')
-    redeem_req = portal_user.req_redeem_my_token(portal_user_remote_addr, pbnb_id, test_redeem_amount,
-                                                 redeem_fee=redeem_fee)
+    redeem_req = portal_user.portal_req_redeem_my_token(portal_user_remote_addr, PBNB_ID, test_redeem_amount,
+                                                        redeem_fee=redeem_fee)
     tx_block = redeem_req.subscribe_transaction()
     redeem_fee = redeem_req.params().get_portal_redeem_fee()
     tx_fee = tx_block.get_fee()
@@ -42,7 +42,7 @@ def test_create_redeem_req_1_1(redeem_fee, custodian_picking, expected):
                                          redeem id                = {redeem_id}
                                          tx fee                   = {tx_fee}
                                          tx size                  = {tx_size}
-                                         user token bal after req = {portal_user.get_token_balance(pbnb_id)}
+                                         user token bal after req = {portal_user.get_token_balance(PBNB_ID)}
                                          user prv bal after req   = {portal_user.get_prv_balance()}""")
     STEP(2, "Check req status")
     redeem_info = RedeemReqInfo()
@@ -63,10 +63,10 @@ def test_create_redeem_req_1_1(redeem_fee, custodian_picking, expected):
 
         if custodian_picking == 'auto':
             STEP(3.2, 'Wait 10 min for custodian auto pick')
-            WAIT(10 * 60)
+            WAIT(10.5 * 60)
         else:
             STEP(3.2, f"Self-picking custodian: {l6(self_pick_custodian.payment_key)}")
-            self_pick_custodian.let_me_take_care_this_portal_redeem(redeem_id)
+            self_pick_custodian.portal_let_me_take_care_this_redeem(redeem_id)
 
         STEP(4, 'Custodian send BNB to user')
         redeem_info.get_redeem_status_by_redeem_id(redeem_id)
@@ -83,11 +83,11 @@ def test_create_redeem_req_1_1(redeem_fee, custodian_picking, expected):
         else:
             custodian = find_custodian_account_by_incognito_addr(
                 redeem_info.get_redeem_matching_custodians()[0].get_incognito_addr())
-        custodian_status = custodian.get_my_portal_custodian_status()
-        locked_collateral_before = custodian_status.get_locked_collateral(pbnb_id)
-        holding_token = custodian_status.get_holding_token_amount(pbnb_id)
-        sum_waiting_porting_req_lock_collateral = custodian.sum_my_waiting_porting_req_locked_collateral(pbnb_id)
-        sum_waiting_redeem_req_holding_tok = custodian.sum_my_matched_redeem_req_holding_token(pbnb_id)
+        custodian_status = custodian.portal_get_my_custodian_info()
+        locked_collateral_before = custodian_status.get_locked_collateral(PBNB_ID)
+        holding_token = custodian_status.get_holding_token_amount(PBNB_ID)
+        sum_waiting_porting_req_lock_collateral = custodian.portal_sum_my_waiting_porting_req_locked_collateral(PBNB_ID)
+        sum_waiting_redeem_req_holding_tok = custodian.portal_sum_my_matched_redeem_req_holding_token(PBNB_ID)
         estimated_unlock_collateral = test_redeem_amount * (
             locked_collateral_before - sum_waiting_porting_req_lock_collateral) // (
                                           holding_token + sum_waiting_redeem_req_holding_tok)
@@ -98,18 +98,18 @@ def test_create_redeem_req_1_1(redeem_fee, custodian_picking, expected):
                     sum waiting colla = {sum_waiting_porting_req_lock_collateral}
                     sum holding token = {sum_waiting_redeem_req_holding_tok} 
                     estimated unlock  = {estimated_unlock_collateral}""")
-        unlock_collateral_tx = custodian.req_unlock_collateral(pbnb_id, test_redeem_amount, redeem_id, proof)
+        unlock_collateral_tx = custodian.portal_req_unlock_collateral(PBNB_ID, test_redeem_amount, redeem_id, proof)
         unlock_collateral_tx.subscribe_transaction()
 
         unlock_collateral_req_info = UnlockCollateralReqInfo()
         unlock_collateral_req_info.get_unlock_collateral_req_stat(unlock_collateral_tx.get_tx_id())
-        assert unlock_collateral_req_info.get_status() == PortalUnloclCollateralReqStatus.ACCEPTED
+        assert unlock_collateral_req_info.get_status() == PortalUnlockCollateralReqStatus.ACCEPTED
 
         STEP(6, 'Wait 60s for collateral to be unlocked then verify custodian collateral')
         WAIT(60)
-        custodian_status = custodian.get_my_portal_custodian_status()
-        locked_collateral_after = custodian_status.get_locked_collateral(pbnb_id)
-        holding_token_after = custodian_status.get_holding_token_amount(pbnb_id)
+        custodian_status = custodian.portal_get_my_custodian_info()
+        locked_collateral_after = custodian_status.get_locked_collateral(PBNB_ID)
+        holding_token_after = custodian_status.get_holding_token_amount(PBNB_ID)
 
         INFO(f"""Status after req unlock collateral:
                             redeem amount     = {test_redeem_amount}
@@ -130,11 +130,11 @@ def test_create_redeem_req_1_n():
 
     portal_state_before_test = SUT.full_node.get_latest_portal_state()
     highest_holding_token_custodian_in_pool = SUT.full_node. \
-        help_get_highest_holding_token_custodian(pbnb_id, portal_state_before_test)
+        help_get_highest_holding_token_custodian(PBNB_ID, portal_state_before_test)
     portal_state_info = PortalStateInfo(portal_state_before_test.get_result())
-    pbnb_rate = portal_state_info.get_portal_rate(pbnb_id)
-    prv_rate = portal_state_info.get_portal_rate(prv_token_id)
-    redeem_amount = highest_holding_token_custodian_in_pool.get_holding_token_amount(pbnb_id) + 1
+    pbnb_rate = portal_state_info.get_portal_rate(PBNB_ID)
+    prv_rate = portal_state_info.get_portal_rate(PRV_ID)
+    redeem_amount = highest_holding_token_custodian_in_pool.get_holding_token_amount(PBNB_ID) + 1
 
     estimated_redeem_fee = PortalHelper.cal_portal_portal_fee(redeem_amount, pbnb_rate, prv_rate)
 
@@ -146,10 +146,10 @@ def test_create_redeem_req_1_n():
     #     portal_user.wait_for_balance_change(prv_token_id, portal_user.get_prv_balance_cache())
 
     prv_bal_be4_test = portal_user.get_prv_balance()
-    tok_bal_be4_test = portal_user.get_token_balance(pbnb_id)
+    tok_bal_be4_test = portal_user.get_token_balance(PBNB_ID)
 
     STEP(1.1, 'Create redeem req')
-    redeem_req_tx = portal_user.req_redeem_my_token(portal_user_remote_addr, pbnb_id, redeem_amount)
+    redeem_req_tx = portal_user.portal_req_redeem_my_token(portal_user_remote_addr, PBNB_ID, redeem_amount)
     tx_block = redeem_req_tx.subscribe_transaction()
     redeem_fee = redeem_req_tx.params().get_portal_redeem_fee()
     tx_fee = tx_block.get_fee()
@@ -164,7 +164,7 @@ def test_create_redeem_req_1_n():
                                              redeem id                = {redeem_id}
                                              tx fee                   = {tx_fee}
                                              tx size                  = {tx_size}
-                                             user token bal after req = {portal_user.get_token_balance(pbnb_id)}
+                                             user token bal after req = {portal_user.get_token_balance(PBNB_ID)}
                                              user prv bal after req   = {portal_user.get_prv_balance()}""")
     assert estimated_redeem_fee + 1 == redeem_fee
 
@@ -217,13 +217,13 @@ def test_create_redeem_req_1_n():
         redeem_amount_of_this_custodian = custodian_info.get_amount()
         custodian_account_list_of_this_req.append(custodian_account)
 
-        custodian_status_after_redeem_req = custodian_account.get_my_portal_custodian_status(
+        custodian_status_after_redeem_req = custodian_account.portal_get_my_custodian_info(
             portal_state_after_porting_req)
-        locked_collateral_before = custodian_status_after_redeem_req.get_locked_collateral(pbnb_id)
-        holding_token_before_test = custodian_status_after_redeem_req.get_holding_token_amount(pbnb_id)
+        locked_collateral_before = custodian_status_after_redeem_req.get_locked_collateral(PBNB_ID)
+        holding_token_before_test = custodian_status_after_redeem_req.get_holding_token_amount(PBNB_ID)
         sum_waiting_porting_req_lock_collateral_before_test = custodian_account. \
-            sum_my_waiting_porting_req_locked_collateral(pbnb_id, portal_state_before_test)
-        sum_waiting_redeem_req_holding_tok = custodian_account.sum_my_matched_redeem_req_holding_token(pbnb_id)
+            portal_sum_my_waiting_porting_req_locked_collateral(PBNB_ID, portal_state_before_test)
+        sum_waiting_redeem_req_holding_tok = custodian_account.portal_sum_my_matched_redeem_req_holding_token(PBNB_ID)
         estimated_unlock_collateral_of_1_custodian = redeem_amount_of_this_custodian * (
             locked_collateral_before - sum_waiting_porting_req_lock_collateral_before_test) // (
                                                          holding_token_before_test + sum_waiting_redeem_req_holding_tok)
@@ -235,8 +235,9 @@ def test_create_redeem_req_1_n():
                 sum waiting collateral = {sum_waiting_porting_req_lock_collateral_before_test}
                 sum holding token      = {sum_waiting_redeem_req_holding_tok} 
                 estimated unlock       = {estimated_unlock_collateral_of_1_custodian}""")
-        unlock_collateral_tx = custodian_account.req_unlock_collateral(pbnb_id, custodian_bnb_send_amount, redeem_id,
-                                                                       proof)
+        unlock_collateral_tx = custodian_account.portal_req_unlock_collateral(PBNB_ID, custodian_bnb_send_amount,
+                                                                              redeem_id,
+                                                                              proof)
         unlock_collateral_tx.subscribe_transaction()
         unlock_collateral_txs.append(unlock_collateral_tx)
         sum_estimated_unlock_collateral += estimated_unlock_collateral_of_1_custodian
@@ -244,20 +245,20 @@ def test_create_redeem_req_1_n():
     for tx in unlock_collateral_txs:
         unlock_collateral_req_info = UnlockCollateralReqInfo()
         unlock_collateral_req_info.get_unlock_collateral_req_stat(tx.get_tx_id())
-        assert unlock_collateral_req_info.get_status() == PortalUnloclCollateralReqStatus.ACCEPTED
+        assert unlock_collateral_req_info.get_status() == PortalUnlockCollateralReqStatus.ACCEPTED
 
     STEP(6, 'Wait 60s for collateral to be unlocked then verify custodian collateral')
     WAIT(60)
     sum_actual_unlock_collateral = 0
     sum_delta_holding_token = 0
     for custodian_account in custodian_account_list_of_this_req:
-        custodian_status_latest = custodian_account.get_my_portal_custodian_status()
-        locked_collateral_latest = custodian_status_latest.get_locked_collateral(pbnb_id)
-        holding_token_latest = custodian_status_latest.get_holding_token_amount(pbnb_id)
+        custodian_status_latest = custodian_account.portal_get_my_custodian_info()
+        locked_collateral_latest = custodian_status_latest.get_locked_collateral(PBNB_ID)
+        holding_token_latest = custodian_status_latest.get_holding_token_amount(PBNB_ID)
 
-        custodian_status_before = custodian_account.get_my_portal_custodian_status(portal_state_before_test)
-        locked_collateral_before = custodian_status_before.get_locked_collateral(pbnb_id)
-        holding_token_before = custodian_status_before.get_holding_token_amount(pbnb_id)
+        custodian_status_before = custodian_account.portal_get_my_custodian_info(portal_state_before_test)
+        locked_collateral_before = custodian_status_before.get_locked_collateral(PBNB_ID)
+        holding_token_before = custodian_status_before.get_holding_token_amount(PBNB_ID)
 
         unlock_collateral_amount = locked_collateral_before - locked_collateral_latest
         release_token_amount = holding_token_before - holding_token_latest
@@ -283,7 +284,7 @@ def test_redeem_req_expired():
     test_redeem_amount = 10
 
     STEP(1.1, 'Create redeem req')
-    redeem_req = portal_user.req_redeem_my_token(portal_user_remote_addr, pbnb_id, test_redeem_amount)
+    redeem_req = portal_user.portal_req_redeem_my_token(portal_user_remote_addr, PBNB_ID, test_redeem_amount)
     tx_block = redeem_req.subscribe_transaction()
     redeem_fee = redeem_req.params().get_portal_redeem_fee()
     tx_fee = tx_block.get_fee()
@@ -297,7 +298,7 @@ def test_redeem_req_expired():
                                             redeem id                = {redeem_id}
                                             tx fee                   = {tx_fee}
                                             tx size                  = {tx_size}
-                                            user token bal after req = {portal_user.get_token_balance(pbnb_id)}
+                                            user token bal after req = {portal_user.get_token_balance(PBNB_ID)}
                                             user prv bal after req   = {portal_user.get_prv_balance()}""")
 
     STEP(2, "Check req status")
@@ -319,10 +320,10 @@ def test_redeem_req_expired():
 
     STEP(5, "Check req status")
     redeem_info.get_redeem_status_by_redeem_id(redeem_id)
-    assert redeem_info.get_status() == PortalRedeemStatus.LIQUIDATED
+    assert redeem_info.get_status() == PortalRedeemStatus.REJECTED_BY_LIQUIDATION
 
     STEP(6, "Must return ptoken to user")
-    assert user_tok_bal_be4_test == portal_user.get_token_balance(pbnb_id)
+    assert user_tok_bal_be4_test == portal_user.get_token_balance(PBNB_ID)
 
     STEP(7, "No return any fee (tx and portal fee)")
     assert user_prv_bal_be4_test - tx_fee - redeem_fee == portal_user.get_prv_balance()
