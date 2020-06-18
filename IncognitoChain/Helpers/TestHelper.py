@@ -1,6 +1,7 @@
 import math
 
-from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, PORTAL_COLLATERAL_PERCENT
+from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, PORTAL_COLLATERAL_PERCENT, \
+    PortalDepositStatus
 from IncognitoChain.Helpers.Logging import INFO
 
 
@@ -60,8 +61,8 @@ class PortalHelper:
         return round(int(prv_amount) * int(prv_rate) / int(token_rate))
 
     @staticmethod
-    def cal_portal_portal_fee(token_amount, token_rate, prv_rate):
-        return round((int(token_amount) * int(token_rate) / int(prv_rate)) / 10000)  # fee = 0.01%
+    def cal_portal_portal_fee(token_amount, token_rate, prv_rate, fee_rate=0.0001):
+        return round((int(token_amount) * int(token_rate) / int(prv_rate)) * fee_rate)  # fee = 0.01%
 
     @staticmethod
     def cal_liquidate_rate(percent, token_id, token_rate, prv_rate, token_to_change_rate=None):
@@ -122,3 +123,14 @@ class PortalHelper:
         """
         sum_holding = holding_token, holding_token_of_waiting_redeem
         return sum_holding * 1.05 * rate_token / rate_prv
+
+    @staticmethod
+    def check_custodian_deposit_tx_status(tx_id, expected='accept'):
+        from IncognitoChain.Objects.PortalObjects import DepositTxInfo
+
+        info = DepositTxInfo()
+        info.get_deposit_info(tx_id)
+        if expected.lower() == "accept":
+            assert info.get_status() == PortalDepositStatus.ACCEPT
+        else:
+            assert info.get_status() == PortalDepositStatus.REJECTED

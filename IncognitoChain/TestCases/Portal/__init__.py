@@ -8,12 +8,14 @@ from IncognitoChain.Objects.PortalObjects import PortalStateInfo
 portal_user = ACCOUNTS[1]
 self_pick_custodian = ACCOUNTS[6]
 
+PORTAL_REQ_TIME_OUT = 15  # minutes
 TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
 TEST_SETTING_PORTING_AMOUNT = 100
 TEST_SETTING_REDEEM_AMOUNT = 10
 custodian_remote_address = 'tbnb1d90lad6rg5ldh8vxgtuwzxd8n6rhhx7mfqek38'
 portal_user_remote_addr = 'tbnb1zyqrky9zcumc2e4smh3xwh2u8kudpdc56gafuk'
 bnb_pass_phrase = '123123Az'
+just_another_remote_addr = 'tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss'
 
 all_custodians = {
     ACCOUNTS[3]: 'tbnb172pnrmd0409237jwlq5qjhw2s2r7lq6ukmaeke',
@@ -37,7 +39,7 @@ big_bnb_rate = {PBNB_ID: '105873200000'}
 # 37772966455153490
 # 37772966455153487
 
-for acc in all_custodians:
+for acc in all_custodians:  # find account which has most PRV
     if fat_custodian.get_prv_balance_cache() is None:
         fat_custodian = acc
     elif acc.get_prv_balance_cache() >= fat_custodian.get_prv_balance_cache():
@@ -61,7 +63,6 @@ def setup_module():
     PORTAL_FEEDER.portal_create_exchange_rate(init_portal_rate).subscribe_transaction()
     SUT.full_node.help_wait_till_next_epoch()
 
-    portal_state = SUT.full_node.get_latest_portal_state()
     for cus in all_custodians.keys():
         INFO("Check if user has enough prv for portal testing")
         if cus.get_prv_balance() < TEST_SETTING_DEPOSIT_AMOUNT * 2:
@@ -73,24 +74,6 @@ def setup_module():
                     cus.subscribe_cross_output_coin()
                 except:
                     pass
-
-        cus_stat = cus.portal_get_my_custodian_info(portal_state)
-
-        INFO("Check if custodian need to add more collateral")
-        if cus_stat is None:
-            INFO(f'{l6(cus.payment_key)} is not yet custodian, make him one')
-            cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT, PBNB_ID,
-                                      all_custodians[cus]).subscribe_transaction()
-        elif cus_stat.get_free_collateral() < TEST_SETTING_DEPOSIT_AMOUNT / 10:
-            free_collateral = cus_stat.get_free_collateral()
-            INFO(f'{l6(cus.payment_key)} free collateral = {free_collateral} <= {TEST_SETTING_DEPOSIT_AMOUNT} / 10,'
-                 f' deposit a bit more of collateral')
-            cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT - free_collateral, PBNB_ID,
-                                      all_custodians[cus]).subscribe_transaction()
-        else:
-            INFO(f'{l6(cus.payment_key)} '
-                 f'{TEST_SETTING_DEPOSIT_AMOUNT} / 10 <= total collateral = {cus_stat.get_total_collateral()} '
-                 f'which is fine')
 
     if PORTAL_FEEDER.get_prv_balance() < 100:
         COIN_MASTER.send_prv_to(PORTAL_FEEDER, coin(1), privacy=0).subscribe_transaction()

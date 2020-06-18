@@ -3,15 +3,17 @@ from abc import ABC
 from typing import List
 
 from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, \
-    PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT
+    PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT, PBNB_ID, PBTC_ID, PRV_ID
 from IncognitoChain.Helpers.Logging import INFO, DEBUG
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 
 
 class PortalInfoObj(ABC):
     def __init__(self, dict_data=None):
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
         self.data: dict = dict_data
         self.err = None
+        self.SUT = SUT
 
     def get_status(self):
         return self.data['Status']
@@ -29,6 +31,55 @@ class PortalInfoObj(ABC):
 
 
 class CustodianInfo(PortalInfoObj):
+
+    def __str__(self):
+        # 'Custodian - bnb remote addr - btc remote add - total collateral - free collateral -
+        # holding bnb - holding btc - lock bnb - lock btc - reward prv'
+        s_inc_addr = s_bnb_addr = s_btc_addr = total_col = free_col = hold_bnb = \
+            hold_btc = lock_bnb = lock_btc = reward_prv = ''
+        try:
+            s_inc_addr = l6(self.get_incognito_addr())
+        except KeyError:
+            pass
+        try:
+            s_bnb_addr = l6(self.get_remote_address(PBNB_ID))
+        except KeyError:
+            pass
+        try:
+            s_btc_addr = l6(self.get_remote_address(PBTC_ID))
+        except KeyError:
+            pass
+        try:
+            total_col = self.get_total_collateral()
+        except KeyError:
+            pass
+        try:
+            free_col = self.get_free_collateral()
+        except KeyError:
+            pass
+        try:
+            hold_bnb = self.get_holding_token_amount(PBNB_ID)
+        except KeyError:
+            pass
+        try:
+            hold_btc = self.get_holding_token_amount(PBTC_ID)
+        except KeyError:
+            pass
+        try:
+            lock_bnb = self.get_locked_collateral(PBNB_ID)
+        except KeyError:
+            pass
+        try:
+            lock_btc = self.get_locked_collateral(PBTC_ID)
+        except KeyError:
+            pass
+        try:
+            reward_prv = self.get_reward_amount(PRV_ID)
+        except KeyError:
+            pass
+        return '%s : %6s | %6s %14s %14s %14s %14s %14s %14s %14s' % \
+               (s_inc_addr, s_bnb_addr, s_btc_addr, total_col, free_col, hold_bnb, hold_btc, lock_bnb, lock_btc,
+                reward_prv)
 
     def get_incognito_addr(self):
         try:
@@ -79,8 +130,13 @@ class CustodianInfo(PortalInfoObj):
                 ret = 0 if none_equal_zero else None
         return ret
 
-    def get_remote_address(self):
-        return self.data['RemoteAddress']
+    def get_remote_address(self, token=None):
+        if token is None:
+            return self.data['RemoteAddress']
+        try:
+            return self.data['RemoteAddresses'][token]
+        except KeyError:
+            return ""
 
     def get_reward_amount(self, token_id=None):
         if token_id is None:
@@ -152,14 +208,13 @@ class PortingReqInfo(PortalInfoObj):
     def get_porting_req_by_tx_id(self, tx_id):
         INFO()
         INFO(f'Get porting req info, tx_id = {tx_id}')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        response = SUT.full_node.portal().get_portal_porting_req_by_key(tx_id)
+        response = self.SUT.full_node.portal().get_portal_porting_req_by_key(tx_id)
         self.data = response.get_result('PortingRequest')
         return self
 
     def get_porting_req_by_porting_id(self, porting_id):
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_portal_porting_req_by_porting_id(porting_id).get_result('PortingRequest')
+        self.data = self.SUT.full_node.portal().get_portal_porting_req_by_porting_id(porting_id).get_result(
+            'PortingRequest')
         return self
 
     def get_porting_id(self):
@@ -195,13 +250,11 @@ class PortingReqInfo(PortalInfoObj):
 class RedeemReqInfo(PortalInfoObj):
 
     def get_redeem_status_by_redeem_id(self, redeem_id):
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_portal_redeem_status(redeem_id).get_result()
+        self.data = self.SUT.full_node.portal().get_portal_redeem_status(redeem_id).get_result()
         return self
 
     def get_req_matching_redeem_status(self, tx_id):
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_req_matching_redeem_status(tx_id).get_result()
+        self.data = self.SUT.full_node.portal().get_req_matching_redeem_status(tx_id).get_result()
         return self
 
     def get_redeem_matching_custodians(self):
@@ -349,8 +402,7 @@ class LiquidationPool(PortalInfoObj):
 
 class PTokenReqInfo(PortalInfoObj):
     def get_ptoken_req_by_tx_id(self, tx_id):
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_portal_req_ptoken_status(tx_id).get_result()
+        self.data = self.SUT.full_node.portal().get_portal_req_ptoken_status(tx_id).get_result()
         return self
 
 
@@ -526,6 +578,15 @@ class PortalStateInfo(PortalInfoObj):
         redeem_matched_req = self.get_redeem_matched_req(token_id)
         return PortalStateInfo._find_all_req_of_custodian_in_req_list(custodian_account, redeem_matched_req)
 
+    def find_lowest_free_collateral_custodian(self):
+        pool = self.get_custodian_pool()
+        custodian_min_free_collateral = pool[0]
+        for custodian in pool:
+            if custodian.get_free_collateral() < custodian_min_free_collateral.get_free_collateral():
+                custodian_min_free_collateral = custodian
+
+        return custodian_min_free_collateral
+
     @staticmethod
     def _find_all_req_of_custodian_in_req_list(custodian_account, req_list):
         result = []
@@ -537,8 +598,54 @@ class PortalStateInfo(PortalInfoObj):
 
 class UnlockCollateralReqInfo(PortalInfoObj):
     def get_unlock_collateral_req_stat(self, tx_id):
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_portal_req_unlock_collateral_status(tx_id).get_result()
+        self.data = self.SUT.full_node.portal().get_portal_req_unlock_collateral_status(tx_id).get_result()
 
     def get_unlock_amount(self):
         return int(self.data['UnlockAmount'])
+
+
+class DepositTxInfo(PortalInfoObj):
+    _amount = 'DepositedAmount'
+
+    def get_deposit_info(self, tx_id):
+        self.data = self.SUT.full_node.portal().get_portal_custodian_deposit_status(tx_id).get_result()
+        return self
+
+    def get_deposited_amount(self):
+        return self.data[DepositTxInfo._amount]
+
+
+class CustodianWithdrawTxInfo(PortalInfoObj):
+    _info = 'CustodianWithdraw'
+    _payment_addr = 'PaymentAddress'
+    _remain_free_collateral = 'RemainCustodianFreeCollateral'
+
+    def get_custodian_withdraw_info_by_tx(self, tx_id):
+        self.data = self.SUT.full_node.portal().get_custodian_withdraw_by_tx_id(tx_id). \
+            get_result()[CustodianWithdrawTxInfo._info]
+        return self
+
+    def get_payment_addr(self):
+        return self.data[CustodianWithdrawTxInfo._payment_addr]
+
+    def get_remain_free_collateral(self):
+        return self.data[CustodianWithdrawTxInfo._remain_free_collateral]
+
+
+class RewardWithdrawTxInfo(PortalInfoObj):
+    _CustodianAddressStr = 'CustodianAddressStr'
+    _RewardAmount = 'RewardAmount'
+    _TxReqID = 'TxReqID'
+
+    def get_reward_info_by_tx_id(self, tx_id):
+        self.data = self.SUT.full_node.portal().get_request_withdraw_portal_reward_status(tx_id).get_result()
+        return self
+
+    def get_custodian_addr_str(self):
+        return self.data[RewardWithdrawTxInfo._CustodianAddressStr]
+
+    def get_reward_amount(self):
+        return self.data[RewardWithdrawTxInfo._RewardAmount]
+
+    def get_tx_req_id(self):
+        return self.data[RewardWithdrawTxInfo._TxReqID]

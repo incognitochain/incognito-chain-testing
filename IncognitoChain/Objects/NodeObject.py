@@ -235,9 +235,10 @@ class Node:
         current_epoch = self.help_get_current_epoch()
         return self.help_wait_till_epoch(current_epoch + 1)
 
-    def get_latest_portal_state(self):
+    def get_latest_portal_state(self, beacon_height=None):
         INFO(f'Get latest portal state')
-        beacon_height = self.help_get_beacon_height_in_best_state()
+        if beacon_height is None:
+            beacon_height = self.help_get_beacon_height_in_best_state()
         return self.portal().get_portal_state(beacon_height)
 
     def help_get_highest_free_collateral_custodian(self, portal_state=None) -> CustodianInfo:
@@ -266,6 +267,13 @@ class Node:
         if portal_state is None:
             portal_state = self.get_latest_portal_state()
         return PortalStateInfo(portal_state.get_result()).get_custodian_pool()
+
+    def print_portal_custodians_info(self, portal_state=None):
+        c_pool = self.help_get_portal_custodian_pool(portal_state)
+        print(f'Custodian - bnb remote addr/btc remote add - total collateral - free collateral -'
+              f' holding bnb - holding btc - lock bnb - lock btc - reward prv')
+        for custodian in c_pool:
+            print(custodian)
 
     ##########
     # BRIDGE

@@ -6,7 +6,8 @@ from IncognitoChain.Helpers.TestHelper import PortalHelper, l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, PORTAL_FEEDER
 from IncognitoChain.Objects.PortalObjects import PortalStateInfo
-from IncognitoChain.TestCases.Portal import test_PTL02_create_porting_req as porting_step
+from IncognitoChain.TestCases.Portal import test_PTL02_create_porting_req as porting_step, portal_user, \
+    find_custodian_account_by_incognito_addr
 
 portal_state_before_test = None
 
@@ -18,14 +19,15 @@ def setup_module():
     portal_state_before_test = SUT.full_node.get_latest_portal_state()
 
 
-@pytest.mark.parametrize("percent,expected", [
-    # (1.6, 'ok'),
-    # (1.7, 'ok'),
-    # (1.4, 'ok'),
-    # (1.21, 'ok'),
-    (1.2, 'liquidated'),
+@pytest.mark.parametrize("percent,waiting_redeem,expected", [
+    # (1.6, False, 'ok'),
+    # (1.7, False, 'ok'),
+    # (1.4, False, 'ok'),
+    # (1.21, False, 'ok'),
+    # (1.2, False, 'liquidated'),
+    (0.99, False, 'liquidated'),
 ])
-def test_liquidate(percent, expected):
+def test_liquidate(percent, waiting_redeem, expected):
     STEP(0, 'Get portal status before changing rate')
     global portal_state_before_test
     portal_info_before = PortalStateInfo(portal_state_before_test.get_result())
@@ -40,6 +42,15 @@ def test_liquidate(percent, expected):
         assert (not custodians_will_be_liquidate) is False, "custodian list that will be liquidate is empty"
         estimated_liquidation_pool = portal_info_before.estimate_liquidation_pool(PBNB_ID, tok_rate_before_test,
                                                                                   prv_liquidate_rate)
+
+    if waiting_redeem:  # todo: cover liquidation case which has waiting redeem in portal state
+        low_custodian_info = portal_info_before.find_lowest_free_collateral_custodian()
+        low_custodian_account = find_custodian_account_by_incognito_addr(low_custodian_info.get_incognito_addr())
+        redeem_amount = low_custodian_info.get_free_collateral() + 10
+        STEP(0.1, 'Create redeem req')
+        redeem_req_tx = portal_user.portal_req_redeem_my_token(portal_state_before_test, PBNB_ID, redeem_amount)
+        redeem_req_tx.expect_no_error()
+        redeem_req_tx.subscribe_transaction()
 
     STEP(1, f'Rate change, which make locked collateral amount percentage reduce to {percent}')
 
@@ -79,7 +90,12 @@ def test_liquidate(percent, expected):
                  f"liquidated: {liquidated_amount} "
                  f"return to free collateral: {return_collateral} "
                  f"free collateral after: {new_free_collateral}")
+            if percent <= 1:
+                assert return_collateral == 0
+            else:
+                assert return_collateral > 0
             assert new_free_collateral == current_free_collateral + return_collateral
-        assert estimated_liquidation_pool + portal_info_before.get_liquidation_pool() == portal_info_after.get_liquidation_pool()
+        assert estimated_liquidation_pool + portal_info_before. \
+            get_liquidation_pool() == portal_info_after.get_liquidation_pool()
     else:
         assert portal_info_before.get_liquidation_pool() == portal_info_after.get_liquidation_pool()

@@ -170,7 +170,6 @@ class PortalRpc:
                           "CustodianIncAddress": custodian_payment_addr
                           }]).execute()
 
-    # custodian req withdraw reward ########################################################################
     def get_liquidation_tp_exchange_rates(self, custodian_payment_key, beacon_height):
         return self.rpc_connection.with_method('getliquidationtpexchangerates'). \
             with_params([{"BeaconHeight": str(beacon_height),
@@ -257,10 +256,19 @@ class PortalRpc:
         return self.rpc_connection.with_method('getportalstate'). \
             with_params([{"BeaconHeight": str(beacon_height)}]).execute()
 
-    # portal reward
+    # custodian reward ########################################################################
     def create_n_send_tx_with_req_withdraw_reward_portal(self, private_key, payment_key, token_id):
         return self.rpc_connection.with_method('createandsendtxwithreqwithdrawrewardportal'). \
             with_params([private_key, None, -1, 0,
                          {
                              "CustodianAddressStr": payment_key,
                              "TokenID": token_id}]).execute()
+
+    def get_portal_reward(self, payment_key):
+        return self.rpc_connection.with_method('getportalreward'). \
+            with_params([{"IncognitoAddress": payment_key}]).execute()
+
+    def get_request_withdraw_portal_reward_status(self, tx_id):
+        return self.rpc_connection.with_method('getrequestwithdrawportalrewardstatus'). \
+            with_params([{"ReqTxID": tx_id}]).execute()
+

@@ -34,3 +34,9 @@ class ExploreRpc:
             with_method('getbalanceprivacycustomtoken'). \
             with_params([private_key, token_id]). \
             execute()
+
+    def get_reward_feature(self, epoch, feature_name='portal'):  # only portal feature for now
+        return self.rpc_connection.with_method('getrewardfeature'). \
+            with_params([{
+            "FeatureName": feature_name,
+            "Epoch": str(epoch)}]).execute()

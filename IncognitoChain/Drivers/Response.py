@@ -16,6 +16,14 @@ class Response:
     def __str__(self):
         return f'\n{json.dumps(self.data(), indent=3)}'
 
+    def expect_no_error(self):
+        assert self.get_error_msg() is None, self.get_error_msg()
+        return True
+
+    def expect_error(self):
+        assert self.get_error_msg() is not None, self.get_error_msg()
+        return True
+
     def data(self):
         if type(self.response) is str:
             return json.loads(self.response)  # response from WebSocket
@@ -42,7 +50,7 @@ class Response:
     def get_error_trace(self):
         if self.data()['Error'] is None:
             return ''
-        return StackTrace(self.data()['Error']['StackTrace'][0:256])
+        return StackTrace(self.data()['Error']['StackTrace'][0:512])
 
     def get_error_msg(self):
         if self.data()['Error'] is None:
@@ -215,9 +223,12 @@ class StackTrace:
         return ''.join([str(elem) for elem in code_list])
 
     def get_message(self):
-        i_start = len(self.get_error_codes())
-        i_end = str.index(self.stack_string, 'github.com')
-        return str(self.stack_string[i_start:i_end])
+        try:
+            i_start = len(self.get_error_codes())
+            i_end = str.index(self.stack_string, 'github.com')
+            return str(self.stack_string[i_start:i_end])
+        except ValueError:
+            return str(self.stack_string)
 
     def get_estimated_fee(self):
         return re.search("fee=(.*)", self.stack_string).group(1)
