@@ -241,16 +241,8 @@ class Node:
             beacon_height = self.help_get_beacon_height_in_best_state()
         return self.portal().get_portal_state(beacon_height)
 
-    def help_get_highest_free_collateral_custodian(self, portal_state=None) -> CustodianInfo:
-        if portal_state is None:
-            portal_state = self.get_latest_portal_state()
-        custodian_pool = self.help_get_portal_custodian_pool(portal_state)
-        highest_free_collateral_custodian_info = custodian_pool[0]
-        for info in custodian_pool:
-            if info.get_free_collateral() > highest_free_collateral_custodian_info.get_free_collateral():
-                highest_free_collateral_custodian_info = info
-
-        return highest_free_collateral_custodian_info
+    def get_latest_portal_state_info(self, beacon_height=None):
+        return PortalStateInfo(self.get_latest_portal_state(beacon_height).get_result())
 
     def help_get_highest_holding_token_custodian(self, token_id, portal_state=None) -> CustodianInfo:
         if portal_state is None:

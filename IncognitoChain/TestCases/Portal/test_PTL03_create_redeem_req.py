@@ -8,7 +8,8 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, UnlockCollateralReqInfo, PortalStateInfo
 from IncognitoChain.TestCases.Portal import portal_user, custodian_remote_address, portal_user_remote_addr, \
-    find_custodian_account_by_incognito_addr, bnb_pass_phrase, TEST_SETTING_REDEEM_AMOUNT, self_pick_custodian
+    find_custodian_account_by_incognito_addr, bnb_pass_phrase, TEST_SETTING_REDEEM_AMOUNT, self_pick_custodian, \
+    PORTAL_REQ_TIME_OUT
 
 token = PBNB_ID
 
@@ -27,13 +28,13 @@ def test_create_redeem_req_1_1(redeem_fee, custodian_picking, expected):
         test_redeem_amount = TEST_SETTING_REDEEM_AMOUNT * 10
 
     STEP(1.1, 'Create redeem req')
-    redeem_req = portal_user.portal_req_redeem_my_token(portal_user_remote_addr, PBNB_ID, test_redeem_amount,
-                                                        redeem_fee=redeem_fee)
-    tx_block = redeem_req.subscribe_transaction()
-    redeem_fee = redeem_req.params().get_portal_redeem_fee()
+    redeem_req_tx = portal_user.portal_req_redeem_my_token(portal_user_remote_addr, PBNB_ID, test_redeem_amount,
+                                                           redeem_fee=redeem_fee)
+    tx_block = redeem_req_tx.subscribe_transaction()
+    redeem_fee = redeem_req_tx.params().get_portal_redeem_fee()
     tx_fee = tx_block.get_fee()
     tx_size = tx_block.get_tx_size()
-    redeem_id = redeem_req.params().get_portal_redeem_req_id()
+    redeem_id = redeem_req_tx.params().get_portal_redeem_req_id()
     STEP(1.2, 'Check tx fee and redeem fee')
     assert prv_bal_be4 - redeem_fee - tx_fee == portal_user.get_prv_balance()
 
@@ -47,6 +48,9 @@ def test_create_redeem_req_1_1(redeem_fee, custodian_picking, expected):
     STEP(2, "Check req status")
     redeem_info = RedeemReqInfo()
     redeem_info.get_redeem_status_by_redeem_id(redeem_id)
+    if redeem_info.is_none():  # maybe the system is a bit slow, try again in 20 sec
+        WAIT(20)
+        redeem_info.get_redeem_status_by_redeem_id(redeem_id)
 
     if expected == 'valid':
         assert redeem_info.get_status() == PortalRedeemStatus.WAITING
@@ -83,18 +87,18 @@ def test_create_redeem_req_1_1(redeem_fee, custodian_picking, expected):
         else:
             custodian = find_custodian_account_by_incognito_addr(
                 redeem_info.get_redeem_matching_custodians()[0].get_incognito_addr())
-        custodian_status = custodian.portal_get_my_custodian_info()
-        locked_collateral_before = custodian_status.get_locked_collateral(PBNB_ID)
-        holding_token = custodian_status.get_holding_token_amount(PBNB_ID)
+        custodian_status_after_req = custodian.portal_get_my_custodian_info()
+        locked_collateral_before = custodian_status_after_req.get_locked_collateral(PBNB_ID)
+        holding_token_after_req = custodian_status_after_req.get_holding_token_amount(PBNB_ID)
         sum_waiting_porting_req_lock_collateral = custodian.portal_sum_my_waiting_porting_req_locked_collateral(PBNB_ID)
         sum_waiting_redeem_req_holding_tok = custodian.portal_sum_my_matched_redeem_req_holding_token(PBNB_ID)
-        estimated_unlock_collateral = test_redeem_amount * (
-            locked_collateral_before - sum_waiting_porting_req_lock_collateral) // (
-                                          holding_token + sum_waiting_redeem_req_holding_tok)
+        estimated_unlock_collateral = \
+            test_redeem_amount * (locked_collateral_before - sum_waiting_porting_req_lock_collateral) // (
+                holding_token_after_req + test_redeem_amount + sum_waiting_redeem_req_holding_tok)
         INFO(f"""Status before req unlock collateral:
                     redeem amount     = {test_redeem_amount}
                     locked collateral = {locked_collateral_before}
-                    holding token     = {holding_token}
+                    holding token     = {holding_token_after_req}
                     sum waiting colla = {sum_waiting_porting_req_lock_collateral}
                     sum holding token = {sum_waiting_redeem_req_holding_tok} 
                     estimated unlock  = {estimated_unlock_collateral}""")
@@ -103,13 +107,17 @@ def test_create_redeem_req_1_1(redeem_fee, custodian_picking, expected):
 
         unlock_collateral_req_info = UnlockCollateralReqInfo()
         unlock_collateral_req_info.get_unlock_collateral_req_stat(unlock_collateral_tx.get_tx_id())
+        if unlock_collateral_req_info.is_none():
+            WAIT(20)
+            unlock_collateral_req_info.get_unlock_collateral_req_stat(unlock_collateral_tx.get_tx_id())
+
         assert unlock_collateral_req_info.get_status() == PortalUnlockCollateralReqStatus.ACCEPTED
 
         STEP(6, 'Wait 60s for collateral to be unlocked then verify custodian collateral')
         WAIT(60)
-        custodian_status = custodian.portal_get_my_custodian_info()
-        locked_collateral_after = custodian_status.get_locked_collateral(PBNB_ID)
-        holding_token_after = custodian_status.get_holding_token_amount(PBNB_ID)
+        custodian_status_after_req = custodian.portal_get_my_custodian_info()
+        locked_collateral_after = custodian_status_after_req.get_locked_collateral(PBNB_ID)
+        holding_token_after = custodian_status_after_req.get_holding_token_amount(PBNB_ID)
 
         INFO(f"""Status after req unlock collateral:
                             redeem amount     = {test_redeem_amount}
@@ -306,8 +314,7 @@ def test_redeem_req_expired():
     redeem_info.get_redeem_status_by_redeem_id(redeem_id)
 
     if redeem_info.is_none():
-        INFO('No matching custodian found')
-        assert False
+        assert False, 'No matching custodian found'
 
     assert redeem_info.get_status() == PortalRedeemStatus.WAITING
     assert user_prv_bal_be4_test - redeem_fee - tx_fee == portal_user.get_prv_balance()
@@ -315,8 +322,8 @@ def test_redeem_req_expired():
     STEP(3, "Check requester bal")
     assert user_tok_bal_be4_test - test_redeem_amount == portal_user.get_token_balance(token)
 
-    STEP(4, 'Wait 31min for the req to be expired')
-    WAIT(31 * 60)
+    STEP(4, f'Wait {PORTAL_REQ_TIME_OUT + 0.5} min for the req to be expired')
+    WAIT(PORTAL_REQ_TIME_OUT + 0.5)
 
     STEP(5, "Check req status")
     redeem_info.get_redeem_status_by_redeem_id(redeem_id)

@@ -1,8 +1,9 @@
 import math
 
 from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, PORTAL_COLLATERAL_PERCENT, \
-    PortalDepositStatus
+    PortalDepositStatus, PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT
 from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Helpers.Time import WAIT
 
 
 def l6(string):
@@ -12,6 +13,49 @@ def l6(string):
     :return:
     """
     return string[-6:]
+
+
+class ChainHelper:
+    @staticmethod
+    def wait_till_beacon_height(beacon_height, wait=40, timeout=120):
+        """
+        Wait until a specific beacon height
+        :param wait:
+        :param timeout:
+        :param beacon_height:
+        :return:
+        """
+        INFO(f'Waiting till beacon height {beacon_height}')
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        current_beacon_h = SUT.full_node.help_get_beacon_height_in_best_state()
+        if beacon_height <= current_beacon_h:
+            INFO(f'Beacon height {beacon_height} is passed already')
+            return current_beacon_h
+
+        while beacon_height > current_beacon_h:
+            WAIT(wait)
+            timeout -= wait
+            current_beacon_h = SUT.full_node.help_get_beacon_height_in_best_state()
+            if timeout <= 0:
+                INFO(f'Time out and current beacon height is {current_beacon_h}')
+                return current_beacon_h
+
+        INFO(f'Time out and current beacon height is {current_beacon_h}')
+        return current_beacon_h
+
+    @staticmethod
+    def wait_till_next_beacon_height(num_of_beacon_height_to_wait=1, wait=40, timeout=120):
+        """
+        wait for an amount of beacon height to pass
+        :param timeout:
+        :param wait:
+        :param num_of_beacon_height_to_wait:
+        :return:
+        """
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        current_beacon_h = SUT.full_node.help_get_beacon_height_in_best_state()
+
+        return ChainHelper.wait_till_beacon_height(current_beacon_h + num_of_beacon_height_to_wait, wait, timeout)
 
 
 def calculate_contribution(token_1_contribute_amount, token_2_contribute_amount, current_rate: list):
@@ -65,12 +109,20 @@ class PortalHelper:
         return round((int(token_amount) * int(token_rate) / int(prv_rate)) * fee_rate)  # fee = 0.01%
 
     @staticmethod
-    def cal_liquidate_rate(percent, token_id, token_rate, prv_rate, token_to_change_rate=None):
+    def cal_liquidate_rate(percent, token_rate, prv_rate, change_token_rate=False):
+        """
+
+        :param percent:
+        :param token_rate:
+        :param prv_rate:
+        :param change_token_rate: if true, return new token rate. otherwise , return new prv rate
+        :return:
+        """
 
         new_prv_rate = (percent * prv_rate) // PORTAL_COLLATERAL_PERCENT
         new_tok_rate = (PORTAL_COLLATERAL_PERCENT * token_rate) // percent
 
-        if token_to_change_rate == token_id:
+        if change_token_rate:
             INFO(f'Current token rate {token_rate}, new rate {new_tok_rate}')
             return int(new_tok_rate)
         else:
@@ -103,13 +155,24 @@ class PortalHelper:
 
     @staticmethod
     def cal_rate_to_liquidate_collateral(token_holding, prv_collateral, current_tok_rate,
-                                         current_prv_rate, rate_return='token'):
-        if rate_return == 'token':
+                                         current_prv_rate, new_rate='token',
+                                         liquidate_percent=PORTAL_COLLATERAL_LIQUIDATE_PERCENT):
+        """
+
+        :param liquidate_percent:
+        :param token_holding:
+        :param prv_collateral:
+        :param current_tok_rate:
+        :param current_prv_rate:
+        :param new_rate: 'token' or 'prv', to indicate which of the new rate you want to get
+        :return:
+        """
+        if new_rate == 'token':
             return PortalHelper.cal_rate_to_match_collateral_percent(
-                PORTAL_COLLATERAL_LIQUIDATE_PERCENT, token_holding, prv_collateral, current_tok_rate, current_prv_rate)
+                liquidate_percent, token_holding, prv_collateral, current_tok_rate, current_prv_rate)
         else:
             return PortalHelper.cal_rate_to_match_collateral_percent(
-                PORTAL_COLLATERAL_LIQUIDATE_PERCENT, token_holding, prv_collateral, current_tok_rate, current_prv_rate,
+                liquidate_percent, token_holding, prv_collateral, current_tok_rate, current_prv_rate,
                 rate_return='prv')
 
     @staticmethod
@@ -121,7 +184,7 @@ class PortalHelper:
         :param holding_token_of_waiting_redeem: of custodian
         :return: (sum_holding * 1.05 * ratePubToken) / ratePRV
         """
-        sum_holding = holding_token, holding_token_of_waiting_redeem
+        sum_holding = holding_token + holding_token_of_waiting_redeem
         return sum_holding * 1.05 * rate_token / rate_prv
 
     @staticmethod
@@ -134,3 +197,21 @@ class PortalHelper:
             assert info.get_status() == PortalDepositStatus.ACCEPT
         else:
             assert info.get_status() == PortalDepositStatus.REJECTED
+
+    @staticmethod
+    def cal_liquidation_of_porting(porting_amount, current_token_rate, current_prv_rate):
+        porting_amount_in_new_prv_rate = PortalHelper.cal_portal_exchange_tok_to_prv(porting_amount, current_token_rate,
+                                                                                     current_prv_rate)
+
+        estimate_lock_collateral = PortalHelper.cal_lock_collateral(porting_amount, current_token_rate,
+                                                                    current_prv_rate)
+        estimated_liquidated_collateral = int(
+            PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT * porting_amount_in_new_prv_rate)
+        return_collateral = estimate_lock_collateral - estimated_liquidated_collateral
+        return estimated_liquidated_collateral, return_collateral
+
+    @staticmethod
+    def cal_token_amount_from_collateral(collateral, token_rate, prv_rate):
+        prv_equivalent = collateral // PORTAL_COLLATERAL_PERCENT
+        return int(
+            PortalHelper.cal_portal_exchange_prv_to_tok(prv_equivalent, prv_rate, token_rate))

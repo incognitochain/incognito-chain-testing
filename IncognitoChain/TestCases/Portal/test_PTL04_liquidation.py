@@ -6,8 +6,7 @@ from IncognitoChain.Helpers.TestHelper import PortalHelper, l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, PORTAL_FEEDER
 from IncognitoChain.Objects.PortalObjects import PortalStateInfo
-from IncognitoChain.TestCases.Portal import test_PTL02_create_porting_req as porting_step, portal_user, \
-    find_custodian_account_by_incognito_addr
+from IncognitoChain.TestCases.Portal import test_PTL02_create_porting_req as porting_step, portal_user
 
 portal_state_before_test = None
 
@@ -34,18 +33,17 @@ def test_liquidate(percent, waiting_redeem, expected):
     tok_rate_before_test = portal_info_before.get_portal_rate(PBNB_ID)
     prv_rate_before_test = portal_info_before.get_portal_rate(PRV_ID)
 
-    prv_liquidate_rate = PortalHelper.cal_liquidate_rate(percent, PBNB_ID, tok_rate_before_test, prv_rate_before_test)
+    prv_liquidate_rate = PortalHelper.cal_liquidate_rate(percent, tok_rate_before_test, prv_rate_before_test)
     custodians_will_be_liquidate = portal_info_before.find_custodians_will_be_liquidate_with_new_rate(
         PBNB_ID, tok_rate_before_test, prv_liquidate_rate)
 
     if expected == 'liquidated':
-        assert (not custodians_will_be_liquidate) is False, "custodian list that will be liquidate is empty"
+        assert (not custodians_will_be_liquidate) is False, "custodian list that will be liquidated is empty"
         estimated_liquidation_pool = portal_info_before.estimate_liquidation_pool(PBNB_ID, tok_rate_before_test,
                                                                                   prv_liquidate_rate)
 
     if waiting_redeem:  # todo: cover liquidation case which has waiting redeem in portal state
         low_custodian_info = portal_info_before.find_lowest_free_collateral_custodian()
-        low_custodian_account = find_custodian_account_by_incognito_addr(low_custodian_info.get_incognito_addr())
         redeem_amount = low_custodian_info.get_free_collateral() + 10
         STEP(0.1, 'Create redeem req')
         redeem_req_tx = portal_user.portal_req_redeem_my_token(portal_state_before_test, PBNB_ID, redeem_amount)
@@ -81,8 +79,8 @@ def test_liquidate(percent, waiting_redeem, expected):
         WAIT(30)
 
         for custodian in custodians_will_be_liquidate:
-            liquidated_amount, return_collateral = custodian.estimate_liquidation(
-                PBNB_ID, tok_rate_before_test, prv_liquidate_rate, portal_info_before)
+            liquidated_amount, return_collateral = portal_info_before.estimate_liquidation_of_custodian(
+                custodian, PBNB_ID, tok_rate_before_test, prv_liquidate_rate)
             current_free_collateral = custodian.get_free_collateral()
             new_free_collateral = portal_info_after.get_custodian_info_in_pool(
                 custodian.get_incognito_addr()).get_free_collateral()

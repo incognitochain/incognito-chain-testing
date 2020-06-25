@@ -3,6 +3,7 @@ import re
 
 import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Objects.PortalObjects import PortalStateInfo
 
 
 class Response:
@@ -111,7 +112,10 @@ class Response:
             return self.get_result('Fee')
 
     def get_tx_size(self):
-        return self.get_result('TxSize')
+        try:
+            return self.get_result()['TxSize']
+        except (KeyError, TypeError):
+            return self.get_result('Result')['TxSize']
 
     def get_privacy(self):
         return self.get_result("IsPrivacy")
@@ -161,6 +165,9 @@ class Response:
             return self.get_result('ProofDetail')['InputCoins'][0]['CoinDetails']['Value']
         except TypeError:
             return None
+
+    def get_portal_state_info_obj(self):
+        return PortalStateInfo(self.get_result())
 
     def is_prv_privacy(self):
         """

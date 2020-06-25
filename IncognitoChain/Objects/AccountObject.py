@@ -685,11 +685,12 @@ class Account:
         INFO(f'Portal | User {l6(self.payment_key)} | create porting req | amount {coin(amount, False)}')
         if porting_fee is None:
             beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
-            porting_fee = self.__SUT.full_node.portal().get_porting_req_fees(token_id, amount,
-                                                                             beacon_height).get_result(
-                token_id)
+            porting_fee = self.__SUT.full_node.portal().get_porting_req_fees(
+                token_id, amount, beacon_height).get_result(token_id)
+            porting_fee = 1 if porting_fee == 0 else porting_fee
         if register_id is None:
-            register_id = f"{l6(token_id)}_{get_current_date_time()}"
+            now = get_current_date_time("%d%m%y_%H%M%S")
+            register_id = f"{l6(token_id)}_{now}"
 
         return self.__SUT.full_node.portal(). \
             create_n_send_reg_porting_public_tokens(
@@ -716,6 +717,10 @@ class Account:
         req_tx.subscribe_transaction()
         info = RedeemReqInfo()
         info.get_req_matching_redeem_status(req_tx.get_tx_id())
+        if info.is_none():
+            WAIT(20)
+            info.get_req_matching_redeem_status(req_tx.get_tx_id())
+
         assert info.get_status() == PortalCustodianReqMatchingStatus.ACCEPT, f'Req matching status is {info.get_status()}'
         return req_tx
 
@@ -847,8 +852,6 @@ class Account:
         except KeyError:
             return 0
 
-
-# end of class
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:
     """
