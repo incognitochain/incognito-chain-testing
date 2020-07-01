@@ -45,7 +45,7 @@ class CustodianInfo(PortalInfoObj):
         # 'Custodian - bnb remote addr - btc remote add - total collateral - free collateral -
         # holding bnb - holding btc - lock bnb - lock btc - reward prv'
         s_inc_addr = s_bnb_addr = s_btc_addr = '-'
-        total_col = free_col = hold_bnb = hold_btc = lock_bnb = lock_btc = reward_prv = 0
+        total_col = free_col = hold_bnb = hold_btc = lock_bnb = lock_btc = reward_prv = '-'
         try:
             s_inc_addr = l6(self.get_incognito_addr())
         except (KeyError, TypeError):

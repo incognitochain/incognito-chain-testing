@@ -61,7 +61,7 @@ def test_create_porting_req_1_1(porting_amount, porting_fee, num_of_custodian, d
     STEP(0, "Preparation before test")
     remote_receiver_dict = {}
     PSI_before_test = SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
-    prv_bal_be4 = portal_user.get_prv_balance()
+    prv_bal_be4_test = portal_user.get_prv_balance()
     tok_bal_be4_test = portal_user.get_token_balance(PBNB_ID)
     pbnb_rate = PSI_before_test.get_portal_rate(PBNB_ID)
     prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
@@ -91,7 +91,7 @@ def test_create_porting_req_1_1(porting_amount, porting_fee, num_of_custodian, d
         COIN_MASTER.send_prv_to(portal_user,
                                 estimated_porting_fee - portal_user.get_prv_balance_cache() + coin(
                                     1)).subscribe_transaction()
-        prv_bal_be4 = portal_user.wait_for_balance_change(current_balance=prv_bal_be4)
+        prv_bal_be4_test = portal_user.wait_for_balance_change(current_balance=prv_bal_be4_test)
 
     STEP(1, f"Create a {desired_status} porting request")
     porting_req = portal_user.portal_create_porting_request(PBNB_ID, porting_amount, porting_fee=porting_fee)
@@ -147,12 +147,43 @@ def test_create_porting_req_1_1(porting_amount, porting_fee, num_of_custodian, d
         SUT.full_node.help_wait_till_next_epoch()
 
     STEP(3, 'Verify balance')
-    assert prv_bal_be4 - tx_fee - porting_fee == portal_user.get_prv_balance()
+    assert prv_bal_be4_test - tx_fee - porting_fee == portal_user.get_prv_balance()
 
     if desired_status == 'invalid':
         STEP(4, "Porting req fail, wait 60s to return porting fee (only take tx fee), verify user balance")
         WAIT(60)
-        assert portal_user.get_prv_balance() == prv_bal_be4 - tx_fee
+        assert portal_user.get_prv_balance() == prv_bal_be4_test - tx_fee
+    elif desired_status == 'expire':
+        STEP(4, f'Wait {PORTAL_REQ_TIME_OUT + 0.5} for the req to be expired')
+        WAIT((PORTAL_REQ_TIME_OUT + 0.5) * 60)
+        STEP(5, "Check req status")
+        porting_req_info.get_porting_req_by_porting_id(porting_id)
+        assert porting_req_info.get_status() == PortalPortingStatusByPortingId.EXPIRED
+
+        # todo handle 1_n case
+        STEP(6, "Custodian collateral must be unlock")
+        custodians_info = porting_req_info.get_custodians()
+        INFO(f'Number of custodian for this req = {len(custodians_info)}')
+        if num_of_custodian == 1:
+            assert len(custodians_info) == 1
+        else:
+            assert len(custodians_info) > 1
+
+        PSI_after_expired = SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
+        for custodian in custodians_info:
+            state_before_test = PSI_before_test.get_custodian_info_in_pool(custodian)
+            state_after_expire = PSI_after_expired.get_custodian_info_in_pool(custodian)
+            INFO(f'Custodian info before: \n{state_before_test}')
+            INFO(f'Custodian info after : \n{state_after_expire}')
+            assert state_before_test.get_locked_collateral() == state_after_expire.get_locked_collateral()
+            assert state_before_test.get_free_collateral() == state_after_expire.get_free_collateral()
+            assert state_before_test.get_total_collateral() == state_after_expire.get_total_collateral()
+            assert state_before_test.get_holding_token_amount(PBNB_ID) == state_after_expire.get_holding_token_amount(
+                PBNB_ID)
+
+        STEP(7, "Verify user balance, porting fee and tx fee will not be returned")
+        user_prv_bal_after_test = portal_user.get_prv_balance()
+        assert prv_bal_be4_test - tx_fee - porting_fee == user_prv_bal_after_test
     else:  # desired_status == valid or liquidate
         STEP(4, "Check number of custodian")
         num = len(porting_req_info.get_custodians())
@@ -200,8 +231,6 @@ def test_create_porting_req_1_1(porting_amount, porting_fee, num_of_custodian, d
         PSI_porting_completed = SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
 
         for custodian in porting_req_info.get_custodians():
-            lock_collateral_in_req = custodian.get_locked_collateral()
-
             # get lock collateral of custodian before test
             custodian_info_after_req = PSI_after_req.get_custodian_info_in_pool(custodian)
             lock_collateral_after_req = custodian_info_after_req.get_locked_collateral(PBNB_ID)
@@ -223,18 +252,19 @@ def test_create_porting_req_1_1(porting_amount, porting_fee, num_of_custodian, d
             collateral_each_estimate = PortalHelper.cal_lock_collateral(amount, pbnb_rate, prv_rate)
             INFO('----------------------------------------------------------------------------------------')
             INFO(f'custodian incognito addr    = {l6(custodian.get_incognito_addr())}\n'
-                 f'\t\t lock collateral before-after test  = {lock_collateral_after_req}-{lock_collateral_after}\n'
-                 f'\t\t total collateral before-after test = {total_collateral_after_req}-{total_collateral_after}\n'
-                 f'\t\t free collateral before-after test  = {free_collateral_after_req}-{free_collateral_after}\n'
-                 f'\t\t estimated-real lock collateral     = {collateral_each_estimate}-{collateral_real}\n'
-                 f'\t\t prv rate before-after              = {bnb_rate_be4}-{bnb_rate_after}\n'
-                 f'\t\t pbnb rate before-after             = {prv_rate_be4}-{prv_rate_after}\n'
+                 f'\t\t lock collateral after: req - test  = {lock_collateral_after_req} - {lock_collateral_after}\n'
+                 f'\t\t total collateral after: req - test = {total_collateral_after_req} - {total_collateral_after}\n'
+                 f'\t\t free collateral after: req - test  = {free_collateral_after_req} - {free_collateral_after}\n'
+                 f'\t\t estimated-real lock collateral     = {collateral_each_estimate} - {collateral_real}\n'
+                 f'\t\t PBNB rate after: req - test        = {bnb_rate_be4} - {bnb_rate_after}\n'
+                 f'\t\t PRV rate after: req - test         = {prv_rate_be4} - {prv_rate_after}\n'
                  f'\t\t token amount                       = {amount}')
             porting_req_collateral = porting_req_info.get_custodian(custodian).get_locked_collateral()
             if desired_status == 'valid':
-
-                assert lock_collateral_after - lock_collateral_after_req == collateral_each_estimate
-                assert lock_collateral_after - lock_collateral_after_req == porting_req_collateral
+                custodian_info_before = PSI_before_test.get_custodian_info_in_pool(custodian)
+                lock_collateral_before = custodian_info_before.get_locked_collateral(PBNB_ID)
+                assert lock_collateral_after - lock_collateral_before == collateral_each_estimate
+                assert lock_collateral_after - lock_collateral_before == porting_req_collateral
             else:  # case liquidate
                 if PSI_after_req.will_custodian_be_liquidated_with_new_rate(custodian, PBNB_ID, pbnb_rate,
                                                                             new_prv_rate):
@@ -248,7 +278,7 @@ def test_create_porting_req_1_1(porting_amount, porting_fee, num_of_custodian, d
                     INFO(f'Return collateral           {return_collateral}')
 
                     # breakpoint()
-                    assert collateral_each_estimate == lock_collateral_in_req, "Wrong lock collateral"
+                    assert collateral_each_estimate == porting_req_collateral, "Wrong lock collateral"
                     assert total_collateral_after == total_collateral_after_req - estimated_liquidated_amount, \
                         "Wrong total collateral"
                     assert free_collateral_after == free_collateral_after_req + return_collateral, \
@@ -276,7 +306,11 @@ def test_create_porting_req_1_1(porting_amount, porting_fee, num_of_custodian, d
     1,
     'n',
 ])
-def test_porting_req_expired(num_of_custodian):
+def est_porting_req_expired(num_of_custodian):
+    """
+    already merged to upper test case, just keep it here for backup,
+    might delete this test in the future
+    """
     STEP(0, "before test")
     portal_state_info_before_test = SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
     pbnb_rate = portal_state_info_before_test.get_portal_rate(PBNB_ID)

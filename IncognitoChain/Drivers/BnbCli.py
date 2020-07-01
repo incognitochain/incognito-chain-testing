@@ -39,7 +39,7 @@ class BnbCli:
         out = _json_extract(stdout)
         print(f"out: {stdout.strip()}\n"
               f"err: {stderr.strip()}")
-        return int(BnbResponse(out).get_bnb_balance())
+        return int(BnbResponse(out).get_balance())
 
     def send_bnb_to(self, sender, receiver, amount, password, memo):
         INFO()
@@ -73,8 +73,9 @@ class BnbCli:
                                    universal_newlines=True)
         WAIT(7)
         stdout, stderr = process.communicate(f'{more_input}\n')
-        print(f"out: {stdout}\n"
-              f"err: {stderr}")
+        INFO(f"\n"
+             f"out: {stdout}\n"
+             f"err: {stderr}")
         out = _json_extract(stdout)
         err = _json_extract(stderr)
         if out is not None:
@@ -99,7 +100,7 @@ class BnbResponse:
             if coin['denom'] == denom:
                 return coin['amount']
 
-    def get_bnb_balance(self):
+    def get_balance(self):
         return self.get_amount('BNB')
 
     def get_tx_hash(self):

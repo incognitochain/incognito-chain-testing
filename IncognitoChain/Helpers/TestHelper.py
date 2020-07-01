@@ -15,6 +15,20 @@ def l6(string):
     return string[-6:]
 
 
+def to_num(*args):
+    ret = ()
+    for arg in args:
+        if type(arg) is float:
+            ret += (float(arg),)
+        else:
+            try:
+                ret += (int(arg),)
+            except ValueError:
+                raise ValueError('WTF?? why TF did you input text here???')
+
+    return ret
+
+
 class ChainHelper:
     @staticmethod
     def wait_till_beacon_height(beacon_height, wait=40, timeout=120):
@@ -92,39 +106,25 @@ def calculate_actual_trade_received(trade_amount, pool_token2_sell, pool_token2_
 class PortalHelper:
 
     @staticmethod
-    def __to_num(*args):
-        ret = ()
-        for arg in args:
-            if type(arg) is float:
-                ret += (float(arg),)
-            else:
-                try:
-                    ret += (int(arg),)
-                except ValueError:
-                    raise ValueError('WTF?? why TF did you input text here???')
-
-        return ret
-
-    @staticmethod
     def cal_lock_collateral(token_amount, token_rate, prv_rate):
-        token_amount, token_rate, prv_rate = PortalHelper.__to_num(token_amount, token_rate, prv_rate)
+        token_amount, token_rate, prv_rate = to_num(token_amount, token_rate, prv_rate)
         estimated_lock_collateral = int(token_amount * PORTAL_COLLATERAL_PERCENT) * token_rate // prv_rate
         return int(estimated_lock_collateral)
 
     @staticmethod
     def cal_portal_exchange_tok_to_prv(token_amount, token_rate, prv_rate):
-        token_amount, token_rate, prv_rate = PortalHelper.__to_num(token_amount, token_rate, prv_rate)
+        token_amount, token_rate, prv_rate = to_num(token_amount, token_rate, prv_rate)
         return token_amount * token_rate // prv_rate
 
     @staticmethod
     def cal_portal_exchange_prv_to_tok(prv_amount, prv_rate, token_rate):
-        prv_amount, prv_rate, token_rate = PortalHelper.__to_num(prv_amount, prv_rate, token_rate)
+        prv_amount, prv_rate, token_rate = to_num(prv_amount, prv_rate, token_rate)
         return prv_amount * prv_rate // token_rate
 
     @staticmethod
     def cal_portal_portal_fee(token_amount, token_rate, prv_rate, fee_rate=0.0001):
-        token_amount, token_rate, prv_rate = PortalHelper.__to_num(token_amount, token_rate, prv_rate)
-        return int(token_amount * fee_rate) * token_rate // prv_rate  # fee = 0.01%
+        token_amount, token_rate, prv_rate = to_num(token_amount, token_rate, prv_rate)
+        return round(token_amount * fee_rate * token_rate / prv_rate)  # fee = 0.01%
 
     @staticmethod
     def cal_liquidate_rate(percent, token_rate, prv_rate, change_token_rate=False):
