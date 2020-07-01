@@ -27,7 +27,7 @@ class ChainHelper:
         """
         INFO(f'Waiting till beacon height {beacon_height}')
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        current_beacon_h = SUT.full_node.help_get_beacon_height_in_best_state()
+        current_beacon_h = SUT.full_node.help_get_beacon_height()
         if beacon_height <= current_beacon_h:
             INFO(f'Beacon height {beacon_height} is passed already')
             return current_beacon_h
@@ -35,7 +35,7 @@ class ChainHelper:
         while beacon_height > current_beacon_h:
             WAIT(wait)
             timeout -= wait
-            current_beacon_h = SUT.full_node.help_get_beacon_height_in_best_state()
+            current_beacon_h = SUT.full_node.help_get_beacon_height()
             if timeout <= 0:
                 INFO(f'Time out and current beacon height is {current_beacon_h}')
                 return current_beacon_h
@@ -53,7 +53,7 @@ class ChainHelper:
         :return:
         """
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        current_beacon_h = SUT.full_node.help_get_beacon_height_in_best_state()
+        current_beacon_h = SUT.full_node.help_get_beacon_height()
 
         return ChainHelper.wait_till_beacon_height(current_beacon_h + num_of_beacon_height_to_wait, wait, timeout)
 
@@ -92,21 +92,39 @@ def calculate_actual_trade_received(trade_amount, pool_token2_sell, pool_token2_
 class PortalHelper:
 
     @staticmethod
+    def __to_num(*args):
+        ret = ()
+        for arg in args:
+            if type(arg) is float:
+                ret += (float(arg),)
+            else:
+                try:
+                    ret += (int(arg),)
+                except ValueError:
+                    raise ValueError('WTF?? why TF did you input text here???')
+
+        return ret
+
+    @staticmethod
     def cal_lock_collateral(token_amount, token_rate, prv_rate):
-        estimated_lock_collateral = (int(token_amount) * PORTAL_COLLATERAL_PERCENT) * int(token_rate) // int(prv_rate)
-        return estimated_lock_collateral
+        token_amount, token_rate, prv_rate = PortalHelper.__to_num(token_amount, token_rate, prv_rate)
+        estimated_lock_collateral = int(token_amount * PORTAL_COLLATERAL_PERCENT) * token_rate // prv_rate
+        return int(estimated_lock_collateral)
 
     @staticmethod
     def cal_portal_exchange_tok_to_prv(token_amount, token_rate, prv_rate):
-        return round(int(token_amount) * int(token_rate) / int(prv_rate))
+        token_amount, token_rate, prv_rate = PortalHelper.__to_num(token_amount, token_rate, prv_rate)
+        return token_amount * token_rate // prv_rate
 
     @staticmethod
     def cal_portal_exchange_prv_to_tok(prv_amount, prv_rate, token_rate):
-        return round(int(prv_amount) * int(prv_rate) / int(token_rate))
+        prv_amount, prv_rate, token_rate = PortalHelper.__to_num(prv_amount, prv_rate, token_rate)
+        return prv_amount * prv_rate // token_rate
 
     @staticmethod
     def cal_portal_portal_fee(token_amount, token_rate, prv_rate, fee_rate=0.0001):
-        return round((int(token_amount) * int(token_rate) / int(prv_rate)) * fee_rate)  # fee = 0.01%
+        token_amount, token_rate, prv_rate = PortalHelper.__to_num(token_amount, token_rate, prv_rate)
+        return int(token_amount * fee_rate) * token_rate // prv_rate  # fee = 0.01%
 
     @staticmethod
     def cal_liquidate_rate(percent, token_rate, prv_rate, change_token_rate=False):
@@ -185,7 +203,7 @@ class PortalHelper:
         :return: (sum_holding * 1.05 * ratePubToken) / ratePRV
         """
         sum_holding = holding_token + holding_token_of_waiting_redeem
-        return sum_holding * 1.05 * rate_token / rate_prv
+        return int(sum_holding * 1.05 * rate_token / rate_prv)
 
     @staticmethod
     def check_custodian_deposit_tx_status(tx_id, expected='accept'):
@@ -208,7 +226,7 @@ class PortalHelper:
         estimated_liquidated_collateral = int(
             PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT * porting_amount_in_new_prv_rate)
         return_collateral = estimate_lock_collateral - estimated_liquidated_collateral
-        return estimated_liquidated_collateral, return_collateral
+        return int(estimated_liquidated_collateral), int(return_collateral)
 
     @staticmethod
     def cal_token_amount_from_collateral(collateral, token_rate, prv_rate):

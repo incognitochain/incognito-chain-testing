@@ -247,7 +247,7 @@ def test_creating_rate(account, expected):
 
 def test_calculating_porting_fee():
     test_amount = random.randrange(1, 1000000000)
-    beacon_height = SUT.full_node.help_get_beacon_height_in_best_state()
+    beacon_height = SUT.full_node.help_get_beacon_height()
 
     STEP(0, 'Get portal state before test')
     portal_state_before = SUT.full_node.get_latest_portal_state(beacon_height)

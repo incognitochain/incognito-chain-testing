@@ -17,6 +17,7 @@ from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account
+from IncognitoChain.Objects.BlockChainObjects import BlockChainCore
 from IncognitoChain.Objects.PortalObjects import PortalStateInfo, CustodianInfo
 
 
@@ -150,7 +151,7 @@ class Node:
                 return None
 
     def help_get_current_pde_status(self):
-        current_beacon_height = self.help_get_beacon_height_in_best_state()
+        current_beacon_height = self.help_get_beacon_height()
         return self.dex().get_pde_state(current_beacon_height)
 
     def help_get_pde_share_list(self, token_id_1, token_id_2):
@@ -182,9 +183,9 @@ class Node:
         INFO(f'{share_key_1_2} or {share_key_2_1} not found')
         return None
 
-    def help_get_beacon_height_in_best_state(self):
-        beacon_best_state = self.system_rpc().get_beacon_best_state()
-        return beacon_best_state.get_beacon_height()
+    def help_get_beacon_height(self):
+        chain_info = BlockChainCore(self.system_rpc().get_block_chain_info().get_result())
+        return chain_info.get_beacon_block().get_height()
 
     def help_get_beacon_height_in_best_state_detail(self, refresh_cache=True):
         beacon_height = self.system_rpc().get_beacon_best_state_detail(refresh_cache).get_beacon_height()
@@ -238,7 +239,7 @@ class Node:
     def get_latest_portal_state(self, beacon_height=None):
         INFO(f'Get latest portal state')
         if beacon_height is None:
-            beacon_height = self.help_get_beacon_height_in_best_state()
+            beacon_height = self.help_get_beacon_height()
         return self.portal().get_portal_state(beacon_height)
 
     def get_latest_portal_state_info(self, beacon_height=None):

@@ -684,7 +684,7 @@ class Account:
         INFO()
         INFO(f'Portal | User {l6(self.payment_key)} | create porting req | amount {coin(amount, False)}')
         if porting_fee is None:
-            beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
+            beacon_height = self.__SUT.full_node.help_get_beacon_height()
             porting_fee = self.__SUT.full_node.portal().get_porting_req_fees(
                 token_id, amount, beacon_height).get_result(token_id)
             porting_fee = 1 if porting_fee == 0 else porting_fee
@@ -730,7 +730,7 @@ class Account:
         INFO(f'Portal | Custodian {l6(self.payment_key)} | req redeem token |'
              f' ID: {redeem_id} | Amount: {redeem_amount} | token: {l6(token_id)}')
 
-        beacon_height = self.__SUT.full_node.help_get_beacon_height_in_best_state()
+        beacon_height = self.__SUT.full_node.help_get_beacon_height()
 
         if redeem_fee is None:
             redeem_fee = self.__SUT.full_node.portal().get_porting_req_fees(token_id, redeem_amount,

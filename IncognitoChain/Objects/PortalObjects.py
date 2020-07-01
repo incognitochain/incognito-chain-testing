@@ -1,5 +1,4 @@
 import copy
-from abc import ABC
 from typing import List
 
 from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, \
@@ -7,14 +6,10 @@ from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT
 from IncognitoChain.Helpers.Logging import INFO, DEBUG
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 from IncognitoChain.Helpers.Time import WAIT
+from IncognitoChain.Objects import BlockChainInfoBaseClass
 
 
-class PortalInfoObj(ABC):
-    def __init__(self, dict_data=None):
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data: dict = dict_data
-        self.err = None
-        self.SUT = SUT
+class PortalInfoObj(BlockChainInfoBaseClass):
 
     def get_status(self):
         return self.data['Status']
@@ -91,7 +86,7 @@ class CustodianInfo(PortalInfoObj):
             reward_prv = self.get_reward_amount(PRV_ID)
         except (KeyError, TypeError):
             pass
-        return '%s : %6s/%6s %14s %14s %14s %14s %14s %14s %14s' % \
+        return '%s : %s/%s %14s %14s %14s %14s %14s %14s %14s' % \
                (s_inc_addr, s_bnb_addr, s_btc_addr, total_col, free_col, hold_bnb, hold_btc, lock_bnb, lock_btc,
                 reward_prv)
 
@@ -156,30 +151,6 @@ class CustodianInfo(PortalInfoObj):
         if token_id is None:
             return self.data['RewardAmount']
         return int(self.data['RewardAmount'][token_id])
-
-    def shall_i_be_liquidize_with_new_rate(self, token_id, new_tok_rate, new_prv_rate,
-                                           additional_holding=0, additional_collateral=0):
-        """
-
-        :param new_tok_rate:
-        :param new_prv_rate:
-            when collateral <= liquidation_percent (120% by default) of token price in prv, collateral will be liquidize
-        :param token_id: token to check, bnb or btc
-        :param additional_collateral: in case you want to check the after more holding token added
-        :param additional_holding: in case you want to check the after more holding token added
-        :return:
-        """
-        prv_collateral_current = self.get_locked_collateral(token_id) + additional_collateral
-        holding_token = self.get_holding_token_amount(token_id) + additional_holding
-
-        if holding_token is None or holding_token == 0:
-            return False
-        holding_tok_in_prv_new_rate = PortalHelper.cal_portal_exchange_tok_to_prv(holding_token, new_tok_rate,
-                                                                                  new_prv_rate)
-        new_collateral = holding_tok_in_prv_new_rate * PORTAL_COLLATERAL_LIQUIDATE_PERCENT
-        if prv_collateral_current <= new_collateral:
-            return True
-        return False
 
     def wait_my_lock_collateral_to_change(self, token_id, from_amount=None, check_rate=30, timeout=180):
         portal_state_info = self.SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
@@ -260,7 +231,7 @@ class PortingReqInfo(PortalInfoObj):
         """
 
         :param custodian: CustodianInfo or Account or incognito addr
-        :return:
+        :return: CustodianInfo or None
         """
         addr = self._extract_incognito_addr(custodian)
 
@@ -609,7 +580,7 @@ class PortalStateInfo(PortalInfoObj):
         custodians = self.get_custodian_pool()
         liquidating_list = []
         for custodian in custodians:
-            if custodian.shall_i_be_liquidize_with_new_rate(token_id, new_token_rate, new_prv_rate):
+            if self.will_custodian_be_liquidated_with_new_rate(custodian, token_id, new_token_rate, new_prv_rate):
                 liquidating_list.append(custodian)
         return liquidating_list
 
@@ -653,6 +624,13 @@ class PortalStateInfo(PortalInfoObj):
 
         return custodian_min_free_collateral
 
+    def find_custodian_with_holding_token_amount(self, token_id, holding_amount):
+        pool = self.get_custodian_pool()
+        for custodian in pool:
+            if custodian.get_holding_token_amount(token_id) == holding_amount:
+                return custodian
+        return None
+
     @staticmethod
     def _find_all_req_of_custodian_in_req_list(custodian_account, req_list):
         result = []
@@ -662,36 +640,68 @@ class PortalStateInfo(PortalInfoObj):
         return result
 
     def estimate_liquidation_of_custodian(self, custodian, token_id, new_token_rate, new_prv_rate,
-                                          additional_holding=0, additional_collateral=0):
+                                          porting_amount=0, porting_collateral=0):
         """
         Estimate liquidate collateral and return collateral of custodian
-        :param additional_collateral:
-        :param additional_holding:
+        :param porting_collateral:
+        :param porting_amount:
         :param custodian:a CustodianInfo, Account object or incognito addr of custodian
         :param token_id:
         :param new_token_rate:
         :param new_prv_rate:
         :return:
         """
+        custodian = self.get_custodian_info_in_pool(custodian)
         my_holding_token = custodian.get_holding_token_amount(token_id)
         lock_collateral_minus_waiting_porting = \
-            self._lock_collateral_minus_waiting_porting_of_custodian(custodian, token_id) + additional_collateral
+            self._lock_collateral_minus_waiting_porting_of_custodian(custodian, token_id) + porting_collateral
 
         waiting_redeem_holding_tok = \
             self.sum_holding_token_waiting_redeem_req(token_id, custodian.get_incognito_addr())
-        sum_holding_tok = my_holding_token + waiting_redeem_holding_tok + additional_holding
+        sum_holding_tok = my_holding_token + waiting_redeem_holding_tok + porting_amount
 
-        holding_token_in_prv_new_rate = PortalHelper.cal_portal_exchange_tok_to_prv(sum_holding_tok, new_token_rate,
-                                                                                    new_prv_rate)
-        estimated_liquidated_collateral = int(
-            PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT * holding_token_in_prv_new_rate)
+        holding_liquidate = int(PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT * sum_holding_tok)
+        estimated_liquidated_collateral = PortalHelper.cal_portal_exchange_tok_to_prv(holding_liquidate, new_token_rate,
+                                                                                      new_prv_rate)
         if lock_collateral_minus_waiting_porting > estimated_liquidated_collateral:
             collateral_return_to_custodian = lock_collateral_minus_waiting_porting - estimated_liquidated_collateral
             liquidate_amount = estimated_liquidated_collateral
         else:
             collateral_return_to_custodian = 0
             liquidate_amount = lock_collateral_minus_waiting_porting
+        # breakpoint()
         return liquidate_amount, collateral_return_to_custodian
+
+    def will_custodian_be_liquidated_with_new_rate(self, custodian, token_id, new_tok_rate, new_prv_rate):
+        """
+
+        :param custodian: CustodianInfo object
+        :param new_tok_rate:
+        :param new_prv_rate:
+            when collateral <= liquidation_percent (120% by default) of token price in prv, collateral will be liquidize
+        :param token_id: token to check, bnb or btc
+        :return:
+        """
+        porting_waiting = self.get_porting_waiting_req()
+        waiting_porting_collateral = 0
+        waiting_porting_token = 0
+        for req in porting_waiting:
+            custodian_of_req = req.get_custodian(custodian)
+            if custodian_of_req is not None:
+                waiting_porting_collateral += custodian_of_req.get_locked_collateral()
+                waiting_porting_token += custodian_of_req.get_amount()
+
+        prv_collateral_current = custodian.get_locked_collateral(token_id) + waiting_porting_collateral
+        holding_token = custodian.get_holding_token_amount(token_id) + waiting_porting_token
+
+        if holding_token is None or holding_token == 0:
+            return False
+        holding_tok_in_prv_new_rate = PortalHelper.cal_portal_exchange_tok_to_prv(holding_token, new_tok_rate,
+                                                                                  new_prv_rate)
+        new_collateral = holding_tok_in_prv_new_rate * PORTAL_COLLATERAL_LIQUIDATE_PERCENT
+        if prv_collateral_current <= new_collateral:
+            return True
+        return False
 
     def _lock_collateral_minus_waiting_porting_of_custodian(self, custodian, token_id):
         sum_waiting_porting_collateral = self.sum_collateral_porting_waiting(token_id, custodian)

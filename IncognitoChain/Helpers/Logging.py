@@ -80,7 +80,7 @@ def CRITICAL(msg):
 def INFO_HEADLINE(msg):
     INFO(f"""
         {LOG_SEPARATOR}
-        | {msg}
+        | {msg.upper()}
         {LOG_SEPARATOR}""")
 
 
@@ -100,8 +100,3 @@ def STEP(num, msg, *args, **kws):
 
 
 logging.Logger.step = STEP
-
-
-def format_header(string):
-    # TBD
-    length = len(string)

@@ -41,3 +41,6 @@ class SystemRpc:
 
     def remove_tx_in_mem_pool(self, tx_id):
         return self.rpc_connection.with_method('removetxinmempool').with_params([tx_id]).execute()
+
+    def get_block_chain_info(self):
+        return self.rpc_connection.with_method('getblockchaininfo').with_params([]).execute()
