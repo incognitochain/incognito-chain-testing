@@ -74,6 +74,7 @@ class BnbCli:
         WAIT(7)
         stdout, stderr = process.communicate(f'{more_input}\n')
         INFO(f"\n"
+             f"command: {command}\n"
              f"out: {stdout}\n"
              f"err: {stderr}")
         out = _json_extract(stdout)

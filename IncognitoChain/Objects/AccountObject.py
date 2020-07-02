@@ -717,9 +717,6 @@ class Account:
         req_tx.subscribe_transaction()
         info = RedeemReqInfo()
         info.get_req_matching_redeem_status(req_tx.get_tx_id())
-        if info.is_none():
-            WAIT(20)
-            info.get_req_matching_redeem_status(req_tx.get_tx_id())
 
         assert info.get_status() == PortalCustodianReqMatchingStatus.ACCEPT, f'Req matching status is {info.get_status()}'
         return req_tx

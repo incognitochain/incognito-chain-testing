@@ -170,6 +170,20 @@ class Response:
         return PortalStateInfo(self.get_result())
 
     def is_prv_privacy(self):
+        return self.is_prv_privacy_v2()
+
+    def is_prv_privacy_v2(self):
+        """
+        check if prv transaction is privacy or not
+
+        :return: True = privacy, False = no privacy
+        """
+        result = self.get_transaction_by_hash()
+        if result.get_privacy() is True and result.get_result()['ProofDetail']['InputCoins'][0]['Amount'] == {}:
+            return True
+        return False
+
+    def is_prv_privacy_v1(self):
         """
         check if prv transaction is privacy or not
 

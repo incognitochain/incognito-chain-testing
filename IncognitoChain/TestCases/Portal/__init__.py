@@ -8,7 +8,7 @@ from IncognitoChain.Objects.PortalObjects import PortalStateInfo
 portal_user = ACCOUNTS[1]
 self_pick_custodian = ACCOUNTS[6]
 
-PORTAL_REQ_TIME_OUT = 15  # minutes
+PORTAL_REQ_TIME_OUT = 60  # minutes
 TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
 TEST_SETTING_PORTING_AMOUNT = 100
 TEST_SETTING_REDEEM_AMOUNT = 10
@@ -59,9 +59,14 @@ def find_custodian_account_by_incognito_addr(incognito_addr):
 def setup_module():
     INFO()
     INFO('SETUP TEST MODULE')
-    INFO("Create portal rate")
-    PORTAL_FEEDER.portal_create_exchange_rate(init_portal_rate).subscribe_transaction()
-    SUT.full_node.help_wait_till_next_epoch()
+    INFO("Check rate")
+    PSI_current = SUT.full_node.get_latest_portal_state_info()
+    for k, v in init_portal_rate.items():
+        if PSI_current.get_portal_rate(k) != int(v):
+            INFO("Create portal rate")
+            PORTAL_FEEDER.portal_create_exchange_rate(init_portal_rate).subscribe_transaction()
+            SUT.full_node.help_wait_till_next_epoch()
+            break
 
     for cus in all_custodians.keys():
         INFO("Check if user has enough prv for portal testing")

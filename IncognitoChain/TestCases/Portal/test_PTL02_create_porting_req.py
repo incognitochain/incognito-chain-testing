@@ -31,8 +31,11 @@ def setup_module():
             free_collateral = cus_stat.get_free_collateral()
             INFO(f'{l6(cus.payment_key)} free collateral = {free_collateral} <= {TEST_SETTING_DEPOSIT_AMOUNT} / 10,'
                  f' deposit a bit more of collateral')
-            cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT - free_collateral, PBNB_ID,
-                                      all_custodians[cus]).subscribe_transaction()
+            try:
+                cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT - free_collateral, PBNB_ID,
+                                          all_custodians[cus]).subscribe_transaction()
+            except:
+                pass
             deposit_more = True
         else:
             INFO(f'{l6(cus.payment_key)} '
@@ -116,9 +119,6 @@ def test_create_porting_req_1_1(porting_amount, porting_fee, num_of_custodian, d
 
     STEP(2, "Check req status by Tx id")
     porting_req_info = PortingReqInfo().get_porting_req_by_tx_id(tx_id)
-    if porting_req_info.is_none():
-        WAIT(40)
-        porting_req_info.get_porting_req_by_tx_id(tx_id)
 
     if desired_status != 'invalid':  # desired_status == valid or liquidate
         assert porting_req_info.get_status() == PortalPortingStatusByTxId.ACCEPTED
@@ -352,9 +352,6 @@ def est_porting_req_expired(num_of_custodian):
     STEP(2, "Check req status")
     porting_req_info_after_req = PortingReqInfo()
     porting_req_info_after_req.get_porting_req_by_tx_id(tx_id)
-    if porting_req_info_after_req.is_none():
-        WAIT(40)
-        porting_req_info_after_req.get_porting_req_by_tx_id(tx_id)
 
     assert porting_req_info_after_req.get_status() == PortalPortingStatusByTxId.ACCEPTED
 

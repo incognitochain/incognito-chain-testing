@@ -3,7 +3,7 @@ from typing import List
 
 from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, \
     PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT, PBNB_ID, PBTC_ID, PRV_ID
-from IncognitoChain.Helpers.Logging import INFO, DEBUG
+from IncognitoChain.Helpers.Logging import INFO, DEBUG, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects import BlockChainInfoBaseClass
@@ -86,7 +86,7 @@ class CustodianInfo(PortalInfoObj):
             reward_prv = self.get_reward_amount(PRV_ID)
         except (KeyError, TypeError):
             pass
-        return '%s : %s/%s %14s %14s %14s %14s %14s %14s %14s' % \
+        return '%s : %6s/%6s %14s %14s %14s %14s %14s %14s %14s' % \
                (s_inc_addr, s_bnb_addr, s_btc_addr, total_col, free_col, hold_bnb, hold_btc, lock_bnb, lock_btc,
                 reward_prv)
 
@@ -189,20 +189,23 @@ class PortingReqInfo(PortalInfoObj):
 
     def __str__(self):
         custodian_list = self.get_custodians()
-        cust_short = {}
+        cust_short = ''
         for cust in custodian_list:
-            cust_short[l6(cust.get_incognito_addr())] = l6(cust.get_remote_address())
+            cust_short += "%s/%s/%s/%s " % (
+                l6(cust.get_incognito_addr()), l6(cust.get_remote_address()), cust.get_amount(),
+                cust.get_locked_collateral())
+        cust_short = cust_short.strip()
 
-        return f"""
-            Porting id = {self.get_porting_id()},
-            amount = {self.get_amount()},
-            fee = {self.get_porting_fee()}
-            custodian = {cust_short}"""
+        return "id= %s, amount= %s, fee= %s custodian= %s" % (
+            self.get_porting_id(), self.get_amount(), self.get_porting_fee(), cust_short)
 
-    def get_porting_req_by_tx_id(self, tx_id):
+    def get_porting_req_by_tx_id(self, tx_id, retry=True):
         INFO()
         INFO(f'Get porting req info, tx_id = {tx_id}')
         response = self.SUT.full_node.portal().get_portal_porting_req_by_key(tx_id)
+        if self.is_none() and retry:
+            WAIT(40)
+            response = self.SUT.full_node.portal().get_portal_porting_req_by_key(tx_id)
         self.data = response.get_result('PortingRequest')
         return self
 
@@ -249,13 +252,35 @@ class PortingReqInfo(PortalInfoObj):
 
 
 class RedeemReqInfo(PortalInfoObj):
+    def __str__(self):
 
-    def get_redeem_status_by_redeem_id(self, redeem_id):
+        return "id= %s, reqester= %s, amount= %s, fee= %s" % (
+            self.get_redeem_id(), self.get_requester(), self.get_redeem_amount(), self.get_redeem_fee())
+
+    def get_redeem_id(self):
+        return self.data['UniqueRedeemID']
+
+    def get_redeem_fee(self):
+        return self.data['RedeemFee']
+
+    def get_requester(self):
+        try:
+            return self.data['RedeemerIncAddressStr']
+        except KeyError:
+            return self.data['RedeemerRemoteAddress']
+
+    def get_redeem_status_by_redeem_id(self, redeem_id, retry=True):
         self.data = self.SUT.full_node.portal().get_portal_redeem_status(redeem_id).get_result()
+        if self.is_none() and retry:
+            WAIT(40)
+            self.data = self.SUT.full_node.portal().get_portal_redeem_status(redeem_id).get_result()
         return self
 
-    def get_req_matching_redeem_status(self, tx_id):
+    def get_req_matching_redeem_status(self, tx_id, retry=True):
         self.data = self.SUT.full_node.portal().get_req_matching_redeem_status(tx_id).get_result()
+        if self.is_none() and retry:
+            WAIT(40)
+            self.data = self.SUT.full_node.portal().get_req_matching_redeem_status(tx_id).get_result()
         return self
 
     def get_redeem_matching_custodians(self):
@@ -347,6 +372,13 @@ class LiquidationPool(PortalInfoObj):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __str__(self):
+        ret = ""
+        for token in self._get_token_set():
+            ret += "token= %s, amount= %s, colatteral = %s\n" % (
+                l6(token), self.get_collateral_amount_of_token(token), self.get_collateral_amount_of_token(token))
+        return ret.strip('\n')
 
     def add_more_public_token(self, token_id, amount):
         new_amount = self.get_public_token_amount_of_token(token_id) + amount
@@ -454,11 +486,42 @@ class PortalStateInfo(PortalInfoObj):
     def print_rate(self):
         rate = self.get_portal_rate()
         print(f'    ===== Rates =====    ')
-        rate_short = {}
-        for k, v in rate.items():
-            rate_short[k] = v
-            print(f'   {l6(k)} : {v}')
-        return rate_short
+        for k, _ in rate.items():
+            print(f'   {l6(k)} : {self.get_portal_rate(k)}')
+
+    def print_state(self):
+        wait_porting = self.get_porting_waiting_req()
+        wait_redeems = self.get_redeem_waiting_req()
+        match_redeems = self.get_redeem_matched_req()
+        pool = self.get_custodian_pool()
+        rate = self.get_portal_rate()
+        liquidate = self.get_liquidation_pool()
+        INFO_HEADLINE('portal state summary')
+        INFO("Wait porting requests")
+        for req in wait_porting:
+            INFO(req)
+        INFO('Waiting redeem requests')
+        for req in wait_redeems:
+            INFO(req)
+
+        INFO('Matched redeem requests')
+        for req in match_redeems:
+            INFO(req)
+
+        INFO(f'Custodian Pool')
+        INFO("%6s : %6s/%6s %14s %14s %14s %14s %14s %14s %14s" %
+             ('addr', 'bnb', 'btc', 'total col', 'free col', 'hold bnb', 'hold btc', 'lock bnb',
+              'lock btc', 'reward prv'))
+        for cus in pool:
+            INFO(cus)
+
+        INFO(f'Portal rate')
+        for k, _ in rate.items():
+            INFO(f'   {l6(k)} : {self.get_portal_rate(k)}')
+
+        INFO(f'Liquidation pool \n\t\t {liquidate}')
+
+        INFO_HEADLINE('End summary')
 
     def get_porting_waiting_req(self, token_id=None) -> List[PortingReqInfo]:
         req_list = []
@@ -709,8 +772,12 @@ class PortalStateInfo(PortalInfoObj):
 
 
 class UnlockCollateralReqInfo(PortalInfoObj):
-    def get_unlock_collateral_req_stat(self, tx_id):
+    def get_unlock_collateral_req_stat(self, tx_id, retry=True):
         self.data = self.SUT.full_node.portal().get_portal_req_unlock_collateral_status(tx_id).get_result()
+        if self.is_none() and retry:
+            WAIT(40)
+            self.data = self.SUT.full_node.portal().get_portal_req_unlock_collateral_status(tx_id).get_result()
+        return self
 
     def get_unlock_amount(self):
         return int(self.data['UnlockAmount'])
@@ -719,8 +786,11 @@ class UnlockCollateralReqInfo(PortalInfoObj):
 class DepositTxInfo(PortalInfoObj):
     _amount = 'DepositedAmount'
 
-    def get_deposit_info(self, tx_id):
+    def get_deposit_info(self, tx_id, retry=True):
         self.data = self.SUT.full_node.portal().get_portal_custodian_deposit_status(tx_id).get_result()
+        if self.is_none() and retry:
+            WAIT(40)
+            self.data = self.SUT.full_node.portal().get_portal_custodian_deposit_status(tx_id).get_result()
         return self
 
     def get_deposited_amount(self):
@@ -732,9 +802,13 @@ class CustodianWithdrawTxInfo(PortalInfoObj):
     _payment_addr = 'PaymentAddress'
     _remain_free_collateral = 'RemainCustodianFreeCollateral'
 
-    def get_custodian_withdraw_info_by_tx(self, tx_id):
+    def get_custodian_withdraw_info_by_tx(self, tx_id, retry=True):
         self.data = self.SUT.full_node.portal().get_custodian_withdraw_by_tx_id(tx_id). \
             get_result()[CustodianWithdrawTxInfo._info]
+        if self.is_none() and retry:
+            WAIT(40)
+            self.data = self.SUT.full_node.portal().get_custodian_withdraw_by_tx_id(tx_id). \
+                get_result()[CustodianWithdrawTxInfo._info]
         return self
 
     def get_payment_addr(self):
@@ -749,8 +823,11 @@ class RewardWithdrawTxInfo(PortalInfoObj):
     _RewardAmount = 'RewardAmount'
     _TxReqID = 'TxReqID'
 
-    def get_reward_info_by_tx_id(self, tx_id):
+    def get_reward_info_by_tx_id(self, tx_id, retry=True):
         self.data = self.SUT.full_node.portal().get_request_withdraw_portal_reward_status(tx_id).get_result()
+        if self.is_none() and retry:
+            WAIT(40)
+            self.data = self.SUT.full_node.portal().get_request_withdraw_portal_reward_status(tx_id).get_result()
         return self
 
     def get_custodian_addr_str(self):
