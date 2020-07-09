@@ -1,7 +1,7 @@
 import pytest
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PortalRedeemStatus, PortalUnlockCollateralReqStatus, PRV_ID
-from IncognitoChain.Drivers.BnbCli import BnbCli, encode_redeem_memo, build_bnb_proof
+from IncognitoChain.Drivers.BnbCli import BnbCli, build_bnb_proof
 from IncognitoChain.Helpers.Logging import STEP, INFO, WARNING
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 from IncognitoChain.Helpers.Time import WAIT
@@ -74,11 +74,10 @@ def test_create_redeem_req_1_1(redeem_fee, custodian_picking, expected):
         SUT.full_node.get_latest_portal_state_info()
         redeem_info.get_redeem_status_by_redeem_id(redeem_id)
         custodian_addr = redeem_info.get_redeem_matching_custodians()[0].get_remote_address()
-        encoded_redeem_memo = encode_redeem_memo(redeem_id,
-                                                 redeem_info.get_redeem_matching_custodians()[0].get_incognito_addr())
+        memo = (redeem_id, redeem_info.get_redeem_matching_custodians()[0].get_incognito_addr())
         bnb_send_amount = test_redeem_amount // 10
-        send_bnb_tx = bnb_cli.send_bnb_to(custodian_addr, portal_user_remote_addr, bnb_send_amount,
-                                          bnb_pass_phrase, encoded_redeem_memo)
+        send_bnb_tx = bnb_cli.send_to(custodian_addr, portal_user_remote_addr, bnb_send_amount,
+                                      bnb_pass_phrase, memo)
 
         STEP(5, 'Submit proof to request unlock collateral')
         proof = build_bnb_proof(send_bnb_tx.get_tx_hash())
@@ -198,14 +197,14 @@ def test_create_redeem_req_1_n():
     custodian_send_bnb_txs = {}
     custodians_info_of_req = redeem_req_info.get_redeem_matching_custodians()
     for custodian_info in custodians_info_of_req:
-        encoded_redeem_memo = encode_redeem_memo(redeem_id, custodian_info.get_incognito_addr())
+        memo = (redeem_id, custodian_info.get_incognito_addr())
         custodian_bnb_address = custodian_info.get_remote_address()
         bnb_to_send = custodian_info.get_amount()
         if bnb_to_send < 10:
             WARNING(f"Amount of BNB to send from custodian is {bnb_to_send} < 10")
             bnb_to_send = 10
-        send_bnb_tx = bnb_cli.send_bnb_to(custodian_bnb_address, portal_user_remote_addr, bnb_to_send,
-                                          bnb_pass_phrase, encoded_redeem_memo)
+        send_bnb_tx = bnb_cli.send_to(custodian_bnb_address, portal_user_remote_addr, bnb_to_send,
+                                      bnb_pass_phrase, memo)
         custodian_send_bnb_txs[custodian_bnb_address] = send_bnb_tx
 
     STEP(5, 'Submit proofs to request unlock collateral')
@@ -337,5 +336,5 @@ def test_redeem_req_expired():
     assert user_prv_bal_be4_test - tx_fee - redeem_fee == portal_user.get_prv_balance()
 
 
-def test_redeem_from_liquidation_pool():
-   portal_user.portalrede
+# def test_redeem_from_liquidation_pool():
+#     portal_user.portalrede

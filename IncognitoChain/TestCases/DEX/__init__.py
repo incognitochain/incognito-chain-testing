@@ -1,5 +1,7 @@
+from IncognitoChain.Configs.Constants import coin
 from IncognitoChain.Helpers.Time import get_current_date_time
 from IncognitoChain.Objects.AccountObject import Account
+from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 # contributor = ACCOUNTS[0]
@@ -10,13 +12,15 @@ token_owner = Account(
 # when token_id set to none, init new token and use it for the test
 # otherwise, use token id for the test without initializing new token
 # token_id = "a4442a68070fc615abee5e8c665808ebc1c670e5fd16f49ca8e992bf7c126739"
-token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
-token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
-# token_id_1 = None
-# token_id_2 = None
+# token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
+# token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
+token_id_1 = None
+token_id_2 = None
 
 need_withdraw_contribution_1 = False
 need_withdraw_contribution_2 = False
+
+COIN_MASTER.top_him_up_to_amount_if(coin(10000), coin(100000), token_owner)
 
 if token_id_1 is None:
     trx008.account_init = token_owner

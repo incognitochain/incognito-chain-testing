@@ -3,9 +3,9 @@ import re
 import pytest
 
 from IncognitoChain.Helpers.Logging import *
-from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
+from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, Account
 
-sender = receiver = None
+sender = receiver = Account()
 
 
 def setup_module():
@@ -67,7 +67,10 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
     send_transaction = step5_result.subscribe_transaction()
 
     STEP(7, "Subcribe cross transaction by privatekey")
-    receiver.subscribe_cross_output_coin()
+    try:
+        receiver.subscribe_cross_output_coin()
+    except:
+        pass
 
     STEP(8, "Check receiver balance")
     receiver_bal_after = receiver.get_prv_balance()
@@ -88,4 +91,8 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
 
     STEP(11, "Return the money")
     receiver.send_prv_to(sender, sender_bal).subscribe_transaction()
-    sender.subscribe_cross_output_coin()
+    if sender.shard != receiver.shard:
+        try:
+            sender.subscribe_cross_output_coin()
+        except:
+            pass

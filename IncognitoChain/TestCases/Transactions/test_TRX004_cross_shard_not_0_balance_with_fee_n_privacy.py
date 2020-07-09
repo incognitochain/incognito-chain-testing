@@ -1,10 +1,9 @@
 import pytest
 
 from IncognitoChain.Helpers.Logging import *
-from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
+from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, Account
 
-sender = None
-receiver = None
+receiver = sender = Account()
 send_amount = None
 
 
@@ -38,8 +37,11 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
     except TimeoutError:
         ERROR(f"Timeout while subscribing tx: {send_transaction.get_tx_id()}")
 
-    STEP(5, "Subcribe cross transaction by privatekey")
-    receiver.subscribe_cross_output_coin()
+    STEP(5, "Subscribe cross transaction by privatekey")
+    try:
+        receiver.subscribe_cross_output_coin()
+    except:
+        pass
 
     STEP(6, "Check sender balance")
     sender_bal_after = sender.get_prv_balance()

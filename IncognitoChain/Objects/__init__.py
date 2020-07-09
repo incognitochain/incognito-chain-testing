@@ -7,3 +7,9 @@ class BlockChainInfoBaseClass(ABC):
         self.data: dict = dict_data
         self.err = None
         self.SUT = SUT
+
+    def __eq__(self, other):
+        return self.data == other.data
+
+    def __ne__(self, other):
+        return self.data != other.data

@@ -1,5 +1,6 @@
 import copy
 import re
+from threading import Thread
 from typing import List
 
 from IncognitoChain.Configs import Constants
@@ -8,6 +9,7 @@ from IncognitoChain.Drivers.Response import Response
 from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
+from IncognitoChain.Objects.CoinObject import Coin
 from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, CustodianInfo, PortalStateInfo
 
 
@@ -164,6 +166,17 @@ class Account:
         self.cache[f'{Account._cache_bal_tok}_{token_id}'] = balance
         INFO(f"Token Bal = {balance}, private key = {l6(self.private_key)}, token id = {l6(token_id)}")
         return balance
+
+    def list_unspent_coin(self):
+        raw_response = self.__SUT.full_node.transaction().list_unspent_output_coins(self.private_key)
+        raw_coins = raw_response.get_result('Outputs')[self.private_key]
+        obj_coins = []
+        for raw_coin in raw_coins:
+            obj_coins.append(Coin(raw_coin))
+        return obj_coins
+
+    def list_coin(self):
+        pass
 
     def stake_and_reward_me(self, stake_amount=None, auto_re_stake=True):
         """
@@ -848,6 +861,46 @@ class Account:
             return reward
         except KeyError:
             return 0
+
+    def convert_prv_to_v2(self):
+        return self.__SUT.full_node.transaction().create_convert_coin_ver1_to_ver2_transaction(self.private_key)
+
+    def convert_token_to_v2(self, token_id):
+        return self.__SUT.full_node.transaction().create_convert_coin_ver1_to_ver2_tx_token(self.private_key, token_id)
+
+    def top_him_up_to_amount_if(self, if_lower_than, top_up_to_amount, accounts_list):
+
+        breakpoint()
+        if type(accounts_list) is not list:
+            raise TypeError('Must input a list of Account')
+
+        receiver = {}
+        for acc in accounts_list:
+            bal = acc.get_prv_balance()
+            if bal < if_lower_than:
+                top_up_amount = top_up_to_amount - bal
+                if top_up_amount > 0:
+                    receiver[acc] = top_up_amount
+
+        if len(receiver) == 0:
+            return None
+        send_tx = self.send_prv_to_multi_account(receiver)
+        send_tx.subscribe_transaction()
+        # thread_pool = []
+        for acc, amount in receiver.items():
+            if acc.shard != self.shard:
+                acc: Account
+                try:
+                    acc.subscribe_cross_output_coin()  # todo: use threading to save time
+                    # thread = Thread(acc.subscribe_cross_output_coin)  # not yet work, todo: make it work
+                    # thread.start()
+                    # thread_pool.append(thread)
+                except:
+                    pass
+
+        # for thread in thread_pool:
+        #     thread.join()
+        return send_tx
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:

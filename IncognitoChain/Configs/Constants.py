@@ -51,6 +51,7 @@ class PortalRedeemStatus:
     WAITING = 2
     LIQUIDATED = 3
     REJECTED_BY_LIQUIDATION = 4
+    CANCEL_BY_LIQUIDATION_STAT  = 5
 
 
 class PortalPtokenReqStatus:

@@ -177,7 +177,7 @@ class TransactionRpc:
     ###############
     # WITHDRAW REWARD
     ###############
-    def withdraw_reward(self, private_key, payment_address, token_id=None):
+    def withdraw_reward(self, private_key, payment_address, version=1, token_id=None):
         if token_id is None:
             token_id = PRV_ID
         return self.rpc_connection. \
@@ -185,7 +185,8 @@ class TransactionRpc:
             with_params([private_key, 0, 0, 0,
                          {
                              "PaymentAddress": payment_address,
-                             "TokenID": token_id
+                             "TokenID": token_id,
+                             "Version": version
                          }
                          ]). \
             execute()
@@ -221,13 +222,18 @@ class TransactionRpc:
             execute()
 
     def list_unspent_output_coins(self, private_key):
+        param_v1 = [0, 999999,  # old privacy
+                    [{"PrivateKey": private_key}],
+                    ""
+                    ]
+        param_v2 = [0, 999999,  # privacy v2
+                    [{"PrivateKey": private_key,
+                      "StartHeight": 0}],
+                    ""
+                    ]
         return self.rpc_connection. \
             with_method('listunspentoutputcoins'). \
-            with_params([0,
-                         999999,
-                         [{"PrivateKey": private_key}],
-                         ""
-                         ]). \
+            with_params(param_v2). \
             execute()
 
     def get_public_key_by_payment_key(self, payment_key):
@@ -272,4 +278,16 @@ class TransactionRpc:
         return self.rpc_connection. \
             with_method('getrewardamount'). \
             with_params([validator_payment_key]). \
+            execute()
+
+    def create_convert_coin_ver1_to_ver2_transaction(self, private_key):
+        return self.rpc_connection. \
+            with_method('createconvertcoinver1tover2transaction'). \
+            with_params([private_key, 1]). \
+            execute()
+
+    def create_convert_coin_ver1_to_ver2_tx_token(self, private_key, token_id):
+        return self.rpc_connection. \
+            with_method('createconvertcoinver1tover2txtoken'). \
+            with_params([private_key, token_id, 1]). \
             execute()

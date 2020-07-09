@@ -47,14 +47,19 @@ def teardown_function():
             pass
 
 
-def test_custodian_deposit_success():
+@pytest.mark.parametrize('token', [
+    PBNB_ID,
+    PBTC_ID
+])
+def test_custodian_deposit_success(token):
     STEP(1, "Make a valid custodian deposit")
-    deposit_tx = self_pick_custodian.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, PBNB_ID,
+    deposit_tx = self_pick_custodian.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, token,
                                                               custodian_remote_address).subscribe_transaction()
     tx_fee = deposit_tx.get_fee()
 
     STEP(2, "Verify deposit is successful and user becomes custodian")
-    assert self_pick_custodian.get_prv_balance_cache() - TEST_SETTING_DEPOSIT_AMOUNT - tx_fee == self_pick_custodian.get_prv_balance()
+    assert self_pick_custodian.get_prv_balance_cache() - TEST_SETTING_DEPOSIT_AMOUNT - tx_fee \
+           == self_pick_custodian.get_prv_balance()
     WAIT(60)  # wait for collateral to be added to portal status
     custodian_info = self_pick_custodian.portal_get_my_custodian_info()
     assert custodian_info is not None
@@ -62,11 +67,14 @@ def test_custodian_deposit_success():
     assert custodian_info.get_total_collateral() == TEST_SETTING_DEPOSIT_AMOUNT + current_total_collateral
     current_total_collateral += TEST_SETTING_DEPOSIT_AMOUNT
 
-
-def test_custodian_deposit_un_success():
+@pytest.mark.parametrize('token', [
+    PBNB_ID,
+    PBTC_ID
+])
+def test_custodian_deposit_un_success(token):
     global custodian_info_after
     STEP(1, "Make an invalid custodian deposit")
-    deposit_tx = self_pick_custodian.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, PRV_ID,
+    deposit_tx = self_pick_custodian.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, token,
                                                               custodian_remote_address)
     assert deposit_tx.get_error_msg() is not None
 
@@ -81,6 +89,7 @@ def test_custodian_deposit_un_success():
 
 @pytest.mark.parametrize('token,expected', [
     (PBNB_ID, 'success'),
+    (PBTC_ID, 'success'),
     (PRV_ID, "fail"),
 ])
 def test_add_more_collateral(token, expected):
@@ -245,19 +254,23 @@ def test_creating_rate(account, expected):
         assert portal_state_info_before.get_portal_rate() == portal_state_info.get_portal_rate()
 
 
-def test_calculating_porting_fee():
+@pytest.mark.parametrize('token', [
+    PBNB_ID,
+    PBTC_ID
+])
+def test_calculating_porting_fee(token):
     test_amount = random.randrange(1, 1000000000)
     beacon_height = SUT.full_node.help_get_beacon_height()
 
     STEP(0, 'Get portal state before test')
     portal_state_before = SUT.full_node.get_latest_portal_state(beacon_height)
     portal_state_info_before = PortalStateInfo(portal_state_before.get_result())
-    bnb_rate = portal_state_info_before.get_portal_rate(PBNB_ID)
+    bnb_rate = portal_state_info_before.get_portal_rate(token)
     prv_rate = portal_state_info_before.get_portal_rate(PRV_ID)
 
     STEP(1, f"Get portal fee with amount = {test_amount}")
-    portal_fee_from_chain = SUT.full_node.portal().get_porting_req_fees(PBNB_ID, test_amount, beacon_height). \
-        get_result(PBNB_ID)
+    portal_fee_from_chain = SUT.full_node.portal().get_porting_req_fees(token, test_amount, beacon_height). \
+        get_result(token)
     portal_fee_estimate = PortalHelper.cal_portal_portal_fee(test_amount, bnb_rate, prv_rate)
 
     STEP(2, 'Compare')

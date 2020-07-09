@@ -34,7 +34,8 @@ init_portal_rate = {
 fat_custodian = Account()
 # fat_custodian.get_prv_balance()
 big_porting_amount = coin(10)
-big_bnb_rate = {PBNB_ID: '105873200000'}
+big_rate = {PBNB_ID: '105873200000',
+            PBTC_ID: '105873200000'}
 # 19097127190081650
 # 37772966455153490
 # 37772966455153487
@@ -44,7 +45,7 @@ for acc in all_custodians:  # find account which has most PRV
         fat_custodian = acc
     elif acc.get_prv_balance_cache() >= fat_custodian.get_prv_balance_cache():
         fat_custodian = acc
-big_collateral = PortalHelper.cal_lock_collateral(big_porting_amount, big_bnb_rate[PBNB_ID],
+big_collateral = PortalHelper.cal_lock_collateral(big_porting_amount, big_rate[PBNB_ID],
                                                   init_portal_rate[PRV_ID])
 fat_custodian_prv = big_collateral + coin(1)
 
