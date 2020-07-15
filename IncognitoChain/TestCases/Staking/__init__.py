@@ -113,12 +113,8 @@ token_id = None
 
 def setup_module():
     INFO("SETUP MODULE")
-    for account in auto_stake_list + [stake_account, staked_account]:
-        if account.get_prv_balance() <= coin(1750) and account.am_i_a_committee() is False:
-            COIN_MASTER.send_prv_to(account, coin(1850) - account.get_prv_balance_cache(),
-                                    privacy=0).subscribe_transaction()
-            if COIN_MASTER.shard != account.shard:
-                account.subscribe_cross_output_coin()
+    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), auto_stake_list + [stake_account, staked_account])
+
     for committee in auto_stake_list:
         if committee.am_i_a_committee() is False:
             committee.stake_and_reward_me()
@@ -132,8 +128,8 @@ def setup_module():
     STEP(0, "Verify environment, 6 node per shard")
     number_committee_shard_0 = SUT.full_node.help_count_committee_in_shard(0, refresh_cache=True)
     number_committee_shard_1 = SUT.full_node.help_count_committee_in_shard(1, refresh_cache=False)
-    assert number_committee_shard_0 == 6
-    assert number_committee_shard_1 == 6
+    assert number_committee_shard_0 == 6, f"shard 0: {number_committee_shard_0} committee"
+    assert number_committee_shard_1 == 6, f"shard 1: {number_committee_shard_1} committee"
 
     # breakpoint()
     trx008.account_init = token_holder_shard_0

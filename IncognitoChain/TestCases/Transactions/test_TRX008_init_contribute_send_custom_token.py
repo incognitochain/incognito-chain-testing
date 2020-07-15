@@ -23,6 +23,7 @@ contribute_success = False
 token_amount_to_send = random.randrange(1000, 2000)
 
 custom_token_id = None
+# custom_token_id = '501cf58d5560c41aca289842871e8744c40aac06397e99098077dedb21ec0805'
 account_init = get_accounts_in_shard(5)[0]
 sender_account = account_init
 receiver_account = get_accounts_in_shard(5)[1]
@@ -33,15 +34,8 @@ token_fee = 1400000
 def setup_module():
     INFO("Test set up")
 
-    sender_bal = account_init.get_prv_balance()
-    if sender_bal <= token_init_amount + prv_contribute_amount:
-        COIN_MASTER.send_prv_to(account_init, token_init_amount + prv_contribute_amount - sender_bal + coin(1),
-                                privacy=0).subscribe_transaction()
-        if COIN_MASTER.shard != account_init.shard:
-            try:
-                account_init.subscribe_cross_output_coin()
-            except:
-                pass
+    COIN_MASTER.top_him_up_prv_to_amount_if(token_init_amount + prv_contribute_amount,
+                                            token_init_amount + prv_contribute_amount + coin(1), account_init)
 
 
 def teardown_module():
@@ -107,6 +101,7 @@ def test_init_ptoken():
     # breakpoint()
 
 
+# from privacy v2, no longer accept token fee
 @pytest.mark.parametrize('sender,receiver,fee,fee_type,privacy,privacy_type', [
     # 1 shard
     pytest.param(sender_account, receiver_account, -1, 'token', 1, 'prv',
@@ -183,6 +178,9 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
             sending_token_transaction = sender.send_token_to(receiver, custom_token_id,
                                                              token_amount_to_send, token_fee=fee,
                                                              token_privacy=privacy)
+        if sending_token_transaction.is_transaction_v2():
+            pytest.skip(sending_token_transaction.get_error_trace().get_message())
+
     INFO("transaction_id: " + sending_token_transaction.get_tx_id())
     assert sending_token_transaction.get_error_msg() != 'Can not create tx' and INFO(
         "make successful transaction"), sending_token_transaction.get_error_trace().get_message()
@@ -229,38 +227,37 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
 
     STEP(5, "privacy check")
     sending_token_transaction: Response
-    transaction = sending_token_transaction.get_transaction_by_hash()
     if privacy == 0:  # if privacy = 0 then all privacy type must be the same
         INFO("Check transaction prv_privacy")
-        assert transaction.get_proof_detail_input_coin_value_prv() != 0 and INFO(
-            "info value PRV must be no privacy"), "info value PRV  is not privacy"
+        assert not sending_token_transaction.is_prv_privacy() and INFO(
+            "info value PRV must be no privacy"), "info value PRV is not privacy"
 
         INFO("Check transaction token privacy")
-        assert transaction.get_proof_detail_input_coin_value_custom_token() != 0 and INFO(
+        assert not sending_token_transaction.is_token_privacy() and INFO(
             "info value token  must be no privacy"), "info value token is NOT privacy"
 
     else:  # privacy =1
         if privacy_type == 'token':
             INFO("Check transaction prv_privacy")
-            assert transaction.get_proof_detail_input_coin_value_prv() != 0 and INFO(
-                "info value PRV must be privacy"), "info value PRV  is privacy"
+            assert not sending_token_transaction.is_prv_privacy() and INFO(
+                "info value PRV must NOT be privacy"), "info value PRV is privacy"
 
             INFO("Check transaction token privacy")
-            assert transaction.get_proof_detail_input_coin_value_custom_token() == 0 and INFO(
+            assert sending_token_transaction.is_token_privacy() and INFO(
                 "info value token must be privacy"), "info value token is NOT privacy"
         else:  # privacy_type  = prv while not sending prv, only token then only prv privacy will be applied
             if fee_type == 'token':
                 INFO("Check transaction prv_privacy")
-                assert transaction.get_proof_detail_input_coin_value_prv() is None and INFO(
+                assert sending_token_transaction.is_prv_privacy() and INFO(
                     "info value PRV is no privacy"), "info value PRV is privacy"
             else:
                 INFO("Check transaction prv_privacy")
-                assert transaction.get_proof_detail_input_coin_value_prv() == 0 and INFO(
+                assert sending_token_transaction.is_prv_privacy() and INFO(
                     "info value PRV is no privacy"), "info value PRV is privacy"
 
-            INFO("Check transaction token privacy")
-            assert transaction.get_proof_detail_input_coin_value_custom_token() != 0 and INFO(
-                "info value token must be privacy"), "info value token is NOT privacy"
+            # INFO("Check transaction token privacy")
+            # assert not sending_token_transaction.is_token_privacy() and INFO(
+            #     "info value token must be privacy"), "info value token is NOT privacy"
 
 
 @pytest.mark.dependency(depends=["test_init_ptoken"])
@@ -300,6 +297,8 @@ def test_send_token_insufficient_fund(sender, receiver):
     # send current balance - fee (100)
     step4_result = sender.send_token_to(receiver, custom_token_id, sender_token_bal - token_fee,
                                         token_fee=token_fee)
+    if step4_result.is_transaction_v2():
+        return
     assert step4_result.get_error_msg() != 'Can not create tx'
     INFO("TxID: " + step4_result.get_tx_id())
 

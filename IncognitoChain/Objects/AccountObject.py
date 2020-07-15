@@ -1,12 +1,13 @@
 import copy
 import re
-from threading import Thread
 from typing import List
+
+from websocket import WebSocketTimeoutException
 
 from IncognitoChain.Configs import Constants
 from IncognitoChain.Configs.Constants import PRV_ID, coin, PortalCustodianReqMatchingStatus
 from IncognitoChain.Drivers.Response import Response
-from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG
+from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
 from IncognitoChain.Objects.CoinObject import Coin
@@ -175,8 +176,17 @@ class Account:
             obj_coins.append(Coin(raw_coin))
         return obj_coins
 
-    def list_coin(self):
-        pass
+    def list_unspent_token(self):
+        custom_token_bal_raw = self.__SUT.full_node.transaction().list_custom_token_balance(self.private_key). \
+            get_result('ListCustomTokenBalance')
+        obj_coins = []
+        for bal in custom_token_bal_raw:
+            tok_id = bal['TokenID']
+            raw_response = self.__SUT.full_node.transaction().list_unspent_output_tokens(self.private_key, tok_id)
+            raw_coins = raw_response.get_result('Outputs')[self.private_key]
+            for raw_coin in raw_coins:
+                obj_coins.append(Coin(raw_coin))
+        return obj_coins
 
     def stake_and_reward_me(self, stake_amount=None, auto_re_stake=True):
         """
@@ -385,11 +395,11 @@ class Account:
         INFO('No need to defrag!')
         return None
 
-    def subscribe_cross_output_coin(self, timeout=180):
-        INFO('Subscribe output coin')
+    def subscribe_cross_output_coin(self, timeout=120):
+        INFO(f'{self.private_key} Subscribe cross output coin')
         return self.__SUT.full_node.subscription().subscribe_cross_output_coin_by_private_key(self.private_key, timeout)
 
-    def subscribe_cross_output_token(self, timeout=180):
+    def subscribe_cross_output_token(self, timeout=120):
         INFO('Subscribe cross output token')
         return self.__SUT.full_node.subscription().subscribe_cross_custom_token_privacy_by_private_key(self.private_key,
                                                                                                        timeout)
@@ -479,7 +489,6 @@ class Account:
         """
         best = self.__SUT.full_node.system_rpc().get_beacon_best_state_detail(refresh_cache=refresh_cache)
         shard_committee_list = best.get_result()['ShardCommittee']
-        shard_id = 0
         for i in range(0, len(shard_committee_list)):
             committees_in_shard = shard_committee_list[f'{i}']
             for committee in committees_in_shard:
@@ -487,10 +496,9 @@ class Account:
                     self.find_public_key()
 
                 if committee['IncPubKey'] == self.public_key:
-                    INFO(f"You {self.validator_key} are a committee in shard {shard_id}")
-                    return shard_id
-            shard_id += 1
-        INFO(f"{self.validator_key} is NOT a committee")
+                    INFO(f" IS committee: {self.validator_key} : shard {i}")
+                    return i
+        INFO(f"NOT committee: {self.validator_key}")
         return False
 
     def am_i_stake(self):
@@ -868,16 +876,64 @@ class Account:
     def convert_token_to_v2(self, token_id):
         return self.__SUT.full_node.transaction().create_convert_coin_ver1_to_ver2_tx_token(self.private_key, token_id)
 
-    def top_him_up_to_amount_if(self, if_lower_than, top_up_to_amount, accounts_list):
+    def top_him_up_token_to_amount_if(self, token_id, if_lower_than, top_up_to_amount, accounts_list):
+        """
 
-        breakpoint()
+        :param token_id:
+        :param if_lower_than: top up if current balance is equal or lower this number
+        :param top_up_to_amount:
+        :param accounts_list: Account or list of Account
+        :return:
+        """
+        INFO_HEADLINE(f"TOP UP OTHERS' TOKEN {l6(token_id)} TO {top_up_to_amount}")
+
         if type(accounts_list) is not list:
-            raise TypeError('Must input a list of Account')
+            accounts_list = [accounts_list]
+        receiver = {}
+        for acc in accounts_list:
+            bal = acc.get_token_balance(token_id)
+            if bal <= if_lower_than:
+                top_up_amount = top_up_to_amount - bal
+                if top_up_amount > 0:
+                    receiver[acc] = top_up_amount
 
+        if len(receiver) == 0:
+            return None
+
+        send_tx = self.send_token_multi_output(receiver, token_id, prv_fee=-1)
+        send_tx.subscribe_transaction()
+        # thread_pool = []
+        for acc, amount in receiver.items():
+            if acc.shard != self.shard:
+                acc: Account
+                try:
+                    acc.subscribe_cross_output_token()  # todo: use threading to save time
+                    # thread = Thread(acc.subscribe_cross_output_coin)  # not yet work, todo: make it work
+                    # thread.start()
+                    # thread_pool.append(thread)
+                except WebSocketTimeoutException:
+                    break
+
+        # for thread in thread_pool:
+        #     thread.join()
+        return send_tx
+
+    def top_him_up_prv_to_amount_if(self, if_lower_than, top_up_to_amount, accounts_list):
+        """
+
+        :param if_lower_than: top up if current balance is equal or lower this number
+        :param top_up_to_amount:
+        :param accounts_list: Account or list of Account
+        :return:
+        """
+        # breakpoint()
+        INFO_HEADLINE(f"TOP UP OTHERS' PRV TO {top_up_to_amount}")
+        if type(accounts_list) is not list:
+            accounts_list = [accounts_list]
         receiver = {}
         for acc in accounts_list:
             bal = acc.get_prv_balance()
-            if bal < if_lower_than:
+            if bal <= if_lower_than:
                 top_up_amount = top_up_to_amount - bal
                 if top_up_amount > 0:
                     receiver[acc] = top_up_amount
@@ -895,8 +951,8 @@ class Account:
                     # thread = Thread(acc.subscribe_cross_output_coin)  # not yet work, todo: make it work
                     # thread.start()
                     # thread_pool.append(thread)
-                except:
-                    pass
+                except WebSocketTimeoutException:
+                    break
 
         # for thread in thread_pool:
         #     thread.join()

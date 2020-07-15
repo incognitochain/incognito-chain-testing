@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-python=./venv/bin/python3
+# python=./venv/bin/python3
+python=python3
 
 if [ $1 = "clear" ]; then
   rm reports/*.html

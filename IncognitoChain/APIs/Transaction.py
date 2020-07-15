@@ -236,6 +236,14 @@ class TransactionRpc:
             with_params(param_v2). \
             execute()
 
+    def list_unspent_output_tokens(self, private_k, token_id):
+        return self.rpc_connection. \
+            with_method('listunspentoutputtokens'). \
+            with_params([0, 999999, [{"PrivateKey": private_k,
+                                      "StartHeight": 0,
+                                      "tokenID": token_id}]]) \
+            .execute()
+
     def get_public_key_by_payment_key(self, payment_key):
         return self.rpc_connection. \
             with_method("getpublickeyfrompaymentaddress"). \

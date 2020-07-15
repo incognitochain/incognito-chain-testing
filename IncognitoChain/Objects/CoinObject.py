@@ -16,6 +16,18 @@ class Coin(BlockChainInfoBaseClass):
             "Info": "13PMpZ4",
             "CoinDetailsEncrypted": "13PMpZ4"
         }
+        or
+        {
+            "Version": "2",
+            "Index": "",
+            "PublicKey": "1E3f9obsu5KGRuvCU9CSsv7eDQwdp2J4osevYvJ6RBzDWGFFY2",
+            "Commitment": "1Xm5xT9eCYYXXSHJD94oaq2w5yh3s2zUC2MWKR1kQnA59nk5xz",
+            "SNDerivator": "",
+            "KeyImage": "12FMyCuxYkZWWbCNnUP2sdAx63oRbuzLtXx7dv9q9ZcJczdSBSg",
+            "Randomness": "12fFPJsmqmFcKiiKJzeSkCV1xSbvTdwQZqzLSSWjhoD5KmouVRP",
+            "Value": "1004",
+            "Info": ""
+        },
     """
 
     def __str__(self):
@@ -72,7 +84,7 @@ class Coin(BlockChainInfoBaseClass):
 
     def get_version(self):
         try:
-            return self.data['Version']
+            return int(self.data['Version'])
         except KeyError:
             WARNING('Error while get coin version. Assume ver=1')
             return 1

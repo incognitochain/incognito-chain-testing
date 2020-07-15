@@ -1,5 +1,3 @@
-import math
-
 import pytest
 
 from IncognitoChain.Configs.Constants import PRV_ID, coin
@@ -15,10 +13,10 @@ from IncognitoChain.TestCases.DEX import token_id_1, token_owner, token_id_2
     # last 2 always fail on jenkins testbed,
     # the very last case offend fail by missing 1 nano prv calculation of bal after contribute
     # the other fail because contribute amount from api is always 0
-    [token_id_1, PRV_ID],
     [PRV_ID, token_id_1],
+    [token_id_1, PRV_ID],
+    [token_id_2, token_id_1],
     [token_id_1, token_id_2],
-    [token_id_2, token_id_1]
 ))
 def test_contribute_prv(token1, token2):
     pair_id = f'{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
@@ -130,7 +128,7 @@ def test_contribute_prv(token1, token2):
     INFO(f"{l6(token2)} balance after contribution (after refund): {bal_tok2_aft_refund}")
 
     if rate is not None:
-        calculated_owner_share_amount_after = math.floor((api_contrib_tok2 * sum(all_share_amount)) / rate[0]) + \
+        calculated_owner_share_amount_after = round((api_contrib_tok2 * sum(all_share_amount)) / rate[0]) + \
                                               owner_share_amount
         assert calculated_owner_share_amount_after == owner_share_amount_after and INFO(
             "Contribution shares amount is correct")

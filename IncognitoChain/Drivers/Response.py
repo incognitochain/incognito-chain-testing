@@ -1,5 +1,6 @@
 import json
 import re
+from builtins import Exception
 
 import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.Helpers.Logging import INFO
@@ -178,10 +179,13 @@ class Response:
 
         :return: True = privacy, False = no privacy
         """
-        result = self.get_transaction_by_hash()
-        if result.get_privacy() is True and int(result.get_result('ProofDetail')['InputCoins'][0]['Value']) == 0:
-            return True
-        return False
+        tx_info = self.get_transaction_by_hash()
+        value = int(tx_info.get_result('ProofDetail')['InputCoins'][0]['Value'])
+        privacy = tx_info.get_privacy()
+        if not privacy:
+            raise Exception("Transaction PRV v2 must always have privacy")
+        INFO(f'Checking PRV v2 privacy. isPrivacy = {tx_info.get_privacy()}, input coin value = {value}')
+        return value == 0
 
     def is_prv_privacy_v1(self):
         """
@@ -190,9 +194,9 @@ class Response:
         :return: True = privacy, False = no privacy
         """
         result = self.get_transaction_by_hash()
-        if result.get_privacy() is True and result.get_proof_detail_input_coin_value_prv() == 0:
-            return True
-        return False
+        value = result.get_proof_detail_input_coin_value_prv()
+        INFO(f'Checking PRV v1 privacy. isPrivacy = {result.get_privacy()}, input coin value = {value}')
+        return result.get_privacy() and result.get_proof_detail_input_coin_value_prv() == 0
 
     def get_proof_detail_input_coin_value_custom_token(self):
         try:
@@ -201,15 +205,17 @@ class Response:
             return None
 
     def is_token_privacy(self):
-        self.is_token_privacy_v1()
+        return self.is_token_privacy_v2()
 
     def is_token_privacy_v2(self):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        result = SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
-        if result.get_custom_token_privacy() is True and \
-            int(result.get_result('PrivacyCustomTokenProofDetail')['InputCoins'][0]['Value']) == 0:
-            return True
-        return False
+        tx_info = SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
+        value = int(tx_info.get_result('PrivacyCustomTokenProofDetail')['InputCoins'][0]['Value'])
+        privacy = tx_info.get_custom_token_privacy()
+        if not privacy:
+            raise Exception("Transaction token v2 must always have privacy")
+        INFO(f'Checking tok v2 privacy. isPrivacy = {tx_info.get_custom_token_privacy()}, input coin value = {value}')
+        return value == 0
 
     def is_token_privacy_v1(self):
         """
@@ -219,9 +225,15 @@ class Response:
         """
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         result = SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
-        if result.get_custom_token_privacy() is True and result.get_proof_detail_input_coin_value_custom_token() == 0:
+        value = result.get_proof_detail_input_coin_value_custom_token()
+        INFO(f'Checking tok v1 privacy. isPrivacy = {result.get_custom_token_privacy()}, input coin value = {value}')
+        return result.get_custom_token_privacy() and value == 0
+
+    def is_transaction_v2(self):
+        stack_trace_msg = self.get_error_trace().get_message()
+        if 'error calling MarshalJSON for type *transaction.TxTokenVersion2' in stack_trace_msg:
+            INFO('Transaction v2 no longer support paying fee with token')
             return True
-        return False
 
     def get_transaction_by_hash(self):
         from IncognitoChain.Objects.IncognitoTestCase import SUT

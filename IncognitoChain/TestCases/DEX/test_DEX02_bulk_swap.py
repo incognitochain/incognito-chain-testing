@@ -4,40 +4,21 @@ import random
 import pytest
 
 from IncognitoChain.Configs.Constants import PRV_ID
-from IncognitoChain.Helpers.Logging import STEP, INFO, DEBUG
+from IncognitoChain.Helpers.Logging import STEP, INFO, DEBUG, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import calculate_actual_trade_received, l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
-from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_owner, token_id_2
+from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_id_2, token_owner
 
-trade_amount = random.randrange(5000, 10000)
+trade_amount = random.randrange(500, 1000)
 
 
-def setup_module():
-    for acc in acc_list_1_shard + acc_list_n_shard:
-        if acc.get_prv_balance() <= trade_amount:
-            COIN_MASTER.send_prv_to(acc, trade_amount * 2 - acc.get_prv_balance_cache()).subscribe_transaction()
-            if COIN_MASTER.shard != acc.shard:
-                try:
-                    acc.subscribe_cross_output_coin()
-                except:
-                    pass
-        if acc.get_token_balance(token_id_1) <= trade_amount:
-            token_owner.send_token_to(acc, token_id_1, trade_amount * 2 - acc.get_token_balance_cache(token_id_1),
-                                      prv_fee=-1, prv_privacy=0).subscribe_transaction()
-            if token_owner.shard != acc.shard:
-                try:
-                    acc.subscribe_cross_output_token()
-                except:
-                    pass
-        # if acc.get_token_balance(token_id_2) <= trade_amount:
-        #     contributor.send_token_to(acc, token_id_2, trade_amount * 2 - acc.get_token_balance_cache(token_id_2),
-        #                               prv_fee=-1, prv_privacy=0).subscribe_transaction()
-        #     if contributor.shard != acc.shard:
-        #         try:
-        #             acc.subscribe_cross_output_token()
-        #         except:
-        #             pass
+def setup_function():
+    INFO_HEADLINE("SETUP TEST DEX 02")
+    COIN_MASTER.top_him_up_prv_to_amount_if(trade_amount, 2 * trade_amount, acc_list_1_shard + acc_list_n_shard)
+    token_owner.top_him_up_token_to_amount_if(token_id_1, trade_amount, 2 * trade_amount,
+                                              acc_list_1_shard + acc_list_n_shard)
+    INFO_HEADLINE("DONE SETUP DEX 02")
 
 
 @pytest.mark.parametrize('test_mode,token1,token2', (
@@ -70,15 +51,17 @@ def test_bulk_swap(test_mode, token1, token2):
     trade_amount_token1 = trade_amount
 
     for trader in traders:
-        trader.get_token_balance(token1)
-        trader.get_token_balance(token2)
+        bal_tok_1 = trader.get_token_balance(token1)
+        bal_tok_2 = trader.get_token_balance(token2)
 
-        assert trader.get_token_balance_cache(token1) > trade_amount_token1, \
-            f"This {trader.private_key[-6:]} balance {token1[-6:]} less than trading amount"
+        if bal_tok_1 <= trade_amount_token1:
+            pytest.skip(
+                f"This {l6(trader.private_key)} token {l6(token1)} bal: {bal_tok_1} <= {trade_amount_token1},"
+                f"NOT ENOUGH FOR TEST")
 
-        balance_tok1_before.append(trader.get_token_balance_cache(token1))
-        balance_tok2_before.append(trader.get_token_balance_cache(token2))
-        private_key_alias.append(trader.private_key[-6:])
+        balance_tok1_before.append(bal_tok_1)
+        balance_tok2_before.append(bal_tok_2)
+        private_key_alias.append(l6(trader.private_key))
 
     INFO(f"Private key alias                : {str(private_key_alias)}")
     INFO(f"{token1[-6:]} balance before trade      : {str(balance_tok1_before)}")
@@ -101,7 +84,7 @@ def test_bulk_swap(test_mode, token1, token2):
     tx_fee_list = []
     for tx in tx_list:
         tx_is_confirmed = False
-        print(f'          checking tx id: {tx.get_tx_id()[-6:]}')
+        print(f'          checking tx id: {l6(tx.get_tx_id())}')
         for i in range(0, 10):  # check 10 times each Tx
             tx_confirm = tx.get_transaction_by_hash()
             if tx_confirm.get_block_hash() != "":
@@ -173,7 +156,7 @@ def test_bulk_swap(test_mode, token1, token2):
     INFO(f"tx fee list   : {str(tx_fee_list)}")
     INFO(f"result {l6(token1)} : {str(result_token)}")
     INFO(f"result {token2[-6:]} : {str(result_prv)}")
-    INFO(f"rate {l6(token1)} vs {token2[-6:]} - Before Trade   : {str(rate_before)}")
-    INFO(f"rate {l6(token1)} vs {token2[-6:]} - After Trade    : {str(rate_after)}")
-    INFO(f"rate {l6(token1)} vs {token2[-6:]} - Calulated Trade: {str(calculated_rate)}")
+    INFO(f"rate {l6(token1)} vs {token2[-6:]} - Before Trade    : {str(rate_before)}")
+    INFO(f"rate {l6(token1)} vs {token2[-6:]} - After Trade     : {str(rate_after)}")
+    INFO(f"rate {l6(token1)} vs {token2[-6:]} - Calculated Trade: {str(calculated_rate)}")
     assert calculated_rate == rate_after and INFO("Pair Rate is correct"), "Pair Rate is WRONG after Trade"
