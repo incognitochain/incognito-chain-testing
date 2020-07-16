@@ -638,21 +638,27 @@ class Account:
             current_balance = self.get_token_balance(token_id)
             WAIT(pool_time)
             timeout -= pool_time
-        bal_2 = None
+        bal_new = None
         while timeout >= 0:
-            bal_2 = self.get_token_balance(token_id)
+            bal_new = self.get_token_balance(token_id)
             if least_change_amount is None:
-                if bal_2 != current_balance:
-                    INFO(f'Balance is changed: {bal_2 - current_balance}')
-                    return bal_2
+                if bal_new != current_balance:
+                    INFO(f'Balance is changed: {bal_new - current_balance}')
+                    return bal_new
             else:
-                if bal_2 >= current_balance + least_change_amount:
-                    INFO(f'Balance changes with {least_change_amount}')
-                    return bal_2
+                change_amount = bal_new - current_balance
+                if least_change_amount >=0:
+                    if bal_new >= current_balance + least_change_amount:
+                        INFO(f'Balance changes with {change_amount}')
+                        return bal_new
+                else:
+                    if bal_new <= current_balance + least_change_amount:
+                        INFO(f'Balance changes with {change_amount}')
+                        return bal_new
             WAIT(pool_time)
             timeout -= pool_time
         INFO('Balance not change a bit')
-        return bal_2
+        return bal_new
 
     def trade_token(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
         INFO(f'Trade {sell_amount} of token {token_id_to_sell[-6:]} for {token_id_to_buy[-6:]}')
