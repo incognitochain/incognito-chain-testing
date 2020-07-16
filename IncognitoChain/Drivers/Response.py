@@ -19,11 +19,11 @@ class Response:
         return f'\n{json.dumps(self.data(), indent=3)}'
 
     def expect_no_error(self):
-        assert self.get_error_msg() is None, self.get_error_msg()
+        assert self.get_error_msg() is None, self.get_error_trace().get_message()
         return True
 
     def expect_error(self):
-        assert self.get_error_msg() is not None, self.get_error_msg()
+        assert self.get_error_msg() is not None, 'Found no error while expect one'
         return True
 
     def data(self):

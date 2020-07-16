@@ -478,10 +478,13 @@ class PortalStateInfo(PortalInfoObj):
         return None
 
     def get_portal_rate(self, token_id=None):
-        if token_id is None:
-            return self.data['FinalExchangeRatesState']['Rates']
-        else:
-            return int(self.data['FinalExchangeRatesState']['Rates'][token_id]['Amount'])
+        try:
+            if token_id is None:
+                return self.data['FinalExchangeRatesState']['Rates']
+            else:
+                return int(self.data['FinalExchangeRatesState']['Rates'][token_id]['Amount'])
+        except TypeError:
+            return None
 
     def print_rate(self):
         rate = self.get_portal_rate()

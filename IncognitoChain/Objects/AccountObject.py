@@ -622,18 +622,18 @@ class Account:
         INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
         return result
 
-    def wait_for_balance_change(self, token_id=PRV_ID, current_balance=None, change_amount=None, pool_time=10,
+    def wait_for_balance_change(self, token_id=PRV_ID, current_balance=None, least_change_amount=None, pool_time=10,
                                 timeout=100):
         """
 
         :param token_id:
         :param current_balance:
-        :param change_amount:
+        :param least_change_amount: change at least this amount of token
         :param pool_time:
         :param timeout:
         :return: new balance
         """
-        INFO(f'Wait for token: {token_id[-6:]} balance to change, amount: {change_amount}')
+        INFO(f'Wait for token: {token_id[-6:]} balance to change, amount: {least_change_amount}')
         if current_balance is None:
             current_balance = self.get_token_balance(token_id)
             WAIT(pool_time)
@@ -641,13 +641,13 @@ class Account:
         bal_2 = None
         while timeout >= 0:
             bal_2 = self.get_token_balance(token_id)
-            if change_amount is None:
+            if least_change_amount is None:
                 if bal_2 != current_balance:
                     INFO(f'Balance is changed: {bal_2 - current_balance}')
                     return bal_2
             else:
-                if bal_2 == current_balance + change_amount:
-                    INFO(f'Balance changes with {change_amount}')
+                if bal_2 >= current_balance + least_change_amount:
+                    INFO(f'Balance changes with {least_change_amount}')
                     return bal_2
             WAIT(pool_time)
             timeout -= pool_time
@@ -928,7 +928,7 @@ class Account:
         """
         # breakpoint()
         INFO_HEADLINE(f"TOP UP OTHERS' PRV TO {top_up_to_amount}")
-        if type(accounts_list) is not list:
+        if type(accounts_list) is Account:
             accounts_list = [accounts_list]
         receiver = {}
         for acc in accounts_list:

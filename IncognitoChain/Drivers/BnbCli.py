@@ -43,7 +43,7 @@ class BnbCli:
 
     def send_to(self, sender, receiver, amount, password, *memo):
         memo_encoded = encode_memo(memo)
-        INFO(f"Memo: {memo}")
+        INFO(f"Memo: {memo[0]}")
         INFO(f'Bnbcli | send {amount} from {l6(sender)} to {l6(receiver)} | memo: {memo_encoded}')
         command = [self.cmd, 'send', '--from', sender, '--to', receiver, '--amount', f'{amount}:BNB', '--json',
                    '--memo', memo_encoded] + self.get_default_conn()
@@ -150,7 +150,7 @@ def _json_extract(string):
 
 def encode_memo(*info):
     if len(info) == 1:
-        return _encode_porting_memo(info)
+        return _encode_porting_memo(info[0])
     elif len(info) == 2:
         return _encode_redeem_memo(info[0], info[1])
     raise Exception('Expect 1 or 2 parameters only')

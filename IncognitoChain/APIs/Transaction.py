@@ -299,3 +299,16 @@ class TransactionRpc:
             with_method('createconvertcoinver1tover2txtoken'). \
             with_params([private_key, token_id, 1]). \
             execute()
+
+    def get_transaction_by_receiver(self, payment_k, read_only_k):
+        return self.rpc_connection. \
+            with_method('gettransactionbyreceiver'). \
+            with_params([{"PaymentAddress": payment_k,
+                          "ReadonlyKey": read_only_k}]). \
+            execute()
+
+    def get_transaction_hash_by_receiver(self, payment_k):
+        return self.rpc_connection. \
+            with_method('gettransactionhashbyreceiver'). \
+            with_params([payment_k]). \
+            execute()
