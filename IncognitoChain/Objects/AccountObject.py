@@ -444,6 +444,12 @@ class Account:
         return self.__SUT.full_node.dex().contribute_prv(self.private_key, self.payment_key, amount,
                                                          contribution_pair_id)
 
+    def contribute_prv_v2(self, amount, contribution_pair_id):
+        INFO(f'Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
+
+        return self.__SUT.full_node.dex().contribute_prv_v2(self.private_key, self.payment_key, amount,
+                                                            contribution_pair_id)
+
     def withdraw_contribution(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw contribution {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
         return self.__SUT.full_node.dex().withdrawal_contribution(self.private_key, self.payment_key, token_id_1,
@@ -582,7 +588,7 @@ class Account:
     #######
     # DEX
     #######
-    def is_my_token_waiting_for_contribution(self, token_id):
+    def is_my_token_waiting_for_contribution(self, pair_id, token_id):
         INFO(f"Check if {token_id[-6:]} init by {self.payment_key[-6:]} is waiting for contribution ")
         pde_state = self.__SUT.full_node.help_get_current_pde_status()
         waiting_contribution_list = str(pde_state.get_result()['WaitingPDEContributions']).split(
@@ -591,9 +597,11 @@ class Account:
         for contribution in waiting_contribution_list:
             if re.search(token_id, str(contribution)):
                 if re.search(self.payment_key, str(contribution)):
-                    INFO(f'{token_id[-6:]} was init by {self.payment_key[-6:]} and waiting for contribution')
-                    return True
-        WARNING("payment address and token id NOT found")
+                    if re.search(pair_id, str(contribution)):
+                        INFO(
+                            f'FOUND pair_id: {pair_id} - token_id:  {token_id[-6:]} - init_by : {self.payment_key[-6:]} in PDE waiting for contribution')
+                        return True
+        WARNING(f"NOT FOUND pair_id: {pair_id} in PDE waiting for contribution")
         return False
 
     def wait_till_my_token_in_waiting_for_contribution(self, token_id, timeout=100):
@@ -647,7 +655,7 @@ class Account:
                     return bal_new
             else:
                 change_amount = bal_new - current_balance
-                if least_change_amount >=0:
+                if least_change_amount >= 0:
                     if bal_new >= current_balance + least_change_amount:
                         INFO(f'Balance changes with {change_amount}')
                         return bal_new
