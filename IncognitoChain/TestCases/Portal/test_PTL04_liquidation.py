@@ -13,7 +13,7 @@ portal_state_before_test = None
 
 def setup_module():
     INFO('Setup liquidation test')
-    porting_step.test_create_porting_req_1_1(100, None, 'valid')
+    porting_step.test_create_porting_req_1_1(PBNB_ID, 100, None, 1, 'valid')
     global portal_state_before_test
     portal_state_before_test = SUT.full_node.get_latest_portal_state()
 
@@ -42,7 +42,7 @@ def test_liquidate(percent, waiting_redeem, expected):
         estimated_liquidation_pool = portal_info_before.estimate_liquidation_pool(PBNB_ID, tok_rate_before_test,
                                                                                   prv_liquidate_rate)
 
-    if waiting_redeem:  # todo: cover liquidation case which has waiting redeem in portal state
+    if waiting_redeem:
         low_custodian_info = portal_info_before.find_lowest_free_collateral_custodian()
         redeem_amount = low_custodian_info.get_free_collateral() + 10
         STEP(0.1, 'Create redeem req')

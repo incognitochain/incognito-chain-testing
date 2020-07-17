@@ -41,9 +41,8 @@ class BnbCli:
               f"err: {stderr.strip()}")
         return int(BnbResponse(out).get_balance())
 
-    def send_to(self, sender, receiver, amount, password, *memo):
+    def send_to(self, sender, receiver, amount, password, memo):
         memo_encoded = encode_memo(memo)
-        INFO(f"Memo: {memo[0]}")
         INFO(f'Bnbcli | send {amount} from {l6(sender)} to {l6(receiver)} | memo: {memo_encoded}')
         command = [self.cmd, 'send', '--from', sender, '--to', receiver, '--amount', f'{amount}:BNB', '--json',
                    '--memo', memo_encoded] + self.get_default_conn()
@@ -58,7 +57,6 @@ class BnbCli:
         :return:
         """
         memo_encoded = encode_memo(memo)
-        INFO(f"Memo: {memo}")
         INFO(f'Bnbcli | send from {l6(sender)} to {json.dumps(receiver_amount_dict, indent=3)} | memo: {memo_encoded}')
         bnb_output = '['
         for key, value in receiver_amount_dict.items():
@@ -148,7 +146,7 @@ def _json_extract(string):
         return None
 
 
-def encode_memo(*info):
+def encode_memo(info):
     if len(info) == 1:
         return _encode_porting_memo(info[0])
     elif len(info) == 2:
@@ -157,6 +155,8 @@ def encode_memo(*info):
 
 
 def _encode_porting_memo(porting_id):
+    INFO(f"""Encoding porting memo
+            Porting id: {porting_id}""")
     memo_struct = '{"PortingID":"%s"}' % porting_id
     byte_ascii = memo_struct.encode('ascii')
     b64_encode = base64.b64encode(byte_ascii)
@@ -165,6 +165,10 @@ def _encode_porting_memo(porting_id):
 
 
 def _encode_redeem_memo(redeem_id, custodian_incognito_addr):
+    INFO(f"""Encoding redeem memo
+            Redeem id: {redeem_id}
+            Incognito addr: {custodian_incognito_addr}""")
+
     memo_struct = '{"RedeemID":"%s","CustodianIncognitoAddress":"%s"}' % (redeem_id, custodian_incognito_addr)
     byte_ascii = memo_struct.encode('ascii')
     sha3_256 = hashlib.sha3_256(byte_ascii)

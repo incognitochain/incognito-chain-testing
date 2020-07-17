@@ -106,8 +106,14 @@ class PortalHelper:
     @staticmethod
     def cal_lock_collateral(token_amount, token_rate, prv_rate):
         token_amount, token_rate, prv_rate = to_num(token_amount, token_rate, prv_rate)
-        estimated_lock_collateral = int(token_amount * PORTAL_COLLATERAL_PERCENT) * token_rate // prv_rate
-        return int(estimated_lock_collateral)
+        estimated_lock_collateral = int(int(token_amount * PORTAL_COLLATERAL_PERCENT) * token_rate // prv_rate)
+        INFO(f'''Calculating lock collateral: 
+            token amount: {token_amount}, 
+            token rate:   {token_rate}, 
+            prv rate:     {prv_rate},
+            lock amount:  {estimated_lock_collateral} 
+        -------------------------------------------------------------------''')
+        return estimated_lock_collateral
 
     @staticmethod
     def cal_portal_exchange_tok_to_prv(token_amount, token_rate, prv_rate):

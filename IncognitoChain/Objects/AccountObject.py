@@ -630,37 +630,37 @@ class Account:
         INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
         return result
 
-    def wait_for_balance_change(self, token_id=PRV_ID, current_balance=None, least_change_amount=None, pool_time=10,
+    def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=None, pool_time=10,
                                 timeout=100):
         """
 
         :param token_id:
-        :param current_balance:
+        :param from_balance:
         :param least_change_amount: change at least this amount of token
         :param pool_time:
         :param timeout:
         :return: new balance
         """
         INFO(f'Wait for token: {token_id[-6:]} balance to change, amount: {least_change_amount}')
-        if current_balance is None:
-            current_balance = self.get_token_balance(token_id)
+        if from_balance is None:
+            from_balance = self.get_token_balance(token_id)
             WAIT(pool_time)
             timeout -= pool_time
         bal_new = None
         while timeout >= 0:
             bal_new = self.get_token_balance(token_id)
             if least_change_amount is None:
-                if bal_new != current_balance:
-                    INFO(f'Balance is changed: {bal_new - current_balance}')
+                if bal_new != from_balance:
+                    INFO(f'Balance is changed: {bal_new - from_balance}')
                     return bal_new
             else:
-                change_amount = bal_new - current_balance
+                change_amount = bal_new - from_balance
                 if least_change_amount >= 0:
-                    if bal_new >= current_balance + least_change_amount:
+                    if bal_new >= from_balance + least_change_amount:
                         INFO(f'Balance changes with {change_amount}')
                         return bal_new
                 else:
-                    if bal_new <= current_balance + least_change_amount:
+                    if bal_new <= from_balance + least_change_amount:
                         INFO(f'Balance changes with {change_amount}')
                         return bal_new
             WAIT(pool_time)
@@ -915,6 +915,7 @@ class Account:
             return None
 
         send_tx = self.send_token_multi_output(receiver, token_id, prv_fee=-1)
+        send_tx.expect_no_error()
         send_tx.subscribe_transaction()
         # thread_pool = []
         for acc, amount in receiver.items():
@@ -955,21 +956,11 @@ class Account:
         if len(receiver) == 0:
             return None
         send_tx = self.send_prv_to_multi_account(receiver)
+        send_tx.expect_no_error()
         send_tx.subscribe_transaction()
         # thread_pool = []
         for acc, amount in receiver.items():
-            if acc.shard != self.shard:
-                acc: Account
-                try:
-                    acc.subscribe_cross_output_coin()  # todo: use threading to save time
-                    # thread = Thread(acc.subscribe_cross_output_coin)  # not yet work, todo: make it work
-                    # thread.start()
-                    # thread_pool.append(thread)
-                except WebSocketTimeoutException:
-                    break
-
-        # for thread in thread_pool:
-        #     thread.join()
+            acc.wait_for_balance_change(from_balance=acc.get_prv_balance_cache())
         return send_tx
 
 

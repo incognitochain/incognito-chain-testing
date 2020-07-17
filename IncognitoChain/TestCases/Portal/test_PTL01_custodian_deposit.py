@@ -34,8 +34,12 @@ def setup_function():
 
 
 def teardown_function():
-    if custodian_info_before.data is None: return
-    if custodian_info_after.data is None: return
+    try:
+        if custodian_info_before.data is None: return
+        if custodian_info_after.data is None: return
+    except AttributeError:
+        return
+
     if custodian_info_before.get_remote_address(PBNB_ID) != custodian_info_after.get_remote_address(PBNB_ID):
         INFO("# change back remote address")
         try:
@@ -47,52 +51,47 @@ def teardown_function():
             pass
 
 
-@pytest.mark.parametrize('token', [
-    PBNB_ID,
-    PBTC_ID
+@pytest.mark.parametrize('token,expected_pass', [
+    (PRV_ID, False),
+    # (PBTC_ID, True),
+    (PBNB_ID, True),
+
 ])
-def test_custodian_deposit_success(token):
+@pytest.mark.dependency()
+def test_custodian_deposit(token, expected_pass):
     STEP(1, "Make a valid custodian deposit")
     deposit_tx = self_pick_custodian.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, token,
                                                               custodian_remote_address).subscribe_transaction()
     tx_fee = deposit_tx.get_fee()
 
-    STEP(2, "Verify deposit is successful and user becomes custodian")
-    assert self_pick_custodian.get_prv_balance_cache() - TEST_SETTING_DEPOSIT_AMOUNT - tx_fee \
-           == self_pick_custodian.get_prv_balance()
+    STEP(2, "Verify custodian PRV balance and portal status")
     WAIT(60)  # wait for collateral to be added to portal status
-    custodian_info = self_pick_custodian.portal_get_my_custodian_info()
-    assert custodian_info is not None
-    global current_total_collateral
-    assert custodian_info.get_total_collateral() == TEST_SETTING_DEPOSIT_AMOUNT + current_total_collateral
-    current_total_collateral += TEST_SETTING_DEPOSIT_AMOUNT
-
-@pytest.mark.parametrize('token', [
-    PBNB_ID,
-    PBTC_ID
-])
-def test_custodian_deposit_un_success(token):
     global custodian_info_after
-    STEP(1, "Make an invalid custodian deposit")
-    deposit_tx = self_pick_custodian.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, token,
-                                                              custodian_remote_address)
-    assert deposit_tx.get_error_msg() is not None
-
-    STEP(2, "verify balance")
-    assert self_pick_custodian.get_prv_balance_cache() == self_pick_custodian.get_prv_balance()
     custodian_info_after = self_pick_custodian.portal_get_my_custodian_info()
-    if custodian_info_before is None:
-        assert custodian_info_after is None
+    if expected_pass:
+        INFO('Verify deposit is successful and user becomes custodian')
+        assert self_pick_custodian.get_prv_balance_cache() - TEST_SETTING_DEPOSIT_AMOUNT - tx_fee \
+               == self_pick_custodian.get_prv_balance()
+        assert custodian_info_after is not None
+        global current_total_collateral
+        assert custodian_info_after.get_total_collateral() == TEST_SETTING_DEPOSIT_AMOUNT + current_total_collateral
+        current_total_collateral += TEST_SETTING_DEPOSIT_AMOUNT
     else:
-        assert custodian_info_after.get_total_collateral() == custodian_info_before.get_total_collateral()
+        INFO("Verify deposit is failed and user not becomes custodian")
+        assert self_pick_custodian.get_prv_balance_cache() == self_pick_custodian.get_prv_balance()
+        if custodian_info_before is None:
+            assert custodian_info_after is None
+        else:
+            assert custodian_info_after.get_total_collateral() == custodian_info_before.get_total_collateral()
 
 
-@pytest.mark.parametrize('token,expected', [
-    (PBNB_ID, 'success'),
-    (PBTC_ID, 'success'),
-    (PRV_ID, "fail"),
+@pytest.mark.parametrize('token,expected_pass', [
+    (PBNB_ID, True),
+    # (PBTC_ID, True),
+    (PRV_ID, False),
 ])
-def test_add_more_collateral(token, expected):
+@pytest.mark.dependency(depends=["test_custodian_deposit"])
+def test_add_more_collateral(token, expected_pass):
     deposit_amount = coin(1)
     global custodian_info_after
     STEP(1, "Check existing collateral of user")
@@ -101,7 +100,7 @@ def test_add_more_collateral(token, expected):
                     f' add more collateral test cannot proceed')
     STEP(2, "Add more collateral")
     deposit_tx = self_pick_custodian.portal_add_collateral(deposit_amount, token, custodian_remote_address)
-    if expected == 'success':
+    if expected_pass:
         deposit_tx.expect_no_error()
         deposit_tx_result = deposit_tx.subscribe_transaction()
     else:
@@ -110,7 +109,7 @@ def test_add_more_collateral(token, expected):
     STEP(3, "Wait 40s then verify collateral after deposit")
     WAIT(40)
     custodian_info_after = self_pick_custodian.portal_get_my_custodian_info()
-    if expected == 'success':
+    if expected_pass:
         assert custodian_info_after.get_total_collateral() == custodian_info_before.get_total_collateral() + deposit_amount
         assert custodian_info_after.get_free_collateral() == custodian_info_before.get_free_collateral() + deposit_amount
         assert custodian_info_after.get_locked_collateral(token) == custodian_info_before.get_locked_collateral(token)
@@ -122,18 +121,18 @@ def test_add_more_collateral(token, expected):
     STEP(4, 'Verify balance')
     balance_before = self_pick_custodian.get_prv_balance_cache()
     balance_after = self_pick_custodian.get_prv_balance()
-    if expected == 'success':
+    if expected_pass:
         assert balance_before == balance_after + deposit_tx_result.get_fee() + deposit_amount
     else:
         assert balance_before == balance_after
 
 
-@pytest.mark.parametrize("token,total_collateral_precondition,expected", [
-    (PBNB_ID, 0, 'success'),
-    (PBNB_ID, 100, 'fail'),
-    (PRV_ID, 0, 'fail'),
+@pytest.mark.parametrize("token,total_collateral_precondition,expected_pass", [
+    (PBNB_ID, 0, True),
+    (PBNB_ID, 100, False),
+    (PRV_ID, 0, False),
 ])
-def test_update_remote_address(token, total_collateral_precondition, expected):
+def test_update_remote_address(token, total_collateral_precondition, expected_pass):
     global custodian_info_after, custodian_info_before
     STEP(0, "precondition check")
     deposit_amount = 123
@@ -156,7 +155,7 @@ def test_update_remote_address(token, total_collateral_precondition, expected):
     WAIT(40)
     deposit_tx_result = deposit_tx.subscribe_transaction()
     custodian_info_after = self_pick_custodian.portal_get_my_custodian_info()
-    if expected == "success":
+    if expected_pass:
         assert self_pick_custodian.get_prv_balance_cache() == self_pick_custodian.get_prv_balance() \
                + deposit_tx_result.get_fee() + deposit_amount
         assert custodian_info_after.get_remote_address(PBNB_ID) == just_another_remote_addr
@@ -176,11 +175,14 @@ def test_update_remote_address(token, total_collateral_precondition, expected):
         assert custodian_info_after.get_remote_address(PBNB_ID) == old_remote_address
 
 
-def test_with_draw_collateral():
+@pytest.mark.parametrize('custodian', [
+    ACCOUNTS[3],
+    # self_pick_custodian,
+])
+def test_with_draw_collateral(custodian):
     STEP(0, "Get collateral")
-    custodian = ACCOUNTS[3]
-    portal_state = SUT.full_node.get_latest_portal_state()
-    custodian_info = custodian.portal_get_my_custodian_info(portal_state)
+    PSI = SUT.full_node.get_latest_portal_state_info()
+    custodian_info = PSI.get_custodian_info_in_pool(custodian)
     my_free_collateral = custodian_info.get_free_collateral()
     my_total_collateral = custodian_info.get_total_collateral()
     INFO(f""" Custodian {l6(custodian.payment_key) :}
@@ -216,11 +218,11 @@ def test_with_draw_collateral():
             withdraw_tx.expect_error()
 
 
-@pytest.mark.parametrize('account,expected', [
-    (portal_user, 'fail'),
-    (PORTAL_FEEDER, 'success')
+@pytest.mark.parametrize('account,expected_pass', [
+    (portal_user, False),
+    (PORTAL_FEEDER, True)
 ])
-def test_creating_rate(account, expected):
+def test_creating_rate(account, expected_pass):
     test_rate = {
         PBNB_ID: 1000,
         PBTC_ID: 2000,
@@ -232,7 +234,7 @@ def test_creating_rate(account, expected):
 
     STEP(1, "Create rate")
     create_rate_tx = account.portal_create_exchange_rate(test_rate)
-    if expected == 'success':
+    if expected_pass:
         create_rate_tx.expect_no_error()
         create_rate_tx.subscribe_transaction()
         INFO("Wait 60s for new rate to apply")

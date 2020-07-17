@@ -445,8 +445,10 @@ class LiquidationPool(PortalInfoObj):
         return key
 
     def _get_token_set(self):
-        rates = self.get_rates()['Rates']
         tok_list = set()
+        if self.get_rates() is None:
+            return tok_list
+        rates = self.get_rates()['Rates']
         for token, _ in rates.items():
             tok_list.add(token)
         return tok_list
@@ -518,9 +520,10 @@ class PortalStateInfo(PortalInfoObj):
         for cus in pool:
             INFO(cus)
 
-        INFO(f'Portal rate')
-        for k, _ in rate.items():
-            INFO(f'   {l6(k)} : {self.get_portal_rate(k)}')
+        if rate is not None:
+            INFO(f'Portal rate')
+            for k, _ in rate.items():
+                INFO(f'   {l6(k)} : {self.get_portal_rate(k)}')
 
         INFO(f'Liquidation pool \n\t\t {liquidate}')
 
@@ -565,12 +568,20 @@ class PortalStateInfo(PortalInfoObj):
 
     def help_get_highest_free_collateral_custodian(self):
         custodian_pool = self.get_custodian_pool()
-        highest_free_collateral_custodian_info = custodian_pool[0]
+        highest_custodian = custodian_pool[0]
         for info in custodian_pool:
-            if info.get_free_collateral() > highest_free_collateral_custodian_info.get_free_collateral():
-                highest_free_collateral_custodian_info = info
+            if info.get_free_collateral() > highest_custodian.get_free_collateral():
+                highest_custodian = info
 
-        return highest_free_collateral_custodian_info
+        return highest_custodian
+
+    def help_get_highest_holding_token_custodian(self, token_id):
+        custodian_pool = self.get_custodian_pool()
+        highest_custodian = custodian_pool[0]
+        for info in custodian_pool:
+            if info.get_holding_token_amount(token_id) > highest_custodian.get_holding_token_amount(token_id):
+                highest_custodian = info
+        return highest_custodian
 
     def sum_locked_collateral_of_token(self, token_id):
         sum_locked_collateral = 0
