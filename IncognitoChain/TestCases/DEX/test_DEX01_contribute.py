@@ -111,14 +111,15 @@ def test_contribute_prv(token1, token2):
         Owner share amount after : {owner_share_amount_after}
         All share amount before  : {all_share_amount}
         All share amount after   : {all_share_amount_after}
-        Rate : {rate}
+        Rate before: {rate}
+        Rate after : {rate_after}
         Contributed:
             contribute {l6(token1)} : {tok1_contrib_amount}
             contribute {l6(token2)} : {tok2_contrib_amount}
         Expect contribution:
             {l6(token1)}            : {expect_token1_contribution}
             {l6(token2)}            : {expect_token2_contribution}
-        From API: 
+        From API:
             contribute {l6(token1)} : {api_contrib_tok1}
             contribute {l6(token2)} : {api_contrib_tok2}
             return     {l6(token1)} : {api_return_tok1}

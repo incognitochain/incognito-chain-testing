@@ -10,7 +10,7 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
 from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_id_2, token_owner
 
-trade_amount = random.randrange(500, 1000)
+trade_amount = random.randrange(9900000, 10000000)
 
 
 def setup_function():
@@ -23,9 +23,9 @@ def setup_function():
 
 @pytest.mark.parametrize('test_mode,token_sell,token_buy', (
     ["1 shard", token_id_1, PRV_ID],
-    ["n shard", token_id_1, PRV_ID],
-    ["1 shard", token_id_1, token_id_2],
-    ["n shard", token_id_1, token_id_2]
+    # ["n shard", token_id_1, PRV_ID],
+    # ["1 shard", token_id_1, token_id_2],
+    # ["n shard", token_id_1, token_id_2]
 ))
 def test_bulk_swap(test_mode, token_sell, token_buy):
     if test_mode == '1 shard':
@@ -46,7 +46,7 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     balance_tok1_after = []
     balance_tok2_after = []
     private_key_alias = []
-    trading_fee = [7, 2, 1, 6, 9, 2, 3, 5, 8, 4]
+    trading_fee = [77, 22, 11, 66, 99, 2, 33, 55, 88, 44]
 
     trade_amount_token1 = trade_amount
 
