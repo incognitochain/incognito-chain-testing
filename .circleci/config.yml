@@ -22,7 +22,7 @@ jobs:
             - "venv"
       - run:
           command: |
-            python3 -m pip3 install -r pip_requirements.txt
+            python3 -m pip install -r pip_requirements.txt
             python3 -m pytest -s -v testcases/dex/test_dex_prv.py --no-print-logs -k DEX15
           name: Test DEX15
 
