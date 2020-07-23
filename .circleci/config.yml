@@ -11,8 +11,8 @@ jobs:
           name: Install dependencies
       - run:
           command: |
-          python -m pip3 install pip_requirements.txt
-          python3 -m pytest -s -v testcases/dex/test_dex_prv.py --no-print-logs -k DEX15
+            python -m pip3 install pip_requirements.txt
+            python3 -m pytest -s -v testcases/dex/test_dex_prv.py --no-print-logs -k DEX15
           name: Test DEX15
 
 workflows:
