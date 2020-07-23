@@ -3,15 +3,15 @@ version: 2.1
 jobs:
   build-and-test:
     machine:
-      image: circleci/classic:201808-01
+      image: circleci/ubuntu-1604:202007-01
     steps:
       - checkout
       - run:
-          command: pyenv global 3.7.0
+          command: pyenv global 3.7.7
           name: Install dependencies
       - run:
           command: |
-            python -m pip3 install pip_requirements.txt
+            python3 -m pip3 install pip_requirements.txt
             python3 -m pytest -s -v testcases/dex/test_dex_prv.py --no-print-logs -k DEX15
           name: Test DEX15
 
