@@ -2,16 +2,27 @@ version: 2.1
 
 jobs:
   build-and-test:
-    machine:
-      image: circleci/python:3.7.7
+    docker: # run the steps with Docker
+      # CircleCI Python images available at: https://hub.docker.com/r/circleci/python/
+      - image: circleci/python:3.7.7
     steps:
       - checkout
-      - run:
-          command: pyenv global 3.7.7
-          name: Install dependencies
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.7/site-packages
+      - restore_cache:
+      # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
+          key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
       - run:
           command: |
-            python3 -m pip3 install pip_requirements.txt
+            sudo pip install pipenv
+            pipenv install
+      - save_cache: # cache Python dependencies using checksum of Pipfile as the cache-key
+          key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          paths:
+            - "venv"
+      - run:
+          command: |
+            python3 -m pip3 install -r pip_requirements.txt
             python3 -m pytest -s -v testcases/dex/test_dex_prv.py --no-print-logs -k DEX15
           name: Test DEX15
 
