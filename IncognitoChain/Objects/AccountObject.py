@@ -438,6 +438,13 @@ class Account:
                                                            amount,
                                                            contribution_pair_id)
 
+    def contribute_token_v2(self, contribute_token_id, amount, contribution_pair_id):
+        INFO(f'Contribute token: {contribute_token_id[-6:]}, amount = {amount}, pair id = {contribution_pair_id}')
+
+        return self.__SUT.full_node.dex().contribute_token2_v2(self.private_key, self.payment_key, contribute_token_id,
+                                                           amount,
+                                                           contribution_pair_id)
+
     def contribute_prv(self, amount, contribution_pair_id):
         INFO(f'Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
 

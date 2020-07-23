@@ -24,17 +24,18 @@ class DexRpc:
             execute()
 
     def contribute_prv_v2(self, private_key, payment_address, amount_to_contribute, contribution_pair_id):
+        amount_to_contribute = str(amount_to_contribute)
         return self.rpc_connection.with_method("createandsendtxwithprvcontributionv2"). \
             with_params([private_key,
                          {
-                             Const.BURNING_ADDR: str(amount_to_contribute)
+                             Const.BURNING_ADDR: amount_to_contribute
                          },
                          100, 0,
                          {
                              "PDEContributionPairID": contribution_pair_id,
                              "ContributorAddressStr":
                                  payment_address,
-                             "ContributedAmount": str(amount_to_contribute),
+                             "ContributedAmount": amount_to_contribute,
                              "TokenIDStr": Const.PRV_ID
                          }
                          ]). \
@@ -45,7 +46,7 @@ class DexRpc:
         return self.rpc_connection. \
             with_method("createandsendtxwithptokencontribution"). \
             with_params([private_key,
-                         None, 100, -1,
+                         None, 100, 0,
                          {
                              "Privacy": True,
                              "TokenID": token_id_to_contribute,
@@ -57,6 +58,33 @@ class DexRpc:
                                  Const.BURNING_ADDR: amount_to_contribute
                              },
                              "TokenFee": 0,
+                             "PDEContributionPairID": contribution_pair_id,
+                             "ContributorAddressStr": payment_address,
+                             "ContributedAmount": amount_to_contribute,
+                             "TokenIDStr": token_id_to_contribute
+                         },
+                         "", 0
+                         ]). \
+            execute()
+
+    def contribute_token_v2(self, private_key, payment_address, token_id_to_contribute, amount_to_contribute,
+                         contribution_pair_id):
+        amount_to_contribute = str(amount_to_contribute)
+        return self.rpc_connection. \
+            with_method("createandsendtxwithptokencontributionv2"). \
+            with_params([private_key,
+                         None, 100, 0,
+                         {
+                             "Privacy": True,
+                             "TokenID": token_id_to_contribute,
+                             "TokenTxType": 1,
+                             "TokenName": "",
+                             "TokenSymbol": "",
+                             "TokenAmount": amount_to_contribute,
+                             "TokenReceivers": {
+                                 Const.BURNING_ADDR: amount_to_contribute
+                             },
+                             "TokenFee": "0",
                              "PDEContributionPairID": contribution_pair_id,
                              "ContributorAddressStr": payment_address,
                              "ContributedAmount": amount_to_contribute,
