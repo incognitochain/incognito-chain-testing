@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build-and-test:
     machine:
-      image: circleci/ubuntu-1604:202007-01
+      image: ubuntu-1604:202007-01
     steps:
       - checkout
       - run:
