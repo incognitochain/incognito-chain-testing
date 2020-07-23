@@ -9,6 +9,8 @@ env.bak/
 venv.bak/
 log/
 auto-env/
+reports/
+.DS_Store
 
 #vscode
 .vscode
