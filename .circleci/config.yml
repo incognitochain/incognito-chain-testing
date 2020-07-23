@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build-and-test:
     machine:
-      image: circleci/classic:latest
+      image: circleci/python:3.7.7
     steps:
       - checkout
       - run:
