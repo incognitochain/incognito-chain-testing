@@ -12,10 +12,10 @@ jobs:
       - python/install-deps
       - python/save-cache
       - run:
-          command: pip3 install -r pip_requirements.txt
+          command: pyenv global 3.7.0
           name: Install dependencies
       - run:
-          command: python3 -m pytest -s -v testcases/dex/test_dex_prv.py --no-print-logs -k DEX15
+          command: pytest -s -v testcases/dex/test_dex_prv.py --no-print-logs -k DEX15
           name: Test DEX15
 
 workflows:
