@@ -23,7 +23,7 @@ jobs:
       - run:
           command: |
             python3 -m pip install -r pip_requirements.txt
-            python3 -m pytest -s -v testcases/dex/test_dex_prv.py --no-print-logs -k DEX15
+            python3 -m pytest -s -v testcases/dex/test_dex_prv.py --no-print-logs
           name: Test DEX15
 
 workflows:
