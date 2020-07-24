@@ -4,7 +4,7 @@ from typing import List
 from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, \
     PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT, PBNB_ID, PBTC_ID, PRV_ID
 from IncognitoChain.Helpers.Logging import INFO, DEBUG, INFO_HEADLINE
-from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
+from IncognitoChain.Helpers.TestHelper import l6, PortalHelper, extract_incognito_addr
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 
@@ -25,21 +25,8 @@ class PortalInfoObj(BlockChainInfoBaseClass):
             return True
         return False
 
-    @classmethod
-    def _extract_incognito_addr(cls, obj):
-        from IncognitoChain.Objects.AccountObject import Account
-        if type(obj) == str:
-            addr = obj
-        elif type(obj) == Account:
-            addr = obj.incognito_addr
-        elif type(obj) == CustodianInfo:
-            addr = obj.get_incognito_addr()
-        else:
-            raise TypeError("Input must be incognito address (string), CustodianInfo or Account object")
-        return addr
 
-
-class CustodianInfo(PortalInfoObj):
+class _CustodianInfo(PortalInfoObj):
 
     def __str__(self):
         # 'Custodian - bnb remote addr - btc remote add - total collateral - free collateral -
@@ -227,7 +214,7 @@ class PortingReqInfo(PortalInfoObj):
         custodian_info_list = self.data['Custodians']
         result = []
         for info in custodian_info_list:
-            result.append(CustodianInfo(info))
+            result.append(_CustodianInfo(info))
         return result
 
     def get_custodian(self, custodian):
@@ -236,7 +223,7 @@ class PortingReqInfo(PortalInfoObj):
         :param custodian: CustodianInfo or Account or incognito addr
         :return: CustodianInfo or None
         """
-        addr = self._extract_incognito_addr(custodian)
+        addr = extract_incognito_addr(custodian)
 
         custodian_list = self.get_custodians()
         for custodian in custodian_list:
@@ -254,7 +241,7 @@ class PortingReqInfo(PortalInfoObj):
 class RedeemReqInfo(PortalInfoObj):
     def __str__(self):
 
-        return "id= %s, reqester= %s, amount= %s, fee= %s" % (
+        return "id= %s, requester= %s, amount= %s, fee= %s" % (
             self.get_redeem_id(), self.get_requester(), self.get_redeem_amount(), self.get_redeem_fee())
 
     def get_redeem_id(self):
@@ -291,7 +278,7 @@ class RedeemReqInfo(PortalInfoObj):
 
         custodian_obj_list = []
         for item in custodian_dict:
-            cus = CustodianInfo(item)
+            cus = _CustodianInfo(item)
             custodian_obj_list.append(cus)
         return custodian_obj_list
 
@@ -301,7 +288,7 @@ class RedeemReqInfo(PortalInfoObj):
         :param custodian: CustodianInfo or Account or incognito addr
         :return:
         """
-        addr = self._extract_incognito_addr(custodian)
+        addr = extract_incognito_addr(custodian)
         custodian_list = self.get_redeem_matching_custodians()
         for custodian in custodian_list:
             if custodian.get_incognito_addr() == addr:
@@ -312,7 +299,7 @@ class RedeemReqInfo(PortalInfoObj):
         return int(self.data['RedeemAmount'])
 
 
-class LiquidationPool(PortalInfoObj):
+class _LiquidationPool(PortalInfoObj):
     """
     data sample:
      {
@@ -336,7 +323,7 @@ class LiquidationPool(PortalInfoObj):
     _estimate = 'estimate'
 
     def __add__(self, other):
-        sum_obj = LiquidationPool()
+        sum_obj = _LiquidationPool()
 
         my_tok_list = self._get_token_set()
         other_tok_list = other._get_token_set()
@@ -349,7 +336,7 @@ class LiquidationPool(PortalInfoObj):
         return sum_obj
 
     def __sub__(self, other):
-        sub_obj = LiquidationPool()
+        sub_obj = _LiquidationPool()
 
         my_tok_list = self._get_token_set()
         other_tok_list = other._get_token_set()
@@ -390,47 +377,49 @@ class LiquidationPool(PortalInfoObj):
 
     def get_collateral_amount_of_token(self, token_id):
         rates = self.get_rate_of_token(token_id)
-        return rates[LiquidationPool._collateral] if rates is not None else None
+        return rates[_LiquidationPool._collateral] if rates is not None else None
 
     def set_collateral_amount_of_token(self, token_id, amount):
         if type(self.data) is not dict:
-            self.data = {LiquidationPool._estimate: {}}
-            self.data[LiquidationPool._estimate][
-                LiquidationPool._rates] = {}  # possible bug here since this dict level could contains 2 token_id here
-            self.data[LiquidationPool._estimate][LiquidationPool._rates][token_id] = {}
+            self.data = {_LiquidationPool._estimate: {}}
+            self.data[_LiquidationPool._estimate][
+                _LiquidationPool._rates] = {}  # possible bug here since this dict level could contains 2 token_id here
+            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id] = {}
 
         try:
-            self.data[LiquidationPool._estimate][LiquidationPool._rates][token_id][LiquidationPool._collateral] = amount
+            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id][
+                _LiquidationPool._collateral] = amount
         except KeyError:
-            self.data[LiquidationPool._estimate][LiquidationPool._rates][token_id] = {}
-            self.data[LiquidationPool._estimate][LiquidationPool._rates][token_id][LiquidationPool._collateral] = amount
+            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id] = {}
+            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id][
+                _LiquidationPool._collateral] = amount
 
         return self
 
     def get_public_token_amount_of_token(self, token_id):
         rates = self.get_rate_of_token(token_id)
-        return rates[LiquidationPool._token_amount] if rates is not None else None
+        return rates[_LiquidationPool._token_amount] if rates is not None else None
 
     def set_public_token_amount_of_token(self, token_id, amount):
         if type(self.data) is not dict:
-            self.data = {LiquidationPool._estimate: {}}
-            self.data[LiquidationPool._estimate][
-                LiquidationPool._rates] = {}  # possible bug here since this dict level could contains 2 token_id here
-            self.data[LiquidationPool._estimate][LiquidationPool._rates][token_id] = {}
+            self.data = {_LiquidationPool._estimate: {}}
+            self.data[_LiquidationPool._estimate][
+                _LiquidationPool._rates] = {}  # possible bug here since this dict level could contains 2 token_id here
+            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id] = {}
 
         try:
-            self.data[LiquidationPool._estimate][LiquidationPool._rates][token_id][
-                LiquidationPool._token_amount] = amount
+            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id][
+                _LiquidationPool._token_amount] = amount
         except KeyError:
-            self.data[LiquidationPool._estimate][LiquidationPool._rates][token_id][
-                LiquidationPool._token_amount] = amount
-            self.data[LiquidationPool._estimate][LiquidationPool._rates][token_id][
-                LiquidationPool._token_amount] = amount
+            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id][
+                _LiquidationPool._token_amount] = amount
+            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id][
+                _LiquidationPool._token_amount] = amount
         return self
 
     def get_rate_of_token(self, token_id):
         rates = self.get_rates()
-        return None if rates is None else self.get_rates()[LiquidationPool._rates][token_id]
+        return None if rates is None else self.get_rates()[_LiquidationPool._rates][token_id]
 
     def get_rates(self):
         if self.data == {}:
@@ -461,9 +450,9 @@ class PTokenReqInfo(PortalInfoObj):
 
 
 class PortalStateInfo(PortalInfoObj):
-    def get_custodian_pool(self) -> List[CustodianInfo]:
+    def get_custodian_pool(self) -> List[_CustodianInfo]:
         custodian_pool = self.data['CustodianPool']
-        custodian_list = [CustodianInfo(value) for key, value in custodian_pool.items()]
+        custodian_list = [_CustodianInfo(value) for key, value in custodian_pool.items()]
         return custodian_list
 
     def get_custodian_info_in_pool(self, custodian_info):
@@ -472,7 +461,7 @@ class PortalStateInfo(PortalInfoObj):
         :param custodian_info: incognito address or CustodianInfo obj
         :return:
         """
-        addr = self._extract_incognito_addr(custodian_info)
+        addr = extract_incognito_addr(custodian_info)
         pool = self.get_custodian_pool()
         for custodian in pool:
             if custodian.get_incognito_addr() == addr:
@@ -562,9 +551,9 @@ class PortalStateInfo(PortalInfoObj):
                 req_list.append(req)
         return req_list
 
-    def get_liquidation_pool(self) -> LiquidationPool:
+    def get_liquidation_pool(self) -> _LiquidationPool:
         pool_data = self.data['LiquidationPool']
-        return LiquidationPool(pool_data)
+        return _LiquidationPool(pool_data)
 
     def help_get_highest_free_collateral_custodian(self):
         custodian_pool = self.get_custodian_pool()
@@ -661,10 +650,10 @@ class PortalStateInfo(PortalInfoObj):
                 liquidating_list.append(custodian)
         return liquidating_list
 
-    def estimate_liquidation_pool(self, token_id, new_token_rate, new_prv_rate) -> LiquidationPool:
+    def estimate_liquidation_pool(self, token_id, new_token_rate, new_prv_rate) -> _LiquidationPool:
         liquidating_custodian = self.find_custodians_will_be_liquidate_with_new_rate(token_id, new_token_rate,
                                                                                      new_prv_rate)
-        estimate_liquidate_pool = LiquidationPool()
+        estimate_liquidate_pool = _LiquidationPool()
         estimate_liquidate_pool.set_public_token_amount_of_token(token_id, 0)
         estimate_liquidate_pool.set_collateral_amount_of_token(token_id, 0)
         if not liquidating_custodian:  # liquidate_custodian is empty
@@ -817,12 +806,11 @@ class CustodianWithdrawTxInfo(PortalInfoObj):
     _remain_free_collateral = 'RemainCustodianFreeCollateral'
 
     def get_custodian_withdraw_info_by_tx(self, tx_id, retry=True):
-        self.data = self.SUT.full_node.portal().get_custodian_withdraw_by_tx_id(tx_id). \
-            get_result()[CustodianWithdrawTxInfo._info]
-        if self.is_none() and retry:
+        response = self.SUT.full_node.portal().get_custodian_withdraw_by_tx_id(tx_id)
+        if response.get_error_msg() is not None and retry:
             WAIT(40)
-            self.data = self.SUT.full_node.portal().get_custodian_withdraw_by_tx_id(tx_id). \
-                get_result()[CustodianWithdrawTxInfo._info]
+            response = self.SUT.full_node.portal().get_custodian_withdraw_by_tx_id(tx_id)
+        self.data = response.get_result()[CustodianWithdrawTxInfo._info]
         return self
 
     def get_payment_addr(self):

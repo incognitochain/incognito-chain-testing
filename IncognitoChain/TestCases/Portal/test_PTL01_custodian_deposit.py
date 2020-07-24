@@ -7,13 +7,13 @@ from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT, PORTAL_FEEDER
-from IncognitoChain.Objects.PortalObjects import CustodianInfo, CustodianWithdrawTxInfo, PortalStateInfo
-from IncognitoChain.TestCases.Portal import TEST_SETTING_DEPOSIT_AMOUNT, self_pick_custodian, custodian_remote_address, \
-    just_another_remote_addr, portal_user
+from IncognitoChain.Objects.PortalObjects import _CustodianInfo, CustodianWithdrawTxInfo, PortalStateInfo
+from IncognitoChain.TestCases.Portal import TEST_SETTING_DEPOSIT_AMOUNT, self_pick_custodian, \
+    custodian_remote_address, just_another_remote_addr, portal_user
 
 current_total_collateral = 0
-custodian_info_before = CustodianInfo()
-custodian_info_after = CustodianInfo()
+custodian_info_before = _CustodianInfo()
+custodian_info_after = _CustodianInfo()
 
 
 def setup_function():
@@ -239,8 +239,7 @@ def test_creating_rate(account, expected_pass):
         create_rate_tx.subscribe_transaction()
         INFO("Wait 60s for new rate to apply")
         WAIT(60)
-        portal_state = SUT.full_node.get_latest_portal_state()
-        portal_state_info = PortalStateInfo(portal_state.get_result())
+        portal_state_info = SUT.full_node.get_latest_portal_state_info()
         INFO('Checking new rate')
         for token, value in test_rate.items():
             new_rate = portal_state_info.get_portal_rate(token)

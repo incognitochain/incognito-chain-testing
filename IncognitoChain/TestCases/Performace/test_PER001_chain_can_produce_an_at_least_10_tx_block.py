@@ -10,7 +10,6 @@ def setup_function():
     transactions_save_fullnode.clear()
     INFO('get balance all accounts')
     for account in accounts_send + accounts_receive:
-        account.calculate_shard_id()
         balance = account.get_prv_balance()
         if balance < 1300:
             COIN_MASTER.send_prv_to(account, 1300, privacy=0).subscribe_transaction()

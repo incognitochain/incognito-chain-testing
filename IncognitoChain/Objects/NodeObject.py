@@ -1,5 +1,4 @@
 import time
-from typing import List
 
 from pexpect import pxssh
 
@@ -18,7 +17,8 @@ from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.BlockChainObjects import BlockChainCore
-from IncognitoChain.Objects.PortalObjects import PortalStateInfo, CustodianInfo
+from IncognitoChain.Objects.PdeObjects import PDEStateInfo
+from IncognitoChain.Objects.PortalObjects import PortalStateInfo
 
 
 class Node:
@@ -123,6 +123,12 @@ class Node:
     def explore_rpc(self) -> ExploreRpc:
         return ExploreRpc(self._get_rpc_url())
 
+    def get_latest_pde_state_info(self, beacon_height=None):
+        if beacon_height is None:
+            beacon_height = self.help_get_beacon_height()
+        pde_state = self.dex().get_pde_state(beacon_height)
+        return PDEStateInfo(pde_state.get_result())
+
     def get_latest_rate_between(self, token_id_1, token_id_2):
         """
         find latest rate between input tokens, return None if cannot find rate
@@ -131,8 +137,7 @@ class Node:
         :param token_id_2:
         :return: List of [token 1 contributed amount, token 2 contributed amount]
         """
-        best_state = self.system_rpc().get_beacon_best_state()
-        beacon_height = best_state.get_beacon_height()
+        beacon_height = self.help_get_beacon_height()
 
         pde_state = self.dex().get_pde_state(beacon_height)
 
@@ -244,29 +249,6 @@ class Node:
 
     def get_latest_portal_state_info(self, beacon_height=None):
         return PortalStateInfo(self.get_latest_portal_state(beacon_height).get_result())
-
-    def help_get_highest_holding_token_custodian(self, token_id, portal_state=None) -> CustodianInfo:
-        if portal_state is None:
-            portal_state = self.get_latest_portal_state()
-        custodian_pool = self.help_get_portal_custodian_pool(portal_state)
-        highest_holding = custodian_pool[0]
-        for info in custodian_pool:
-            if info.get_holding_token_amount(token_id) > highest_holding.get_holding_token_amount(token_id):
-                highest_holding = info
-
-        return highest_holding
-
-    def help_get_portal_custodian_pool(self, portal_state=None) -> List[CustodianInfo]:
-        if portal_state is None:
-            portal_state = self.get_latest_portal_state()
-        return PortalStateInfo(portal_state.get_result()).get_custodian_pool()
-
-    def print_portal_custodians_info(self, portal_state=None):
-        c_pool = self.help_get_portal_custodian_pool(portal_state)
-        print(f'Custodian - bnb remote addr/btc remote add - total collateral - free collateral -'
-              f' holding bnb - holding btc - lock bnb - lock btc - reward prv')
-        for custodian in c_pool:
-            print(custodian)
 
     ##########
     # BRIDGE

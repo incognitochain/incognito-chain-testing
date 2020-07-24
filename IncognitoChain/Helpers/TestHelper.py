@@ -27,6 +27,20 @@ def to_num(*args):
     return ret
 
 
+def extract_incognito_addr(obj):
+    from IncognitoChain.Objects.AccountObject import Account
+    from IncognitoChain.Objects.PortalObjects import _CustodianInfo
+    if type(obj) == str:
+        addr = obj
+    elif type(obj) == Account:
+        addr = obj.incognito_addr
+    elif type(obj) == _CustodianInfo:
+        addr = obj.get_incognito_addr()
+    else:
+        raise TypeError("Input must be incognito address (string), CustodianInfo or Account object")
+    return addr
+
+
 class ChainHelper:
     @staticmethod
     def wait_till_beacon_height(beacon_height, wait=40, timeout=120):

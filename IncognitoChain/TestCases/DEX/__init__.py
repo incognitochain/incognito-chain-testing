@@ -1,7 +1,7 @@
 from IncognitoChain.Configs.Constants import coin
 from IncognitoChain.Helpers.Time import get_current_date_time
 from IncognitoChain.Objects.AccountObject import Account
-from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER, SUT
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 # contributor = ACCOUNTS[0]
@@ -12,10 +12,10 @@ token_owner = Account(
 # when token_id set to none, init new token and use it for the test
 # otherwise, use token id for the test without initializing new token
 # token_id = "a4442a68070fc615abee5e8c665808ebc1c670e5fd16f49ca8e992bf7c126739"
-# token_id_1 = "0a35aa083cfdda82dcc07558fe128b6b835e764100d185dda3c4aef66283a1eb"  # testnet
-# token_id_2 = "60e44a298d2b3f32629b7b8fc9f7ac05fd24158105af176038168875e7ea0006"  # testnet
-token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
-token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
+# token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
+# token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
+token_id_1 = "2cc0e24508a105a305e6d3cf0a742a94450ccf513e9f31f3d3f5ac5565daac4b"  # local
+token_id_2 = "31a7452fd0666bfc6a41ea3abff93f719a5d8fb7824ef62fe24751d93c503486"  # local
 # token_id_1 = None
 # token_id_2 = None
 

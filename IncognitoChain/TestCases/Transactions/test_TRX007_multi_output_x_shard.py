@@ -14,7 +14,6 @@ def setup_module():
     global total_sent_amount, receiver_account_list_before, is_sent, sender_account
     sender_account = ACCOUNTS[0]
     is_sent = False
-    COIN_MASTER.calculate_shard_id()
 
     # create receiver list
     receiver_account_list_before = copy.deepcopy(ACCOUNTS)

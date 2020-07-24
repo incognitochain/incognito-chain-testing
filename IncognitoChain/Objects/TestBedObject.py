@@ -22,12 +22,15 @@ def load_test_bed(name):
 
 
 class TestBed:
+    REQUEST_HANDLER = Node()
+
     def __init__(self, test_bed):
         tb = load_test_bed(test_bed)
 
         self.full_node: Node = tb.full_node
         self.beacon: Beacon = tb.beacon
         self.shards: List[Shard] = tb.shard_list
+        TestBed.REQUEST_HANDLER = self.full_node
 
     def precondition_check(self):
         Log.INFO(f'Checking test bed')
@@ -43,3 +46,4 @@ class TestBed:
         else:
             handler = self.shards[shard_id].get_representative_node()
         return handler
+

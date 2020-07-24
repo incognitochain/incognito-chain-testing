@@ -18,11 +18,11 @@ n = 'n'
 
 def setup_module():
     INFO("Check if custodian need to add more collateral")
-    portal_state = SUT.full_node.get_latest_portal_state()
+    PSI = SUT.full_node.get_latest_portal_state_info()
 
     deposit_more = False
     for cus in all_custodians_remote_addr.keys():
-        cus_stat = cus.portal_get_my_custodian_info(portal_state)
+        cus_stat = cus.portal_get_my_custodian_info(PSI)
 
         if cus_stat is None:
             INFO(f'{l6(cus.payment_key)} is not yet custodian, make him one')

@@ -6,12 +6,12 @@ from websocket import WebSocketTimeoutException
 
 from IncognitoChain.Configs import Constants
 from IncognitoChain.Configs.Constants import PRV_ID, coin, PortalCustodianReqMatchingStatus
-from IncognitoChain.Drivers.Response import Response
-from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG, INFO_HEADLINE
+from IncognitoChain.Drivers.IncognitoKeyGen import get_key_set_from_private_k
+from IncognitoChain.Helpers.Logging import INFO, WARNING, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
 from IncognitoChain.Objects.CoinObject import Coin
-from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, CustodianInfo, PortalStateInfo
+from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, _CustodianInfo, PortalStateInfo
 
 
 class Account:
@@ -19,14 +19,36 @@ class Account:
     _cache_bal_prv = 'balance_prv'
     _cache_bal_tok = 'balance_token'
 
-    def __init__(self, private_key=None, payment_key=None, shard=None,
-                 validator_key=None, public_key=None, read_only_key=None):
-        self.private_key = private_key
-        self.validator_key = validator_key
-        self.payment_key = self.incognito_addr = payment_key
-        self.public_key = public_key
-        self.read_only_key = read_only_key
-        self.shard = shard
+    def _generate_keys(self):
+        private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
+        bridge_public_k, mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(self.private_key)
+
+        self.private_key = private_k
+        self.validator_key = validator_k
+        self.payment_key = self.incognito_addr = payment_k
+        self.public_key = public_k
+        self.read_only_key = read_only_k
+        self.bls_public_k = bls_public_k
+        self.bridge_public_k = bridge_public_k
+        self.mining_public_k = mining_public_k
+        self.committee_public_k = committee_public_k
+        self.shard = int(shard_id)
+
+    def __init__(self, private_key=None, payment_key=None, shard=None, validator_key=None, public_key=None,
+                 read_only_key=None):
+        private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
+        bridge_public_k, mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(private_key)
+
+        self.private_key = private_k
+        self.validator_key = validator_k
+        self.payment_key = self.incognito_addr = payment_k
+        self.public_key = public_k
+        self.read_only_key = read_only_k
+        self.bls_public_k = bls_public_k
+        self.bridge_public_k = bridge_public_k
+        self.mining_public_k = mining_public_k
+        self.committee_public_k = committee_public_k
+        self.shard = int(shard_id)
         self.cache = {}
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         self.__SUT = SUT
@@ -37,23 +59,36 @@ class Account:
         return False
 
     def __copy__(self):
-        copy_obj = Account(self.private_key,
-                           self.payment_key,
-                           self.shard,
-                           self.validator_key,
-                           self.public_key,
-                           self.read_only_key)
+        copy_obj = Account()
+
+        copy_obj.private_key = self.private_key
+        copy_obj.validator_key = self.validator_key
+        copy_obj.payment_key = self.payment_key
+        copy_obj.incognito_addr = self.incognito_addr
+        copy_obj.public_key = self.public_key
+        copy_obj.read_only_key = self.read_only_key
+        copy_obj.bls_public_k = self.bls_public_k
+        copy_obj.bridge_public_k = self.bridge_public_k
+        copy_obj.mining_public_k = self.mining_public_k
+        copy_obj.committee_public_k = self.committee_public_k
+        copy_obj.shard = self.shard
         copy_obj.cache = self.cache
         return copy_obj
 
     def __deepcopy__(self, memo={}):
-        copy_obj = Account(copy.deepcopy(self.private_key),
-                           copy.deepcopy(self.payment_key),
-                           copy.deepcopy(self.shard),
-                           copy.deepcopy(self.validator_key),
-                           copy.deepcopy(self.public_key),
-                           copy.deepcopy(self.read_only_key))
+        copy_obj = Account()
 
+        copy_obj.private_key = copy.deepcopy(self.private_key)
+        copy_obj.validator_key = copy.deepcopy(self.validator_key)
+        copy_obj.payment_key = copy.deepcopy(self.payment_key)
+        copy_obj.incognito_addr = copy.deepcopy(self.incognito_addr)
+        copy_obj.public_key = copy.deepcopy(self.public_key)
+        copy_obj.read_only_key = copy.deepcopy(self.read_only_key)
+        copy_obj.bls_public_k = copy.deepcopy(self.bls_public_k)
+        copy_obj.bridge_public_k = copy.deepcopy(self.bridge_public_k)
+        copy_obj.mining_public_k = copy.deepcopy(self.mining_public_k)
+        copy_obj.committee_public_k = copy.deepcopy(self.committee_public_k)
+        copy_obj.shard = copy.deepcopy(self.shard)
         copy_obj.cache = copy.deepcopy(self.cache)
         return copy_obj
 
@@ -80,15 +115,6 @@ class Account:
         last_byte = response.get_result("PublicKeyInBytes")[-1]
         self.shard = last_byte % 8
         return self.shard
-
-    def __init_from_json(self, json_string):
-        self.public_key = json_string.get('public')
-        self.private_key = json_string.get('private')
-        self.payment_key = json_string.get('payment')
-        self.read_only_key = json_string.get('read')
-        self.validator_key = json_string.get('validator')
-        self.shard = json_string.get('shard')
-        return self
 
     def __str__(self):
         string = f'Shard = {self.shard}\n' + \
@@ -168,6 +194,25 @@ class Account:
         INFO(f"Token Bal = {balance}, private key = {l6(self.private_key)}, token id = {l6(token_id)}")
         return balance
 
+    def get_all_custom_token_balance(self):
+        """
+
+        :return: example
+        [
+            {
+                "Name": "",
+                "Symbol": "",
+                "Amount": 430,
+                "TokenID": "6abd698ea7ddd1f98b1ecaaddab5db0453b8363ff092f0d8d7d4c6b1155fb693",
+                "TokenImage": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkAQMAAABEgsN2AAAABlBMVEXw8PBwrhrnsOZhAAAAn0lEQVR4nOzaOwoCMRSGUa1cRpaqS3UZqVS4WFxMEDGZB8P5qhkmZ+q/yEmSJK3R+Rnd4qXEc6UoiqIoiqKopVT++Fa52v6OoiiKoiiKouaoTtc4cv92hKIoiqIoiqLGVUlz9dGqS56zn7uXoiiKoiiKokaUJEmStFWdBZv7ffdSFEVRFEVR1F9qzzdaKYqiKIqiqKMqSZI0uVcAAAD//xeb0J2XU8SMAAAAAElFTkSuQmCC",
+                "IsPrivacy": true,
+                "IsBridgeToken": true
+            }
+        ]
+        """
+        return self.__SUT.full_node.transaction().list_custom_token_balance(self.private_key). \
+            get_result('ListCustomTokenBalance')
+
     def list_unspent_coin(self):
         raw_response = self.__SUT.full_node.transaction().list_unspent_output_coins(self.private_key)
         raw_coins = raw_response.get_result('Outputs')[self.private_key]
@@ -177,8 +222,7 @@ class Account:
         return obj_coins
 
     def list_unspent_token(self):
-        custom_token_bal_raw = self.__SUT.full_node.transaction().list_custom_token_balance(self.private_key). \
-            get_result('ListCustomTokenBalance')
+        custom_token_bal_raw = self.get_all_custom_token_balance()
         obj_coins = []
         for bal in custom_token_bal_raw:
             tok_id = bal['TokenID']
@@ -316,12 +360,10 @@ class Account:
         except KeyError:
             return None
 
-    def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1, shard_id=-1):
+    def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1):
         """
         send amount_prv of prv to to_account. by default fee=-1 and privacy=1
 
-        :param shard_id: if = -1 then fullnode will handle the transaction.
-         otherwise shard with id = {shard_id} will handle the request
         :param receiver_account:
         :param amount:
         :param fee: default = auto
@@ -330,7 +372,7 @@ class Account:
         """
         INFO(f'From: {l6(self.private_key)}. Send {amount} prv to: {l6(receiver_account.payment_key)}')
 
-        return self.__SUT.get_request_handler(shard_id).transaction(). \
+        return self.__SUT.REQUEST_HANDLER.transaction(). \
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
 
     def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1):
@@ -431,26 +473,32 @@ class Account:
         return self.__SUT.full_node.transaction().init_custom_token(self.private_key, account.payment_key, symbol,
                                                                     amount)
 
-    def contribute_token(self, contribute_token_id, amount, contribution_pair_id):
-        INFO(f'Contribute token: {contribute_token_id[-6:]}, amount = {amount}, pair id = {contribution_pair_id}')
+    def pde_contribute(self, token_id, amount, pair_id):
+        if token_id == PRV_ID:
+            return self.pde_contribute_prv(amount, pair_id)
+        else:
+            return self.pde_contribute_token(token_id, amount, pair_id)
+
+    def pde_contribute_token(self, contribute_token_id, amount, contribution_pair_id):
+        INFO(f'{l6(self.private_key)} Contribute token: {contribute_token_id[-6:]}, amount = {amount}, '
+             f'pair id = {contribution_pair_id}')
 
         return self.__SUT.full_node.dex().contribute_token(self.private_key, self.payment_key, contribute_token_id,
-                                                           amount,
-                                                           contribution_pair_id)
+                                                           amount, contribution_pair_id)
 
-    def contribute_prv(self, amount, contribution_pair_id):
-        INFO(f'Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
+    def pde_contribute_prv(self, amount, contribution_pair_id):
+        INFO(f'{l6(self.private_key)} Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
 
         return self.__SUT.full_node.dex().contribute_prv(self.private_key, self.payment_key, amount,
                                                          contribution_pair_id)
 
-    def contribute_prv_v2(self, amount, contribution_pair_id):
-        INFO(f'Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
+    def pde_contribute_prv_v2(self, amount, contribution_pair_id):
+        INFO(f'{l6(self.private_key)} Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
 
         return self.__SUT.full_node.dex().contribute_prv_v2(self.private_key, self.payment_key, amount,
                                                             contribution_pair_id)
 
-    def withdraw_contribution(self, token_id_1, token_id_2, amount):
+    def pde_withdraw_contribution(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw contribution {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
         return self.__SUT.full_node.dex().withdrawal_contribution(self.private_key, self.payment_key, token_id_1,
                                                                   token_id_2, amount)
@@ -588,6 +636,20 @@ class Account:
     #######
     # DEX
     #######
+    def pde_clean_all_waiting_contribution(self):
+        pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+        waiting_contributions = pde_state.get_waiting_contributions()
+        for contribution in waiting_contributions:
+            self.pde_contribute(contribution.get_token_id(), contribution.get_amount(), contribution.get_pair_id()). \
+                subscribe_transaction_obj()
+
+    def pde_clean_my_waiting_contribution(self):
+        pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+        my_waiting_contributions = pde_state.find_waiting_contribution_of_user(self)
+        for contribution in my_waiting_contributions:
+            self.pde_contribute(contribution.get_token_id(), contribution.get_amount(), contribution.get_pair_id()). \
+                subscribe_transaction_obj()
+
     def is_my_token_waiting_for_contribution(self, pair_id, token_id):
         INFO(f"Check if {token_id[-6:]} init by {self.payment_key[-6:]} is waiting for contribution ")
         pde_state = self.__SUT.full_node.help_get_current_pde_status()
@@ -604,22 +666,22 @@ class Account:
         WARNING(f"NOT FOUND pair_id: {pair_id} in PDE waiting for contribution")
         return False
 
-    def wait_till_my_token_in_waiting_for_contribution(self, token_id, timeout=100):
+    def wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         INFO(f"Wait until token {token_id[-6:]} is in waiting for contribution")
-        result = self.is_my_token_waiting_for_contribution(token_id)
+        result = self.is_my_token_waiting_for_contribution(pair_id, token_id)
         while timeout >= 0:
             if result:
                 INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
                 return result
             timeout -= 10
             WAIT(10)
-            result = self.is_my_token_waiting_for_contribution(token_id)
+            result = self.is_my_token_waiting_for_contribution(pair_id, token_id)
         INFO(f'Token {token_id[-6:]} is NOT found in contribution waiting list')
         return result
 
-    def wait_till_my_token_out_waiting_for_contribution(self, token_id, timeout=100):
+    def wait_till_my_token_out_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         INFO(f"Wait until token {token_id[-6:]} is OUT of waiting for contribution")
-        result = self.is_my_token_waiting_for_contribution(token_id)
+        result = self.is_my_token_waiting_for_contribution(pair_id, token_id)
         while timeout >= 0:
             if not result:
                 INFO(f'Token {token_id[-6:]} is NOT found in contribution waiting list')
@@ -776,10 +838,18 @@ class Account:
         return self.__SUT.full_node.portal().create_n_send_custodian_withdraw_req(self.private_key, self.payment_key,
                                                                                   amount)
 
-    def portal_withdraw_my_all_free_collateral(self, portal_state=None):
+    def portal_withdraw_my_all_free_collateral(self, psi=None):
+        """
+
+        :param psi: PortalStateInfo
+        :return:
+        """
+        if psi is None:
+            psi = self.__SUT.full_node.get_latest_portal_state_info()
         INFO("Withdraw all collateral")
-        my_free_collateral = self.portal_get_my_custodian_info(portal_state).get_free_collateral()
+        my_free_collateral = psi.get_custodian_info_in_pool(self).get_free_collateral()
         if my_free_collateral == 0:
+            INFO('Current free collateral is 0, nothing to withdraw')
             return None
         return self.portal_withdraw_my_collateral(my_free_collateral)
 
@@ -797,20 +867,15 @@ class Account:
         return self.__SUT.full_node.portal().create_n_send_tx_with_req_ptoken(self.private_key, self.payment_key,
                                                                               porting_id, token_id, amount, proof)
 
-    def portal_get_my_custodian_info(self, portal_state: Response = None) -> (CustodianInfo, None):
+    def portal_get_my_custodian_info(self, psi: PortalStateInfo = None) -> (_CustodianInfo, None):
         """
 
-        :param portal_state:
+        :param psi: PortalStateInfo
         :return CustodianInfo or None:
         """
-        custodian_list = self.__SUT.full_node.help_get_portal_custodian_pool(portal_state)
-        for custodian in custodian_list:
-            DEBUG(f'Checking {l6(custodian.get_incognito_addr())}')
-            if custodian.get_incognito_addr() == self.payment_key:
-                DEBUG(f'Match: {l6(self.payment_key)}')
-                self.cache['custodian_info'] = custodian
-                return custodian
-        return None
+        if psi is None:
+            psi = self.__SUT.full_node.get_latest_portal_state_info()
+        return psi.get_custodian_info_in_pool(self)
 
     def portal_get_my_custodian_info_cache(self):
         return self.cache[Account._cache_custodian_inf]
@@ -980,6 +1045,7 @@ def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]
     for account in account_list:
         if account.shard == shard_number:
             accounts_in_shard.append(account)
+
     return accounts_in_shard
 
 

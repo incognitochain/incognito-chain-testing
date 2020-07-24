@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import json
+import os
 import subprocess
 from json.decoder import JSONDecodeError
 
@@ -13,11 +14,13 @@ _bnb_host = 'data-seed-pre-0-s1.binance.org'
 _bnb_rpc_port = 443
 _bnb_rpc_protocol = 'https'
 
+tbnbcli = f'{os.getcwd()}/IncognitoChain/Drivers/bin/tbnbcli'
+
 
 class BnbCli:
     def __init__(self,
-                 cmd='tbnbcli',
-                 chain_id="Binance-Chain-Nile",
+                 cmd=tbnbcli,
+                 chain_id="Binance-Chain-Ganges",
                  node=None):
         if node is None:
             self.node = f'tcp://{_bnb_host}:80'

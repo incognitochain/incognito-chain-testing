@@ -5,6 +5,7 @@ from builtins import Exception
 import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Objects.PortalObjects import PortalStateInfo
+from IncognitoChain.Objects.TransactionObjects import TransactionDetail
 
 
 class Response:
@@ -161,6 +162,21 @@ class Response:
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         return SUT.full_node.subscription().subscribe_pending_transaction(tx_id)
 
+    def subscribe_transaction_obj(self, tx_id=None):
+        """
+        Subscribe transaction by txid
+
+        :param tx_id: if not specified, use tx id from self
+        :return: TransactionDetail Object
+        """
+        if tx_id is None:
+            tx_id = self.get_tx_id()
+        INFO(f'Subscribe to transaction tx_id = {tx_id}')
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        from IncognitoChain.Objects.TransactionObjects import TransactionDetail
+        tx = SUT.full_node.subscription().subscribe_pending_transaction(tx_id)
+        return TransactionDetail(tx.get_result('Result'))
+
     def get_proof_detail_input_coin_value_prv(self):
         try:
             return self.get_result('ProofDetail')['InputCoins'][0]['CoinDetails']['Value']
@@ -253,6 +269,9 @@ class Response:
         :return: tx proof from the response it self
         """
         return self.get_result('Proof')
+
+    def get_tx_object(self):
+        return TransactionDetail(self.get_result())
 
 
 class StackTrace:

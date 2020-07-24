@@ -13,12 +13,12 @@ from IncognitoChain.TestCases.DEX import token_id_1, token_owner, token_id_2
     # last 2 always fail on jenkins testbed,
     # the very last case offend fail by missing 1 nano prv calculation of bal after contribute
     # the other fail because contribute amount from api is always 0
-    [PRV_ID, token_id_1],
-    [token_id_1, PRV_ID],
-    [token_id_2, token_id_1],
-    [token_id_1, token_id_2],
+    [PRV_ID, token_id_1],  # contribute prv
+    [token_id_1, PRV_ID],  # contribute prv reverse
+    [token_id_2, token_id_1],  # contribute token
+    [token_id_1, token_id_2],  # contribute token reverse
 ))
-def test_contribute_prv(token1, token2):
+def test_contribute(token1, token2):
     pair_id = f'{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
     tok1_contrib_amount = coin(1234)
     tok2_contrib_amount = coin(2134)
@@ -31,8 +31,8 @@ def test_contribute_prv(token1, token2):
             - check the amount of refund and the actual amount contribution
             """)
     STEP(0, "Checking env - checking waiting contribution list, pDEX share amount")
-    assert not token_owner.is_my_token_waiting_for_contribution(token1)
-    assert not token_owner.is_my_token_waiting_for_contribution(token2)
+    assert not token_owner.is_my_token_waiting_for_contribution(pair_id, token1)
+    assert not token_owner.is_my_token_waiting_for_contribution(pair_id, token2)
 
     bal_tok1_be4_contrib = token_owner.get_token_balance(token1)
     bal_tok2_be4_contrib = token_owner.get_token_balance(token2)
@@ -47,19 +47,19 @@ def test_contribute_prv(token1, token2):
     # breakpoint()
     STEP(1, f"Contribute {l6(token1)}")
     if token1 == PRV_ID:
-        contribute_token1_result = token_owner.contribute_prv(tok1_contrib_amount, pair_id)
+        contribute_token1_result = token_owner.pde_contribute_prv(tok1_contrib_amount, pair_id)
     else:
-        contribute_token1_result = token_owner.contribute_token(token1, tok1_contrib_amount, pair_id)
+        contribute_token1_result = token_owner.pde_contribute_token(token1, tok1_contrib_amount, pair_id)
     contribute_token1_fee = contribute_token1_result.subscribe_transaction().get_fee()
 
     STEP(2, 'Verify contribution')
-    assert token_owner.wait_till_my_token_in_waiting_for_contribution(token1)
+    assert token_owner.wait_till_my_token_in_waiting_for_contribution(pair_id, token1)
 
     STEP(3, f'Contribute {l6(token2)}')
     if token2 == PRV_ID:
-        contribute_token2_result = token_owner.contribute_prv(tok2_contrib_amount, pair_id)
+        contribute_token2_result = token_owner.pde_contribute_prv(tok2_contrib_amount, pair_id)
     else:
-        contribute_token2_result = token_owner.contribute_token(token2, tok2_contrib_amount, pair_id)
+        contribute_token2_result = token_owner.pde_contribute_token(token2, tok2_contrib_amount, pair_id)
     contribute_token2_fee = contribute_token2_result.subscribe_transaction().get_fee()
     contrib_fee_sum = contribute_token1_fee + contribute_token2_fee
 

@@ -8,7 +8,7 @@ from IncognitoChain.Helpers.Logging import STEP, INFO, DEBUG, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import calculate_actual_trade_received, l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
-from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_id_2, token_owner
+from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_owner
 
 trade_amount = random.randrange(9900000, 10000000)
 
@@ -71,7 +71,7 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
 
     STEP(2, f"trade {token_sell[-6:]} at the same time")
     tx_list = []
-    for i in range(0, len(traders)):
+    for i in range(0, len(traders)):  # todo: apply threading
         trader = traders[i]
         trade_tx = trader.trade_token(token_sell, trade_amount, token_buy, 1, trading_fee[i])
         tx_list.append(trade_tx)

@@ -13,3 +13,6 @@ class BlockChainInfoBaseClass(ABC):
 
     def __ne__(self, other):
         return self.data != other.data
+
+    def is_none(self):
+        return self.data is None or self.data == ''

@@ -42,8 +42,8 @@ def teardown_module():
     INFO("Tear down")
     global contribute_success
     if contribute_success:
-        account_init.withdraw_contribution(Constants.PRV_ID, custom_token_id,
-                                           token_contribute_amount).subscribe_transaction()
+        account_init.pde_withdraw_contribution(Constants.PRV_ID, custom_token_id,
+                                               token_contribute_amount).subscribe_transaction()
     contribute_success = False
 
 
@@ -73,14 +73,14 @@ def test_init_ptoken():
 
     STEP(4, "contribute token & PRV")
     # Contribute TOKEN:
-    contribute_token_result = account_init.contribute_token(custom_token_id, token_contribute_amount, pair_id)
+    contribute_token_result = account_init.pde_contribute_token(custom_token_id, token_contribute_amount, pair_id)
     assert contribute_token_result.get_error_msg() is None
     INFO(f"Contribute {custom_token_id} Success, TxID: {contribute_token_result.get_tx_id()}")
     INFO("Subscribe contribution transaction")
     contribute_token_result.subscribe_transaction()
     # Contribute PRV:ken
     WAIT(10)
-    contribute_prv_result = account_init.contribute_prv(prv_contribute_amount, pair_id)
+    contribute_prv_result = account_init.pde_contribute_prv(prv_contribute_amount, pair_id)
     assert contribute_prv_result.get_error_msg() is None
     global contribute_success
     contribute_success = True
