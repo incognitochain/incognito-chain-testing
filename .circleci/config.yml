@@ -1,0 +1,22 @@
+version: 2.1
+
+jobs:
+  build-and-test:
+    docker: # run the steps with Docker
+      # CircleCI Python images available at: https://hub.docker.com/r/circleci/python/
+      - image: circleci/python:3.7.7
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.7/site-packages
+      - run:
+          command: |
+            python3 -m pip install -r pip_requirements.txt
+            python3 -m pytest testcases/dex/test_dex_prv.py
+          name: Test DEX15
+
+workflows:
+  main:
+    jobs:
+      - build-and-test
