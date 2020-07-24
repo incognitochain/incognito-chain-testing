@@ -273,3 +273,33 @@ class _PdeShare(BlockChainInfoBaseClass):
 
     def get_payment_k(self):
         return self.id.split('-')[4]
+
+
+def wait_for_user_contribution_in_waiting(user, pair_id, token_id, check_interval=10, timeout=120):
+    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
+        find_waiting_contribution_of_user(user, pair_id, token_id)
+    time = 0
+    while time <= timeout:
+        if waiting_contribution:
+            return waiting_contribution
+        else:
+            waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
+                find_waiting_contribution_of_user(user, pair_id, token_id)
+            time += check_interval
+    return None
+
+
+def wait_for_user_contribution_out_waiting(user, pair_id, token_id, check_interval=10, timeout=120):
+    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
+        find_waiting_contribution_of_user(user, pair_id, token_id)
+    time = 0
+    while time <= timeout:
+        if not waiting_contribution:
+            return waiting_contribution
+        else:
+            waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
+                find_waiting_contribution_of_user(user, pair_id, token_id)
+            time += check_interval
+    return None
