@@ -1,5 +1,4 @@
 import copy
-import re
 from typing import List
 
 from websocket import WebSocketTimeoutException
@@ -7,7 +6,7 @@ from websocket import WebSocketTimeoutException
 from IncognitoChain.Configs import Constants
 from IncognitoChain.Configs.Constants import PRV_ID, coin, PortalCustodianReqMatchingStatus
 from IncognitoChain.Drivers.IncognitoKeyGen import get_key_set_from_private_k
-from IncognitoChain.Helpers.Logging import INFO, WARNING, INFO_HEADLINE
+from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
 from IncognitoChain.Objects.CoinObject import Coin
@@ -36,19 +35,21 @@ class Account:
 
     def __init__(self, private_key=None, payment_key=None, shard=None, validator_key=None, public_key=None,
                  read_only_key=None):
-        private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
-        bridge_public_k, mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(private_key)
+        if private_key is not None:
+            private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
+            bridge_public_k, mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(private_key)
 
-        self.private_key = private_k
-        self.validator_key = validator_k
-        self.payment_key = self.incognito_addr = payment_k
-        self.public_key = public_k
-        self.read_only_key = read_only_k
-        self.bls_public_k = bls_public_k
-        self.bridge_public_k = bridge_public_k
-        self.mining_public_k = mining_public_k
-        self.committee_public_k = committee_public_k
-        self.shard = int(shard_id)
+            self.private_key = private_k
+            self.validator_key = validator_k
+            self.payment_key = self.incognito_addr = payment_k
+            self.public_key = public_k
+            self.read_only_key = read_only_k
+            self.bls_public_k = bls_public_k
+            self.bridge_public_k = bridge_public_k
+            self.mining_public_k = mining_public_k
+            self.committee_public_k = committee_public_k
+            self.shard = int(shard_id)
+
         self.cache = {}
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         self.__SUT = SUT
@@ -279,7 +280,7 @@ class Account:
         return self.__SUT.full_node.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, him.payment_key, him.validator_key)
 
-    def wait_till_i_am_committee(self, check_cycle=120, timeout=1000):
+    def stk_wait_till_i_am_committee(self, check_cycle=120, timeout=1000):
         t = timeout
         INFO(f"Wait until {self.validator_key} become a committee, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
@@ -294,7 +295,7 @@ class Account:
         INFO(f"Waited {t}s but still not yet become committee")
         return None
 
-    def wait_till_i_am_swapped_out_of_committee(self, check_cycle=120, timeout=1000):
+    def stk_wait_till_i_am_swapped_out_of_committee(self, check_cycle=120, timeout=1000):
         t = timeout
         INFO(f"Wait until {self.validator_key} no longer a committee, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
@@ -309,7 +310,7 @@ class Account:
         INFO(f"Waited {t}s but still a committee")
         return None
 
-    def wait_till_i_have_reward(self, token_id=None, check_cycle=120, timeout=1000):
+    def stk_wait_till_i_have_reward(self, token_id=None, check_cycle=120, timeout=1000):
         t = timeout
         if token_id is None:
             token_id = 'PRV'
@@ -624,14 +625,14 @@ class Account:
         except KeyError:
             return None
 
-    def withdraw_reward_to(self, reward_receiver, token_id=None):
+    def stk_withdraw_reward_to(self, reward_receiver, token_id=None):
         INFO(f"""Withdraw token reward {token_id}
             to {reward_receiver.payment_key}""")
         return self.__SUT.full_node.transaction().withdraw_reward(self.private_key, reward_receiver.payment_key,
                                                                   token_id)
 
     def withdraw_reward_to_me(self, token_id=None):
-        return self.withdraw_reward_to(self, token_id)
+        return self.stk_withdraw_reward_to(self, token_id)
 
     #######
     # DEX
@@ -650,47 +651,33 @@ class Account:
             self.pde_contribute(contribution.get_token_id(), contribution.get_amount(), contribution.get_pair_id()). \
                 subscribe_transaction_obj()
 
-    def is_my_token_waiting_for_contribution(self, pair_id, token_id):
-        INFO(f"Check if {token_id[-6:]} init by {self.payment_key[-6:]} is waiting for contribution ")
-        pde_state = self.__SUT.full_node.help_get_current_pde_status()
-        waiting_contribution_list = str(pde_state.get_result()['WaitingPDEContributions']).split(
-            'waitingpdecontribution')
-
-        for contribution in waiting_contribution_list:
-            if re.search(token_id, str(contribution)):
-                if re.search(self.payment_key, str(contribution)):
-                    if re.search(pair_id, str(contribution)):
-                        INFO(
-                            f'FOUND pair_id: {pair_id} - token_id:  {token_id[-6:]} - init_by : {self.payment_key[-6:]} in PDE waiting for contribution')
-                        return True
-        WARNING(f"NOT FOUND pair_id: {pair_id} in PDE waiting for contribution")
+    def pde_wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
+        INFO(f"Wait until token {token_id[-6:]} is in waiting for contribution")
+        pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+        my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
+        while timeout >= 0:
+            if my_waiting:  # not empty
+                INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
+                return True
+            timeout -= 10
+            WAIT(10)
+            my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
+        INFO(f'Token {token_id[-6:]} is NOT found in contribution waiting list')
         return False
 
-    def wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
-        INFO(f"Wait until token {token_id[-6:]} is in waiting for contribution")
-        result = self.is_my_token_waiting_for_contribution(pair_id, token_id)
-        while timeout >= 0:
-            if result:
-                INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
-                return result
-            timeout -= 10
-            WAIT(10)
-            result = self.is_my_token_waiting_for_contribution(pair_id, token_id)
-        INFO(f'Token {token_id[-6:]} is NOT found in contribution waiting list')
-        return result
-
-    def wait_till_my_token_out_waiting_for_contribution(self, pair_id, token_id, timeout=100):
+    def pde_wait_till_my_token_out_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         INFO(f"Wait until token {token_id[-6:]} is OUT of waiting for contribution")
-        result = self.is_my_token_waiting_for_contribution(pair_id, token_id)
+        pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+        my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
         while timeout >= 0:
-            if not result:
+            if not my_waiting:
                 INFO(f'Token {token_id[-6:]} is NOT found in contribution waiting list')
-                return result
+                return True
             timeout -= 10
             WAIT(10)
-            result = self.is_my_token_waiting_for_contribution(token_id)
+            my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
         INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
-        return result
+        return False
 
     def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=None, pool_time=10,
                                 timeout=100):
