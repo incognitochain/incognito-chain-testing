@@ -64,13 +64,22 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             pool_pair_objs.append(pool_pair_obj)
         return pool_pair_objs
 
-    def get_pde_shares(self):
+    def get_pde_shares(self, user=None, token1=None, token2=None):
         pde_share_raw = self.data['PDEShares']
         pde_share_objs = []
         for k, v in pde_share_raw.items():
             pde_share_data = {k: v}
             pde_share_obj = _PdeShare(pde_share_data)
-            pde_share_objs.append(pde_share_obj)
+            match = False
+            if user is not None:
+                match = True if user == pde_share_obj.get_payment_k() and match else match
+            if token1 is not None:
+                match = True if token1 == pde_share_obj.get_token1_id() and match else match
+            if token2 is not None:
+                match = True if token2 == pde_share_obj.get_token2_id() and match else match
+
+            if match:
+                pde_share_objs.append(pde_share_obj)
         return pde_share_objs
 
     def get_beacon_time_stamp(self):
@@ -86,15 +95,6 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 if pair.get_token1_id() == token2:
                     return [pair.get_token2_pool_value(), pair.get_token1_pool_value()]
 
-    def get_pde_share_of_user(self, account):
-        pde_shares = self.get_pde_shares()
-        payment_k = extract_incognito_addr(account)
-        for share in pde_shares:
-            if share.get_payment_k() == payment_k:
-                return share.get_share_amount()
-
-        return None
-
     def sum_share_pool_of_pair(self, token1, token2):
         INFO(f'Calculating sum share of pair {l6(token1)}:{l6(token2)}')
         share_pool = self.get_pde_shares()
@@ -105,6 +105,58 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 sum_pool += share.get_share_amount()
         INFO(f'Sum share of pair {l6(token1)}:{l6(token2)} = {sum_pool}')
         return sum_pool
+
+
+class PDEContributeInfo(BlockChainInfoBaseClass):
+    """
+    {
+        "Status": 4,
+        "TokenID1Str": "0000000000000000000000000000000000000000000000000000000000000004",
+        "Contributed1Amount": 1900000,
+        "Returned1Amount": 0,
+        "TokenID2Str": "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79",
+        "Contributed2Amount": 2884986,
+        "Returned2Amount": 115014
+    }
+"""
+
+    def get_contribute_status(self, pair_id):
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        res = SUT.REQUEST_HANDLER.dex().get_contribution_status(pair_id)
+        self.data = res.get_result()
+        return self
+
+    def get_status(self):
+        return self.data["Status"]
+
+    def get_token1(self):
+        return self.data["TokenID1Str"]
+
+    def get_token2(self):
+        return self.data["TokenID2Str"]
+
+    def get_amount_token1(self):
+        return self.data["Contributed1Amount"]
+
+    def get_amount_token2(self):
+        return self.data["Contributed2Amount"]
+
+    def get_return_amount_1(self):
+        return self.data["Returned1Amount"]
+
+    def get_return_amount_2(self):
+        return self.data["Returned2Amount"]
+
+    def wait_for_contribution_status(self, pair_id, status, check_rate=10, timeout=60):
+        time = 0
+        while time < timeout:
+            self.get_contribute_status(pair_id)
+            if self.get_status() == status:
+                return self
+            else:
+                self.get_contribute_status(pair_id)
+            time += check_rate
+        return None
 
 
 class _WaitingContribution(BlockChainInfoBaseClass):
@@ -200,6 +252,9 @@ class _PdeShare(BlockChainInfoBaseClass):
         super(_PdeShare, self).__init__(raw_data)
         raw_data = copy.copy(self.data)
         self.id, self.info = raw_data.popitem()
+
+    def __eq__(self, other):
+        return self.data == other.data
 
     def get_share_id(self):
         return self.id
