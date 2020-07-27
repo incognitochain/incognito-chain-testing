@@ -487,6 +487,13 @@ class Account:
         return self.__SUT.full_node.dex().contribute_token(self.private_key, self.payment_key, contribute_token_id,
                                                            amount, contribution_pair_id)
 
+    def pde_contribute_token_v2(self, contribute_token_id, amount, contribution_pair_id):
+        INFO(f'{l6(self.private_key)} Contribute token V2: {contribute_token_id[-6:]}, amount = {amount}, '
+             f'pair id = {contribution_pair_id}')
+
+        return self.__SUT.full_node.dex().contribute_token_v2(self.private_key, self.payment_key, contribute_token_id,
+                                                           amount, contribution_pair_id)
+
     def pde_contribute_prv(self, amount, contribution_pair_id):
         INFO(f'{l6(self.private_key)} Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
 
@@ -494,7 +501,7 @@ class Account:
                                                          contribution_pair_id)
 
     def pde_contribute_prv_v2(self, amount, contribution_pair_id):
-        INFO(f'{l6(self.private_key)} Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
+        INFO(f'{l6(self.private_key)} Contribute PRV V2, amount: {amount}, pair id = {contribution_pair_id}')
 
         return self.__SUT.full_node.dex().contribute_prv_v2(self.private_key, self.payment_key, amount,
                                                             contribution_pair_id)

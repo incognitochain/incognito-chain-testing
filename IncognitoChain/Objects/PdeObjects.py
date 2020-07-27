@@ -1,7 +1,8 @@
 import copy
 
-from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Helpers.Logging import INFO, WARNING
 from IncognitoChain.Helpers.TestHelper import extract_incognito_addr, l6
+from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 
 
@@ -120,11 +121,20 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
     }
 """
 
-    def get_contribute_status(self, pair_id):
+    def get_contribute_status(self, pair_id, check_interval=5, timeout=30):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        res = SUT.REQUEST_HANDLER.dex().get_contribution_status(pair_id)
-        self.data = res.get_result()
-        return self
+        time = 0
+        while time < timeout:
+            res = SUT.REQUEST_HANDLER.dex().get_contribution_status(pair_id)
+            if res.get_error_msg() is None:
+                self.data = res.get_result()
+                return self
+            else:
+                WAIT(check_interval)
+        return None
+
+    def is_none(self):
+        return self.data == None
 
     def get_status(self):
         return self.data["Status"]
@@ -147,15 +157,19 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
     def get_return_amount_2(self):
         return self.data["Returned2Amount"]
 
-    def wait_for_contribution_status(self, pair_id, status, check_rate=10, timeout=60):
+    def wait_for_contribution_status(self, pair_id, expecting_status, check_interval=10, timeout=40):
         time = 0
-        while time < timeout:
+        while time <= timeout:
             self.get_contribute_status(pair_id)
-            if self.get_status() == status:
+            if self.get_status() == expecting_status:
+                INFO(f'contribution status is {expecting_status} as expected')
                 return self
             else:
+                WAIT(check_interval)
                 self.get_contribute_status(pair_id)
-            time += check_rate
+                time += check_interval
+
+        WARNING(f'contribution status: {self.get_status()} is NOT as expected')
         return None
 
 
@@ -297,9 +311,9 @@ def wait_for_user_contribution_out_waiting(user, pair_id, token_id, check_interv
     time = 0
     while time <= timeout:
         if not waiting_contribution:
-            return waiting_contribution[0]
+            return
         else:
             waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
                 find_waiting_contribution_of_user(user, pair_id, token_id)
             time += check_interval
-    return None
+    return
