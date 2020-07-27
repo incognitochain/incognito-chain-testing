@@ -2,7 +2,7 @@ import os
 import re
 import subprocess
 
-get_key = f'{os.getcwd()}/IncognitoChain/Drivers/bin/getKey'
+get_key = f'{os.getcwd()}/IncognitoChain/bin/getKey'
 
 
 def get_key_set_from_private_k(private_k):

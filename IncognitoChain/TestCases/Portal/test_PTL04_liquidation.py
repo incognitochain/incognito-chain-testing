@@ -13,6 +13,7 @@ PSI_before_test = PortalStateInfo()
 
 def setup_module():
     INFO('Setup liquidation test')
+    porting_step.setup_module()
     porting_step.test_create_porting_req_1_1(PBNB_ID, 100, None, 1, 'valid')
     global PSI_before_test
     PSI_before_test = SUT.full_node.get_latest_portal_state_info()

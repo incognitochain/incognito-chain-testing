@@ -40,9 +40,9 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
             match = True if addr == user_payment_addr else False
             if pair_id is not None:
-                match = True if (p_id == pair_id) and match else match
+                match = True if (p_id == pair_id) and match else False
             if token_id is not None:
-                match = True if (token == token_id) and match else match
+                match = True if (token == token_id) and match else False
 
             if match:
                 INFO(f'Found contribution of token {l6(contribution.get_token_id())} '
@@ -72,11 +72,11 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             pde_share_obj = _PdeShare(pde_share_data)
             match = False
             if user is not None:
-                match = True if user == pde_share_obj.get_payment_k() and match else match
+                match = True if user == pde_share_obj.get_payment_k() and match else False
             if token1 is not None:
-                match = True if token1 == pde_share_obj.get_token1_id() and match else match
+                match = True if token1 == pde_share_obj.get_token1_id() and match else False
             if token2 is not None:
-                match = True if token2 == pde_share_obj.get_token2_id() and match else match
+                match = True if token2 == pde_share_obj.get_token2_id() and match else False
 
             if match:
                 pde_share_objs.append(pde_share_obj)
@@ -282,7 +282,7 @@ def wait_for_user_contribution_in_waiting(user, pair_id, token_id, check_interva
     time = 0
     while time <= timeout:
         if waiting_contribution:
-            return waiting_contribution
+            return waiting_contribution[0]
         else:
             waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
                 find_waiting_contribution_of_user(user, pair_id, token_id)
@@ -297,7 +297,7 @@ def wait_for_user_contribution_out_waiting(user, pair_id, token_id, check_interv
     time = 0
     while time <= timeout:
         if not waiting_contribution:
-            return waiting_contribution
+            return waiting_contribution[0]
         else:
             waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
                 find_waiting_contribution_of_user(user, pair_id, token_id)

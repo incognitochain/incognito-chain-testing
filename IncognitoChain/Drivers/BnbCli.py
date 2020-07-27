@@ -14,7 +14,7 @@ _bnb_host = 'data-seed-pre-0-s1.binance.org'
 _bnb_rpc_port = 443
 _bnb_rpc_protocol = 'https'
 
-tbnbcli = f'{os.getcwd()}/IncognitoChain/Drivers/bin/tbnbcli'
+tbnbcli = f'{os.getcwd()}/IncognitoChain/bin/tbnbcli'
 
 
 class BnbCli:

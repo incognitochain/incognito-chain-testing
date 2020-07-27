@@ -376,8 +376,11 @@ class _LiquidationPool(PortalInfoObj):
         self.set_collateral_amount_of_token(token_id, new_amount)
 
     def get_collateral_amount_of_token(self, token_id):
-        rates = self.get_rate_of_token(token_id)
-        return rates[_LiquidationPool._collateral] if rates is not None else None
+        try:
+            rates = self.get_rate_of_token(token_id)
+            return rates[_LiquidationPool._collateral] if rates is not None else 0
+        except KeyError:
+            return 0
 
     def set_collateral_amount_of_token(self, token_id, amount):
         if type(self.data) is not dict:
@@ -397,8 +400,11 @@ class _LiquidationPool(PortalInfoObj):
         return self
 
     def get_public_token_amount_of_token(self, token_id):
-        rates = self.get_rate_of_token(token_id)
-        return rates[_LiquidationPool._token_amount] if rates is not None else None
+        try:
+            rates = self.get_rate_of_token(token_id)
+            return rates[_LiquidationPool._token_amount] if rates is not None else 0
+        except KeyError:
+            return 0
 
     def set_public_token_amount_of_token(self, token_id, amount):
         if type(self.data) is not dict:
