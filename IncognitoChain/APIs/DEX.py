@@ -1,4 +1,5 @@
 from IncognitoChain.Configs import Constants as Const
+from IncognitoChain.Configs.Constants import PRV_ID, BURNING_ADDR
 from IncognitoChain.Drivers.Connections import RpcConnection
 
 
@@ -68,7 +69,7 @@ class DexRpc:
             execute()
 
     def contribute_token_v2(self, private_key, payment_address, token_id_to_contribute, amount_to_contribute,
-                         contribution_pair_id):
+                            contribution_pair_id):
         amount_to_contribute = str(amount_to_contribute)
         return self.rpc_connection. \
             with_method("createandsendtxwithptokencontributionv2"). \
@@ -128,6 +129,33 @@ class DexRpc:
                          ]). \
             execute()
 
+    def trade_token_v2(self, private_k, payment_k, token_to_sell, amount_to_sell, token_to_buy, trading_fee,
+                       min_acceptable_amount=1):
+        return self.rpc_connection.with_method('createandsendtxwithptokencrosspooltradereq').with_params([
+            private_k,
+            {
+                BURNING_ADDR: str(trading_fee)
+            }, -1, 0,
+            {
+                "Privacy": True,
+                "TokenID": token_to_sell,
+                "TokenTxType": 1,
+                "TokenName": "",
+                "TokenSymbol": "",
+                "TokenAmount": str(amount_to_sell),
+                "TokenReceivers": {
+                    BURNING_ADDR: str(amount_to_sell)
+                },
+                "TokenFee": "0",
+                "TokenIDToBuyStr": token_to_buy,
+                "TokenIDToSellStr": token_to_sell,
+                "SellAmount": str(amount_to_sell),
+                "MinAcceptableAmount": str(min_acceptable_amount),
+                "TradingFee": str(trading_fee),
+                "TraderAddressStr": payment_k
+            }, "", 0
+        ]).execute()
+
     def trade_prv(self, private_key, payment_address, amount_to_sell, token_id_to_buy, min_amount_to_buy):
         return self.rpc_connection. \
             with_method("createandsendtxwithprvtradereq"). \
@@ -144,6 +172,25 @@ class DexRpc:
                          }
                          ]). \
             execute()
+
+    def trade_prv_v2(self, private_k, payment_k, amount_to_sell, token_to_buy, trading_fee, acceptable_amount=1,
+                     burn_amount=None):
+        if burn_amount is None:
+            burn_amount = amount_to_sell + trading_fee
+        return self.rpc_connection.with_method('createandsendtxwithprvcrosspooltradereq').with_params([
+            private_k,
+            {
+                BURNING_ADDR: str(burn_amount)
+            }, -1, -1,
+            {
+                "TokenIDToBuyStr": token_to_buy,
+                "TokenIDToSellStr": PRV_ID,
+                "SellAmount": str(amount_to_sell),
+                "MinAcceptableAmount": str(acceptable_amount),
+                "TradingFee": str(trading_fee),
+                "TraderAddressStr": payment_k
+            }
+        ]).execute()
 
     def withdrawal_contribution(self, private_key, payment_address, token_id_1, token_id_2, amount_withdrawal):
         return self.rpc_connection. \

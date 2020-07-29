@@ -1,5 +1,7 @@
+import concurrent
 import copy
 import random
+from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
@@ -8,7 +10,7 @@ from IncognitoChain.Helpers.Logging import STEP, INFO, DEBUG, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import calculate_actual_trade_received, l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
-from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_owner
+from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_owner, token_id_2
 
 trade_amount = random.randrange(9900000, 10000000)
 
@@ -23,9 +25,9 @@ def setup_function():
 
 @pytest.mark.parametrize('test_mode,token_sell,token_buy', (
     ["1 shard", token_id_1, PRV_ID],
-    # ["n shard", token_id_1, PRV_ID],
-    # ["1 shard", token_id_1, token_id_2],
-    # ["n shard", token_id_1, token_id_2]
+    ["n shard", token_id_1, PRV_ID],
+    ["1 shard", token_id_1, token_id_2],
+    ["n shard", token_id_1, token_id_2]
 ))
 def test_bulk_swap(test_mode, token_sell, token_buy):
     if test_mode == '1 shard':
@@ -47,6 +49,7 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     balance_tok2_after = []
     private_key_alias = []
     trading_fee = [77, 22, 11, 66, 99, 2, 33, 55, 88, 44]
+    pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
 
     trade_amount_token1 = trade_amount
 
@@ -66,18 +69,22 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     INFO(f"Private key alias                : {str(private_key_alias)}")
     INFO(f"{token_sell[-6:]} balance before trade      : {str(balance_tok1_before)}")
     INFO(f"{token_buy[-6:]} balance before trade         : {str(balance_tok2_before)}")
-    rate_before = SUT.full_node.get_latest_rate_between(token_sell, token_buy)
+    rate_before = pde_state_b4.get_rate_between_token(token_sell, token_buy)
     INFO(f"Rate {token_sell[-6:]} vs {token_buy[-6:]} - Before Trade : {str(rate_before)}")
 
     STEP(2, f"trade {token_sell[-6:]} at the same time")
     tx_list = []
-    for i in range(0, len(traders)):  # todo: apply threading
-        trader = traders[i]
-        trade_tx = trader.trade_token(token_sell, trade_amount, token_buy, 1, trading_fee[i])
-        tx_list.append(trade_tx)
-
+    threads = []
+    with ThreadPoolExecutor() as executor:
+        for i in range(0, len(traders)):
+            trader = traders[i]
+            future = executor.submit(trader.pde_trade, token_sell, trade_amount, token_buy, 1, trading_fee[i])
+            threads.append(future)
+    concurrent.futures.wait(threads)
     INFO(f"Transaction id list")
-    for tx in tx_list:
+    for thread in threads:
+        tx = thread.result()
+        tx_list.append(tx)
         INFO(f'    {tx.get_tx_id()}')
 
     STEP(3, "Wait for Tx to be confirmed")
@@ -112,7 +119,8 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     INFO(f"{token_buy[-6:]}    balance after trade        : {balance_tok2_after}")
 
     STEP(5, f"Check rate {token_sell[-6:]}  vs {token_buy[-6:]}")
-    rate_after = SUT.full_node.get_latest_rate_between(token_sell, token_buy)
+    pde_state_af = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    rate_after = pde_state_af.get_rate_between_token(token_sell, token_buy)
     INFO(f"rate {token_sell[-6:]} vs {token_buy[-6:]} - After Trade  : {rate_after}")
 
     STEP(6, "Double check the algorithm ")
@@ -132,7 +140,6 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
         print(str(order) + "--")
         received_amount_prv = calculate_actual_trade_received(trade_amount_token1, calculated_rate[0],
                                                               calculated_rate[1])
-
         if received_amount_prv == balance_tok2_after[order] - balance_tok2_before[order] - tx_fee_list[order]:
             result_prv.append(str(order) + "Received_True")
         else:

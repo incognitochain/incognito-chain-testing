@@ -1,6 +1,6 @@
 import copy
 
-from IncognitoChain.Helpers.Logging import INFO, WARNING
+from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG
 from IncognitoChain.Helpers.TestHelper import extract_incognito_addr, l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects import BlockChainInfoBaseClass
@@ -65,23 +65,103 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             pool_pair_objs.append(pool_pair_obj)
         return pool_pair_objs
 
-    def get_pde_shares(self, user=None, token1=None, token2=None):
+    def _get_trading_fees(self, user=None, token1=None, token2=None):
+        DEBUG('==================================================================================================')
+        if user is None:
+            of_user = 'any'
+        else:
+            of_user = l6(user.payment_key)
+        INFO(f'Getting fee of user and tokens: {of_user}:{l6(token1)}-{l6(token2)}')
+
+        fee_pool = []
+        fee_pool_raw = self.data['PDETradingFees']
+        for k, v in fee_pool_raw.items():
+            fee_raw_data = {k: v}
+            fee_obj = _PdeTradingFee(fee_raw_data)
+
+            DEBUG(f"Checking fee: {fee_obj}")
+            match = False
+            debug_msg = ''
+            if user is not None:
+                if user.payment_key == fee_obj.get_payment_k():
+                    match = True
+                    debug_msg += f'user {l6(user.payment_key)} | '
+                else:
+                    DEBUG(f'NOT Match user {l6(user.payment_key)}')
+                    continue
+            # breakpoint()
+            if token1 is not None and token2 is not None:
+                if token1 == fee_obj.get_token1_id() and token2 == fee_obj.get_token2_id():
+                    debug_msg += f'token 1->1, 2->2 {l6(token1)}-{l6(token2)} | '
+                    match = True
+                elif token1 == fee_obj.get_token2_id() and token2 == fee_obj.get_token1_id():
+                    debug_msg += f'token 1->2, 2->1 {l6(token2)}-{l6(token1)} | '
+                    match = True
+                else:
+                    match = False
+
+            if match:
+                DEBUG(f"MATCH {debug_msg}: {fee_obj}")
+                fee_pool.append(fee_obj)
+        if len(fee_pool) == 0:
+            DEBUG("Not found")
+        return fee_pool
+
+    def get_trading_fees_amount(self, user=None, token1=None, token2=None):
+        share_objects = self._get_trading_fees(user, token1, token2)
+        list_amount = []
+        for obj in share_objects:
+            list_amount.append(obj.get_amount())
+
+        if len(list_amount) == 1:
+            return list_amount[0]
+        elif len(list_amount) > 1:
+            return list_amount
+        return None
+
+    def _get_pde_shares(self, user=None, token1=None, token2=None):
+        DEBUG('==================================================================================================')
+        if user is None:
+            of_user = 'any'
+        else:
+            of_user = l6(user.payment_key)
+        INFO(f'Getting share of user and tokens: {of_user}:{l6(token1)}-{l6(token2)}')
         pde_share_raw = self.data['PDEShares']
         pde_share_objs = []
         for k, v in pde_share_raw.items():
             pde_share_data = {k: v}
             pde_share_obj = _PdeShare(pde_share_data)
+            DEBUG(f"Checking share: {pde_share_obj}")
             match = False
             if user is not None:
-                match = True if user == pde_share_obj.get_payment_k() and match else False
-            if token1 is not None:
-                match = True if token1 == pde_share_obj.get_token1_id() and match else False
-            if token2 is not None:
-                match = True if token2 == pde_share_obj.get_token2_id() and match else False
+                if user.payment_key == pde_share_obj.get_payment_k():
+                    match = True
+                    DEBUG(f'Match user {l6(user.payment_key)}')
+                else:
+                    DEBUG(f'NOT Match user {l6(user.payment_key)}')
+                    continue
+            # breakpoint()
+            if token1 is not None and token2 is not None:
+                if token1 == pde_share_obj.get_token1_id() and token2 == pde_share_obj.get_token2_id():
+                    DEBUG(f'Match token 1->1, 2->2 {l6(token1)}-{l6(token2)}')
+                    match = True
+                elif token1 == pde_share_obj.get_token2_id() and token2 == pde_share_obj.get_token1_id():
+                    DEBUG(f'Match token 1->2, 2->1 {l6(token2)}-{l6(token1)}')
+                    match = True
+                else:
+                    match = False
 
             if match:
+                DEBUG(f"MATCH ALL: {pde_share_obj}")
                 pde_share_objs.append(pde_share_obj)
         return pde_share_objs
+
+    def get_pde_shares_amount_list(self, user=None, token1=None, token2=None):
+        share_objects = self._get_pde_shares(user, token1, token2)
+        list_amount = []
+        for obj in share_objects:
+            list_amount.append(obj.get_share_amount())
+        return list_amount
 
     def get_beacon_time_stamp(self):
         return self.data["BeaconTimeStamp"]
@@ -98,7 +178,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
     def sum_share_pool_of_pair(self, token1, token2):
         INFO(f'Calculating sum share of pair {l6(token1)}:{l6(token2)}')
-        share_pool = self.get_pde_shares()
+        share_pool = self._get_pde_shares()
         sum_pool = 0
         for share in share_pool:
             if share.get_token1_id() == token1 and share.get_token2_id() == token2:
@@ -106,6 +186,12 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 sum_pool += share.get_share_amount()
         INFO(f'Sum share of pair {l6(token1)}:{l6(token2)} = {sum_pool}')
         return sum_pool
+
+    # def cal_share_of_user_when_contribute(self, user, contribute_pair_id):
+    #     contribute_info = PDEContributeInfo().get_contribute_status(contribute_pair_id)
+    #     contribute_info.get
+    #     round((api_contrib_tok2 * sum(all_share_amount_b4)) / rate_b4[0]) + \
+    #     owner_share_amount_b4
 
 
 class PDEContributeInfo(BlockChainInfoBaseClass):
@@ -131,10 +217,10 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
                 return self
             else:
                 WAIT(check_interval)
-        return None
+        return self
 
     def is_none(self):
-        return self.data == None
+        return self.data is None
 
     def get_status(self):
         return self.data["Status"]
@@ -145,10 +231,10 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
     def get_token2(self):
         return self.data["TokenID2Str"]
 
-    def get_amount_token1(self):
+    def get_contribute_amount_token1(self):
         return self.data["Contributed1Amount"]
 
-    def get_amount_token2(self):
+    def get_contribute_amount_token2(self):
         return self.data["Contributed2Amount"]
 
     def get_return_amount_1(self):
@@ -267,6 +353,10 @@ class _PdeShare(BlockChainInfoBaseClass):
         raw_data = copy.copy(self.data)
         self.id, self.info = raw_data.popitem()
 
+    def __str__(self):
+        return f'{l6(self.get_token1_id())}-{l6(self.get_token2_id())}-' \
+               f'{l6(self.get_payment_k())}-{self.get_share_amount()}'
+
     def __eq__(self, other):
         return self.data == other.data
 
@@ -276,7 +366,7 @@ class _PdeShare(BlockChainInfoBaseClass):
     def get_share_amount(self):
         return self.info
 
-    def beacon_height(self):
+    def get_beacon_height(self):
         return int(self.id.split('-')[1])
 
     def get_token1_id(self):
@@ -289,15 +379,42 @@ class _PdeShare(BlockChainInfoBaseClass):
         return self.id.split('-')[4]
 
 
+class _PdeTradingFee(BlockChainInfoBaseClass):
+    def __init__(self, raw_data):
+        super(_PdeTradingFee, self).__init__(raw_data)
+        raw_data = copy.copy(self.data)
+        self.key, self.value = raw_data.popitem()
+
+    def __str__(self):
+        return f'{l6(self.get_token1_id())}-{l6(self.get_token2_id())}-' \
+               f'{l6(self.get_payment_k())}-{self.get_amount()}'
+
+    def get_beacon_height(self):
+        return int(self.key.split('-')[1])
+
+    def get_token1_id(self):
+        return self.key.split('-')[2]
+
+    def get_token2_id(self):
+        return self.key.split('-')[3]
+
+    def get_payment_k(self):
+        return self.key.split('-')[4]
+
+    def get_amount(self):
+        return self.value
+
+
 def wait_for_user_contribution_in_waiting(user, pair_id, token_id, check_interval=10, timeout=120):
     from IncognitoChain.Objects.IncognitoTestCase import SUT
     waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
         find_waiting_contribution_of_user(user, pair_id, token_id)
     time = 0
     while time <= timeout:
-        if waiting_contribution:
+        if waiting_contribution:  # list not empty
             return waiting_contribution[0]
-        else:
+        else:  # list is empty, continue to find
+            WAIT(check_interval)
             waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
                 find_waiting_contribution_of_user(user, pair_id, token_id)
             time += check_interval
@@ -313,6 +430,7 @@ def wait_for_user_contribution_out_waiting(user, pair_id, token_id, check_interv
         if not waiting_contribution:
             return
         else:
+            WAIT(check_interval)
             waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
                 find_waiting_contribution_of_user(user, pair_id, token_id)
             time += check_interval

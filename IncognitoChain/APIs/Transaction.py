@@ -233,7 +233,7 @@ class TransactionRpc:
                     ]
         return self.rpc_connection. \
             with_method('listunspentoutputcoins'). \
-            with_params(param_v2). \
+            with_params(param_v1). \
             execute()
 
     def list_unspent_output_tokens(self, private_k, token_id):

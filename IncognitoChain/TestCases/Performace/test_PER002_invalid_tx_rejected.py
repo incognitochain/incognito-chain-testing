@@ -182,10 +182,9 @@ def test_max_tx_in_same_block_with_some_fail():
             count_tx_in_block += 1
     assert count_tx_in_block > 10 and INFO(f" sum tx in block {block_height_0} = {count_tx_in_block}")
 
-    STEP(6, "Check balance after transaction success")
-    # Todo later, too hard for now :))
+    # Todo later, too hard for now :))     STEP(6, "Check balance after transaction success")
 
-    STEP(7, 'SUMMARY:')
+    INFO_HEADLINE('SUMMARY:')
     INFO(f'Tx in shard which fail to create (txId = None): {count_tx_none_shard}')
     INFO(f'Tx in full node which fail to create (txId = None): {count_tx_none_fullnode}')
 

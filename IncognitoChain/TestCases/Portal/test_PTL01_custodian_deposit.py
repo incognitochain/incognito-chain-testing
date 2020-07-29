@@ -229,8 +229,7 @@ def test_creating_rate(account, expected_pass):
         PRV_ID: 100
     }
     STEP(0, 'Get portal state before test')
-    portal_state_before = SUT.full_node.get_latest_portal_state()
-    portal_state_info_before = PortalStateInfo(portal_state_before.get_result())
+    portal_state_info_before = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
 
     STEP(1, "Create rate")
     create_rate_tx = account.portal_create_exchange_rate(test_rate)
@@ -250,8 +249,7 @@ def test_creating_rate(account, expected_pass):
     else:
         create_rate_tx.expect_error()
         INFO(f"error: {create_rate_tx.get_error_trace().get_message()}")
-        portal_state = SUT.full_node.get_latest_portal_state()
-        portal_state_info = PortalStateInfo(portal_state.get_result())
+        portal_state_info = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
         assert portal_state_info_before.get_portal_rate() == portal_state_info.get_portal_rate()
 
 
@@ -261,11 +259,10 @@ def test_creating_rate(account, expected_pass):
 ])
 def test_calculating_porting_fee(token):
     test_amount = random.randrange(1, 1000000000)
-    beacon_height = SUT.full_node.help_get_beacon_height()
+    beacon_height = SUT.REQUEST_HANDLER.help_get_beacon_height()
 
     STEP(0, 'Get portal state before test')
-    portal_state_before = SUT.full_node.get_latest_portal_state(beacon_height)
-    portal_state_info_before = PortalStateInfo(portal_state_before.get_result())
+    portal_state_info_before = SUT.REQUEST_HANDLER.get_latest_portal_state_info(beacon_height)
     bnb_rate = portal_state_info_before.get_portal_rate(token)
     prv_rate = portal_state_info_before.get_portal_rate(PRV_ID)
 
