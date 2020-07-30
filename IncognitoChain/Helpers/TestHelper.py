@@ -114,7 +114,7 @@ def calculate_actual_trade_received(trade_amount, pool_token2_sell, pool_token2_
     print("-expecting received amount: " + str(received_amount))
     return received_amount
 
-def calculate_actual_reward(block_on_epoch, max_shard_committee, number_active_shard, number_of_beacon, basic_reward = 400000000):
+def calculate_actual_reward(total_tx_fee, block_on_epoch, max_shard_committee, number_active_shard, number_of_beacon, basic_reward = 400000000):
     """
     Function to calculate reward on a node and DAO
 
@@ -125,14 +125,13 @@ def calculate_actual_reward(block_on_epoch, max_shard_committee, number_active_s
     :param number_of_beacon: number of beacon
     :return: reward_dao_receive, reward_on_node_in_shard, reward_of_beacon
     """
-    total_reward_on_epoch = block_on_epoch * basic_reward
+    total_reward_on_epoch = block_on_epoch * basic_reward + total_tx_fee
     print(f"Total reward received on a epoch: {total_reward_on_epoch}")
 
     reward_dao = (total_reward_on_epoch * 10) / 100   # 10% of total reward received on a epoch
     print(f"Total reward of DAO: {reward_dao}")
 
     total_reward_remain = total_reward_on_epoch - reward_dao
-    print(f"Total reward remain: {total_reward_remain}")
 
     reward_of_all_beacons = (2 * total_reward_remain) / (number_active_shard + 2)
     print(f"The reward of all beacons: {reward_of_all_beacons}")
