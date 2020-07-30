@@ -114,6 +114,39 @@ def calculate_actual_trade_received(trade_amount, pool_token2_sell, pool_token2_
     print("-expecting received amount: " + str(received_amount))
     return received_amount
 
+def calculate_actual_reward(block_on_epoch, max_shard_committee, number_active_shard, number_of_beacon, basic_reward = 400000000):
+    """
+    Function to calculate reward on a node and DAO
+
+    :param block_on_epoch: block on epoch
+    :param basic_reward: basic reward by default is 400000000 nanoPRV
+    :param max_shard_committee: max shard committee
+    :param number_active_shard: number active of shard
+    :param number_of_beacon: number of beacon
+    :return: reward_dao_receive, reward_on_node_in_shard, reward_of_beacon
+    """
+    total_reward_on_epoch = block_on_epoch * basic_reward
+    print(f"Total reward received on a epoch: {total_reward_on_epoch}")
+
+    reward_dao = (total_reward_on_epoch * 10) / 100   # 10% of total reward received on a epoch
+    print(f"Total reward of DAO: {reward_dao}")
+
+    total_reward_remain = total_reward_on_epoch - reward_dao
+    print(f"Total reward remain: {total_reward_remain}")
+
+    reward_of_all_beacons = (2 * total_reward_remain) / (number_active_shard + 2)
+    print(f"The reward of all beacons: {reward_of_all_beacons}")
+
+    reward_a_shard = total_reward_remain - reward_of_all_beacons
+    print(f"The reward of a shard: {reward_a_shard}")
+
+    reward_on_node_in_shard = reward_a_shard / max_shard_committee
+    print(f"The reward of a node in shard: {reward_on_node_in_shard}")
+
+    reward_of_a_beacon = reward_of_all_beacons / number_of_beacon
+    print(f"The reward of a beacon: {reward_of_a_beacon}")
+
+    return reward_dao, reward_on_node_in_shard, reward_of_a_beacon
 
 class PortalHelper:
 
