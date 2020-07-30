@@ -65,50 +65,57 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             pool_pair_objs.append(pool_pair_obj)
         return pool_pair_objs
 
-    def _get_trading_fees(self, user=None, token1=None, token2=None):
+    def _get_contributor_rewards(self, user=None, token1=None, token2=None):
         DEBUG('==================================================================================================')
-        if user is None:
-            of_user = 'any'
-        else:
-            of_user = l6(user.payment_key)
-        INFO(f'Getting fee of user and tokens: {of_user}:{l6(token1)}-{l6(token2)}')
+        of_user = 'any' if user is None else l6(extract_incognito_addr(user))
+        tok1 = 'any' if token1 is None else l6(token1)
+        tok2 = 'any' if token1 is None else l6(token2)
+        INFO(f'Getting PDE reward of contributor and tokens at beacon height time stamp {self.get_beacon_time_stamp()}:'
+             f' {of_user}:{tok1}-{tok2}')
 
-        fee_pool = []
-        fee_pool_raw = self.data['PDETradingFees']
-        for k, v in fee_pool_raw.items():
-            fee_raw_data = {k: v}
-            fee_obj = _PdeTradingFee(fee_raw_data)
+        reward_pool = []
+        reward_pool_raw = self.data['PDETradingFees']
+        for k, v in reward_pool_raw.items():
+            reward_raw_data = {k: v}
+            reward_obj = _PdeReward(reward_raw_data)
 
-            DEBUG(f"Checking fee: {fee_obj}")
-            match = False
+            DEBUG(f"Checking reward: {reward_obj}")
+            match = True
             debug_msg = ''
             if user is not None:
-                if user.payment_key == fee_obj.get_payment_k():
+                user = extract_incognito_addr(user)
+                if user == reward_obj.get_payment_k():
                     match = True
-                    debug_msg += f'user {l6(user.payment_key)} | '
+                    debug_msg += f'user {of_user} | '
                 else:
-                    DEBUG(f'NOT Match user {l6(user.payment_key)}')
+                    DEBUG(f'NOT Match user {of_user}')
                     continue
             # breakpoint()
             if token1 is not None and token2 is not None:
-                if token1 == fee_obj.get_token1_id() and token2 == fee_obj.get_token2_id():
-                    debug_msg += f'token 1->1, 2->2 {l6(token1)}-{l6(token2)} | '
+                if token1 == reward_obj.get_token1_id() and token2 == reward_obj.get_token2_id():
+                    debug_msg += f'token 1->1, 2->2 {tok1}-{tok2} | '
                     match = True
-                elif token1 == fee_obj.get_token2_id() and token2 == fee_obj.get_token1_id():
-                    debug_msg += f'token 1->2, 2->1 {l6(token2)}-{l6(token1)} | '
+                elif token1 == reward_obj.get_token2_id() and token2 == reward_obj.get_token1_id():
+                    debug_msg += f'token 1->2, 2->1 {tok2}-{tok1} | '
                     match = True
                 else:
                     match = False
 
             if match:
-                DEBUG(f"MATCH {debug_msg}: {fee_obj}")
-                fee_pool.append(fee_obj)
-        if len(fee_pool) == 0:
-            DEBUG("Not found")
-        return fee_pool
+                DEBUG(f"MATCH {debug_msg}: {reward_obj}")
+                reward_pool.append(reward_obj)
+        if not reward_pool:  # empty list
+            INFO("Not found")
+        return reward_pool
 
-    def get_trading_fees_amount(self, user=None, token1=None, token2=None):
-        share_objects = self._get_trading_fees(user, token1, token2)
+    def get_contributor_reward(self, user=None, token1=None, token2=None):
+        """
+        :param user: Account or payment k
+        :param token1:
+        :param token2:
+        :return: int value if found one, list of int if found many
+        """
+        share_objects = self._get_contributor_rewards(user, token1, token2)
         list_amount = []
         for obj in share_objects:
             list_amount.append(obj.get_amount())
@@ -121,47 +128,64 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
     def _get_pde_shares(self, user=None, token1=None, token2=None):
         DEBUG('==================================================================================================')
-        if user is None:
-            of_user = 'any'
-        else:
-            of_user = l6(user.payment_key)
-        INFO(f'Getting share of user and tokens: {of_user}:{l6(token1)}-{l6(token2)}')
+        of_user = 'any' if user is None else l6(extract_incognito_addr(user))
+        tok1 = 'any' if token1 is None else l6(token1)
+        tok2 = 'any' if token1 is None else l6(token2)
+        INFO(f'Getting share of user and tokens at beacon height time stamp {self.get_beacon_time_stamp()}: '
+             f'{of_user}:{tok1}-{tok2}')
+
         pde_share_raw = self.data['PDEShares']
         pde_share_objs = []
         for k, v in pde_share_raw.items():
             pde_share_data = {k: v}
             pde_share_obj = _PdeShare(pde_share_data)
+
             DEBUG(f"Checking share: {pde_share_obj}")
-            match = False
+            match = True
+            debug_msg = ''
             if user is not None:
-                if user.payment_key == pde_share_obj.get_payment_k():
+                user = extract_incognito_addr(user)
+                if user == pde_share_obj.get_payment_k():
                     match = True
-                    DEBUG(f'Match user {l6(user.payment_key)}')
+                    debug_msg += f'user {of_user} | '
                 else:
-                    DEBUG(f'NOT Match user {l6(user.payment_key)}')
+                    DEBUG(f'NOT Match user {of_user}')
                     continue
             # breakpoint()
             if token1 is not None and token2 is not None:
                 if token1 == pde_share_obj.get_token1_id() and token2 == pde_share_obj.get_token2_id():
-                    DEBUG(f'Match token 1->1, 2->2 {l6(token1)}-{l6(token2)}')
+                    debug_msg += f'token 1->1, 2->2 {tok1}-{tok2} | '
                     match = True
                 elif token1 == pde_share_obj.get_token2_id() and token2 == pde_share_obj.get_token1_id():
-                    DEBUG(f'Match token 1->2, 2->1 {l6(token2)}-{l6(token1)}')
+                    debug_msg += f'token 1->2, 2->1 {tok2}-{tok1} | '
                     match = True
                 else:
                     match = False
 
             if match:
-                DEBUG(f"MATCH ALL: {pde_share_obj}")
+                DEBUG(f"MATCH {debug_msg}: {pde_share_obj}")
                 pde_share_objs.append(pde_share_obj)
+        if not pde_share_objs:  # empty list
+            INFO("Not found")
         return pde_share_objs
 
-    def get_pde_shares_amount_list(self, user=None, token1=None, token2=None):
+    def get_pde_shares_amount(self, user=None, token1=None, token2=None):
+        """
+
+        :param user: Account or payment k
+        :param token1:
+        :param token2:
+        :return: int value if found one, list of int if found many
+        """
         share_objects = self._get_pde_shares(user, token1, token2)
         list_amount = []
         for obj in share_objects:
             list_amount.append(obj.get_share_amount())
-        return list_amount
+
+        if len(list_amount) == 1:
+            return list_amount[0]
+        elif len(list_amount) > 1:
+            return list_amount
 
     def get_beacon_time_stamp(self):
         return self.data["BeaconTimeStamp"]
@@ -176,22 +200,28 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 if pair.get_token1_id() == token2:
                     return [pair.get_token2_pool_value(), pair.get_token1_pool_value()]
 
-    def sum_share_pool_of_pair(self, token1, token2):
-        INFO(f'Calculating sum share of pair {l6(token1)}:{l6(token2)}')
-        share_pool = self._get_pde_shares()
-        sum_pool = 0
-        for share in share_pool:
-            if share.get_token1_id() == token1 and share.get_token2_id() == token2:
-                INFO(f'Found share amount {share.get_share_amount()}')
-                sum_pool += share.get_share_amount()
-        INFO(f'Sum share of pair {l6(token1)}:{l6(token2)} = {sum_pool}')
+    def sum_share_pool_of_pair(self, user=None, token1=None, token2=None):
+        INFO(f'Calculating sum share of pair...')
+        share_pool = self.get_pde_shares_amount(user, token1, token2)
+        sum_pool = sum(share_pool) if type(share_pool) is list else share_pool
+        INFO(f'Sum share = {sum_pool}')
         return sum_pool
 
-    # def cal_share_of_user_when_contribute(self, user, contribute_pair_id):
-    #     contribute_info = PDEContributeInfo().get_contribute_status(contribute_pair_id)
-    #     contribute_info.get
-    #     round((api_contrib_tok2 * sum(all_share_amount_b4)) / rate_b4[0]) + \
-    #     owner_share_amount_b4
+    def sum_contributor_reward_of_pair(self, user=None, token1=None, token2=None):
+        INFO(f'Calculating PDE reward of pair...')
+        reward_pool = self.get_contributor_reward(user, token1, token2)
+        sum_reward = sum(reward_pool) if type(reward_pool) is list else reward_pool
+        INFO(f'Sum reward = {sum_reward}')
+        return sum_reward
+
+    def get_contributor_of_pair(self, token1, token2):
+        contributor_list = []
+        for pair in self._get_pde_shares(None, token1, token2):
+            contributor = pair.get_payment_k()
+            if contributor not in contributor_list:
+                contributor_list.append(contributor)
+
+        return contributor_list
 
 
 class PDEContributeInfo(BlockChainInfoBaseClass):
@@ -379,9 +409,9 @@ class _PdeShare(BlockChainInfoBaseClass):
         return self.id.split('-')[4]
 
 
-class _PdeTradingFee(BlockChainInfoBaseClass):
+class _PdeReward(BlockChainInfoBaseClass):
     def __init__(self, raw_data):
-        super(_PdeTradingFee, self).__init__(raw_data)
+        super(_PdeReward, self).__init__(raw_data)
         raw_data = copy.copy(self.data)
         self.key, self.value = raw_data.popitem()
 

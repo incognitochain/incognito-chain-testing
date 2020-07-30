@@ -37,8 +37,8 @@ def test_contribute(token1, token2):
 
     bal_tok1_be4_contrib = token_owner.get_token_balance(token1)
     bal_tok2_be4_contrib = token_owner.get_token_balance(token2)
-    all_share_amount = pde_state_b4_test.get_pde_shares_amount_list(None, token1, token2)
-    owner_share_amount = pde_state_b4_test.get_pde_shares_amount_list(token_owner, token2, token1)[0]
+    all_share_amount = pde_state_b4_test.get_pde_shares_amount(None, token1, token2)
+    owner_share_amount = pde_state_b4_test.get_pde_shares_amount(token_owner, token2, token1)
     INFO(f'{l6(token1)} balance before contribution: {bal_tok1_be4_contrib}')
     INFO(f'{l6(token2)} balance before contribution: {bal_tok2_be4_contrib}')
     INFO(f'Sum share amount before contribution  : {all_share_amount}')
@@ -85,8 +85,8 @@ def test_contribute(token1, token2):
     pde_state_af_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     rate_after = pde_state_af_test.get_rate_between_token(token1, token2)
     INFO(f'rate {l6(token1)} vs {l6(token2)} = {rate_after}')
-    owner_share_amount_after = pde_state_af_test.get_pde_shares_amount_list(token_owner, token2, token1)[0]
-    all_share_amount_after = pde_state_af_test.get_pde_shares_amount_list(None, token1, token2)
+    owner_share_amount_after = pde_state_af_test.get_pde_shares_amount(token_owner, token2, token1)
+    all_share_amount_after = pde_state_af_test.get_pde_shares_amount(None, token1, token2)
     INFO(f'Sum share amount after contribution  : {all_share_amount_after}')
     INFO(f'Owner share amount after contribution: {owner_share_amount_after}')
     expect_token1_contribution, expect_token2_contribution, refund_token1, refund_token2 = \

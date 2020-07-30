@@ -706,7 +706,8 @@ class Account:
 
     def pde_trade_token(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
         INFO(f'User {l6(self.payment_key)}: '
-             f'Trade {sell_amount} of token {token_id_to_sell[-6:]} for {token_id_to_buy[-6:]}')
+             f'Trade {sell_amount} of token {token_id_to_sell[-6:]} for {token_id_to_buy[-6:]} '
+             f'trading fee={trading_fee}')
         return self.__SUT.full_node.dex().trade_token(self.private_key, self.payment_key, token_id_to_sell, sell_amount,
                                                       token_id_to_buy, min_amount_to_buy, trading_fee)
 
@@ -724,13 +725,13 @@ class Account:
 
     def pde_trade_prv_v2(self, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         INFO(f'User {l6(self.payment_key)}: '
-             f'Trade {amount_to_sell} of PRV for {token_to_buy[-6:]}')
+             f'Trade {amount_to_sell} of PRV for {token_to_buy[-6:]} trading fee={trading_fee}')
         return self.__SUT.full_node.dex().trade_prv_v2(self.private_key, self.payment_key, amount_to_sell,
                                                        token_to_buy, trading_fee, min_amount_to_buy)
 
     def pde_trade_token_v2(self, token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         INFO(f'User {l6(self.payment_key)}: '
-             f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]}')
+             f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]} trading fee={trading_fee}')
         return self.__SUT.full_node.dex().trade_token_v2(self.private_key, self.payment_key, token_to_sell,
                                                          amount_to_sell,
                                                          token_to_buy, trading_fee, min_amount_to_buy)
@@ -741,22 +742,22 @@ class Account:
         else:
             return self.pde_trade_token_v2(token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy)
 
-    def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=None, pool_time=10,
+    def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=None, check_interval=10,
                                 timeout=100):
         """
 
         :param token_id:
         :param from_balance:
         :param least_change_amount: change at least this amount of token
-        :param pool_time:
+        :param check_interval:
         :param timeout:
         :return: new balance
         """
-        INFO(f'Wait for token: {token_id[-6:]} balance to change, amount: {least_change_amount}')
+        INFO(f'Wait for token: {token_id[-6:]} balance to change at least: {least_change_amount}')
         if from_balance is None:
             from_balance = self.get_token_balance(token_id)
-            WAIT(pool_time)
-            timeout -= pool_time
+            WAIT(check_interval)
+            timeout -= check_interval
         bal_new = None
         while timeout >= 0:
             bal_new = self.get_token_balance(token_id)
@@ -774,8 +775,8 @@ class Account:
                     if bal_new <= from_balance + least_change_amount:
                         INFO(f'Balance changes with {change_amount}')
                         return bal_new
-            WAIT(pool_time)
-            timeout -= pool_time
+            WAIT(check_interval)
+            timeout -= check_interval
         INFO('Balance not change a bit')
         return bal_new
 
