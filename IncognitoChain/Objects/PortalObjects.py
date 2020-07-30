@@ -140,7 +140,7 @@ class _CustodianInfo(PortalInfoObj):
         return int(self.data['RewardAmount'][token_id])
 
     def wait_my_lock_collateral_to_change(self, token_id, from_amount=None, check_rate=30, timeout=180):
-        portal_state_info = self.SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
+        portal_state_info = self.SUT.full_node.get_latest_portal_state_info()
         my_new_status = portal_state_info.get_custodian_info_in_pool(self)
 
         if my_new_status is None:
@@ -153,7 +153,7 @@ class _CustodianInfo(PortalInfoObj):
         current_collateral = collateral_before
         time = 0
         while current_collateral == collateral_before:
-            portal_state_info = self.SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
+            portal_state_info = self.SUT.full_node.get_latest_portal_state_info()
             my_new_status = portal_state_info.get_custodian_info_in_pool(self)
             if time >= timeout:
                 INFO(f'Lock collateral does not change in the last {time}s')

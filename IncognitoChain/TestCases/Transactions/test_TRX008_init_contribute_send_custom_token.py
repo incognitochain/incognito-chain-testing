@@ -93,7 +93,7 @@ def test_init_ptoken():
     rate = []
     for _ in range(0, 10):
         WAIT(10)
-        rate = SUT.full_node.get_latest_rate_between(Constants.PRV_ID, custom_token_id)
+        rate = SUT.REQUEST_HANDLER.get_latest_pde_state_info().get_rate_between_token(Constants.PRV_ID, custom_token_id)
         if rate is not None:
             break
     INFO(f"rate prv vs token: {rate}")

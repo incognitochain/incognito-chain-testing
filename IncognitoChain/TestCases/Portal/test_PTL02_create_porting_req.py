@@ -10,7 +10,8 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER, PORTAL_FEEDER
 from IncognitoChain.Objects.PortalObjects import PortingReqInfo, PTokenReqInfo
 from IncognitoChain.TestCases.Portal import portal_user, portal_user_remote_addr, bnb_pass_phrase, \
-    TEST_SETTING_PORTING_AMOUNT, all_custodians_remote_addr, big_collateral, fat_custodian_prv, big_rate, big_porting_amount, \
+    TEST_SETTING_PORTING_AMOUNT, all_custodians_remote_addr, big_collateral, fat_custodian_prv, big_rate, \
+    big_porting_amount, \
     init_portal_rate, fat_custodian, TEST_SETTING_DEPOSIT_AMOUNT, PORTAL_REQ_TIME_OUT
 
 n = 'n'
@@ -51,17 +52,17 @@ def setup_module():
     # BNB
     # 1 custodian
     (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "valid"),  # None means auto calculate fee
-    # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "expire"),  # None means auto calculate fee
-    # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "liquidate"),  # None means auto calculate fee
-    # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, 1, 1, "invalid"),
-    # (PBNB_ID, big_porting_amount, None, 1, "valid"),  # this test should be run alone
+    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "expire"),  # None means auto calculate fee
+    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "liquidate"),  # None means auto calculate fee
+    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, 1, 1, "invalid"),
+    (PBNB_ID, big_porting_amount, None, 1, "valid"),  # this test should be run alone
     # n custodian
-    # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "valid"),  # None means auto calculate fee
-    # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "expire"),  # None means auto calculate fee
-    # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "liquidate"),  # None means auto calculate fee
-    # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, 1, n, "invalid"),
+    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "valid"),  # None means auto calculate fee
+    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "expire"),  # None means auto calculate fee
+    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "liquidate"),  # None means auto calculate fee
+    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, 1, n, "invalid"),
 
-    # BTC # todo
+    # BTC # todo: implement BtcGo for this test to run
     # 1 custodian
     # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "valid"),  # None means auto calculate fee
     # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "expire"),  # None means auto calculate fee
@@ -90,7 +91,7 @@ def test_create_porting_req_1_1(token, porting_amount, porting_fee, num_of_custo
     prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
     estimated_porting_fee = PortalHelper.cal_portal_portal_fee(porting_amount, tok_rate, prv_rate)
     if num_of_custodian == n:
-        ps = SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
+        ps = SUT.full_node.get_latest_portal_state_info()
         highest_free_collateral_in_pool = ps.help_get_highest_free_collateral_custodian().get_free_collateral()
         tok_rate = ps.get_portal_rate(token)
         prv_rate = ps.get_portal_rate(PRV_ID)
@@ -185,7 +186,7 @@ def test_create_porting_req_1_1(token, porting_amount, porting_fee, num_of_custo
         else:
             assert len(custodians_info) > 1
 
-        PSI_after_expired = SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
+        PSI_after_expired = SUT.full_node.get_latest_portal_state_info()
         for custodian in custodians_info:
             state_before_test = PSI_before_test.get_custodian_info_in_pool(custodian)
             state_after_expire = PSI_after_expired.get_custodian_info_in_pool(custodian)
@@ -243,7 +244,7 @@ def test_create_porting_req_1_1(token, porting_amount, porting_fee, num_of_custo
         STEP(8, f'Verify lock collateral amount')
         sum_liquidate_collateral = 0
         sum_liquidate_token = 0
-        PSI_porting_completed = SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
+        PSI_porting_completed = SUT.full_node.get_latest_portal_state_info()
 
         for custodian in porting_req_info.get_custodians():
             # get lock collateral of custodian before test
@@ -327,7 +328,7 @@ def est_porting_req_expired(num_of_custodian):
     might delete this test in the future
     """
     STEP(0, "before test")
-    portal_state_info_before_test = SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
+    portal_state_info_before_test = SUT.full_node.get_latest_portal_state_info()
     pbnb_rate = portal_state_info_before_test.get_portal_rate(PBNB_ID)
     prv_rate = portal_state_info_before_test.get_portal_rate(PRV_ID)
 
@@ -391,7 +392,7 @@ def est_porting_req_expired(num_of_custodian):
     else:
         assert len(custodians_info) > 1
 
-    portal_state_info_after_expired = SUT.full_node.get_latest_portal_state().get_portal_state_info_obj()
+    portal_state_info_after_expired = SUT.full_node.get_latest_portal_state_info()
     for custodian in custodians_info:
         state_before_test = portal_state_info_before_test.get_custodian_info_in_pool(custodian)
         state_after_expire = portal_state_info_after_expired.get_custodian_info_in_pool(custodian)

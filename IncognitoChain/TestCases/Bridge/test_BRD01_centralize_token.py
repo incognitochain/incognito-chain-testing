@@ -54,7 +54,7 @@ def test_init_centralize_token():
     assert receiver_balance_before == 0, "receiver balance is <> 0"
 
     STEP(2, "init new token")
-    SUT.full_node.issue_centralize_token(receiver_account, token_id, token_name, token_amount).subscribe_transaction()
+    receiver_account.issue_centralize_token(token_id, token_name, token_amount).subscribe_transaction()
     INFO(f"new token id: {token_id} initialized")
 
     STEP(3, "check receiver balance after init token")

@@ -183,9 +183,6 @@ class Response:
         except TypeError:
             return None
 
-    def get_portal_state_info_obj(self):
-        return PortalStateInfo(self.get_result())
-
     def is_prv_privacy(self):
         return self.is_prv_privacy_v2()
 

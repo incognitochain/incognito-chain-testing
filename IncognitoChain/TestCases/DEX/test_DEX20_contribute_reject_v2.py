@@ -2,19 +2,19 @@ import pytest
 
 from IncognitoChain.Configs.Constants import PRV_ID, coin
 from IncognitoChain.Helpers.Logging import INFO, STEP, WARNING
-from IncognitoChain.Helpers.TestHelper import calculate_contribution, l6
-from IncognitoChain.Helpers.Time import get_current_date_time, WAIT
+from IncognitoChain.Helpers.TestHelper import l6
+from IncognitoChain.Helpers.Time import get_current_date_time
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PdeObjects import PDEContributeInfo, wait_for_user_contribution_in_waiting, \
     wait_for_user_contribution_out_waiting
-from IncognitoChain.TestCases.DEX import token_id_1, token_owner, token_id_2
+from IncognitoChain.TestCases.DEX import token_owner
 
 
 @pytest.mark.parametrize('token1,token2', (
-        [PRV_ID, PRV_ID],
-        # [token_id_1, token_id_1],
-        # [token_id_1, token_id_2],
-        # [token_id_2, token_id_1]
+    [PRV_ID, PRV_ID],
+    # [token_id_1, token_id_1],
+    # [token_id_1, token_id_2],
+    # [token_id_2, token_id_1]
 ))
 def test_contribute_prv(token1, token2):
     pair_id = f'auto_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
@@ -39,12 +39,12 @@ def test_contribute_prv(token1, token2):
     bal_tok1_be4_contrib = token_owner.get_token_balance(token1)
     bal_tok2_be4_contrib = token_owner.get_token_balance(token2)
 
-    all_share_amount = SUT.full_node.help_get_pde_share_list(token2, token1)
-    owner_share_amount = token_owner.get_my_current_pde_share(token2, token1)
+    all_share_amount = pde_state_b4.get_pde_shares_amount(None, token1, token2)
+    owner_share_amount = pde_state_b4.get_pde_shares_amount(token_owner, token2, token1)
     INFO(f'{l6(token1)} balance before contribution: {bal_tok1_be4_contrib}')
     INFO(f'{l6(token2)} balance before contribution: {bal_tok2_be4_contrib}')
 
-    rate = SUT.full_node.get_latest_rate_between(token2, token1)
+    rate = pde_state_b4.get_rate_between_token(token2, token1)
     if rate is not None:
         INFO(f'Rate before contribution: {l6(token2)}:{l6(token1)} is {rate}')
         INFO(f'Sum share amount before contribution  : {all_share_amount}')
@@ -53,10 +53,7 @@ def test_contribute_prv(token1, token2):
         WARNING(f'{l6(token2)}:{l6(token1)} is not existed, new contribution')
     # breakpoint()
     STEP(1, f"Contribute {l6(token1)}")
-    if token1 == PRV_ID:
-        contribute_token1_result = token_owner.pde_contribute_prv_v2(tok1_contrib_amount, pair_id)
-    else:
-        contribute_token1_result = token_owner.pde_contribute_token_v2(token1, tok1_contrib_amount, pair_id)
+    contribute_token1_result = token_owner.pde_contribute_v2(token1, tok1_contrib_amount, pair_id)
     contribute_token1_fee = contribute_token1_result.subscribe_transaction().get_fee()
 
     STEP(2, 'Verify contribution')
@@ -66,10 +63,7 @@ def test_contribute_prv(token1, token2):
     wait_for_user_contribution_in_waiting(token_owner, pair_id, token1)
 
     STEP(3, f'Contribute {l6(token2)}')
-    if token2 == PRV_ID:
-        contribute_token2_result = token_owner.pde_contribute_prv_v2(tok2_contrib_amount, pair_id)
-    else:
-        contribute_token2_result = token_owner.pde_contribute_token_v2(token2, tok2_contrib_amount, pair_id)
+    contribute_token2_result = token_owner.pde_contribute_v2(token2, tok2_contrib_amount, pair_id)
     contribute_token2_fee = contribute_token2_result.subscribe_transaction().get_fee()
     contrib_fee_sum = contribute_token1_fee + contribute_token2_fee
 
@@ -97,9 +91,9 @@ def test_contribute_prv(token1, token2):
         INFO(f'{l6(token2)} after contribute: {bal_tok2_aft_contrib}')
 
     refund_tok1 = contr_info.get_return_amount_1()
-    commit_tok1 = contr_info.get_amount_token1()
+    commit_tok1 = contr_info.get_contribute_amount_token1()
     refund_tok2 = contr_info.get_return_amount_2()
-    commit_tok2 = contr_info.get_amount_token2()
+    commit_tok2 = contr_info.get_contribute_amount_token2()
 
     # VERIFY: refund amount in API
     assert (refund_tok1 == 0 and commit_tok1 == 0) and INFO(
@@ -108,25 +102,25 @@ def test_contribute_prv(token1, token2):
         f"{l6(token2)} is going to refund"), f"{l6(token2)} refund amount is not correct"
 
     # VERIFY: account balance after refund
-    if token1 == token2 and token1 == PRV_ID:
-        assert bal_tok1_be4_contrib == bal_tok1_aft_contrib - contrib_fee_sum
-        # assert bal_tok2_be4_contrib == bal_tok2_aft_contrib
-    elif token1 == token2 and token1 != PRV_ID:
+    if token1 == token2 and token1 == PRV_ID:  # token 1 = 1 token 2 and both are PRV
+        assert bal_tok1_be4_contrib == bal_tok1_aft_contrib + contrib_fee_sum
+    elif token1 == token2 and token1 != PRV_ID:  # token 1 = 1 token 2 and both are NOT PRV
         assert bal_tok1_be4_contrib == bal_tok1_aft_contrib
     elif token2 == PRV_ID:
         assert bal_tok1_be4_contrib == bal_tok1_aft_contrib
-        assert bal_tok2_be4_contrib == bal_tok2_aft_contrib - contrib_fee_sum
+        assert bal_tok2_be4_contrib == bal_tok2_aft_contrib + contrib_fee_sum
     else:
-        assert bal_tok1_be4_contrib == bal_tok1_aft_contrib - contrib_fee_sum
+        assert bal_tok1_be4_contrib == bal_tok1_aft_contrib + contrib_fee_sum
         assert bal_tok2_be4_contrib == bal_tok2_aft_contrib
 
     INFO(f"Account balance is verified for {l6(token1)} and {l6(token2)}")
 
     STEP(6, f'Check rate {l6(token1)} vs {l6(token2)} after contribution')
-    rate_after = SUT.full_node.get_latest_rate_between(token1, token2)
+    pde_state_af = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    rate_after = pde_state_af.get_rate_between_token(token1, token2)
     INFO(f'rate {l6(token1)} vs {l6(token2)} = {rate_after}')
-    owner_share_amount_after = token_owner.get_my_current_pde_share(token2, token1)
-    all_share_amount_after = SUT.full_node.help_get_pde_share_list(token2, token1)
+    owner_share_amount_after = pde_state_af.get_pde_shares_amount(token_owner, token2, token1)
+    all_share_amount_after = pde_state_af.get_pde_shares_amount(None, token1, token2)
 
     INFO(f"""
         Owner share amount before: {owner_share_amount}

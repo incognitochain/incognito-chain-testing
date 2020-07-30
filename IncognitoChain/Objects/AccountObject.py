@@ -1,4 +1,6 @@
+import concurrent
 import copy
+from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
 from websocket import WebSocketTimeoutException
@@ -480,6 +482,12 @@ class Account:
         else:
             return self.pde_contribute_token(token_id, amount, pair_id)
 
+    def pde_contribute_v2(self, token_id, amount, pair_id):
+        if token_id == PRV_ID:
+            return self.pde_contribute_prv_v2(amount, pair_id)
+        else:
+            return self.pde_contribute_token_v2(token_id, amount, pair_id)
+
     def pde_contribute_token(self, contribute_token_id, amount, contribution_pair_id):
         INFO(f'{l6(self.private_key)} Contribute token: {contribute_token_id[-6:]}, amount = {amount}, '
              f'pair id = {contribution_pair_id}')
@@ -492,7 +500,7 @@ class Account:
              f'pair id = {contribution_pair_id}')
 
         return self.__SUT.full_node.dex().contribute_token_v2(self.private_key, self.payment_key, contribute_token_id,
-                                                           amount, contribution_pair_id)
+                                                              amount, contribution_pair_id)
 
     def pde_contribute_prv(self, amount, contribution_pair_id):
         INFO(f'{l6(self.private_key)} Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
@@ -584,6 +592,16 @@ class Account:
     ########
     # BRIDGE
     ########
+    def issue_centralize_token(self, token_id, token_name, amount):
+        """
+            initialize a new centralize token
+
+            :return: Response Object
+
+        """
+        return self.__SUT.REQUEST_HANDLER.bridge().issue_centralized_bridge_token(self.payment_key, token_id,
+                                                                                  token_name, amount)
+
     def withdraw_centralize_token(self, token_id, amount_custom_token):
         """
         Withdraw token (this mean send token to burning address, but receive your token on ETH network)
@@ -686,22 +704,60 @@ class Account:
         INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
         return False
 
-    def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=None, pool_time=10,
+    def pde_trade_token(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
+        INFO(f'User {l6(self.payment_key)}: '
+             f'Trade {sell_amount} of token {token_id_to_sell[-6:]} for {token_id_to_buy[-6:]} '
+             f'trading fee={trading_fee}')
+        return self.__SUT.full_node.dex().trade_token(self.private_key, self.payment_key, token_id_to_sell, sell_amount,
+                                                      token_id_to_buy, min_amount_to_buy, trading_fee)
+
+    def pde_trade_prv(self, amount_to_sell, token_id_to_buy, min_amount_to_buy):
+        INFO(f'User {l6(self.payment_key)}: '
+             f'Trade {amount_to_sell} of PRV for {token_id_to_buy[-6:]}')
+        return self.__SUT.full_node.dex().trade_prv(self.private_key, self.payment_key, amount_to_sell, token_id_to_buy,
+                                                    min_amount_to_buy)
+
+    def pde_trade(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
+        if token_id_to_sell == PRV_ID:
+            return self.pde_trade_prv(sell_amount, token_id_to_buy, min_amount_to_buy)
+        else:
+            return self.pde_trade_token(token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee)
+
+    def pde_trade_prv_v2(self, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
+        INFO(f'User {l6(self.payment_key)}: '
+             f'Trade {amount_to_sell} of PRV for {token_to_buy[-6:]} trading fee={trading_fee}')
+        return self.__SUT.full_node.dex().trade_prv_v2(self.private_key, self.payment_key, amount_to_sell,
+                                                       token_to_buy, trading_fee, min_amount_to_buy)
+
+    def pde_trade_token_v2(self, token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
+        INFO(f'User {l6(self.payment_key)}: '
+             f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]} trading fee={trading_fee}')
+        return self.__SUT.full_node.dex().trade_token_v2(self.private_key, self.payment_key, token_to_sell,
+                                                         amount_to_sell,
+                                                         token_to_buy, trading_fee, min_amount_to_buy)
+
+    def pde_trade_v2(self, token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
+        if token_to_sell == PRV_ID:
+            return self.pde_trade_prv_v2(amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy)
+        else:
+            return self.pde_trade_token_v2(token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy)
+
+    def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=None, check_interval=10,
                                 timeout=100):
         """
 
         :param token_id:
         :param from_balance:
         :param least_change_amount: change at least this amount of token
-        :param pool_time:
+        :param check_interval:
         :param timeout:
         :return: new balance
         """
-        INFO(f'Wait for token: {token_id[-6:]} balance to change, amount: {least_change_amount}')
+        INFO(f'Wait for token: {token_id[-6:]} balance to change at least: {least_change_amount}')
         if from_balance is None:
             from_balance = self.get_token_balance(token_id)
-            WAIT(pool_time)
-            timeout -= pool_time
+            WAIT(check_interval)
+            timeout -= check_interval
         bal_new = None
         while timeout >= 0:
             bal_new = self.get_token_balance(token_id)
@@ -719,46 +775,10 @@ class Account:
                     if bal_new <= from_balance + least_change_amount:
                         INFO(f'Balance changes with {change_amount}')
                         return bal_new
-            WAIT(pool_time)
-            timeout -= pool_time
+            WAIT(check_interval)
+            timeout -= check_interval
         INFO('Balance not change a bit')
         return bal_new
-
-    def trade_token(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
-        INFO(f'Trade {sell_amount} of token {token_id_to_sell[-6:]} for {token_id_to_buy[-6:]}')
-        return self.__SUT.full_node.dex().trade_token(self.private_key, self.payment_key, token_id_to_sell, sell_amount,
-                                                      token_id_to_buy, min_amount_to_buy, trading_fee)
-
-    def trade_prv(self, amount_to_sell, token_id_to_buy, min_amount_to_buy):
-        INFO(f'Trade {amount_to_sell} of PRV for {token_id_to_buy[-6:]}')
-        return self.__SUT.full_node.dex().trade_prv(self.private_key, self.payment_key, amount_to_sell, token_id_to_buy,
-                                                    min_amount_to_buy)
-
-    def get_my_current_pde_share(self, token_id_1, token_id_2):
-        """
-
-        :param token_id_1: token id to get share part
-        :param token_id_2:
-        :return: list of token 1 share
-        """
-        INFO(f"Get PDE share of me: payment key: {l6(token_id_1)}")
-        pde_status = self.__SUT.full_node.help_get_current_pde_status()
-        beacon_height = pde_status.params().get_beacon_height()
-        INFO(f"Checking pdeshare {l6(token_id_2)}-{l6(token_id_1)} or {l6(token_id_1)}-{l6(token_id_2)}")
-        share_key_1_2 = f'pdeshare-{beacon_height}-{token_id_2}-{token_id_1}-{self.payment_key}'
-        share_key_2_1 = f'pdeshare-{beacon_height}-{token_id_1}-{token_id_2}-{self.payment_key}'
-        share_response = pde_status.get_pde_share()
-        try:
-            INFO(f'Finding pdeshare-{beacon_height}-{l6(token_id_1)}-{l6(token_id_2)}-{l6(self.payment_key)}')
-            return share_response[share_key_1_2]
-        except KeyError:
-            INFO('Not found')
-        try:
-            INFO(f'Finding pdeshare-{beacon_height}-{l6(token_id_2)}-{l6(token_id_1)}-{l6(self.payment_key)}')
-            return share_response[share_key_2_1]
-        except KeyError:
-            INFO('Not found')
-        return None
 
     #######
     # Portal
@@ -809,7 +829,8 @@ class Account:
         info = RedeemReqInfo()
         info.get_req_matching_redeem_status(req_tx.get_tx_id())
 
-        assert info.get_status() == PortalCustodianReqMatchingStatus.ACCEPT, f'Req matching status is {info.get_status()}'
+        assert info.get_status() == PortalCustodianReqMatchingStatus.ACCEPT, \
+            f'Req matching status is {info.get_status()}'
         return req_tx
 
     def portal_req_redeem_my_token(self, remote_addr, token_id, redeem_amount, redeem_fee=None, privacy=True):
@@ -898,20 +919,17 @@ class Account:
         INFO(f'Lock collateral has change {delta}')
         return delta
 
-    def portal_sum_my_waiting_porting_req_locked_collateral(self, token_id, portal_state=None):
-        if portal_state is None:
-            portal_state = self.__SUT.full_node.get_latest_portal_state()
+    def portal_sum_my_waiting_porting_req_locked_collateral(self, token_id, portal_state_info=None):
+        if portal_state_info is None:
+            portal_state_info = self.__SUT.REQUEST_HANDLER.get_latest_portal_state_info()
 
-        portal_state_info = PortalStateInfo(portal_state.get_result())
         sum_amount = portal_state_info.sum_collateral_porting_waiting(token_id, self)
         INFO(f'{l6(self.payment_key)} sum all waiting porting req collateral of token {l6(token_id)}: {sum_amount}')
         return sum_amount
 
-    def portal_sum_my_matched_redeem_req_holding_token(self, token_id, portal_state=None):
-        if portal_state is None:
-            portal_state = self.__SUT.full_node.get_latest_portal_state()
-
-        portal_state_info = PortalStateInfo(portal_state.get_result())
+    def portal_sum_my_matched_redeem_req_holding_token(self, token_id, portal_state_info=None):
+        if portal_state_info is None:
+            portal_state_info = self.__SUT.REQUEST_HANDLER.get_latest_portal_state_info()
 
         sum_amount = portal_state_info.sum_holding_token_matched_redeem_req(token_id, self)
         INFO(f'{l6(self.payment_key)} sum all waiting redeem holding token of {l6(token_id)}: {sum_amount}')
@@ -976,20 +994,21 @@ class Account:
         send_tx = self.send_token_multi_output(receiver, token_id, prv_fee=-1)
         send_tx.expect_no_error()
         send_tx.subscribe_transaction()
-        # thread_pool = []
-        for acc, amount in receiver.items():
-            if acc.shard != self.shard:
-                acc: Account
-                try:
-                    acc.subscribe_cross_output_token()  # todo: use threading to save time
-                    # thread = Thread(acc.subscribe_cross_output_coin)  # not yet work, todo: make it work
-                    # thread.start()
-                    # thread_pool.append(thread)
-                except WebSocketTimeoutException:
-                    break
 
-        # for thread in thread_pool:
-        #     thread.join()
+        def sub_if_dif_shard(_receiver, _sender):
+            if _receiver.shard != _sender.shard:
+                try:
+                    _receiver.subscribe_cross_output_token()
+                except WebSocketTimeoutException:
+                    pass
+
+        threads = []
+        with ThreadPoolExecutor() as executor:
+            for acc in receiver.keys():
+                threads.append(executor.submit(sub_if_dif_shard, acc, self))
+
+        concurrent.futures.wait(threads)
+
         return send_tx
 
     def top_him_up_prv_to_amount_if(self, if_lower_than, top_up_to_amount, accounts_list):

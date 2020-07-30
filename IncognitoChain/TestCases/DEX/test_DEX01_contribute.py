@@ -5,6 +5,7 @@ from IncognitoChain.Helpers.Logging import INFO, STEP
 from IncognitoChain.Helpers.TestHelper import calculate_contribution, l6
 from IncognitoChain.Helpers.Time import get_current_date_time
 from IncognitoChain.Objects.IncognitoTestCase import SUT
+from IncognitoChain.Objects.PdeObjects import PDEContributeInfo
 from IncognitoChain.TestCases.DEX import token_id_1, token_owner, token_id_2
 
 
@@ -22,7 +23,7 @@ def test_contribute(token1, token2):
     pair_id = f'{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
     tok1_contrib_amount = coin(1234)
     tok2_contrib_amount = coin(2134)
-
+    pde_state_b4_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     INFO(f"""
             test_DEX01_contribute:
             - contribute a pair of token {l6(token1)} vs {l6(token2)}
@@ -31,18 +32,18 @@ def test_contribute(token1, token2):
             - check the amount of refund and the actual amount contribution
             """)
     STEP(0, "Checking env - checking waiting contribution list, pDEX share amount")
-    assert not token_owner.is_my_token_waiting_for_contribution(pair_id, token1)
-    assert not token_owner.is_my_token_waiting_for_contribution(pair_id, token2)
+    assert pde_state_b4_test.find_waiting_contribution_of_user(token_owner, pair_id, token1) == []
+    assert pde_state_b4_test.find_waiting_contribution_of_user(token_owner, pair_id, token2) == []
 
     bal_tok1_be4_contrib = token_owner.get_token_balance(token1)
     bal_tok2_be4_contrib = token_owner.get_token_balance(token2)
-    all_share_amount = SUT.full_node.help_get_pde_share_list(token2, token1)
-    owner_share_amount = token_owner.get_my_current_pde_share(token2, token1)
+    all_share_amount = pde_state_b4_test.get_pde_shares_amount(None, token1, token2)
+    owner_share_amount = pde_state_b4_test.get_pde_shares_amount(token_owner, token2, token1)
     INFO(f'{l6(token1)} balance before contribution: {bal_tok1_be4_contrib}')
     INFO(f'{l6(token2)} balance before contribution: {bal_tok2_be4_contrib}')
     INFO(f'Sum share amount before contribution  : {all_share_amount}')
     INFO(f'Owner share amount before contribution: {owner_share_amount}')
-    rate = SUT.full_node.get_latest_rate_between(token2, token1)
+    rate = pde_state_b4_test.get_rate_between_token(token2, token1)
     INFO(f'Rate {l6(token2)}:{l6(token1)} is {rate}')
     # breakpoint()
     STEP(1, f"Contribute {l6(token1)}")
@@ -53,7 +54,7 @@ def test_contribute(token1, token2):
     contribute_token1_fee = contribute_token1_result.subscribe_transaction().get_fee()
 
     STEP(2, 'Verify contribution')
-    assert token_owner.wait_till_my_token_in_waiting_for_contribution(pair_id, token1)
+    assert token_owner.pde_wait_till_my_token_in_waiting_for_contribution(pair_id, token1)
 
     STEP(3, f'Contribute {l6(token2)}')
     if token2 == PRV_ID:
@@ -64,7 +65,7 @@ def test_contribute(token1, token2):
     contrib_fee_sum = contribute_token1_fee + contribute_token2_fee
 
     STEP(4, f'Verify {l6(token1)} is no longer in waiting contribution list')
-    token_owner.wait_till_my_token_out_waiting_for_contribution(token1)
+    token_owner.pde_wait_till_my_token_out_waiting_for_contribution(token1)
     bal_tok1_aft_contrib = token_owner.get_token_balance(token1)
     bal_tok2_aft_contrib = token_owner.get_token_balance(token2)
     INFO(f'{l6(token1)} after contribute (before refund): {bal_tok1_aft_contrib}')
@@ -81,10 +82,11 @@ def test_contribute(token1, token2):
         assert bal_tok2_be4_contrib == bal_tok2_aft_contrib + tok2_contrib_amount
 
     STEP(5, f'Check rate {l6(token1)} vs {l6(token2)}')
-    rate_after = SUT.full_node.get_latest_rate_between(token1, token2)
+    pde_state_af_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    rate_after = pde_state_af_test.get_rate_between_token(token1, token2)
     INFO(f'rate {l6(token1)} vs {l6(token2)} = {rate_after}')
-    owner_share_amount_after = token_owner.get_my_current_pde_share(token2, token1)
-    all_share_amount_after = SUT.full_node.help_get_pde_share_list(token2, token1)
+    owner_share_amount_after = pde_state_af_test.get_pde_shares_amount(token_owner, token2, token1)
+    all_share_amount_after = pde_state_af_test.get_pde_shares_amount(None, token1, token2)
     INFO(f'Sum share amount after contribution  : {all_share_amount_after}')
     INFO(f'Owner share amount after contribution: {owner_share_amount_after}')
     expect_token1_contribution, expect_token2_contribution, refund_token1, refund_token2 = \
@@ -100,11 +102,17 @@ def test_contribute(token1, token2):
     else:
         bal_tok2_aft_refund = bal_tok2_aft_contrib
 
-    contribution_status = SUT.full_node.dex().get_contribution_status(pair_id)
-    api_contrib_tok1 = contribution_status.get_contributed_2_amount()
-    api_contrib_tok2 = contribution_status.get_contributed_1_amount()
-    api_return_tok1 = contribution_status.get_returned_2_amount()
-    api_return_tok2 = contribution_status.get_returned_1_amount()
+    contribution_status = PDEContributeInfo()
+    contribution_status.get_contribute_status(pair_id)
+    api_contrib_tok1 = contribution_status.get_contribute_amount_token2()
+    api_contrib_tok2 = contribution_status.get_contribute_amount_token1()
+    api_return_tok1 = contribution_status.get_return_amount_2()
+    api_return_tok2 = contribution_status.get_return_amount_1()
+    # contribution_status = SUT.full_node.dex().get_contribution_status(pair_id)
+    # api_contrib_tok1 = contribution_status.get_contributed_2_amount()
+    # api_contrib_tok2 = contribution_status.get_contributed_1_amount()
+    # api_return_tok1 = contribution_status.get_returned_2_amount()
+    # api_return_tok2 = contribution_status.get_returned_1_amount()
 
     INFO(f"""
         Owner share amount before: {owner_share_amount}

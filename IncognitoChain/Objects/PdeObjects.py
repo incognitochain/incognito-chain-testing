@@ -1,6 +1,6 @@
 import copy
 
-from IncognitoChain.Helpers.Logging import INFO, WARNING
+from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG
 from IncognitoChain.Helpers.TestHelper import extract_incognito_addr, l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects import BlockChainInfoBaseClass
@@ -65,23 +65,127 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             pool_pair_objs.append(pool_pair_obj)
         return pool_pair_objs
 
-    def get_pde_shares(self, user=None, token1=None, token2=None):
+    def _get_contributor_rewards(self, user=None, token1=None, token2=None):
+        DEBUG('==================================================================================================')
+        of_user = 'any' if user is None else l6(extract_incognito_addr(user))
+        tok1 = 'any' if token1 is None else l6(token1)
+        tok2 = 'any' if token1 is None else l6(token2)
+        INFO(f'Getting PDE reward of contributor and tokens at beacon height time stamp {self.get_beacon_time_stamp()}:'
+             f' {of_user}:{tok1}-{tok2}')
+
+        reward_pool = []
+        reward_pool_raw = self.data['PDETradingFees']
+        for k, v in reward_pool_raw.items():
+            reward_raw_data = {k: v}
+            reward_obj = _PdeReward(reward_raw_data)
+
+            DEBUG(f"Checking reward: {reward_obj}")
+            match = True
+            debug_msg = ''
+            if user is not None:
+                user = extract_incognito_addr(user)
+                if user == reward_obj.get_payment_k():
+                    match = True
+                    debug_msg += f'user {of_user} | '
+                else:
+                    DEBUG(f'NOT Match user {of_user}')
+                    continue
+            # breakpoint()
+            if token1 is not None and token2 is not None:
+                if token1 == reward_obj.get_token1_id() and token2 == reward_obj.get_token2_id():
+                    debug_msg += f'token 1->1, 2->2 {tok1}-{tok2} | '
+                    match = True
+                elif token1 == reward_obj.get_token2_id() and token2 == reward_obj.get_token1_id():
+                    debug_msg += f'token 1->2, 2->1 {tok2}-{tok1} | '
+                    match = True
+                else:
+                    match = False
+
+            if match:
+                DEBUG(f"MATCH {debug_msg}: {reward_obj}")
+                reward_pool.append(reward_obj)
+        if not reward_pool:  # empty list
+            INFO("Not found")
+        return reward_pool
+
+    def get_contributor_reward(self, user=None, token1=None, token2=None):
+        """
+        :param user: Account or payment k
+        :param token1:
+        :param token2:
+        :return: int value if found one, list of int if found many
+        """
+        share_objects = self._get_contributor_rewards(user, token1, token2)
+        list_amount = []
+        for obj in share_objects:
+            list_amount.append(obj.get_amount())
+
+        if len(list_amount) == 1:
+            return list_amount[0]
+        elif len(list_amount) > 1:
+            return list_amount
+        return None
+
+    def _get_pde_shares(self, user=None, token1=None, token2=None):
+        DEBUG('==================================================================================================')
+        of_user = 'any' if user is None else l6(extract_incognito_addr(user))
+        tok1 = 'any' if token1 is None else l6(token1)
+        tok2 = 'any' if token1 is None else l6(token2)
+        INFO(f'Getting share of user and tokens at beacon height time stamp {self.get_beacon_time_stamp()}: '
+             f'{of_user}:{tok1}-{tok2}')
+
         pde_share_raw = self.data['PDEShares']
         pde_share_objs = []
         for k, v in pde_share_raw.items():
             pde_share_data = {k: v}
             pde_share_obj = _PdeShare(pde_share_data)
-            match = False
+
+            DEBUG(f"Checking share: {pde_share_obj}")
+            match = True
+            debug_msg = ''
             if user is not None:
-                match = True if user == pde_share_obj.get_payment_k() and match else False
-            if token1 is not None:
-                match = True if token1 == pde_share_obj.get_token1_id() and match else False
-            if token2 is not None:
-                match = True if token2 == pde_share_obj.get_token2_id() and match else False
+                user = extract_incognito_addr(user)
+                if user == pde_share_obj.get_payment_k():
+                    match = True
+                    debug_msg += f'user {of_user} | '
+                else:
+                    DEBUG(f'NOT Match user {of_user}')
+                    continue
+            # breakpoint()
+            if token1 is not None and token2 is not None:
+                if token1 == pde_share_obj.get_token1_id() and token2 == pde_share_obj.get_token2_id():
+                    debug_msg += f'token 1->1, 2->2 {tok1}-{tok2} | '
+                    match = True
+                elif token1 == pde_share_obj.get_token2_id() and token2 == pde_share_obj.get_token1_id():
+                    debug_msg += f'token 1->2, 2->1 {tok2}-{tok1} | '
+                    match = True
+                else:
+                    match = False
 
             if match:
+                DEBUG(f"MATCH {debug_msg}: {pde_share_obj}")
                 pde_share_objs.append(pde_share_obj)
+        if not pde_share_objs:  # empty list
+            INFO("Not found")
         return pde_share_objs
+
+    def get_pde_shares_amount(self, user=None, token1=None, token2=None):
+        """
+
+        :param user: Account or payment k
+        :param token1:
+        :param token2:
+        :return: int value if found one, list of int if found many
+        """
+        share_objects = self._get_pde_shares(user, token1, token2)
+        list_amount = []
+        for obj in share_objects:
+            list_amount.append(obj.get_share_amount())
+
+        if len(list_amount) == 1:
+            return list_amount[0]
+        elif len(list_amount) > 1:
+            return list_amount
 
     def get_beacon_time_stamp(self):
         return self.data["BeaconTimeStamp"]
@@ -96,16 +200,28 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 if pair.get_token1_id() == token2:
                     return [pair.get_token2_pool_value(), pair.get_token1_pool_value()]
 
-    def sum_share_pool_of_pair(self, token1, token2):
-        INFO(f'Calculating sum share of pair {l6(token1)}:{l6(token2)}')
-        share_pool = self.get_pde_shares()
-        sum_pool = 0
-        for share in share_pool:
-            if share.get_token1_id() == token1 and share.get_token2_id() == token2:
-                INFO(f'Found share amount {share.get_share_amount()}')
-                sum_pool += share.get_share_amount()
-        INFO(f'Sum share of pair {l6(token1)}:{l6(token2)} = {sum_pool}')
+    def sum_share_pool_of_pair(self, user=None, token1=None, token2=None):
+        INFO(f'Calculating sum share of pair...')
+        share_pool = self.get_pde_shares_amount(user, token1, token2)
+        sum_pool = sum(share_pool) if type(share_pool) is list else share_pool
+        INFO(f'Sum share = {sum_pool}')
         return sum_pool
+
+    def sum_contributor_reward_of_pair(self, user=None, token1=None, token2=None):
+        INFO(f'Calculating PDE reward of pair...')
+        reward_pool = self.get_contributor_reward(user, token1, token2)
+        sum_reward = sum(reward_pool) if type(reward_pool) is list else reward_pool
+        INFO(f'Sum reward = {sum_reward}')
+        return sum_reward
+
+    def get_contributor_of_pair(self, token1, token2):
+        contributor_list = []
+        for pair in self._get_pde_shares(None, token1, token2):
+            contributor = pair.get_payment_k()
+            if contributor not in contributor_list:
+                contributor_list.append(contributor)
+
+        return contributor_list
 
 
 class PDEContributeInfo(BlockChainInfoBaseClass):
@@ -131,10 +247,10 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
                 return self
             else:
                 WAIT(check_interval)
-        return None
+        return self
 
     def is_none(self):
-        return self.data == None
+        return self.data is None
 
     def get_status(self):
         return self.data["Status"]
@@ -145,10 +261,10 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
     def get_token2(self):
         return self.data["TokenID2Str"]
 
-    def get_amount_token1(self):
+    def get_contribute_amount_token1(self):
         return self.data["Contributed1Amount"]
 
-    def get_amount_token2(self):
+    def get_contribute_amount_token2(self):
         return self.data["Contributed2Amount"]
 
     def get_return_amount_1(self):
@@ -267,6 +383,10 @@ class _PdeShare(BlockChainInfoBaseClass):
         raw_data = copy.copy(self.data)
         self.id, self.info = raw_data.popitem()
 
+    def __str__(self):
+        return f'{l6(self.get_token1_id())}-{l6(self.get_token2_id())}-' \
+               f'{l6(self.get_payment_k())}-{self.get_share_amount()}'
+
     def __eq__(self, other):
         return self.data == other.data
 
@@ -276,7 +396,7 @@ class _PdeShare(BlockChainInfoBaseClass):
     def get_share_amount(self):
         return self.info
 
-    def beacon_height(self):
+    def get_beacon_height(self):
         return int(self.id.split('-')[1])
 
     def get_token1_id(self):
@@ -289,15 +409,42 @@ class _PdeShare(BlockChainInfoBaseClass):
         return self.id.split('-')[4]
 
 
+class _PdeReward(BlockChainInfoBaseClass):
+    def __init__(self, raw_data):
+        super(_PdeReward, self).__init__(raw_data)
+        raw_data = copy.copy(self.data)
+        self.key, self.value = raw_data.popitem()
+
+    def __str__(self):
+        return f'{l6(self.get_token1_id())}-{l6(self.get_token2_id())}-' \
+               f'{l6(self.get_payment_k())}-{self.get_amount()}'
+
+    def get_beacon_height(self):
+        return int(self.key.split('-')[1])
+
+    def get_token1_id(self):
+        return self.key.split('-')[2]
+
+    def get_token2_id(self):
+        return self.key.split('-')[3]
+
+    def get_payment_k(self):
+        return self.key.split('-')[4]
+
+    def get_amount(self):
+        return self.value
+
+
 def wait_for_user_contribution_in_waiting(user, pair_id, token_id, check_interval=10, timeout=120):
     from IncognitoChain.Objects.IncognitoTestCase import SUT
     waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
         find_waiting_contribution_of_user(user, pair_id, token_id)
     time = 0
     while time <= timeout:
-        if waiting_contribution:
+        if waiting_contribution:  # list not empty
             return waiting_contribution[0]
-        else:
+        else:  # list is empty, continue to find
+            WAIT(check_interval)
             waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
                 find_waiting_contribution_of_user(user, pair_id, token_id)
             time += check_interval
@@ -313,6 +460,7 @@ def wait_for_user_contribution_out_waiting(user, pair_id, token_id, check_interv
         if not waiting_contribution:
             return
         else:
+            WAIT(check_interval)
             waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
                 find_waiting_contribution_of_user(user, pair_id, token_id)
             time += check_interval
