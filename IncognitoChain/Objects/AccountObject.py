@@ -489,14 +489,14 @@ class Account:
             return self.pde_contribute_token_v2(token_id, amount, pair_id)
 
     def pde_contribute_token(self, contribute_token_id, amount, contribution_pair_id):
-        INFO(f'{l6(self.private_key)} Contribute token: {contribute_token_id[-6:]}, amount = {amount}, '
+        INFO(f'{l6(self.private_key)} Contribute token: {l6(contribute_token_id)}, amount = {amount}, '
              f'pair id = {contribution_pair_id}')
 
         return self.__SUT.full_node.dex().contribute_token(self.private_key, self.payment_key, contribute_token_id,
                                                            amount, contribution_pair_id)
 
     def pde_contribute_token_v2(self, contribute_token_id, amount, contribution_pair_id):
-        INFO(f'{l6(self.private_key)} Contribute token V2: {contribute_token_id[-6:]}, amount = {amount}, '
+        INFO(f'{l6(self.private_key)} Contribute token V2: {l6(contribute_token_id)}, amount = {amount}, '
              f'pair id = {contribution_pair_id}')
 
         return self.__SUT.full_node.dex().contribute_token_v2(self.private_key, self.payment_key, contribute_token_id,
@@ -677,31 +677,31 @@ class Account:
                 subscribe_transaction_obj()
 
     def pde_wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
-        INFO(f"Wait until token {token_id[-6:]} is in waiting for contribution")
+        INFO(f"Wait until token {l6(token_id)} is in waiting for contribution")
         pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info()
         my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
         while timeout >= 0:
             if my_waiting:  # not empty
-                INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
+                INFO(f'Token {l6(token_id)} is found in contribution waiting list')
                 return True
             timeout -= 10
             WAIT(10)
             my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
-        INFO(f'Token {token_id[-6:]} is NOT found in contribution waiting list')
+        INFO(f'Token {l6(token_id)} is NOT found in contribution waiting list')
         return False
 
     def pde_wait_till_my_token_out_waiting_for_contribution(self, pair_id, token_id, timeout=100):
-        INFO(f"Wait until token {token_id[-6:]} is OUT of waiting for contribution")
+        INFO(f"Wait until token {l6(token_id)} is OUT of waiting for contribution")
         pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info()
         my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
         while timeout >= 0:
             if not my_waiting:
-                INFO(f'Token {token_id[-6:]} is NOT found in contribution waiting list')
+                INFO(f'Token {l6(token_id)} is NOT found in contribution waiting list')
                 return True
             timeout -= 10
             WAIT(10)
             my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
-        INFO(f'Token {token_id[-6:]} is found in contribution waiting list')
+        INFO(f'Token {l6(token_id)} is found in contribution waiting list')
         return False
 
     def pde_trade_token(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
@@ -725,7 +725,7 @@ class Account:
 
     def pde_trade_prv_v2(self, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         INFO(f'User {l6(self.payment_key)}: '
-             f'Trade {amount_to_sell} of PRV for {token_to_buy[-6:]} trading fee={trading_fee}')
+             f'Trade {amount_to_sell} of PRV for {l6(token_to_buy)} trading fee={trading_fee}')
         return self.__SUT.full_node.dex().trade_prv_v2(self.private_key, self.payment_key, amount_to_sell,
                                                        token_to_buy, trading_fee, min_amount_to_buy)
 
@@ -742,7 +742,7 @@ class Account:
         else:
             return self.pde_trade_token_v2(token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy)
 
-    def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=None, check_interval=10,
+    def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=1, check_interval=10,
                                 timeout=100):
         """
 
@@ -753,7 +753,8 @@ class Account:
         :param timeout:
         :return: new balance
         """
-        INFO(f'Wait for token: {token_id[-6:]} balance to change at least: {least_change_amount}')
+        INFO(f'Wait for token {l6(token_id)} of {l6(self.private_key)} '
+             f'balance to change at least: {least_change_amount}')
         if from_balance is None:
             from_balance = self.get_token_balance(token_id)
             WAIT(check_interval)
@@ -761,23 +762,22 @@ class Account:
         bal_new = None
         while timeout >= 0:
             bal_new = self.get_token_balance(token_id)
-            if least_change_amount is None:
+            change_amount = bal_new - from_balance
+            if least_change_amount is None:  # just change, does not mater + or -
                 if bal_new != from_balance:
-                    INFO(f'Balance is changed: {bal_new - from_balance}')
+                    INFO(f'Balance token {l6(token_id)} of {l6(self.private_key)} changes: {change_amount}')
                     return bal_new
-            else:
-                change_amount = bal_new - from_balance
-                if least_change_amount >= 0:
-                    if bal_new >= from_balance + least_change_amount:
-                        INFO(f'Balance changes with {change_amount}')
-                        return bal_new
-                else:
-                    if bal_new <= from_balance + least_change_amount:
-                        INFO(f'Balance changes with {change_amount}')
-                        return bal_new
+            elif least_change_amount >= 0:  # case balance increase
+                if bal_new >= from_balance + least_change_amount:
+                    INFO(f'Balance token {l6(token_id)} of {l6(self.private_key)} changes: {change_amount}')
+                    return bal_new
+            else:  # case balance decrease
+                if bal_new <= from_balance + least_change_amount:
+                    INFO(f'Balance token {l6(token_id)} of {l6(self.private_key)} changes: {change_amount}')
+                    return bal_new
             WAIT(check_interval)
             timeout -= check_interval
-        INFO('Balance not change a bit')
+        INFO(f'Balance token {l6(token_id)} of {l6(self.private_key)} not change a bit')
         return bal_new
 
     #######
