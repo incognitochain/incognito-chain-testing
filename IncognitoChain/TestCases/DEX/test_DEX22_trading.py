@@ -13,7 +13,7 @@ from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
 from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_owner, token_id_2
 
 # trade_amount = random.randrange(9900000, 10000000)
-trade_amounts = [10000] * 10
+trade_amounts = [123456] * 10
 SUMMARY = '\n'
 
 
@@ -56,15 +56,15 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     balance_tok_buy_after = []
     private_key_alias = []
     # trading_fees = [7700000, 2200000, 1100000, 6600000, 9900000, 200000, 3300000, 5500000, 8800000, 4400000]
-    trading_fees = [random.randrange(10000, 20000),
-                    random.randrange(10000, 20000),
-                    random.randrange(10000, 20000),
-                    random.randrange(10000, 20000),
-                    random.randrange(10000, 20000),
-                    random.randrange(10000, 20000),
-                    random.randrange(10000, 20000),
-                    random.randrange(10000, 20000),
-                    random.randrange(10000, 20000),
+    trading_fees = [random.randrange(190000, 200000),
+                    random.randrange(190000, 200000),
+                    random.randrange(190000, 200000),
+                    random.randrange(190000, 200000),
+                    random.randrange(190000, 200000),
+                    random.randrange(190000, 200000),
+                    random.randrange(190000, 200000),
+                    random.randrange(190000, 200000),
+                    random.randrange(190000, 200000),
                     0]
     pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
 
@@ -88,6 +88,12 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     INFO(f"{l6(token_buy)} balance token buy before trade         : {str(balance_tok_buy_before)}")
     rate_before = pde_state_b4.get_rate_between_token(token_sell, token_buy)
     INFO(f"Rate {l6(token_sell)} vs {l6(token_buy)} - Before Trade : {str(rate_before)}")
+
+    if token_buy != PRV_ID and token_sell != PRV_ID:
+        rate_before_token_buy =  pde_state_b4.get_rate_between_token(PRV_ID, token_buy)
+        rate_before_token_sell = pde_state_b4.get_rate_between_token(token_sell, PRV_ID)
+        INFO(f"Rate {l6(PRV_ID)} vs {l6(token_buy)} - Before Trade : {str(rate_before_token_buy)}")
+        INFO(f"Rate {l6(token_sell)} vs {l6(PRV_ID)} - Before Trade : {str(rate_before_token_sell)}")
 
     STEP(1, "Checking pool")
     STEP(2, f"trade {l6(token_sell)} at the same time")
@@ -147,6 +153,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     STEP(5, "Double check the algorithm ")
     trade_order = calculate_trade_order(trading_fees, trade_amounts)
     if token_buy == PRV_ID or token_sell == PRV_ID:
+        print(f" -- sell: {l6(token_buy)} - buy: {l6(token_sell)} -- ")
         calculated_rate, estimate_bal_sell_after_list, estimate_amount_received_list = \
             verify_trading_prv_token(trade_amounts, trading_fees, trade_order, tx_fee_list, token_sell, token_buy,
                                      pde_state_b4, balance_tok_sell_before)
@@ -154,10 +161,12 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
                                        zip(estimate_amount_received_list, balance_tok_buy_before)]
     else:
         trading_fees_zero = tx_fee_list_zero = [0] * len(tx_fee_list)
+        print(f" -- sell: {l6(token_sell)} - buy: {l6(PRV_ID)} -- ")
         calculated_rate1, estimate_bal_sell_after_list, estimate_amount_prv_received_list = \
             verify_trading_prv_token(trade_amounts, trading_fees_zero, trade_order, tx_fee_list_zero, token_sell,
                                      PRV_ID, pde_state_b4, balance_tok_sell_before)
 
+        print(f" -- sell: {l6(PRV_ID)} - buy: {l6(token_buy)} -- ")
         calculated_rate2, estimate_bal_prv_after_list, estimate_amount_received_list = \
             verify_trading_prv_token(estimate_amount_prv_received_list, trading_fees_zero, trade_order,
                                      tx_fee_list_zero, PRV_ID, token_buy, pde_state_b4, balance_tok_sell_before)
@@ -189,7 +198,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     if token_buy == PRV_ID or token_sell == PRV_ID:
         verify_sum_fee_prv_token(sum_trading_fee, token_sell, token_buy, pde_state_b4, pde_state_af)
     else:
-        breakpoint()
+        # breakpoint()
         verify_sum_fee_prv_token(first_half_reward, token_sell, PRV_ID, pde_state_b4, pde_state_af)
         verify_sum_fee_prv_token(second_half_reward, token_buy, PRV_ID, pde_state_b4, pde_state_af)
 
@@ -200,7 +209,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     else:
         reward_result_1 = verify_contributor_reward_prv_token(first_half_reward, token_sell, PRV_ID, pde_state_b4,
                                                               pde_state_af)
-        reward_result_2 = verify_contributor_reward_prv_token(second_half_reward, token_buy, PRV_ID, pde_state_b4,
+        reward_result_2 = verify_contributor_reward_prv_token(second_half_reward, PRV_ID, token_buy, pde_state_b4,
                                                               pde_state_af)
         final_reward_result = reward_result_1 and reward_result_2
 
@@ -212,7 +221,13 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     INFO(f"trading fee list   : {str(trading_fees)}")
     INFO(f"rate {l6(token_sell)} vs {l6(token_buy)} - Before Trade    : {str(rate_before)}")
     INFO(f"rate {l6(token_sell)} vs {l6(token_buy)} - After Trade     : {str(rate_after)}")
-    INFO(f"rate {l6(token_sell)} vs {l6(token_buy)} - Calculated Trade: {str(calculated_rate)}")
+    if token_buy != PRV_ID and token_sell != PRV_ID:
+        INFO(f"Rate {l6(PRV_ID)} vs {l6(token_buy)} - Before Trade : {str(rate_before_token_buy)}")
+        INFO(f"Rate {l6(PRV_ID)} vs {l6(token_buy)} - After Trade : {str(calculated_rate2)}")
+        INFO(f"Rate {l6(token_sell)} vs {l6(PRV_ID)} - Before Trade : {str(rate_before_token_sell)}")
+        INFO(f"Rate {l6(token_sell)} vs {l6(PRV_ID)} - After Trade : {str(calculated_rate1)}")
+    else:
+        INFO(f"rate {l6(token_sell)} vs {l6(token_buy)} - Calculated Trade: {str(calculated_rate)}")
 
     assert final_reward_result, 'Wrong reward amount for contributors'
 
@@ -220,14 +235,14 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
 def verify_sum_fee_prv_token(sum_fee_expected, token1, token2, pde_state_b4, pde_state_af):
     sum_fee_pool_b4 = pde_state_b4.sum_contributor_reward_of_pair(None, token1, token2)
     sum_fee_pool_af = pde_state_af.sum_contributor_reward_of_pair(None, token1, token2)
-    INFO(f'Verify contributor reward of {l6(token1)}-{l6(token1)}, '
+    INFO(f'Verify contributor reward of {l6(token1)}-{l6(token2)}, '
          f'Expected sum reward = {sum_fee_expected}, actual sum reward = {sum_fee_pool_af - sum_fee_pool_b4}')
-    assert sum_fee_pool_af - sum_fee_pool_b4 == sum_fee_expected \
-           and INFO(f'Sum fee tokens {l6(token1)}-{l6(token1)} is correct')
+    assert abs((abs(sum_fee_pool_af - sum_fee_pool_b4) / sum_fee_expected) - 1) < 0.001 \
+           and INFO(f'Sum fee tokens {l6(token1)}-{l6(token2)} is correct')
 
 
 def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_state_b4, pde_state_af):
-    INFO_HEADLINE(f'Verify contributor reward of token pair {l6(token1)}-{l6(token1)}')
+    INFO_HEADLINE(f'Verify contributor reward of token pair {l6(token1)}-{l6(token2)}')
     contributors_of_pair = pde_state_b4.get_contributor_of_pair(token1, token2)
     sum_share_of_pair = pde_state_b4.sum_share_pool_of_pair(None, token1, token2)
     sum_split_reward = 0
@@ -248,12 +263,17 @@ def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_st
                         share amount                : {share_of_contributor}
                         sum share of pair           : {sum_share_of_pair}
                         sum trading fee             : {sum_fee_expected}''')
-        if pde_reward_b4 + calculated_reward == pde_reward_af:
-            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token1)} is correct: ' \
+        if pde_reward_af == pde_reward_b4 and pde_reward_af == 0:
+            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} is correct: ' \
+                       f'estimated/actual received {calculated_reward}/{pde_reward_af - pde_reward_b4}\n'
+            final_reward_result = final_reward_result and True
+
+        elif abs((pde_reward_af - pde_reward_b4) / calculated_reward - 1) < 0.001:
+            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} is correct: ' \
                        f'estimated/actual received {calculated_reward}/{pde_reward_af - pde_reward_b4}\n'
             final_reward_result = final_reward_result and True
         else:
-            SUMMARY += (f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token1)} not correct: '
+            SUMMARY += (f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} not correct: '
                         f'estimated/actual received {calculated_reward}/{pde_reward_af - pde_reward_b4} \n')
             final_reward_result = final_reward_result and False
 
@@ -271,7 +291,6 @@ def verify_trading_prv_token(trade_amount_list, trading_fees_list, trade_order, 
         tx_fee = tx_fees_list[order]
         trading_fee = trading_fees_list[order]
         bal_tok_sell_b4 = balance_tok_sell_before[order]
-
         print(str(order) + "--")
         received_amount_token_buy = calculate_actual_trade_received(trade_amount, calculated_rate[0],
                                                                     calculated_rate[1])
