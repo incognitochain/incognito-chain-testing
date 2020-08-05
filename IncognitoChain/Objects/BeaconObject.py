@@ -96,13 +96,19 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
     def get_shard_pending_validator(self, shard_num, validator_number):
         return _Committee(self._get_shard_pending_validator()[str(shard_num)][validator_number])
 
-    def get_auto_staking_committees(self):
-        raw_auto_staking_list = self.data['AutoStaking']
+    def get_auto_staking_committees(self, auto_staking_number=None):
         auto_staking_objs = []
-        for obj in raw_auto_staking_list:
-            auto_staking_obj = _Committee(obj)
-            auto_staking_objs.append(auto_staking_obj)
-        return auto_staking_objs
+        raw_auto_staking_list_raw = self.data['AutoStaking']
+
+        if auto_staking_number is not None:  # get a specific committee auto staking
+            auto_staking_raw = raw_auto_staking_list_raw[(auto_staking_number)]
+            auto_staking_obj = _Committee(auto_staking_raw)
+            return auto_staking_obj
+        elif auto_staking_number is None:  # get all committee auto staking
+            for auto_staking_raw in raw_auto_staking_list_raw:
+                auto_staking_obj = _Committee(auto_staking_raw)
+                auto_staking_objs.append(auto_staking_obj)
+            return auto_staking_objs
 
     def is_he_a_committee(self, account):
         """
@@ -125,6 +131,26 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
                 if committee.get_inc_public_key() == public_key:
                     return shard_number
         return False
+
+    def is_this_committee_auto_stake(self, account):
+        """
+        Function to check committee auto stake by using Account or public key
+        :param account: Account obj or public key
+        :return: True if it matches, else False
+        """
+        from IncognitoChain.Objects.AccountObject import Account
+        if type(account) == str:
+            public_key = account
+        elif type(account) == Account:
+            public_key = account.public_key
+        else:
+            public_key = ''
+
+        committees_auto_staking = self.get_auto_staking_committees()
+        for committee in committees_auto_staking:
+            if committee.get_inc_public_key() == public_key:
+                return committee.is_auto_staking()
+        return
 
     # TODO: Will update after getting the data
     def get_candidate_shard_waiting_current_random(self):
