@@ -1,5 +1,7 @@
 import copy
+
 from IncognitoChain.Objects import BlockChainInfoBaseClass
+
 
 class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
 
@@ -67,11 +69,26 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
             beacon_pending_validator_objs.append(beacon_pending_validator_obj)
         return beacon_pending_validator_objs
 
-    def _get_shard_committee(self):
-        return self.data['ShardCommittee']
+    def get_shard_committees(self, shard_num=None, validator_number=None):
+        obj_list = []
+        committee_list_raw = self.data['ShardCommittee']  # get all committee in all shard
 
-    def get_shard_committee(self, shard_num, validator_number):
-        return _Committee(self._get_shard_committee()[str(shard_num)][validator_number])
+        if shard_num is not None and validator_number is not None:  # get a specific committee
+            committee_raw = committee_list_raw[str(shard_num)][validator_number]
+            committee_obj = _Committee(committee_raw)
+            return committee_obj
+        elif shard_num is not None and validator_number is None:  # get all committee in a shard
+            committee_list_raw = committee_list_raw[str(shard_num)]
+        elif shard_num is None and validator_number is None:
+            pass  # get all committee in all shard
+        else:
+            return
+
+        for committee_raw in committee_list_raw:
+            committee_obj = _Committee(committee_raw)
+            obj_list.append(committee_obj)
+
+        return obj_list
 
     def _get_shard_pending_validator(self):
         return self.data['ShardPendingValidator']
@@ -79,10 +96,7 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
     def get_shard_pending_validator(self, shard_num, validator_number):
         return _Committee(self._get_shard_pending_validator()[str(shard_num)][validator_number])
 
-    def _set_auto_stake(self, staking):
-       self.data['IsAutoStake'] = staking
-
-    def get_auto_staking(self):
+    def get_auto_staking_committees(self):
         raw_auto_staking_list = self.data['AutoStaking']
         auto_staking_objs = []
         for obj in raw_auto_staking_list:
@@ -100,14 +114,15 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         if type(account) == str:
             public_key = account
         elif type(account) == Account:
-            public_key = account.find_public_key()
+            public_key = account.public_key
         else:
             public_key = ''
 
-        share_objects = self._get_shard_committee()
-        for shard_number, value_shard_number in share_objects.items():
-            for pubkey in value_shard_number:
-                if pubkey['IncPubKey'] == public_key:
+        number_of_shards = self.get_active_shard()
+        for shard_number in range(0, number_of_shards):
+            committees_in_shard = self.get_shard_committees(shard_number)
+            for committee in committees_in_shard:
+                if committee.get_inc_public_key() == public_key:
                     return shard_number
         return False
 
@@ -127,6 +142,11 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
     def get_reward_receiver(self):
         return self.data["RewardReceiver"]
 
+    def get_current_shard_committee_size(self, shard_number):
+        committee_list_in_shard = self.get_shard_committees(shard_number)
+        return len(committee_list_in_shard)
+
+
 class _Committee(BlockChainInfoBaseClass):
     """
     data sample:
@@ -139,6 +159,7 @@ class _Committee(BlockChainInfoBaseClass):
                 }
      }
     """
+
     def __init__(self, raw_data):
         super(_Committee, self).__init__(raw_data)
         raw_data = copy.copy(self.data)
