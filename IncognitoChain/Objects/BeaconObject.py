@@ -55,7 +55,7 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         raw_beacon_committee_list = self.data['BeaconCommittee']
         beacon_committee_objs = []
         for obj in raw_beacon_committee_list:
-            beacon_committee_obj = _BeaconCommittee(obj)
+            beacon_committee_obj = _Committee(obj)
             beacon_committee_objs.append(beacon_committee_obj)
         return beacon_committee_objs
 
@@ -63,7 +63,7 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         raw_beacon_pending_validator_list = self.data['BeaconPendingValidator']
         beacon_pending_validator_objs = []
         for obj in raw_beacon_pending_validator_list:
-            beacon_pending_validator_obj = _BeaconCommittee(obj)
+            beacon_pending_validator_obj = _Committee(obj)
             beacon_pending_validator_objs.append(beacon_pending_validator_obj)
         return beacon_pending_validator_objs
 
@@ -71,27 +71,41 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         return self.data['ShardCommittee']
 
     def get_shard_committee(self, shard_num, validator_number):
-        return _BeaconCommittee(self._get_shard_committee()[str(shard_num)][validator_number])
+        return _Committee(self._get_shard_committee()[str(shard_num)][validator_number])
 
     def _get_shard_pending_validator(self):
         return self.data['ShardPendingValidator']
 
     def get_shard_pending_validator(self, shard_num, validator_number):
-        return _BeaconCommittee(self._get_shard_pending_validator()[str(shard_num)][validator_number])
+        return _Committee(self._get_shard_pending_validator()[str(shard_num)][validator_number])
+
+    def _set_auto_stake(self, staking):
+       self.data['IsAutoStake'] = staking
 
     def get_auto_staking(self):
         raw_auto_staking_list = self.data['AutoStaking']
         auto_staking_objs = []
         for obj in raw_auto_staking_list:
-            auto_staking_obj = _AutoStaking(obj)
+            auto_staking_obj = _Committee(obj)
             auto_staking_objs.append(auto_staking_obj)
         return auto_staking_objs
 
-    def find_shard_committee_number_by_using_payment_key(self, payment_key):
-        response = self.SUT.full_node.transaction().get_public_key_by_payment_key(payment_key)
-        public_key = response.get_result('PublicKeyInBase58Check')
-        shard_committee_dict = self.data['ShardCommittee']
-        for shard_number, value_shard_number in shard_committee_dict.items():
+    def is_he_a_committee(self, account):
+        """
+        Function to find shard committee number by using Account or public key
+        :param account: Account obj or public key
+        :return: shard committee number
+        """
+        from IncognitoChain.Objects.AccountObject import Account
+        if type(account) == str:
+            public_key = account
+        elif type(account) == Account:
+            public_key = account.find_public_key()
+        else:
+            public_key = ''
+
+        share_objects = self._get_shard_committee()
+        for shard_number, value_shard_number in share_objects.items():
             for pubkey in value_shard_number:
                 if pubkey['IncPubKey'] == public_key:
                     return shard_number
@@ -113,7 +127,7 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
     def get_reward_receiver(self):
         return self.data["RewardReceiver"]
 
-class _BeaconCommittee(BlockChainInfoBaseClass):
+class _Committee(BlockChainInfoBaseClass):
     """
     data sample:
      {
@@ -126,11 +140,12 @@ class _BeaconCommittee(BlockChainInfoBaseClass):
      }
     """
     def __init__(self, raw_data):
-        super(_BeaconCommittee, self).__init__(raw_data)
+        super(_Committee, self).__init__(raw_data)
         raw_data = copy.copy(self.data)
         self._inc_public_key = raw_data['IncPubKey']
         self._bls = raw_data['MiningPubKey']['bls']
         self._dsa = raw_data['MiningPubKey']['dsa']
+        self._auto_staking = raw_data['IsAutoStake'] if "IsAutoStake" in raw_data else None
 
     def get_inc_public_key(self):
         return self._inc_public_key
@@ -141,8 +156,5 @@ class _BeaconCommittee(BlockChainInfoBaseClass):
     def get_dsa(self):
         return self._dsa
 
-class _AutoStaking(_BeaconCommittee):
-    def __init__(self, raw_data):
-        super(_AutoStaking, self).__init__(raw_data)
-        raw_data = copy.copy(self.data)
-        self.is_auto_stake = raw_data["IsAutoStake"]
+    def is_auto_staking(self):
+        return self._auto_staking
