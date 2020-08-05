@@ -87,6 +87,16 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
             auto_staking_objs.append(auto_staking_obj)
         return auto_staking_objs
 
+    def find_shard_committee_number_by_using_payment_key(self, payment_key):
+        response = self.SUT.full_node.transaction().get_public_key_by_payment_key(payment_key)
+        public_key = response.get_result('PublicKeyInBase58Check')
+        shard_committee_dict = self.data['ShardCommittee']
+        for shard_number, value_shard_number in shard_committee_dict.items():
+            for pubkey in value_shard_number:
+                if pubkey['IncPubKey'] == public_key:
+                    return shard_number
+        return False
+
     # TODO: Will update after getting the data
     def get_candidate_shard_waiting_current_random(self):
         return self.data["CandidateShardWaitingForCurrentRandom"]
