@@ -515,9 +515,19 @@ class Account:
                                                             contribution_pair_id)
 
     def pde_withdraw_contribution(self, token_id_1, token_id_2, amount):
-        INFO(f'Withdraw contribution {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
+        INFO(f'Withdraw PDE contribution {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
         return self.__SUT.full_node.dex().withdrawal_contribution(self.private_key, self.payment_key, token_id_1,
                                                                   token_id_2, amount)
+
+    def pde_withdraw_contribution_v2(self, token_id_1, token_id_2, amount):
+        INFO(f'Withdraw PDE contribution v2 {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
+        return self.__SUT.full_node.dex().withdrawal_contribution_v2(self.private_key, self.payment_key, token_id_1,
+                                                                     token_id_2, amount)
+
+    def pde_withdraw_reward_v2(self, token_id_1, token_id_2, amount):
+        INFO(f'Withdraw PDE reward v2 {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
+        return self.__SUT.full_node.dex().withdraw_reward_v2(self.private_key, self.payment_key, token_id_1,
+                                                             token_id_2, amount)
 
     def send_token_to(self, receiver, token_id, amount_custom_token,
                       prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
@@ -662,19 +672,41 @@ class Account:
     #######
     # DEX
     #######
-    def pde_clean_all_waiting_contribution(self):
-        pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    def pde_clean_all_waiting_contribution(self, pde_state=None):
+        pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
         waiting_contributions = pde_state.get_waiting_contributions()
-        for contribution in waiting_contributions:
-            self.pde_contribute(contribution.get_token_id(), contribution.get_amount(), contribution.get_pair_id()). \
-                subscribe_transaction_obj()
+        thread_pool = []
+        with ThreadPoolExecutor() as executor:
+            for contribution in waiting_contributions:
+                future = executor.submit(self.pde_contribute, contribution.get_token_id(), contribution.get_amount(),
+                                         contribution.get_pair_id())
+                thread_pool.append(future)
+        concurrent.futures.wait(thread_pool)
 
-    def pde_clean_my_waiting_contribution(self):
-        pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+        tx_thread = []
+        with ThreadPoolExecutor() as executor:
+            for thread in thread_pool:
+                future = executor.submit(thread.result().subscribe_transaction_obj)
+                tx_thread.append(future)
+        concurrent.futures.wait(tx_thread)
+
+    def pde_clean_my_waiting_contribution(self, pde_state=None):
+        pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
         my_waiting_contributions = pde_state.find_waiting_contribution_of_user(self)
-        for contribution in my_waiting_contributions:
-            self.pde_contribute(contribution.get_token_id(), contribution.get_amount(), contribution.get_pair_id()). \
-                subscribe_transaction_obj()
+        thread_pool = []
+        with ThreadPoolExecutor() as executor:
+            for contribution in my_waiting_contributions:
+                future = executor.submit(self.pde_contribute, contribution.get_token_id(), contribution.get_amount(),
+                                         contribution.get_pair_id())
+                thread_pool.append(future)
+        concurrent.futures.wait(thread_pool)
+
+        tx_thread = []
+        with ThreadPoolExecutor() as executor:
+            for thread in thread_pool:
+                future = executor.submit(thread.result().subscribe_transaction_obj)
+                tx_thread.append(future)
+        concurrent.futures.wait(tx_thread)
 
     def pde_wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         INFO(f"Wait until token {l6(token_id)} is in waiting for contribution")

@@ -27,12 +27,14 @@ def setup_function():
 
 
 @pytest.mark.parametrize('test_mode,token_sell,token_buy', (
-    # ["1 shard", token_id_1, PRV_ID],
-    # ["1 shard", PRV_ID, token_id_1],
-    # ["n shard", token_id_1, PRV_ID],
-    # ["n shard", PRV_ID, token_id_1],
+    ["1 shard", token_id_1, PRV_ID],
+    ["1 shard", PRV_ID, token_id_1],
+    ["n shard", token_id_1, PRV_ID],
+    ["n shard", PRV_ID, token_id_1],
     ["1 shard", token_id_2, token_id_1],
-    # ["n shard", token_id_2, token_id_1],
+    ["n shard", token_id_2, token_id_1],
+    ["1 shard", token_id_1, token_id_2],
+    ["n shard", token_id_1, token_id_2],
 ))
 def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     if test_mode == '1 shard':
@@ -249,10 +251,12 @@ def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_st
     final_reward_result = True
     global SUMMARY
     for contributor in contributors_of_pair:
+        INFO()
         share_of_contributor = pde_state_b4.get_pde_shares_amount(contributor, token1, token2)
         pde_reward_b4 = pde_state_b4.get_contributor_reward(contributor, token1, token2)
         pde_reward_af = pde_state_af.get_contributor_reward(contributor, token1, token2)
         calculated_reward = int(sum_fee_expected * share_of_contributor / sum_share_of_pair)
+        actual_reward = pde_reward_af - pde_reward_b4
         sum_split_reward += calculated_reward
         if contributor == contributors_of_pair[-1]:  # last contributor get all remaining fee as reward
             calculated_reward = sum_fee_expected - sum_split_reward
@@ -264,17 +268,17 @@ def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_st
                         sum share of pair           : {sum_share_of_pair}
                         sum trading fee             : {sum_fee_expected}''')
         if pde_reward_af == pde_reward_b4 and pde_reward_af == 0:
-            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} is correct: ' \
+            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} IS  correct: ' \
                        f'estimated/actual received {calculated_reward}/{pde_reward_af - pde_reward_b4}\n'
             final_reward_result = final_reward_result and True
 
         elif abs((pde_reward_af - pde_reward_b4) / calculated_reward - 1) < 0.001:
-            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} is correct: ' \
+            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} IS  correct: ' \
                        f'estimated/actual received {calculated_reward}/{pde_reward_af - pde_reward_b4}\n'
             final_reward_result = final_reward_result and True
         else:
-            SUMMARY += (f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} not correct: '
-                        f'estimated/actual received {calculated_reward}/{pde_reward_af - pde_reward_b4} \n')
+            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} NOT correct: ' \
+                        f'estimated/actual received {calculated_reward}/{pde_reward_af - pde_reward_b4} \n'
             final_reward_result = final_reward_result and False
 
     return final_reward_result

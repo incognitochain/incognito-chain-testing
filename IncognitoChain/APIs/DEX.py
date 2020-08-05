@@ -219,3 +219,31 @@ class DexRpc:
             with_method("getpdecontributionstatusv2"). \
             with_params([{"ContributionPairID": pair_id}]). \
             execute()
+
+    def withdrawal_contribution_v2(self, private_k, payment_k, token1, token2, amount):
+        return self.rpc_connection. \
+            with_method('createandsendtxwithwithdrawalreqv2'). \
+            with_params([private_k,
+                         {
+                             BURNING_ADDR: str(amount)
+                         }, -1, 0,
+                         {
+                             "WithdrawerAddressStr": payment_k,
+                             "WithdrawalToken1IDStr": token1,
+                             "WithdrawalToken2IDStr": token2,
+                             "WithdrawalShareAmt": str(amount)
+                         }]). \
+            execute()
+
+    def withdraw_reward_v2(self, private_k, payment_k, token1, token2, amount):
+        return self.rpc_connection. \
+            with_method('createandsendtxwithpdefeewithdrawalreq'). \
+            with_params([private_k, None, -1, 0,
+                         {
+                             "WithdrawerAddressStr": payment_k,
+                             "WithdrawalToken1IDStr": token1,
+                             "WithdrawalToken2IDStr": token2,
+                             "WithdrawalFeeAmt": str(amount)
+                         }
+                         ]). \
+            execute()

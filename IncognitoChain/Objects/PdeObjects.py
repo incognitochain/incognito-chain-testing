@@ -223,6 +223,14 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
         return contributor_list
 
+    def is_contributor(self, account, token1, token2):
+        payment_k = extract_incognito_addr(account)
+        contributors = self.get_contributor_of_pair(token1, token2)
+        for contributor in contributors:
+            if contributor == payment_k:
+                return True
+        return False
+
 
 class PDEContributeInfo(BlockChainInfoBaseClass):
     """
