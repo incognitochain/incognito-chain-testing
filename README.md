@@ -14,3 +14,7 @@ pytest testcases/prv_transaction/test_sendPRV.py -s -v --no-print-logs
    - Test script/suite: locate under IncognitoChain/TestCases
 
 ```
+
+# Setup chain
+golang 1.13.1
+https://www.digitalocean.com/community/tutorials/how-to-install-go-on-ubuntu-18-04
