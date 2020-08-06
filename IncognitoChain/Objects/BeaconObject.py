@@ -1,9 +1,23 @@
 import copy
 
 from IncognitoChain.Objects import BlockChainInfoBaseClass
-
+from IncognitoChain.Helpers.TestHelper import l6
+from IncognitoChain.Objects.AccountObject import Account
+from libs.AutoLog import INFO
 
 class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
+
+    def print_committees(self):
+        all_committee_in_all_shard_dict = self.get_shard_committees()
+        for key, value in all_committee_in_all_shard_dict.items():
+            for info in value:
+                public_key = _Committee(info).get_inc_public_key()
+                shard_id = self.is_he_a_committee(public_key)
+                for auto_staking in self.get_auto_staking_committees():
+                    if auto_staking.get_inc_public_key() == public_key:
+                        auto_staking_info = self.is_this_committee_auto_stake(public_key)
+                validator_number = len(value)
+                INFO(f"{l6(public_key)} - {shard_id} - {validator_number} - {auto_staking_info}")
 
     def get_block_hash(self):
         return self.data["BestBlockHash"]
@@ -71,24 +85,23 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
 
     def get_shard_committees(self, shard_num=None, validator_number=None):
         obj_list = []
-        committee_list_raw = self.data['ShardCommittee']  # get all committee in all shard
+        committee_dict_raw = self.data['ShardCommittee']  # get all committee in all shard
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
-            committee_raw = committee_list_raw[str(shard_num)][validator_number]
+            committee_raw = committee_dict_raw[str(shard_num)][validator_number]
             committee_obj = _Committee(committee_raw)
             return committee_obj
         elif shard_num is not None and validator_number is None:  # get all committee in a shard
-            committee_list_raw = committee_list_raw[str(shard_num)]
+            committee_list_raw = committee_dict_raw[str(shard_num)]
+            for committee_raw in committee_list_raw:
+                committee_obj = _Committee(committee_raw)
+                obj_list.append(committee_obj)
+
+            return obj_list
         elif shard_num is None and validator_number is None:
-            pass  # get all committee in all shard
+            return committee_dict_raw
         else:
             return
-
-        for committee_raw in committee_list_raw:
-            committee_obj = _Committee(committee_raw)
-            obj_list.append(committee_obj)
-
-        return obj_list
 
     def _get_shard_pending_validator(self):
         return self.data['ShardPendingValidator']
@@ -116,7 +129,6 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         :param account: Account obj or public key
         :return: shard committee number
         """
-        from IncognitoChain.Objects.AccountObject import Account
         if type(account) == str:
             public_key = account
         elif type(account) == Account:
@@ -138,7 +150,6 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         :param account: Account obj or public key
         :return: True if it matches, else False
         """
-        from IncognitoChain.Objects.AccountObject import Account
         if type(account) == str:
             public_key = account
         elif type(account) == Account:
