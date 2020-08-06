@@ -92,7 +92,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     INFO(f"Rate {l6(token_sell)} vs {l6(token_buy)} - Before Trade : {str(rate_before)}")
 
     if token_buy != PRV_ID and token_sell != PRV_ID:
-        rate_before_token_buy =  pde_state_b4.get_rate_between_token(PRV_ID, token_buy)
+        rate_before_token_buy = pde_state_b4.get_rate_between_token(PRV_ID, token_buy)
         rate_before_token_sell = pde_state_b4.get_rate_between_token(token_sell, PRV_ID)
         INFO(f"Rate {l6(PRV_ID)} vs {l6(token_buy)} - Before Trade : {str(rate_before_token_buy)}")
         INFO(f"Rate {l6(token_sell)} vs {l6(PRV_ID)} - Before Trade : {str(rate_before_token_sell)}")
@@ -278,7 +278,7 @@ def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_st
             final_reward_result = final_reward_result and True
         else:
             SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} NOT correct: ' \
-                        f'estimated/actual received {calculated_reward}/{pde_reward_af - pde_reward_b4} \n'
+                       f'estimated/actual received {calculated_reward}/{pde_reward_af - pde_reward_b4} \n'
             final_reward_result = final_reward_result and False
 
     return final_reward_result

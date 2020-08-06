@@ -221,14 +221,14 @@ class TransactionRpc:
             with_params([private_key, min_bill, -1, 0]). \
             execute()
 
-    def list_unspent_output_coins(self, private_key):
+    def list_unspent_output_coins(self, private_key, start_height=0):
         param_v1 = [0, 999999,  # old privacy
                     [{"PrivateKey": private_key}],
                     ""
                     ]
         param_v2 = [0, 999999,  # privacy v2
                     [{"PrivateKey": private_key,
-                      "StartHeight": 0}],
+                      "StartHeight": start_height}],
                     ""
                     ]
         return self.rpc_connection. \

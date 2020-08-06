@@ -1013,13 +1013,18 @@ class Account:
         if type(accounts_list) is not list:
             accounts_list = [accounts_list]
         receiver = {}
-        for acc in accounts_list:
-            bal = acc.get_token_balance(token_id)
+        threads = {}
+        with ThreadPoolExecutor() as exc:
+            for acc in accounts_list:
+                thread = exc.submit(acc.get_token_balance, token_id)
+                threads[acc] = thread
+        concurrent.futures.wait(threads.values())
+        for acc, thread in threads.items():
+            bal = thread.result()
             if bal <= if_lower_than:
                 top_up_amount = top_up_to_amount - bal
                 if top_up_amount > 0:
                     receiver[acc] = top_up_amount
-
         if len(receiver) == 0:
             return None
 
@@ -1056,13 +1061,18 @@ class Account:
         if type(accounts_list) is Account:
             accounts_list = [accounts_list]
         receiver = {}
-        for acc in accounts_list:
-            bal = acc.get_prv_balance()
+        threads = {}
+        with ThreadPoolExecutor() as exc:
+            for acc in accounts_list:
+                thread = exc.submit(acc.get_prv_balance)
+                threads[acc] = thread
+        concurrent.futures.wait(threads.values())
+        for acc, thread in threads.items():
+            bal = thread.result()
             if bal <= if_lower_than:
                 top_up_amount = top_up_to_amount - bal
                 if top_up_amount > 0:
                     receiver[acc] = top_up_amount
-
         if len(receiver) == 0:
             return None
         send_tx = self.send_prv_to_multi_account(receiver)

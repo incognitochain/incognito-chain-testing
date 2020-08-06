@@ -7,6 +7,24 @@ from IncognitoChain.Objects import BlockChainInfoBaseClass
 
 
 class PDEStateInfo(BlockChainInfoBaseClass):
+    def __eq__(self, other):
+        self_waiting_contributions = self.get_waiting_contributions()
+        self_pde_pool = self.get_pde_pool_pairs()
+        self_pde_shares = self._get_pde_shares()
+        self_pde_reward = self._get_contributor_rewards()
+
+        other_waiting_contributions = other.get_waiting_contributions()
+        other_pde_pool = other.get_pde_pool_pairs()
+        other_pde_shares = other._get_pde_shares()
+        other_pde_reward = other._get_contributor_rewards()
+
+        return self_waiting_contributions == other_waiting_contributions and \
+               self_pde_pool == other_pde_pool and \
+               self_pde_shares == other_pde_shares and \
+               self_pde_reward == other_pde_reward
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def get_waiting_contributions(self):
         raw_waiting_list = self.data['WaitingPDEContributions']
@@ -311,6 +329,13 @@ class _WaitingContribution(BlockChainInfoBaseClass):
 
     """
 
+    def __eq__(self, other):
+        return self.get_amount() == other.get_amount() and \
+               self.get_contributor_address() == other.get_contributor_address() and \
+               self.get_pair_id() == other.get_pair_id() and \
+               self.get_token_id() == other.get_token_id() and \
+               self.get_tx_req_id() == other.get_tx_req_id()
+
     def __init__(self, raw_data):
         super(_WaitingContribution, self).__init__(raw_data)
         raw_data = copy.copy(self.data)
@@ -354,6 +379,12 @@ class _PoolPair(BlockChainInfoBaseClass):
         }
     """
 
+    def __eq__(self, other):
+        return self.get_token1_id() == other.get_token1_id() and \
+               self.get_token1_pool_value() == other.get_token1_pool_value() and \
+               self.get_token2_id() == other.get_token2_id() and \
+               self.get_token2_pool_value() == other.get_token2_pool_value()
+
     def __init__(self, raw_data):
         super(_PoolPair, self).__init__(raw_data)
         raw_data = copy.copy(self.data)
@@ -386,6 +417,12 @@ class _PdeShare(BlockChainInfoBaseClass):
     }
     """
 
+    def __eq__(self, other):
+        return self.get_token1_id() == other.get_token1_id() and \
+               self.get_token2_id() == other.get_token2_id() and \
+               self.get_share_amount() == other.get_share_amount() and \
+               self.get_payment_k() == other.get_payment_k()
+
     def __init__(self, raw_data):
         super(_PdeShare, self).__init__(raw_data)
         raw_data = copy.copy(self.data)
@@ -394,9 +431,6 @@ class _PdeShare(BlockChainInfoBaseClass):
     def __str__(self):
         return f'{l6(self.get_token1_id())}-{l6(self.get_token2_id())}-' \
                f'{l6(self.get_payment_k())}-{self.get_share_amount()}'
-
-    def __eq__(self, other):
-        return self.data == other.data
 
     def get_share_id(self):
         return self.id
@@ -418,6 +452,13 @@ class _PdeShare(BlockChainInfoBaseClass):
 
 
 class _PdeReward(BlockChainInfoBaseClass):
+
+    def __eq__(self, other):
+        return self.get_payment_k() == other.get_payment_k() and \
+               self.get_token1_id() == other.get_token1_id() and \
+               self.get_token2_id() == other.get_token2_id() and \
+               self.get_amount() == other.get_amount()
+
     def __init__(self, raw_data):
         super(_PdeReward, self).__init__(raw_data)
         raw_data = copy.copy(self.data)
