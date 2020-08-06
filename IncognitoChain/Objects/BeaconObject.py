@@ -11,7 +11,7 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         all_committee_in_all_shard_dict = self.get_shard_committees()
         for key, value in all_committee_in_all_shard_dict.items():
             for info in value:
-                public_key = _Committee(info).get_inc_public_key()
+                public_key = info.get_inc_public_key()
                 shard_id = self.is_he_a_committee(public_key)
                 for auto_staking in self.get_auto_staking_committees():
                     if auto_staking.get_inc_public_key() == public_key:
@@ -96,10 +96,17 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
             for committee_raw in committee_list_raw:
                 committee_obj = _Committee(committee_raw)
                 obj_list.append(committee_obj)
-
             return obj_list
         elif shard_num is None and validator_number is None:
-            return committee_dict_raw
+            dict_objs = {}
+            list_objs = []
+            for key, value in committee_dict_raw.items():
+                for info in value:
+                    obj = _Committee(info)
+                    list_objs.append(obj)
+                dict_objs.update({key: list_objs})
+                list_objs = []
+            return dict_objs
         else:
             return
 
