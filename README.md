@@ -16,5 +16,9 @@ pytest testcases/prv_transaction/test_sendPRV.py -s -v --no-print-logs
 ```
 
 # Setup chain
+
+sudo apt update
+sudo apt install openjdk-8-jdk openjdk-8-jre
+
 golang 1.13.1
 https://www.digitalocean.com/community/tutorials/how-to-install-go-on-ubuntu-18-04
