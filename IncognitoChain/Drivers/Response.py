@@ -4,7 +4,6 @@ from builtins import Exception
 
 import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.Helpers.Logging import INFO
-from IncognitoChain.Objects.PortalObjects import PortalStateInfo
 from IncognitoChain.Objects.TransactionObjects import TransactionDetail
 
 
@@ -184,7 +183,7 @@ class Response:
             return None
 
     def is_prv_privacy(self):
-        return self.is_prv_privacy_v2()
+        return self.is_prv_privacy_v1()
 
     def is_prv_privacy_v2(self):
         """
