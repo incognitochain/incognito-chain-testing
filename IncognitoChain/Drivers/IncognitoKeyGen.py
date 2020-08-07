@@ -1,8 +1,14 @@
 import os
 import re
 import subprocess
+import sys
 
-get_key = f'{os.getcwd()}/IncognitoChain/bin/getKey'
+if sys.platform == 'darwin':
+    get_key = f'{os.getcwd()}/IncognitoChain/bin/getKey-mac'
+elif sys.platform == 'linux':
+    get_key = f'{os.getcwd()}/IncognitoChain/bin/getKey-linux'
+else:
+    get_key = f'{os.getcwd()}/IncognitoChain/bin/getKey-win'
 
 
 def get_key_set_from_private_k(private_k):

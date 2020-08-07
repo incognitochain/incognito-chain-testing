@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import subprocess
+import sys
 from json.decoder import JSONDecodeError
 
 from IncognitoChain.Drivers.Connections import RpcConnection
@@ -14,7 +15,12 @@ _bnb_host = 'data-seed-pre-0-s1.binance.org'
 _bnb_rpc_port = 443
 _bnb_rpc_protocol = 'https'
 
-tbnbcli = f'{os.getcwd()}/IncognitoChain/bin/tbnbcli'
+if sys.platform == 'darwin':
+    tbnbcli = f'{os.getcwd()}/IncognitoChain/bin/tbnbcli-mac'
+elif sys.platform == 'linux':
+    tbnbcli = f'{os.getcwd()}/IncognitoChain/bin/tbnbcli-linux'
+else:
+    tbnbcli = f'{os.getcwd()}/IncognitoChain/bin/tbnbcli-win'
 
 
 class BnbCli:
