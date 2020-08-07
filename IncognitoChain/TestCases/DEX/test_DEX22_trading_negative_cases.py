@@ -28,9 +28,9 @@ def test_trade_same_token(trader, token):
 
 @pytest.mark.parametrize('trader, token_sell, token_buy', [
     (token_owner, PRV_ID, token_id_0),
-    # (token_owner, token_id_0, PRV_ID),
-    # (token_owner, token_id_0, token_id_2),
-    # (token_owner, token_id_0, token_id_1),
+    (token_owner, token_id_0, PRV_ID),
+    (token_owner, token_id_0, token_id_2),
+    (token_owner, token_id_0, token_id_1),
 ])
 def test_trade_non_exist_pair(trader, token_sell, token_buy):
     trade_amount = random.randint(1000, 20000000)

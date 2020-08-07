@@ -194,7 +194,7 @@ class Account:
         balance = where_to_ask.get_custom_token_balance(self.private_key, token_id).get_result()
 
         self.cache[f'{Account._cache_bal_tok}_{token_id}'] = balance
-        INFO(f"Token Bal = {balance}, private key = {l6(self.private_key)}, token id = {l6(token_id)}")
+        INFO(f"Private k = {l6(self.private_key)}, token id = {l6(token_id)}, bal = {coin(balance, False)} ")
         return balance
 
     def get_all_custom_token_balance(self):
@@ -353,7 +353,7 @@ class Account:
                 shard_to_ask = shard_id
             balance = self.__SUT.shards[shard_to_ask].get_representative_node().transaction().get_balance(
                 self.private_key).get_balance()
-        INFO(f"Prv bal = {coin(balance, False)}, private key = {l6(self.private_key)}")
+        INFO(f"Private k = {l6(self.private_key)}, prv bal = {coin(balance, False)}")
         self.cache['balance_prv'] = balance
         return balance
 
@@ -445,7 +445,7 @@ class Account:
         return self.__SUT.full_node.subscription().subscribe_cross_output_coin_by_private_key(self.private_key, timeout)
 
     def subscribe_cross_output_token(self, timeout=120):
-        INFO('Subscribe cross output token')
+        INFO(f'{self.private_key} Subscribe cross output token')
         return self.__SUT.full_node.subscription().subscribe_cross_custom_token_privacy_by_private_key(self.private_key,
                                                                                                        timeout)
 

@@ -1,4 +1,5 @@
 import copy
+from re import search
 
 from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG
 from IncognitoChain.Helpers.TestHelper import extract_incognito_addr, l6
@@ -149,8 +150,8 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         of_user = 'any' if user is None else l6(extract_incognito_addr(user))
         tok1 = 'any' if token1 is None else l6(token1)
         tok2 = 'any' if token1 is None else l6(token2)
-        INFO(f'Getting share of user and tokens at beacon height time stamp {self.get_beacon_time_stamp()}: '
-             f'{of_user}:{tok1}-{tok2}')
+        DEBUG(f'Getting share of user and tokens at beacon height time stamp {self.get_beacon_time_stamp()}: '
+              f'{of_user}:{tok1}-{tok2}')
 
         pde_share_raw = self.data['PDEShares']
         pde_share_objs = []
@@ -184,7 +185,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 DEBUG(f"MATCH {debug_msg}: {pde_share_obj}")
                 pde_share_objs.append(pde_share_obj)
         if not pde_share_objs:  # empty list
-            INFO("Not found")
+            DEBUG("Not found")
         return pde_share_objs
 
     def get_pde_shares_amount(self, user=None, token1=None, token2=None):
@@ -298,6 +299,18 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
 
     def get_return_amount_2(self):
         return self.data["Returned2Amount"]
+
+    def get_return_amount_of_token_id(self, token_id):
+        num = None
+        for k, v in self.data.items():
+            if v == token_id:
+                num = search('TokenID(\\d)Str', k).group(1)
+                break
+
+        if num == '1':
+            return self.get_return_amount_1()
+        elif num == '2':
+            return self.get_return_amount_2()
 
     def wait_for_contribution_status(self, pair_id, expecting_status, check_interval=10, timeout=40):
         time = 0
