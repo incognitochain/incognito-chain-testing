@@ -710,29 +710,31 @@ class Account:
 
     def pde_wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         INFO(f"Wait until token {l6(token_id)} is in waiting for contribution")
-        pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info()
-        my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
+        my_waiting = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
+            find_waiting_contribution_of_user(self, pair_id, token_id)
         while timeout >= 0:
             if my_waiting:  # not empty
                 INFO(f'Token {l6(token_id)} is found in contribution waiting list')
                 return True
             timeout -= 10
             WAIT(10)
-            my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
+            my_waiting = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
+                find_waiting_contribution_of_user(self, pair_id, token_id)
         INFO(f'Token {l6(token_id)} is NOT found in contribution waiting list')
         return False
 
     def pde_wait_till_my_token_out_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         INFO(f"Wait until token {l6(token_id)} is OUT of waiting for contribution")
-        pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info()
-        my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
+        my_waiting = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
+            find_waiting_contribution_of_user(self, pair_id, token_id)
         while timeout >= 0:
             if not my_waiting:
                 INFO(f'Token {l6(token_id)} is NOT found in contribution waiting list')
                 return True
             timeout -= 10
             WAIT(10)
-            my_waiting = pde_state.find_waiting_contribution_of_user(self, pair_id, token_id)
+            my_waiting = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
+                find_waiting_contribution_of_user(self, pair_id, token_id)
         INFO(f'Token {l6(token_id)} is found in contribution waiting list')
         return False
 
