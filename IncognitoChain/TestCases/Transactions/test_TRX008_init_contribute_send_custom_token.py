@@ -42,10 +42,10 @@ def teardown_module():
     INFO("Tear down")
     global contribute_success
     if contribute_success:
-        account_init.pde_withdraw_contribution(Constants.PRV_ID, custom_token_id,
-                                               token_contribute_amount).subscribe_transaction()
-    contribute_success = False
-
+#        account_init.pde_withdraw_contribution(Constants.PRV_ID, custom_token_id,
+#                                              token_contribute_amount).subscribe_transaction()
+#    contribute_success = False
+        print("keep ")
 
 @pytest.mark.dependency()
 def test_init_ptoken():
@@ -109,34 +109,34 @@ def test_init_ptoken():
     pytest.param(sender_account, receiver_account, -1, 'token', 0, 'prv',
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
     (sender_account, receiver_account, token_fee, 'token', 1, 'prv'),
-    (sender_account, receiver_account, token_fee, 'token', 0, 'prv'),
-    (sender_account, receiver_account, -1, 'prv', 1, 'prv'),
-    (sender_account, receiver_account, -1, 'prv', 0, 'prv'),
-    (sender_account, receiver_account, 1, 'prv', 1, 'prv'),
-    (sender_account, receiver_account, 1, 'prv', 0, 'prv'),
-    (sender_account, receiver_account, token_fee, 'token', 1, 'token'),
-    (sender_account, receiver_account, token_fee, 'token', 0, 'token'),
-    (sender_account, receiver_account, -1, 'prv', 1, 'token'),
-    (sender_account, receiver_account, -1, 'prv', 0, 'token'),
-    (sender_account, receiver_account, 1, 'prv', 1, 'token'),
-    (sender_account, receiver_account, 1, 'prv', 0, 'token'),
+#    (sender_account, receiver_account, token_fee, 'token', 0, 'prv'),
+#    (sender_account, receiver_account, -1, 'prv', 1, 'prv'),
+#    (sender_account, receiver_account, -1, 'prv', 0, 'prv'),
+#    (sender_account, receiver_account, 1, 'prv', 1, 'prv'),
+#    (sender_account, receiver_account, 1, 'prv', 0, 'prv'),
+#    (sender_account, receiver_account, token_fee, 'token', 1, 'token'),
+#    (sender_account, receiver_account, token_fee, 'token', 0, 'token'),
+#    (sender_account, receiver_account, -1, 'prv', 1, 'token'),
+#    (sender_account, receiver_account, -1, 'prv', 0, 'token'),
+#    (sender_account, receiver_account, 1, 'prv', 1, 'token'),
+#    (sender_account, receiver_account, 1, 'prv', 0, 'token'),
     # cross shard
-    pytest.param(sender_account, receiver_x_shard, -1, 'token', 1, 'prv',
-                 marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
-    pytest.param(sender_account, receiver_account, -1, 'token', 0, 'prv',
-                 marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
-    (sender_account, receiver_x_shard, token_fee, 'token', 1, 'prv'),
-    (sender_account, receiver_x_shard, token_fee, 'token', 0, 'prv'),
-    (sender_account, receiver_x_shard, -1, 'prv', 1, 'prv'),
-    (sender_account, receiver_x_shard, -1, 'prv', 0, 'prv'),
-    (sender_account, receiver_x_shard, 1, 'prv', 1, 'prv'),
-    (sender_account, receiver_x_shard, 1, 'prv', 0, 'prv'),
-    (sender_account, receiver_x_shard, token_fee, 'token', 1, 'token'),
-    (sender_account, receiver_x_shard, token_fee, 'token', 0, 'token'),
-    (sender_account, receiver_x_shard, -1, 'prv', 1, 'token'),
-    (sender_account, receiver_x_shard, -1, 'prv', 0, 'token'),
-    (sender_account, receiver_x_shard, 1, 'prv', 1, 'token'),
-    (sender_account, receiver_x_shard, 1, 'prv', 0, 'token')
+#    pytest.param(sender_account, receiver_x_shard, -1, 'token', 1, 'prv',
+#                 marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
+#    pytest.param(sender_account, receiver_account, -1, 'token', 0, 'prv',
+#                 marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
+#    (sender_account, receiver_x_shard, token_fee, 'token', 1, 'prv'),
+#    (sender_account, receiver_x_shard, token_fee, 'token', 0, 'prv'),
+#    (sender_account, receiver_x_shard, -1, 'prv', 1, 'prv'),
+#    (sender_account, receiver_x_shard, -1, 'prv', 0, 'prv'),
+#    (sender_account, receiver_x_shard, 1, 'prv', 1, 'prv'),
+#    (sender_account, receiver_x_shard, 1, 'prv', 0, 'prv'),
+#    (sender_account, receiver_x_shard, token_fee, 'token', 1, 'token'),
+#    (sender_account, receiver_x_shard, token_fee, 'token', 0, 'token'),
+#    (sender_account, receiver_x_shard, -1, 'prv', 1, 'token'),
+#    (sender_account, receiver_x_shard, -1, 'prv', 0, 'token'),
+#    (sender_account, receiver_x_shard, 1, 'prv', 1, 'token'),
+#    (sender_account, receiver_x_shard, 1, 'prv', 0, 'token')
 ])
 @pytest.mark.dependency(depends=["test_init_ptoken"])
 def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
