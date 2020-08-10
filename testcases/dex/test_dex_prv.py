@@ -4,7 +4,7 @@ import unittest
 
 import pytest
 
-import topology.NodeList as NodeList
+import topology.NodeList_dcs as NodeList
 from libs.AutoLog import INFO, WAIT, STEP, assert_true, DEBUG
 from libs.DecentralizedExchange import DEX
 from libs.Transaction import Transaction
