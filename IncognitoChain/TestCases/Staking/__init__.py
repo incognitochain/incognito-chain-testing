@@ -4,6 +4,8 @@ block_per_epoch = 40
 chain_committee_min = 4
 chain_committee_max = 6
 """
+import pytest
+
 from IncognitoChain.Configs.Constants import coin
 from IncognitoChain.Helpers.Logging import INFO, STEP
 from IncognitoChain.Objects.AccountObject import Account
@@ -113,19 +115,36 @@ token_id = None
 
 def setup_module():
     INFO("SETUP MODULE")
+    STEP(0.1, 'Check current committee to make sure that this test wont be running on testnet')
+    beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_info()
+    all_shard_committee = beacon_state.get_shard_committees()
+    list_public_k = []
+    for shard, committees in committee_list.items():
+        for committee in committees:
+            list_public_k.append(committee.public_key)
+
+    for shard, committees in all_shard_committee.items():
+        for committee in committees:
+            if committee.get_inc_public_key() not in list_public_k:
+                msg = 'Suspect that this chain is TestNet. Skip staking tests to prevent catastrophic disaster'
+                INFO(msg)
+                pytest.skip(msg)
+
+    STEP(0.2, 'Top up committees')
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), auto_stake_list + [stake_account, staked_account])
 
+    STEP(0.3, 'Stake and wait till becoming committee')
     for committee in auto_stake_list:
         if committee.am_i_a_committee() is False:
             committee.stake_and_reward_me()
 
     for committee in auto_stake_list:
-        committee.wait_till_i_am_committee()
+        committee.stk_wait_till_i_am_committee()
 
     # epoch = SUT.full_node.system_rpc().help_get_current_epoch()
     # SUT.full_node.system_rpc().help_wait_till_epoch(epoch + 2)
 
-    STEP(0, "Verify environment, 6 node per shard")
+    STEP(0.4, "Verify environment, 6 node per shard")
     number_committee_shard_0 = SUT.full_node.help_count_committee_in_shard(0, refresh_cache=True)
     number_committee_shard_1 = SUT.full_node.help_count_committee_in_shard(1, refresh_cache=False)
     assert number_committee_shard_0 == 6, f"shard 0: {number_committee_shard_0} committee"
