@@ -73,7 +73,7 @@ def test_self_stake_n_stake_other_with_auto_stake_false(the_stake, the_staked):
         token_sender = token_holder_shard_1
         token_receiver = token_holder_shard_0
 
-    token_bal_before = token_receiver.get_token_balance(token_id)
+    token_bal_b4_withdraw_reward = token_receiver.get_token_balance(token_id)
     token_sender.send_token_to(token_receiver, token_id, amount_token_send, token_fee=amount_token_fee) \
         .subscribe_transaction()
     try:
@@ -81,41 +81,39 @@ def test_self_stake_n_stake_other_with_auto_stake_false(the_stake, the_staked):
             token_receiver.subscribe_cross_output_token()
     except WebSocketTimeoutException:
         pass
-    assert token_bal_before + amount_token_send == token_receiver.get_token_balance(token_id)
+    assert token_bal_b4_withdraw_reward + amount_token_send == token_receiver.get_token_balance(token_id)
 
     STEP(5, "Wait for the stake to be swapped out")
-    epoch_x = the_staked.wait_till_i_am_swapped_out_of_committee()
+    epoch_x = the_staked.stk_wait_till_i_am_swapped_out_of_committee()
 
     STEP(6.1, "Calculate avg PRV reward per epoch")
-    prv_reward = the_staked.get_reward_amount()
+    prv_reward = the_staked.stk_get_reward_amount()
     avg_prv_reward = prv_reward / (epoch_x - epoch_plus_n)
     INFO(f'AVG prv reward = {avg_prv_reward}')
 
     STEP(6.2, "Reward token at epoch_plus_n")
-    token_reward = the_staked.get_reward_amount(token_id)
+    token_reward = the_staked.stk_get_reward_amount(token_id)
     INFO(f'Token reward at epoch {epoch_x} = {token_reward}')
 
-    STEP(7, 'Verify staking refund')
-    assert bal_before_stake - stake_fee == the_stake.get_prv_balance()
+    STEP(7.1, 'Wait for staking refund')
+    bal_after_stake_refund = the_stake.wait_for_balance_change()
+    STEP(7.2, 'Verify staking refund')
+    assert bal_before_stake - stake_fee == bal_after_stake_refund
 
     STEP(8.1, 'Withdraw PRV reward and verify balance')
-    the_staked.get_prv_balance()
-    prv_reward_amount = the_staked.get_reward_amount()
-    the_staked.withdraw_reward_to_me().subscribe_transaction()
-    try:
-        the_staked.subscribe_cross_output_coin()
-    except WebSocketTimeoutException:
-        pass
-
-    assert the_staked.get_prv_balance_cache() == the_staked.get_prv_balance() - prv_reward_amount
+    prv_bal_b4_withdraw_reward = the_staked.get_prv_balance()
+    prv_reward_amount = the_staked.stk_get_reward_amount()
+    the_staked.stk_withdraw_reward_to_me().subscribe_transaction()
+    prv_bal_after_withdraw_reward = the_staked.wait_for_balance_change(from_balance=prv_bal_b4_withdraw_reward,
+                                                                       timeout=180)
+    INFO(f'Expect reward amount to received {prv_reward_amount}')
+    assert prv_bal_b4_withdraw_reward == prv_bal_after_withdraw_reward - prv_reward_amount
 
     STEP(8.2, 'Withdraw token reward and verify balance')
-    token_bal_before = the_staked.get_token_balance(token_id)
-    token_reward_amount = the_staked.get_reward_amount(token_id)
-    the_staked.withdraw_reward_to_me(token_id)
-    try:
-        the_staked.subscribe_cross_output_token()
-    except WebSocketTimeoutException:
-        pass
-
-    assert token_bal_before == the_staked.get_token_balance(token_id) - token_reward_amount
+    token_bal_b4_withdraw_reward = the_staked.get_token_balance(token_id)
+    token_reward_amount = the_staked.stk_get_reward_amount(token_id)
+    the_staked.stk_withdraw_reward_to_me(token_id).subscribe_transaction()
+    token_bal_after_withdraw_reward = the_staked.wait_for_balance_change(token_id, timeout=180,
+                                                                         from_balance=token_bal_b4_withdraw_reward)
+    INFO(f'Expect reward amount to received {token_reward_amount}')
+    assert token_bal_b4_withdraw_reward == token_bal_after_withdraw_reward - token_reward_amount

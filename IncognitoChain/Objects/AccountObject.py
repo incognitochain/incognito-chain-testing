@@ -318,7 +318,7 @@ class Account:
             token_id = 'PRV'
         INFO(f'Wait until {self.validator_key} has reward: {token_id}, check every {check_cycle}s, timeout: {timeout}s')
         while timeout > check_cycle:
-            reward = self.get_reward_amount(token_id)
+            reward = self.stk_get_reward_amount(token_id)
             if reward is None:
                 WAIT(check_cycle)
                 timeout -= check_cycle
@@ -441,11 +441,11 @@ class Account:
         return None
 
     def subscribe_cross_output_coin(self, timeout=120):
-        INFO(f'{self.private_key} Subscribe cross output coin')
+        INFO(f'{l6(self.private_key)} Subscribe cross output coin')
         return self.__SUT.full_node.subscription().subscribe_cross_output_coin_by_private_key(self.private_key, timeout)
 
     def subscribe_cross_output_token(self, timeout=120):
-        INFO(f'{self.private_key} Subscribe cross output token')
+        INFO(f'{l6(self.private_key)} Subscribe cross output token')
         return self.__SUT.full_node.subscription().subscribe_cross_custom_token_privacy_by_private_key(self.private_key,
                                                                                                        timeout)
 
@@ -636,7 +636,7 @@ class Account:
     # Stake
     ########
 
-    def get_reward_amount(self, token_id=None):
+    def stk_get_reward_amount(self, token_id=None):
         """
         when @token_id is None, return PRV reward amount
         :return:
@@ -650,7 +650,7 @@ class Account:
         except KeyError:
             return None
 
-    def get_reward_amount_all_token(self):
+    def stk_get_reward_amount_all_token(self):
         """
 
         :return:
@@ -661,12 +661,11 @@ class Account:
             return None
 
     def stk_withdraw_reward_to(self, reward_receiver, token_id=None):
-        INFO(f"""Withdraw token reward {token_id}
-            to {reward_receiver.payment_key}""")
+        INFO(f"Withdraw token reward {token_id} to {l6(reward_receiver.payment_key)}")
         return self.__SUT.full_node.transaction().withdraw_reward(self.private_key, reward_receiver.payment_key,
                                                                   token_id)
 
-    def withdraw_reward_to_me(self, token_id=None):
+    def stk_withdraw_reward_to_me(self, token_id=None):
         return self.stk_withdraw_reward_to(self, token_id)
 
     #######

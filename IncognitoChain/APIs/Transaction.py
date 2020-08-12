@@ -177,7 +177,7 @@ class TransactionRpc:
     ###############
     # WITHDRAW REWARD
     ###############
-    def withdraw_reward(self, private_key, payment_address, version=1, token_id=None):
+    def withdraw_reward(self, private_key, payment_address, token_id=None, version=1):
         if token_id is None:
             token_id = PRV_ID
         return self.rpc_connection. \

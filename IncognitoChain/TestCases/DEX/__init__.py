@@ -1,7 +1,11 @@
-from IncognitoChain.Configs.Constants import coin
+import copy
+
+from IncognitoChain.Configs.Constants import coin, PRV_ID
+from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
+from IncognitoChain.Helpers.TestHelper import calculate_actual_trade_received, l6
 from IncognitoChain.Helpers.Time import get_current_date_time
 from IncognitoChain.Objects.AccountObject import Account
-from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER, SUT
+from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 # contributor = ACCOUNTS[0]
@@ -12,12 +16,13 @@ token_owner = Account(
 # when token_id set to none, init new token and use it for the test
 # otherwise, use token id for the test without initializing new token
 # token_id = "a4442a68070fc615abee5e8c665808ebc1c670e5fd16f49ca8e992bf7c126739"
-# token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
-# token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
-token_id_1 = "2cc0e24508a105a305e6d3cf0a742a94450ccf513e9f31f3d3f5ac5565daac4b"  # local
-token_id_2 = "31a7452fd0666bfc6a41ea3abff93f719a5d8fb7824ef62fe24751d93c503486"  # local
+token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
+token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
+# token_id_1 = "2cc0e24508a105a305e6d3cf0a742a94450ccf513e9f31f3d3f5ac5565daac4b"  # local
+# token_id_2 = "31a7452fd0666bfc6a41ea3abff93f719a5d8fb7824ef62fe24751d93c503486"  # local
 # token_id_1 = None
 # token_id_2 = None
+token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff"  # token not yet added to PDE
 
 need_withdraw_contribution_1 = False
 need_withdraw_contribution_2 = False
@@ -111,3 +116,98 @@ def teardown_module():
     if need_withdraw_contribution_2:
         trx008.custom_token_id = token_id_2
         trx008.teardown_module()
+
+
+def verify_sum_fee_prv_token(sum_fee_expected, token1, token2, pde_state_b4, pde_state_af):
+    sum_fee_pool_b4 = pde_state_b4.sum_contributor_reward_of_pair(None, token1, token2)
+    sum_fee_pool_af = pde_state_af.sum_contributor_reward_of_pair(None, token1, token2)
+    INFO(f'Verify contributor reward of {l6(token1)}-{l6(token2)}, '
+         f'Expected sum reward = {sum_fee_expected}, actual sum reward = {sum_fee_pool_af - sum_fee_pool_b4}')
+    assert abs((abs(sum_fee_pool_af - sum_fee_pool_b4) / sum_fee_expected) - 1) < 0.001 \
+           and INFO(f'Sum fee tokens {l6(token1)}-{l6(token2)} is correct')
+
+
+def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_state_b4, pde_state_af):
+    INFO_HEADLINE(f'Verify contributor reward of token pair {l6(token1)}-{l6(token2)}')
+    contributors_of_pair = pde_state_b4.get_contributor_of_pair(token1, token2)
+    sum_share_of_pair = pde_state_b4.sum_share_pool_of_pair(None, token1, token2)
+    sum_split_reward = 0
+    final_reward_result = True
+    global SUMMARY
+    for contributor in contributors_of_pair:
+        INFO()
+        share_of_contributor = pde_state_b4.get_pde_shares_amount(contributor, token1, token2)
+        pde_reward_b4 = pde_state_b4.get_contributor_reward(contributor, token1, token2)
+        pde_reward_af = pde_state_af.get_contributor_reward(contributor, token1, token2)
+        calculated_reward = int(sum_fee_expected * share_of_contributor / sum_share_of_pair)
+        actual_reward = pde_reward_af - pde_reward_b4
+        sum_split_reward += calculated_reward
+        if contributor == contributors_of_pair[-1]:  # last contributor get all remaining fee as reward
+            calculated_reward = sum_fee_expected - sum_split_reward
+        INFO(f'''Verify PDE reward for contributor {l6(contributor)} with: 
+                        reward before               : {pde_reward_b4}
+                        reward after                : {pde_reward_af}
+                        estimated additional reward : {calculated_reward}
+                        share amount                : {share_of_contributor}
+                        sum share of pair           : {sum_share_of_pair}
+                        sum trading fee             : {sum_fee_expected}''')
+        if pde_reward_af == pde_reward_b4 and pde_reward_af == 0:
+            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} IS  correct: ' \
+                       f'estimated/actual received {calculated_reward}/{actual_reward}\n'
+            final_reward_result = final_reward_result and True
+
+        elif abs(actual_reward / calculated_reward - 1) < 0.001:
+            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} IS  correct: ' \
+                       f'estimated/actual received {calculated_reward}/{actual_reward}\n'
+            final_reward_result = final_reward_result and True
+        else:
+            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} NOT correct: ' \
+                       f'estimated/actual received {calculated_reward}/{actual_reward} \n'
+            final_reward_result = final_reward_result and False
+
+    return final_reward_result
+
+
+def verify_trading_prv_token(trade_amount_list, trading_fees_list, trade_order, tx_fees_list, token_sell, token_buy,
+                             pde_state_b4, balance_tok_sell_before):
+    rate_before = pde_state_b4.get_rate_between_token(token_sell, token_buy)
+    calculated_rate = copy.deepcopy(rate_before)
+    estimate_amount_received_after_list = [0] * len(trade_order)
+    estimate_bal_sell_after_list = [0] * len(trade_order)
+    for order in trade_order:
+        trade_amount = trade_amount_list[order]
+        tx_fee = tx_fees_list[order]
+        trading_fee = trading_fees_list[order]
+        bal_tok_sell_b4 = balance_tok_sell_before[order]
+        print(str(order) + "--")
+        received_amount_token_buy = calculate_actual_trade_received(trade_amount, calculated_rate[0],
+                                                                    calculated_rate[1])
+        calculated_rate[0] += trade_amount
+        calculated_rate[1] -= received_amount_token_buy
+
+        # check balance
+        estimate_bal_sell_after = bal_tok_sell_b4 - trade_amount
+        if token_sell == PRV_ID:
+            estimate_bal_sell_after -= (trading_fee + tx_fee)
+        if token_buy == PRV_ID:
+            received_amount_token_buy -= (trading_fee + tx_fee)
+
+        # assert estimate_bal_buy_after == bal_tok_buy_after and INFO(f'{l6(trader.payment_key)} '
+        #                                                             f'balance {l6(token_buy)} is correct')
+        # assert estimate_bal_sell_after == bal_tok_sell_after and INFO(f'{l6(trader.payment_key)} '
+        #                                                               f'balance {l6(token_sell)} is correct')
+        estimate_amount_received_after_list[order] = received_amount_token_buy
+        estimate_bal_sell_after_list[order] = estimate_bal_sell_after
+    return calculated_rate, estimate_bal_sell_after_list, estimate_amount_received_after_list
+
+
+def calculate_trade_order(trading_fees_list, amount_list):
+    multiplier = 1000000000  # multiply with fee to avoid close to 0 priority, since fee is too small compare to amount
+    trade_priority = [(fee * multiplier) / amount for fee, amount in zip(trading_fees_list, amount_list)]
+    trade_priority_sorted = copy.deepcopy(trade_priority)
+    trade_priority_sorted.sort(reverse=True)
+    INFO("Trade Priority: " + str(trade_priority))
+    INFO("Trade Priority: " + str(trade_priority_sorted))
+    sort_order = sorted(range(len(trade_priority)), key=lambda k: trade_priority[k], reverse=True)
+    INFO("Sort order: " + str(sort_order))
+    return sort_order

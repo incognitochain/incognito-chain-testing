@@ -14,6 +14,7 @@ from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account
+from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo
 from IncognitoChain.Objects.BlockChainObjects import BlockChainCore
 from IncognitoChain.Objects.PdeObjects import PDEStateInfo
 from IncognitoChain.Objects.PortalObjects import PortalStateInfo
@@ -120,6 +121,11 @@ class Node:
 
     def explore_rpc(self) -> ExploreRpc:
         return ExploreRpc(self._get_rpc_url())
+
+    def get_beacon_best_state_info(self):
+        beacon_detail_raw = self.system_rpc().get_beacon_best_state_detail().get_result()
+        beacon_state_obj = BeaconBestStateDetailInfo(beacon_detail_raw)
+        return beacon_state_obj
 
     def get_latest_pde_state_info(self, beacon_height=None):
         if beacon_height is None:

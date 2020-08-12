@@ -44,3 +44,8 @@ class SystemRpc:
 
     def get_block_chain_info(self):
         return self.rpc_connection.with_method('getblockchaininfo').with_params([]).execute()
+
+    def get_reward_amount_by_epoch(self, shard_id, epoch):
+        return self.rpc_connection.with_method('getrewardamountbyepoch'). \
+            with_params([shard_id, epoch]). \
+            execute()

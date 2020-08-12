@@ -11,7 +11,8 @@ fi
 html_report="reports/$(date '+%Y-%m-%d-%H-%M-%S').html"
 test_bed=$1
 test_data=$2
-xoption=""
+xoption="-XprepareCoin=True "
+
 if [ "$test_bed" != "-" ]; then
   echo " !!! Using test bed: $test_bed"
   xoption+="-XtestBed=$test_bed "

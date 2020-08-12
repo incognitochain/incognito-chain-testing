@@ -57,7 +57,6 @@ def test_contribute_prv(token1, token2):
     contribute_token1_fee = contribute_token1_result.subscribe_transaction().get_fee()
 
     STEP(2, 'Verify contribution')
-    # TODO: get pde contribution status = 1 before continue
     contr_info.wait_for_contribution_status(pair_id, 1)
     # assert token_owner.wait_till_my_token_in_waiting_for_contribution(pair_id, token1)
     wait_for_user_contribution_in_waiting(token_owner, pair_id, token1)

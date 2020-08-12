@@ -1,4 +1,5 @@
 import sys
+from distutils.util import strtobool
 
 from IncognitoChain.Configs import config
 from IncognitoChain.Configs.Constants import DAO_private_key, DAO_payment_key, ONE_COIN
@@ -43,17 +44,22 @@ if COIN_MASTER.list_unspent_coin()[0].get_version() == 1:
 if COIN_MASTER.shard is None:
     COIN_MASTER.calculate_shard_id()
 
-INFO_HEADLINE("Checking test accounts, if balance < 1/5 prv then top up to 1 prv")
-COIN_MASTER.top_him_up_prv_to_amount_if(ONE_COIN / 5, ONE_COIN, ACCOUNTS)
+prepare_coin = config.prepare_coin_precondition
+if PARAMS.get("prepareCoin") is not None:
+    prepare_coin = strtobool(PARAMS.get("prepareCoin"))
 
-# for account in ACCOUNTS:
-# # also send back if already have to much prv
-# elif bal > ONE_COIN:
-#     send_amount = coin(bal // ONE_COIN)
-#     account.send_prv_to(COIN_MASTER, send_amount, privacy=0).subscribe_transaction()
-#     if COIN_MASTER.shard != account.shard:
-#         try:
-#             COIN_MASTER.subscribe_cross_output_coin()
-#         except WebSocketTimeoutException:
-#             pass
-INFO_HEADLINE("Done checking and top up")
+if prepare_coin:
+    INFO_HEADLINE("Checking test accounts, if balance < 1/5 prv then top up to 1 prv")
+    COIN_MASTER.top_him_up_prv_to_amount_if(ONE_COIN / 5, ONE_COIN, ACCOUNTS)
+
+    # for account in ACCOUNTS:
+    # # also send back if already have to much prv
+    # elif bal > ONE_COIN:
+    #     send_amount = coin(bal // ONE_COIN)
+    #     account.send_prv_to(COIN_MASTER, send_amount, privacy=0).subscribe_transaction()
+    #     if COIN_MASTER.shard != account.shard:
+    #         try:
+    #             COIN_MASTER.subscribe_cross_output_coin()
+    #         except WebSocketTimeoutException:
+    #             pass
+    INFO_HEADLINE("Done checking and top up")

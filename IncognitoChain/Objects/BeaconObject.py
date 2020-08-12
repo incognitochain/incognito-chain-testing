@@ -1,9 +1,10 @@
 import copy
 
-from IncognitoChain.Objects import BlockChainInfoBaseClass
 from IncognitoChain.Helpers.TestHelper import l6
+from IncognitoChain.Objects import BlockChainInfoBaseClass
 from IncognitoChain.Objects.AccountObject import Account
 from libs.AutoLog import INFO
+
 
 class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
 
@@ -84,6 +85,14 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         return beacon_pending_validator_objs
 
     def get_shard_committees(self, shard_num=None, validator_number=None):
+        """
+
+        :param shard_num:
+        :param validator_number:
+        :return: Return one _Committee obj shard_num and validator_num are specified
+        Return list of _Committee obj if only shard_num is specify
+        Return dict of {shard_num: _Committee} obj if only shard_num and validator_num are specify
+        """
         obj_list = []
         committee_dict_raw = self.data['ShardCommittee']  # get all committee in all shard
 

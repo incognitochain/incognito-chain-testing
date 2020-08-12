@@ -110,7 +110,9 @@ amount_token_fee = 1000000
 token_init_amount = coin(100000)
 token_contribute_amount = coin(10000)
 prv_contribute_amount = coin(10000)
-token_id = None
+token_id = None  # if None, the test will automatically mint a new token and use it for testing
+# token_id = '6c345aaaf93107a205240e1245171adcbcf5a45a89609cdd2e3a36b9bb39da41'
+tear_down_trx008 = False
 
 
 def setup_module():
@@ -151,18 +153,24 @@ def setup_module():
     assert number_committee_shard_1 == 6, f"shard 1: {number_committee_shard_1} committee"
 
     # breakpoint()
-    trx008.account_init = token_holder_shard_0
-    trx008.prv_contribute_amount = prv_contribute_amount
-    trx008.token_contribute_amount = token_contribute_amount
-    trx008.token_init_amount = token_init_amount
-    trx008.setup_module()
-    trx008.test_init_ptoken()
-    global token_id
-    token_id = trx008.custom_token_id
-    INFO(f'Setup module: Token: {token_id}')
-    token_holder_shard_0.send_token_to(token_holder_shard_1, token_id, token_contribute_amount / 2, prv_fee=-1,
-                                       prv_privacy=0)
+    global token_id, tear_down_trx008
+    if token_id is None:
+        trx008.account_init = token_holder_shard_0
+        trx008.prv_contribute_amount = prv_contribute_amount
+        trx008.token_contribute_amount = token_contribute_amount
+        trx008.token_init_amount = token_init_amount
+        trx008.setup_module()
+        trx008.test_init_ptoken()
+        token_id = trx008.custom_token_id
+        INFO(f'Setup module: new token: {token_id}')
+        token_holder_shard_0.send_token_to(token_holder_shard_1, token_id, token_contribute_amount / 2, prv_fee=-1,
+                                           prv_privacy=0)
+        tear_down_trx008 = True
+
+    else:
+        INFO(f'Setup module: use existing token: {token_id}')
 
 
 def teardown_module():
-    trx008.teardown_module()
+    if tear_down_trx008:
+        trx008.teardown_module()
