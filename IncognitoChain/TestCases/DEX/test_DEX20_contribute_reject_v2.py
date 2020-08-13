@@ -7,14 +7,14 @@ from IncognitoChain.Helpers.Time import get_current_date_time
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PdeObjects import PDEContributeInfo, wait_for_user_contribution_in_waiting, \
     wait_for_user_contribution_out_waiting
-from IncognitoChain.TestCases.DEX import token_owner
+from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2
 
 
 @pytest.mark.parametrize('token1,token2', (
     [PRV_ID, PRV_ID],
-    # [token_id_1, token_id_1],
-    # [token_id_1, token_id_2],
-    # [token_id_2, token_id_1]
+    [token_id_1, token_id_1],
+    [token_id_1, token_id_2],
+    [token_id_2, token_id_1]
 ))
 def test_contribute_prv(token1, token2):
     pair_id = f'auto_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
