@@ -116,13 +116,13 @@ def calculate_actual_trade_received(trade_amount, pool_token2_sell, pool_token2_
 
 
 def calculate_actual_reward(total_tx_fee, block_on_epoch, max_shard_committee, number_active_shard, number_of_beacon,
-                            basic_reward=400000000):
+                            basic_reward=40000000):
     """
     Function to calculate reward on a node and DAO
 
     :param total_tx_fee:
     :param block_on_epoch: block on epoch
-    :param basic_reward: basic reward by default is 400000000 nanoPRV
+    :param basic_reward: basic reward by default is 40000000 nanoPRV
     :param max_shard_committee: max shard committee
     :param number_active_shard: number active of shard
     :param number_of_beacon: number of beacon
