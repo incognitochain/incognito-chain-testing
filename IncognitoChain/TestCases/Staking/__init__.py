@@ -5,6 +5,7 @@ chain_committee_min = 4
 chain_committee_max = 6
 """
 import pytest
+import random
 
 from IncognitoChain.Configs.Constants import coin
 from IncognitoChain.Helpers.Logging import INFO, STEP
@@ -105,6 +106,8 @@ block_per_epoch = 40
 chain_committee_min = 4
 chain_committee_max = 6
 
+amount_stake_under_1750 = random.randint(coin(1), coin(1749))
+amount_stake_over_1750 = random.randint(coin(1751), coin(1850))
 amount_token_send = 10
 amount_token_fee = 1000000
 token_init_amount = coin(100000)
