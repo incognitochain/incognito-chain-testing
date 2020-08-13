@@ -1,4 +1,5 @@
 import copy
+import json
 
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects import BlockChainInfoBaseClass
@@ -232,3 +233,178 @@ class _Committee(BlockChainInfoBaseClass):
 
     def is_auto_staking(self):
         return self._auto_staking
+
+
+class BeaconBlock(BlockChainInfoBaseClass):
+    INST_TYPE_DAO = 'DAO'
+    INST_TYPE_SHARD = 'shard'
+    INST_TYPE_BEACON = 'beacon'
+    INST_TYPE_PORTAL = 'portal'
+
+    class ShardState(BeaconBestStateDetailInfo):
+        def get_height(self):
+            return self.data['Height']
+
+        def get_hash(self):
+            return self.data['Hash']
+
+        def get_cross_shard(self):
+            return self.data['CrossShard']
+
+    class BeaconInstruction(BlockChainInfoBaseClass):
+        """
+        example 1:
+        [
+           "39",
+           "0",
+           "beaconRewardInst",
+           "{\"BeaconReward\":{\"0000000000000000000000000000000000000000000000000000000000000004\":855000000},\"PayToPublicKey\":\"1TdgrfUkGoRu365bCPoaYpXn3ceCFvG9ts4xMgPhxq8MPZwW3i\"}"
+        ]
+
+        example 2:
+        [
+            "42",
+            "0",
+            "devRewardInst",
+            "{\"IncDAOReward\":{\"0000000000000000000000000000000000000000000000000000000000000004\":760000000}}"
+        ]
+
+        example 3:
+        [
+            "43",
+            "0",
+            "shardRewardInst",
+            "{\"ShardReward\":{\"0000000000000000000000000000000000000000000000000000000000000004\":1800000000},\"Epoch\":898}"
+        ]
+        """
+
+        class InstructionDetail(BlockChainInfoBaseClass):
+
+            def _get_reward_dict(self):
+                return self.data[self.get_type()]
+
+            def get_type(self):
+                keys = self.data.keys()
+                for k in keys:
+                    if "Reward" in k:
+                        return k
+                return None
+
+            def get_rewarded_token(self):  # return a list of token id to receive as reward
+                reward_dict = self._get_reward_dict()
+                token_list = []
+                for token in reward_dict.keys:
+                    token_list.append(token)
+                return token_list
+
+            def get_reward_amount(self, token_id=None):
+                # return amount reward of a token, or a dict of {token: reward amount ...}
+                if token_id is None:
+                    return self._get_reward_dict()
+                return self._get_reward_dict()[token_id]
+
+            def get_public_k_to_pay_to(self):
+                return self.data['PayToPublicKey']
+
+            def get_epoch(self):
+                return self.data['Epoch']
+
+            def get_shard_id(self):
+                return self.data['ShardID']
+
+            def get_txs_fee(self):
+                return self.data['TxsFee']
+
+            def get_shard_block_height(self):
+                return self.data['ShardBlockHeight']
+
+        def get_num_1(self):
+            return self.data[0]
+
+        def get_num_2(self):
+            return self.data[1]
+
+        def get_instruction_type(self):
+            index_2 = self.data[2]
+            if "Inst" in index_2:
+                return self.data[2]
+            return ''
+
+        def get_instruction_detail(self):
+            if self.get_instruction_type() == '':  # instruction has no type
+                inst_dict_raw = json.loads(self.data[2])
+            else:
+                inst_dict_raw = json.loads(self.data[3])
+
+            inst_list_obj = []
+            for inst_raw in inst_dict_raw:
+                inst_raw = json.loads(inst_raw)
+                inst_obj = BeaconBlock.BeaconInstruction.InstructionDetail(inst_raw)
+                inst_list_obj.append(inst_obj)
+
+            return inst_list_obj
+
+    def get_hash(self):
+        return self.data["Hash"]
+
+    def get_height(self):
+        return self.data['Height']
+
+    def get_validation_data(self):
+        return self.data["ValidationData"]
+
+    def get_block_producer(self):
+        return self.data["BlockProducer"]
+
+    def get_consensus_type(self):
+        return self.data["ConsensusType"]
+
+    def get_version(self):
+        return self.data["Version"]
+
+    def get_epoch(self):
+        return self.data["Epoch"]
+
+    def get_round(self):
+        return self.data["Round"]
+
+    def get_time(self):
+        return self.data["Time"]
+
+    def get_previous_block_hash(self):
+        return self.data["PreviousBlockHash"]
+
+    def get_next_block_hash(self):
+        return self.data["NextBlockHash"]
+
+    def get_size(self):
+        return self.data["Size"]
+
+    def get_shard_states(self, shard_id=None):
+        dict_raw_shard_state = self.data["ShardStates"]
+        shard_state_list_obj = []
+        for _id, state in dict_raw_shard_state.item():
+            shard_state_obj = BeaconBlock.ShardState(state)
+            if shard_id is not None and _id == shard_id:
+                return shard_state_obj
+            elif shard_id is None:
+                shard_state_list_obj.append(shard_state_obj)
+
+    def get_instructions(self, inst_type=None):
+        list_raw_inst = self.data["Instructions"]
+        list_obj_inst = []
+        for raw_inst in list_raw_inst:
+            obj_inst = BeaconBlock.BeaconInstruction(raw_inst)
+            list_obj_inst.append(obj_inst)
+
+        if inst_type is None:
+            return list_obj_inst
+
+        list_obj_inst_w_type = []
+        for inst in list_obj_inst:
+            if inst_type in inst.get_instruction_type():
+                list_obj_inst_w_type.append(inst)
+
+        if len(list_obj_inst_w_type) == 1:
+            return list_obj_inst_w_type[0]
+        return list_obj_inst_w_type

@@ -11,10 +11,10 @@ from IncognitoChain.APIs.Subscription import SubscriptionWs
 from IncognitoChain.APIs.System import SystemRpc
 from IncognitoChain.APIs.Transaction import TransactionRpc
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
-from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Helpers.Logging import INFO, DEBUG
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account
-from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo
+from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock
 from IncognitoChain.Objects.BlockChainObjects import BlockChainCore
 from IncognitoChain.Objects.PdeObjects import PDEStateInfo
 from IncognitoChain.Objects.PortalObjects import PortalStateInfo
@@ -122,6 +122,13 @@ class Node:
     def explore_rpc(self) -> ExploreRpc:
         return ExploreRpc(self._get_rpc_url())
 
+    def get_latest_beacon_block(self, beacon_height=None):
+        if beacon_height is None:
+            beacon_height = self.help_get_beacon_height()
+
+        response = self.system_rpc().retrieve_beacon_block_by_height(beacon_height)
+        return BeaconBlock(response.get_result())
+
     def get_beacon_best_state_info(self):
         beacon_detail_raw = self.system_rpc().get_beacon_best_state_detail().get_result()
         beacon_state_obj = BeaconBestStateDetailInfo(beacon_detail_raw)
@@ -167,10 +174,10 @@ class Node:
         return len(shard_committee)
 
     def help_get_current_epoch(self, refresh_cache=True):
-        INFO(f'Get current epoch number')
+        DEBUG(f'Get current epoch number')
         beacon_best_state = self.system_rpc().get_beacon_best_state_detail(refresh_cache)
         epoch = beacon_best_state.get_result('Epoch')
-        INFO(f"Current epoch = {epoch}")
+        DEBUG(f"Current epoch = {epoch}")
         return epoch
 
     def help_wait_till_epoch(self, epoch_number, pool_time=30, timeout=180):  # todo: move to ChainHelper
