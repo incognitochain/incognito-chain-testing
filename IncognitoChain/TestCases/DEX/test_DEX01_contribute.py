@@ -65,7 +65,7 @@ def test_contribute(token1, token2):
     contrib_fee_sum = contribute_token1_fee + contribute_token2_fee
 
     STEP(4, f'Verify {l6(token1)} is no longer in waiting contribution list')
-    token_owner.pde_wait_till_my_token_out_waiting_for_contribution(token1)
+    token_owner.pde_wait_till_my_token_out_waiting_for_contribution(pair_id, token1)
     bal_tok1_aft_contrib = token_owner.get_token_balance(token1)
     bal_tok2_aft_contrib = token_owner.get_token_balance(token2)
     INFO(f'{l6(token1)} after contribute (before refund): {bal_tok1_aft_contrib}')
