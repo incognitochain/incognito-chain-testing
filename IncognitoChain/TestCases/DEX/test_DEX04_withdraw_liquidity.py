@@ -1,17 +1,17 @@
 import pytest
 
 from IncognitoChain.Configs.Constants import PRV_ID
-from IncognitoChain.Helpers.Logging import STEP, INFO, INFO_HEADLINE
+from IncognitoChain.Helpers.Logging import STEP, INFO, INFO_HEADLINE, ERROR
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects.IncognitoTestCase import SUT, ACCOUNTS
 from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2
 
 
 @pytest.mark.parametrize('withdrawer, token1, token2, percent_of_share_amount_to_withdraw', [
-    (token_owner, PRV_ID, token_id_1, 0.01),
-    (token_owner, token_id_1, token_id_2, 0.01),
-    (ACCOUNTS[3], PRV_ID, token_id_1, 0.01),
-    (ACCOUNTS[3], token_id_1, token_id_2, 0.01),
+    # (token_owner, PRV_ID, token_id_1, 0.71),
+    # (token_owner, token_id_1, token_id_2, 0.21),
+    (ACCOUNTS[3], PRV_ID, token_id_1, 0.3),
+    (ACCOUNTS[3], token_id_1, token_id_2, 0.81),
 ])
 def test_withdraw_liquidity(withdrawer, token1, token2, percent_of_share_amount_to_withdraw):
     pde_state_b4_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
@@ -21,6 +21,8 @@ def test_withdraw_liquidity(withdrawer, token1, token2, percent_of_share_amount_
         token1: withdrawer.get_token_balance(token1),
         token2: withdrawer.get_token_balance(token2)}
     my_pde_share_b4 = pde_state_b4_test.get_pde_shares_amount(withdrawer, token1, token2)
+    assert my_pde_share_b4 != None, ERROR(f"share of {l6(withdrawer.private_key)} is NULL")
+
     withdraw_share = int(my_pde_share_b4 * percent_of_share_amount_to_withdraw)
     withdraw_share_actual = min(withdraw_share, my_pde_share_b4)
     sum_share_of_pair = pde_state_b4_test.sum_share_pool_of_pair(None,token1, token2)
@@ -46,7 +48,7 @@ def test_withdraw_liquidity(withdrawer, token1, token2, percent_of_share_amount_
     INFO_HEADLINE('Summary')
     pde_state_af_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     rate_af = pde_state_af_test.get_rate_between_token(token1, token2)
-    my_pde_share_af = pde_state_af_test.get_pde_share_of_user(withdrawer, token1, token2)
+    my_pde_share_af = pde_state_af_test.get_pde_shares_amount(withdrawer, token1, token2)
 
     INFO(f"""                                                                                
         Blance {l6(token1)} before - after          : {bal_b4[token1]} - {bal_af[token1]} 
