@@ -16,11 +16,11 @@
 import pytest
 from websocket import WebSocketTimeoutException
 
-from IncognitoChain.Configs.Constants import coin
+from IncognitoChain.Configs.Constants import coin, BlockChain
 from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
-from IncognitoChain.TestCases.Staking import stake_account, block_per_epoch, token_holder_shard_1, \
+from IncognitoChain.TestCases.Staking import stake_account, token_holder_shard_1, \
     amount_token_send, amount_token_fee, token_holder_shard_0, staked_account
 
 
@@ -42,10 +42,10 @@ def test_self_stake_n_stake_other_with_auto_stake_false(the_stake, the_staked):
     STEP(1, 'Get epoch number')
     beacon_height = SUT.full_node.help_get_beacon_height_in_best_state_detail(refresh_cache=True)
     epoch_number = SUT.full_node.help_get_current_epoch(refresh_cache=False)
-    while beacon_height % block_per_epoch >= (block_per_epoch / 2) - 1:
+    while beacon_height % BlockChain.BLOCK_PER_EPOCH >= (BlockChain.BLOCK_PER_EPOCH / 2) - 1:
         # -1 just to be sure that staking will be successful
-        INFO(f'block height % block per epoch = {beacon_height % block_per_epoch}')
-        WAIT((block_per_epoch - (beacon_height % block_per_epoch)) * 10)
+        INFO(f'block height % block per epoch = {beacon_height % BlockChain.BLOCK_PER_EPOCH}')
+        WAIT((BlockChain.BLOCK_PER_EPOCH - (beacon_height % BlockChain.BLOCK_PER_EPOCH)) * 10)
         epoch_number = SUT.full_node.help_get_current_epoch(refresh_cache=False)
         beacon_height = SUT.full_node.help_get_beacon_height_in_best_state_detail(refresh_cache=True)
 
@@ -59,8 +59,6 @@ def test_self_stake_n_stake_other_with_auto_stake_false(the_stake, the_staked):
     assert the_stake.get_prv_balance_cache() == the_stake.get_prv_balance() + stake_fee + coin(1750)
 
     STEP(3, f'Wait until epoch {epoch_number} + n and Check if the stake become a committee')
-    # epoch_plus_1 = SUT.full_node.system_rpc().help_wait_till_epoch(epoch_number + 3, block_per_epoch * 10,
-    #                                                                block_per_epoch * 20)
     epoch_plus_n = the_staked.stk_wait_till_i_am_committee()
     staked_shard = the_staked.am_i_a_committee(refresh_cache=False)
     assert staked_shard is not False

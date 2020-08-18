@@ -1,17 +1,27 @@
 """
 this test suite is for testing on local chain only, with the following config
-block_per_epoch = 40
 chain_committee_min = 4
 chain_committee_max = 6
 """
-import pytest
 import random
+
+import pytest
 
 from IncognitoChain.Configs.Constants import coin
 from IncognitoChain.Helpers.Logging import INFO, STEP
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
+
+beacon_list = [
+    Account(
+        '112t8rncBDbGaFrAE7MZz14d2NPVWprXQuHHXCD2TgSV8USaDFZY3MihVWSqKjwy47sTQ6XvBgNYgdKH2iDVZruKQpRSB5JqxDAX6sjMoUT6'),
+    Account(
+        '112t8rnfXYskvWnHAXKs8dXLtactxRqpPTYJ6PzwkVHnF1begkenMviATTJVM6gVAgSdXsN5DEpTkLFPHtFVnS5RePi6aqTSth6dP4frcJUT'),
+    Account(
+        '112t8rngZ1rZ3eWHZucwf9vrpD1DNUAmrTTARSsptNDFrEoHv3QsDY3dZe8LXy3GeKXmeso8nUPsNwUM2qmZibQVXxGzstF4vZsYzJ83scFL'),
+    Account(
+        '112t8rnpXg6CLjvBg2ZiyMDgpgQoZuAjYGzbm6b2eXVSHUKjZUyb2LVJmJDPw4yNaP5M14DomzC514joTH3EVknRwnnGViWuH2HJuN6cpNhz')]
 
 committee_list = {
     "0": [
@@ -102,7 +112,6 @@ account_t = Account(
     "12S1QeLwrQRNQ8CbnJ6u7ydqFZsZbBs5rHFgfYPcoBjvECsn11HV8Pjexp16ZqwYqnmgsFy5BSLyebDTbTDTsc69usPpkd8WtcWdaGe",
     validator_key="12JZUz6GN8JnwfoGLa7SpaUYuKnphhbRqsbYr3BAH6yf9mR1bz")
 
-block_per_epoch = 40
 chain_committee_min = 4
 chain_committee_max = 6
 

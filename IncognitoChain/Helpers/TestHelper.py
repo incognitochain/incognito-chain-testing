@@ -1,5 +1,5 @@
 from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, PORTAL_COLLATERAL_PERCENT, \
-    PortalDepositStatus, PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT
+    PortalDepositStatus, PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT, BlockChain
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.Time import WAIT
 
@@ -42,6 +42,18 @@ def extract_incognito_addr(obj):
 
 
 class ChainHelper:
+    @staticmethod
+    def cal_epoch_from_height(height):
+        return height / BlockChain.BLOCK_PER_EPOCH + 1
+
+    @staticmethod
+    def cal_first_height_of_epoch(epoch):
+        return ((epoch - 1) * BlockChain.BLOCK_PER_EPOCH) + 1
+
+    @staticmethod
+    def cal_last_height_of_epoch(epoch):
+        return ChainHelper.cal_first_height_of_epoch(epoch) + BlockChain.BLOCK_PER_EPOCH - 1
+
     @staticmethod
     def wait_till_beacon_height(beacon_height, wait=40, timeout=120):
         """

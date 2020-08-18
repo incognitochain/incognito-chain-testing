@@ -10,8 +10,11 @@ from IncognitoChain.APIs.Portal import PortalRpc
 from IncognitoChain.APIs.Subscription import SubscriptionWs
 from IncognitoChain.APIs.System import SystemRpc
 from IncognitoChain.APIs.Transaction import TransactionRpc
+from IncognitoChain.Configs.Constants import BlockChain, PRV_ID
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
+from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, DEBUG
+from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock
@@ -125,9 +128,13 @@ class Node:
     def get_latest_beacon_block(self, beacon_height=None):
         if beacon_height is None:
             beacon_height = self.help_get_beacon_height()
-
+        INFO(f'Get beacon block at height {beacon_height}')
         response = self.system_rpc().retrieve_beacon_block_by_height(beacon_height)
-        return BeaconBlock(response.get_result())
+        return BeaconBlock(response.get_result()[0])
+
+    def get_first_beacon_block_of_epoch(self, epoch):
+        beacon_height = TestHelper.ChainHelper.cal_first_height_of_epoch(epoch)
+        return self.get_latest_beacon_block(beacon_height)
 
     def get_beacon_best_state_info(self):
         beacon_detail_raw = self.system_rpc().get_beacon_best_state_detail().get_result()
@@ -144,12 +151,15 @@ class Node:
         pde_state = self.dex().get_pde_state(beacon_height)
         return PDEStateInfo(pde_state.get_result())
 
+    def get_block_chain_info(self):
+        return BlockChainCore(self.system_rpc().get_block_chain_info().get_result())
+
     def help_get_current_pde_status(self):
         current_beacon_height = self.help_get_beacon_height()
         return self.dex().get_pde_state(current_beacon_height)
 
     def help_get_beacon_height(self):
-        chain_info = BlockChainCore(self.system_rpc().get_block_chain_info().get_result())
+        chain_info = self.get_block_chain_info()
         return chain_info.get_beacon_block().get_height()
 
     def help_get_beacon_height_in_best_state_detail(self, refresh_cache=True):
@@ -210,3 +220,93 @@ class Node:
 
         portal_state_raw = self.portal().get_portal_state(beacon_height)
         return PortalStateInfo(portal_state_raw.get_result())
+
+    def cal_transaction_reward_from_beacon_block_info(self, epoch=None, token=None, shard_txs_fee_list=None):
+        """
+        Calculate reward of an epoch
+        :param shard_txs_fee_list:
+        :param token:
+        :param epoch: if None, get latest epoch -1
+        :return: dict { "DAO" : DAO_reward_amount
+                        "beacon" : total_beacon_reward_amount
+                        "0" : shard0_reward_amount
+                        "1" : shard1_reward_amount
+                        .....
+                        }
+        """
+
+        num_of_active_shard = self.get_block_chain_info().get_num_of_shard()
+        shard_txs_fee_list = [0] * num_of_active_shard if shard_txs_fee_list is None else shard_txs_fee_list
+        shard_range = range(0, num_of_active_shard)
+        RESULT = {}
+
+        if epoch is None:
+            latest_beacon_block = self.get_latest_beacon_block()
+            epoch = latest_beacon_block.get_epoch() - 1
+            # can not calculate reward on latest epoch, because the instruction for splitting reward is only exist on
+            # the first beacon block of next future epoch
+
+        token = PRV_ID if token is None else token
+        # todo: not yet handle custom token
+
+        INFO(f'GET reward info, epoch {epoch}, token {l6(token)}')
+
+        first_height_of_epoch = TestHelper.ChainHelper.cal_first_height_of_epoch(epoch)
+        first_BB_of_epoch = self.get_latest_beacon_block(first_height_of_epoch)
+        second_BB_of_epoch = self.get_latest_beacon_block(first_height_of_epoch + 1)
+
+        last_height_of_epoch = TestHelper.ChainHelper.cal_last_height_of_epoch(epoch)
+        last_BB_of_epoch = self.get_latest_beacon_block(last_height_of_epoch)
+        pre_last_BB_of_epoch = self.get_latest_beacon_block(last_height_of_epoch - 1)
+
+        list_num_of_shard_block = []
+        # calculate number of shard block in each shard of this epoch
+        for shard_id in shard_range:
+            try:
+                shard_first_block = first_BB_of_epoch.get_shard_states(shard_id).get_smallest_block_height()
+            except AttributeError:  # case shard state in beacon block is not exist, get it in next beacon block
+                try:
+                    shard_first_block = second_BB_of_epoch.get_shard_states(shard_id).get_smallest_block_height()
+                except AttributeError:
+                    shard_first_block = 0
+
+            try:
+                shard_last_block = last_BB_of_epoch.get_shard_states(shard_id).get_biggest_block_height()
+            except AttributeError:  # case shard state in beacon block is not exist, get it in previous beacon block
+                try:
+                    shard_last_block = pre_last_BB_of_epoch.get_shard_states(shard_id).get_biggest_block_height()
+                except AttributeError:
+                    shard_last_block = -1
+
+            list_num_of_shard_block.append(shard_last_block - shard_first_block + 1)
+        # now calculate each shard reward
+        list_beacon_reward_from_shard = []
+        list_DAO_reward_from_shard = []
+        for shard_id in shard_range:
+            DAO_share = BlockChain.DAO_REWARD_PERCENT
+            basic_reward = BlockChain.BASIC_REWARD_PER_BLOCK
+            num_of_shard_block = list_num_of_shard_block[shard_id]
+            shard_fee_total = shard_txs_fee_list[shard_id]
+
+            total_reward_from_shard = num_of_shard_block * basic_reward + shard_fee_total
+            DAO_reward_from_shard = DAO_share * total_reward_from_shard
+            beacon_reward_from_shard = \
+                (1 - DAO_share) * 2 * total_reward_from_shard / (num_of_active_shard + 2)
+            shard_reward = (1 - DAO_share) * total_reward_from_shard - beacon_reward_from_shard
+
+            shard_reward_to_split = max(0, int(shard_reward))
+            if shard_reward_to_split > 0:
+                RESULT[str(shard_id)] = shard_reward_to_split
+            list_beacon_reward_from_shard.append(max(0, beacon_reward_from_shard))
+            list_DAO_reward_from_shard.append(max(0, DAO_reward_from_shard))
+
+        # now calculate total beacon reward
+        total_beacon_reward = max(0, sum(list_beacon_reward_from_shard))
+        if total_beacon_reward > 0:
+            RESULT['beacon'] = int(total_beacon_reward)
+        # now calculate DAO reward
+        total_DAO_reward = max(0, sum(list_DAO_reward_from_shard))
+        if total_DAO_reward > 0:
+            RESULT['DAO'] = int(total_DAO_reward)
+
+        return RESULT

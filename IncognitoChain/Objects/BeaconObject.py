@@ -1,10 +1,11 @@
 import copy
 import json
 
+from IncognitoChain.Configs.Constants import PRV_ID
+from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 from IncognitoChain.Objects.AccountObject import Account
-from libs.AutoLog import INFO
 
 
 class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
@@ -236,20 +237,56 @@ class _Committee(BlockChainInfoBaseClass):
 
 
 class BeaconBlock(BlockChainInfoBaseClass):
-    INST_TYPE_DAO = 'DAO'
+    INST_TYPE_DAO = 'dev'
     INST_TYPE_SHARD = 'shard'
     INST_TYPE_BEACON = 'beacon'
     INST_TYPE_PORTAL = 'portal'
 
-    class ShardState(BeaconBestStateDetailInfo):
-        def get_height(self):
-            return self.data['Height']
+    class ShardState(BlockChainInfoBaseClass):
+        class BlockInfo(BlockChainInfoBaseClass):
+            def get_height(self):
+                return self.data['Height']
 
-        def get_hash(self):
-            return self.data['Hash']
+            def get_hash(self):
+                return self.data['Hash']
 
-        def get_cross_shard(self):
-            return self.data['CrossShard']
+            def get_cross_shard(self):
+                return self.data['CrossShard']
+
+        def get_blocks_info(self):
+            info_list = []
+            for raw_info in self.data:
+                info = BeaconBlock.ShardState.BlockInfo(raw_info)
+                info_list.append(info)
+            return info_list
+
+        def get_smallest_block_height(self):
+            info_list = self.get_blocks_info()
+            list_len = len(info_list)
+            smallest_block_height = self.get_blocks_info()[0]
+
+            if list_len == 1:
+                return smallest_block_height.get_height()
+
+            for info in info_list:
+                if info.get_height() < smallest_block_height.get_height():
+                    smallest_block_height = info
+
+            return smallest_block_height.get_height()
+
+        def get_biggest_block_height(self):
+            info_list = self.get_blocks_info()
+            list_len = len(info_list)
+            biggest_block_height = self.get_blocks_info()[0]
+
+            if list_len == 1:
+                return biggest_block_height.get_height()
+
+            for info in info_list:
+                if info.get_height() > biggest_block_height.get_height():
+                    biggest_block_height = info
+
+            return biggest_block_height.get_height()
 
     class BeaconInstruction(BlockChainInfoBaseClass):
         """
@@ -279,6 +316,8 @@ class BeaconBlock(BlockChainInfoBaseClass):
         """
 
         class InstructionDetail(BlockChainInfoBaseClass):
+            def __str__(self):
+                pass  # todo
 
             def _get_reward_dict(self):
                 return self.data[self.get_type()]
@@ -300,7 +339,7 @@ class BeaconBlock(BlockChainInfoBaseClass):
             def get_reward_amount(self, token_id=None):
                 # return amount reward of a token, or a dict of {token: reward amount ...}
                 if token_id is None:
-                    return self._get_reward_dict()
+                    token_id = PRV_ID
                 return self._get_reward_dict()[token_id]
 
             def get_public_k_to_pay_to(self):
@@ -317,6 +356,9 @@ class BeaconBlock(BlockChainInfoBaseClass):
 
             def get_shard_block_height(self):
                 return self.data['ShardBlockHeight']
+
+        def __str__(self):
+            return self.data
 
         def get_num_1(self):
             return self.data[0]
@@ -336,13 +378,9 @@ class BeaconBlock(BlockChainInfoBaseClass):
             else:
                 inst_dict_raw = json.loads(self.data[3])
 
-            inst_list_obj = []
-            for inst_raw in inst_dict_raw:
-                inst_raw = json.loads(inst_raw)
-                inst_obj = BeaconBlock.BeaconInstruction.InstructionDetail(inst_raw)
-                inst_list_obj.append(inst_obj)
+            inst_detail_obj = BeaconBlock.BeaconInstruction.InstructionDetail(inst_dict_raw)
 
-            return inst_list_obj
+            return inst_detail_obj
 
     def get_hash(self):
         return self.data["Hash"]
@@ -383,9 +421,9 @@ class BeaconBlock(BlockChainInfoBaseClass):
     def get_shard_states(self, shard_id=None):
         dict_raw_shard_state = self.data["ShardStates"]
         shard_state_list_obj = []
-        for _id, state in dict_raw_shard_state.item():
+        for _id, state in dict_raw_shard_state.items():
             shard_state_obj = BeaconBlock.ShardState(state)
-            if shard_id is not None and _id == shard_id:
+            if shard_id is not None and _id == str(shard_id):
                 return shard_state_obj
             elif shard_id is None:
                 shard_state_list_obj.append(shard_state_obj)
@@ -405,6 +443,29 @@ class BeaconBlock(BlockChainInfoBaseClass):
             if inst_type in inst.get_instruction_type():
                 list_obj_inst_w_type.append(inst)
 
-        if len(list_obj_inst_w_type) == 1:
-            return list_obj_inst_w_type[0]
         return list_obj_inst_w_type
+
+    def get_transaction_reward_from_instruction(self, token=None):
+        RESULT = {}
+        token = PRV_ID if token is None else token
+        INFO(f'GET reward info, epoch {self.get_epoch() - 1}, height {self.get_height()}, token {l6(token)}')
+        beacon_reward_inst = self.get_instructions(BeaconBlock.INST_TYPE_BEACON)
+        DAO_reward_inst = self.get_instructions(BeaconBlock.INST_TYPE_DAO)
+        shard_reward_inst = self.get_instructions(BeaconBlock.INST_TYPE_SHARD)
+
+        # get shard reward first
+        for inst in shard_reward_inst:
+            shard_id = inst.get_num_2()
+            amount = inst.get_instruction_detail().get_reward_amount(token)
+            RESULT[str(shard_id)] = amount
+        # get beacon reward
+        sum_beacon_reward = 0
+        for inst in beacon_reward_inst:
+            amount = inst.get_instruction_detail().get_reward_amount(token)
+            sum_beacon_reward += amount
+        RESULT['beacon'] = sum_beacon_reward
+        # get DAO reward
+        DAO_amount = DAO_reward_inst[0].get_instruction_detail().get_reward_amount()
+        RESULT['DAO'] = DAO_amount
+
+        return RESULT
