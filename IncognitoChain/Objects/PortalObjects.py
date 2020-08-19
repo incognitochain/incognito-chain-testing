@@ -9,7 +9,7 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 
 
-class PortalInfoObj(BlockChainInfoBaseClass):
+class _PortalInfoBase(BlockChainInfoBaseClass):
 
     def get_status(self):
         return self.data['Status']
@@ -26,148 +26,7 @@ class PortalInfoObj(BlockChainInfoBaseClass):
         return False
 
 
-class _CustodianInfo(PortalInfoObj):
-
-    def __str__(self):
-        # 'Custodian - bnb remote addr - btc remote add - total collateral - free collateral -
-        # holding bnb - holding btc - lock bnb - lock btc - reward prv'
-        s_inc_addr = s_bnb_addr = s_btc_addr = '-'
-        total_col = free_col = hold_bnb = hold_btc = lock_bnb = lock_btc = reward_prv = '-'
-        try:
-            s_inc_addr = l6(self.get_incognito_addr())
-        except (KeyError, TypeError):
-            pass
-        try:
-            s_bnb_addr = l6(self.get_remote_address(PBNB_ID))
-        except (KeyError, TypeError):
-            pass
-        try:
-            s_btc_addr = l6(self.get_remote_address(PBTC_ID))
-        except (KeyError, TypeError):
-            pass
-        try:
-            total_col = self.get_total_collateral()
-        except (KeyError, TypeError):
-            pass
-        try:
-            free_col = self.get_free_collateral()
-        except (KeyError, TypeError):
-            pass
-        try:
-            hold_bnb = self.get_holding_token_amount(PBNB_ID)
-        except (KeyError, TypeError):
-            pass
-        try:
-            hold_btc = self.get_holding_token_amount(PBTC_ID)
-        except (KeyError, TypeError):
-            pass
-        try:
-            lock_bnb = self.get_locked_collateral(PBNB_ID)
-        except(KeyError, TypeError):
-            pass
-        try:
-            lock_btc = self.get_locked_collateral(PBTC_ID)
-        except (KeyError, TypeError):
-            pass
-        try:
-            reward_prv = self.get_reward_amount(PRV_ID)
-        except (KeyError, TypeError):
-            pass
-        return '%s : %6s/%6s %14s %14s %14s %14s %14s %14s %14s' % \
-               (s_inc_addr, s_bnb_addr, s_btc_addr, total_col, free_col, hold_bnb, hold_btc, lock_bnb, lock_btc,
-                reward_prv)
-
-    def get_incognito_addr(self):
-        try:
-            return self.data['IncognitoAddress']  # this only exists in custodian pool
-        except KeyError:
-            return self.data['IncAddress']  # this only exists porting req
-
-    def extract_new_info(self, portal_state_info, incognito_addr=None):
-        portal_state_info: PortalStateInfo
-        if incognito_addr is None:
-            self.data = portal_state_info.get_custodian_info_in_pool(self.get_incognito_addr()).data
-        else:
-            self.data = portal_state_info.get_custodian_info_in_pool(incognito_addr).data
-        return self
-
-    def get_total_collateral(self):
-        ret = self.data['TotalCollateral']
-        return int(ret)
-
-    def get_free_collateral(self):
-        return int(self.data['FreeCollateral'])
-
-    def get_holding_tokens(self):
-        return self.data['HoldingPubTokens']
-
-    def get_holding_token_amount(self, token_id):
-        try:
-            return int(self.get_holding_tokens()[token_id])
-        except (KeyError, TypeError):
-            DEBUG(f"{l6(token_id)} not found in HoldingPubTokens")
-            return 0
-
-    def get_locked_collateral(self, token_id=None):
-        """
-
-        :param token_id:
-        :param none_equal_zero: set to false if you want to check if the the token is existed in LockedAmountCollateral
-                or not
-        :return: amount of locked collateral. If LockedAmountCollateral of token is not exist in data
-                and none_equal_zero is true, then return 0, else return None
-        """
-        if token_id is None:
-            ret = self.data['LockedAmountCollateral']
-        else:
-            try:
-                ret = int(self.data['LockedAmountCollateral'][token_id])
-            except (KeyError, TypeError):
-                ret = 0
-        return ret
-
-    def get_remote_address(self, token=None):
-        if token is None:
-            return self.data['RemoteAddress']
-        try:
-            return self.data['RemoteAddresses'][token]
-        except KeyError:
-            return ""
-
-    def get_reward_amount(self, token_id=None):
-        if token_id is None:
-            return self.data['RewardAmount']
-        return int(self.data['RewardAmount'][token_id])
-
-    def wait_my_lock_collateral_to_change(self, token_id, from_amount=None, check_rate=30, timeout=180):
-        portal_state_info = self.SUT.full_node.get_latest_portal_state_info()
-        my_new_status = portal_state_info.get_custodian_info_in_pool(self)
-
-        if my_new_status is None:
-            INFO("You're not even a custodian")
-            return None
-        if from_amount is None:
-            collateral_before = my_new_status.get_locked_collateral(token_id)
-        else:
-            collateral_before = from_amount
-        current_collateral = collateral_before
-        time = 0
-        while current_collateral == collateral_before:
-            portal_state_info = self.SUT.full_node.get_latest_portal_state_info()
-            my_new_status = portal_state_info.get_custodian_info_in_pool(self)
-            if time >= timeout:
-                INFO(f'Lock collateral does not change in the last {time}s')
-                return 0
-            WAIT(check_rate)
-            time += check_rate
-            current_collateral = my_new_status.get_locked_collateral(token_id)
-
-        delta = current_collateral - collateral_before
-        INFO(f'Lock collateral has change {delta}')
-        return delta
-
-
-class PortingReqInfo(PortalInfoObj):
+class PortingReqInfo(_PortalInfoBase):
     """
     response of "getportalportingrequestbykey"
              or "getportalportingrequestbyportingid"
@@ -214,7 +73,7 @@ class PortingReqInfo(PortalInfoObj):
         custodian_info_list = self.data['Custodians']
         result = []
         for info in custodian_info_list:
-            result.append(_CustodianInfo(info))
+            result.append(PortalStateInfo.CustodianInfo(info))
         return result
 
     def get_custodian(self, custodian):
@@ -238,7 +97,7 @@ class PortingReqInfo(PortalInfoObj):
         return int(self.data['BeaconHeight'])
 
 
-class RedeemReqInfo(PortalInfoObj):
+class RedeemReqInfo(_PortalInfoBase):
     def __str__(self):
 
         return "id= %s, requester= %s, amount= %s, fee= %s" % (
@@ -278,7 +137,7 @@ class RedeemReqInfo(PortalInfoObj):
 
         custodian_obj_list = []
         for item in custodian_dict:
-            cus = _CustodianInfo(item)
+            cus = PortalStateInfo.CustodianInfo(item)
             custodian_obj_list.append(cus)
         return custodian_obj_list
 
@@ -299,166 +158,310 @@ class RedeemReqInfo(PortalInfoObj):
         return int(self.data['RedeemAmount'])
 
 
-class _LiquidationPool(PortalInfoObj):
-    """
-    data sample:
-     {
-         "a1cd299965f5f6fe5e870709515d6cc2dc4254bf55184f6bdbd71383133bc421": {
-            "Rates": {
-               "b2655152784e8639fa19521a7035f331eea1f1e911b2f3200a507ebb4554387b": {
-                  "CollateralAmount": 3291170,
-                  "PubTokenAmount": 1000
-               }
-               "b832e5d3b1f01a4f0623f7fe91d6673461e1f5d37d91fe78c5c2e6183ff39696": {
-                  "CollateralAmount": 234256,
-                  "PubTokenAmount": 12000
-               }
-            }
-         }
-     }
-    """
-    _collateral = 'CollateralAmount'
-    _token_amount = 'PubTokenAmount'
-    _rates = 'Rates'
-    _estimate = 'estimate'
-
-    def __add__(self, other):
-        sum_obj = _LiquidationPool()
-
-        my_tok_list = self._get_token_set()
-        other_tok_list = other._get_token_set()
-        tok_list = list(my_tok_list) + list(other_tok_list - my_tok_list)
-        for tok in tok_list:
-            sum_collateral = self.get_collateral_amount_of_token(tok) + other.get_collateral_amount_of_token(tok)
-            sum_public_tok = self.get_public_token_amount_of_token(tok) + other.get_public_token_amount_of_token(tok)
-            sum_obj.set_collateral_amount_of_token(tok, sum_collateral)
-            sum_obj.set_public_token_amount_of_token(tok, sum_public_tok)
-        return sum_obj
-
-    def __sub__(self, other):
-        sub_obj = _LiquidationPool()
-
-        my_tok_list = self._get_token_set()
-        other_tok_list = other._get_token_set()
-        tok_list = list(my_tok_list) + list(other_tok_list - my_tok_list)
-
-        for tok in tok_list:
-            sum_collateral = self.get_collateral_amount_of_token(tok) - other.get_collateral_amount_of_token(tok)
-            sum_public_tok = self.get_public_token_amount_of_token(tok) - other.get_public_token_amount_of_token(tok)
-            sub_obj.set_collateral_amount_of_token(tok, sum_collateral)
-            sub_obj.set_public_token_amount_of_token(tok, sum_public_tok)
-        return sub_obj
-
-    def __eq__(self, other):
-        my_data_copy = copy.deepcopy(self.data)
-        _, my_rates = my_data_copy.popitem()
-
-        other_data_copy = copy.deepcopy(other.data)
-        _, other_rates = other_data_copy.popitem()
-        return my_rates == other_rates
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __str__(self):
-        ret = ""
-        for token in self._get_token_set():
-            ret += "token= %s, amount= %s, colatteral = %s\n" % (
-                l6(token), self.get_collateral_amount_of_token(token), self.get_collateral_amount_of_token(token))
-        return ret.strip('\n')
-
-    def add_more_public_token(self, token_id, amount):
-        new_amount = self.get_public_token_amount_of_token(token_id) + amount
-        self.set_public_token_amount_of_token(token_id, new_amount)
-
-    def add_more_collateral(self, token_id, amount):
-        new_amount = self.get_collateral_amount_of_token(token_id) + amount
-        self.set_collateral_amount_of_token(token_id, new_amount)
-
-    def get_collateral_amount_of_token(self, token_id):
-        try:
-            rates = self.get_rate_of_token(token_id)
-            return rates[_LiquidationPool._collateral] if rates is not None else 0
-        except KeyError:
-            return 0
-
-    def set_collateral_amount_of_token(self, token_id, amount):
-        if type(self.data) is not dict:
-            self.data = {_LiquidationPool._estimate: {}}
-            self.data[_LiquidationPool._estimate][
-                _LiquidationPool._rates] = {}  # possible bug here since this dict level could contains 2 token_id here
-            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id] = {}
-
-        try:
-            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id][
-                _LiquidationPool._collateral] = amount
-        except KeyError:
-            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id] = {}
-            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id][
-                _LiquidationPool._collateral] = amount
-
-        return self
-
-    def get_public_token_amount_of_token(self, token_id):
-        try:
-            rates = self.get_rate_of_token(token_id)
-            return rates[_LiquidationPool._token_amount] if rates is not None else 0
-        except KeyError:
-            return 0
-
-    def set_public_token_amount_of_token(self, token_id, amount):
-        if type(self.data) is not dict:
-            self.data = {_LiquidationPool._estimate: {}}
-            self.data[_LiquidationPool._estimate][
-                _LiquidationPool._rates] = {}  # possible bug here since this dict level could contains 2 token_id here
-            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id] = {}
-
-        try:
-            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id][
-                _LiquidationPool._token_amount] = amount
-        except KeyError:
-            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id][
-                _LiquidationPool._token_amount] = amount
-            self.data[_LiquidationPool._estimate][_LiquidationPool._rates][token_id][
-                _LiquidationPool._token_amount] = amount
-        return self
-
-    def get_rate_of_token(self, token_id):
-        rates = self.get_rates()
-        return None if rates is None else self.get_rates()[_LiquidationPool._rates][token_id]
-
-    def get_rates(self):
-        if self.data == {}:
-            return None
-        clone = copy.deepcopy(self.data)
-        _, rates = clone.popitem()
-        return rates
-
-    def get_pool_id(self):
-        clone = copy.deepcopy(self.data)
-        key, _ = clone.popitem()
-        return key
-
-    def _get_token_set(self):
-        tok_list = set()
-        if self.get_rates() is None:
-            return tok_list
-        rates = self.get_rates()['Rates']
-        for token, _ in rates.items():
-            tok_list.add(token)
-        return tok_list
-
-
-class PTokenReqInfo(PortalInfoObj):
+class PTokenReqInfo(_PortalInfoBase):
     def get_ptoken_req_by_tx_id(self, tx_id):
         self.data = self.SUT.full_node.portal().get_portal_req_ptoken_status(tx_id).get_result()
         return self
 
 
-class PortalStateInfo(PortalInfoObj):
-    def get_custodian_pool(self) -> List[_CustodianInfo]:
+class PortalStateInfo(_PortalInfoBase):
+    class CustodianInfo(_PortalInfoBase):
+
+        def __str__(self):
+            # 'Custodian - bnb remote addr - btc remote add - total collateral - free collateral -
+            # holding bnb - holding btc - lock bnb - lock btc - reward prv'
+            s_inc_addr = s_bnb_addr = s_btc_addr = '-'
+            total_col = free_col = hold_bnb = hold_btc = lock_bnb = lock_btc = reward_prv = '-'
+            try:
+                s_inc_addr = l6(self.get_incognito_addr())
+            except (KeyError, TypeError):
+                pass
+            try:
+                s_bnb_addr = l6(self.get_remote_address(PBNB_ID))
+            except (KeyError, TypeError):
+                pass
+            try:
+                s_btc_addr = l6(self.get_remote_address(PBTC_ID))
+            except (KeyError, TypeError):
+                pass
+            try:
+                total_col = self.get_total_collateral()
+            except (KeyError, TypeError):
+                pass
+            try:
+                free_col = self.get_free_collateral()
+            except (KeyError, TypeError):
+                pass
+            try:
+                hold_bnb = self.get_holding_token_amount(PBNB_ID)
+            except (KeyError, TypeError):
+                pass
+            try:
+                hold_btc = self.get_holding_token_amount(PBTC_ID)
+            except (KeyError, TypeError):
+                pass
+            try:
+                lock_bnb = self.get_locked_collateral(PBNB_ID)
+            except(KeyError, TypeError):
+                pass
+            try:
+                lock_btc = self.get_locked_collateral(PBTC_ID)
+            except (KeyError, TypeError):
+                pass
+            try:
+                reward_prv = self.get_reward_amount(PRV_ID)
+            except (KeyError, TypeError):
+                pass
+            return '%s : %6s/%6s %14s %14s %14s %14s %14s %14s %14s' % \
+                   (s_inc_addr, s_bnb_addr, s_btc_addr, total_col, free_col, hold_bnb, hold_btc, lock_bnb, lock_btc,
+                    reward_prv)
+
+        def get_incognito_addr(self):
+            try:
+                return self.data['IncognitoAddress']  # this only exists in custodian pool
+            except KeyError:
+                return self.data['IncAddress']  # this only exists porting req
+
+        def extract_new_info(self, portal_state_info, incognito_addr=None):
+            portal_state_info: PortalStateInfo
+            if incognito_addr is None:
+                self.data = portal_state_info.get_custodian_info_in_pool(self.get_incognito_addr()).data
+            else:
+                self.data = portal_state_info.get_custodian_info_in_pool(incognito_addr).data
+            return self
+
+        def get_total_collateral(self):
+            ret = self.data['TotalCollateral']
+            return int(ret)
+
+        def get_free_collateral(self):
+            return int(self.data['FreeCollateral'])
+
+        def get_holding_tokens(self):
+            return self.data['HoldingPubTokens']
+
+        def get_holding_token_amount(self, token_id):
+            try:
+                return int(self.get_holding_tokens()[token_id])
+            except (KeyError, TypeError):
+                DEBUG(f"{l6(token_id)} not found in HoldingPubTokens")
+                return 0
+
+        def get_locked_collateral(self, token_id=None):
+            """
+
+            :param token_id:
+            :param none_equal_zero: set to false if you want to check if the the token is existed in LockedAmountCollateral
+                    or not
+            :return: amount of locked collateral. If LockedAmountCollateral of token is not exist in data
+                    and none_equal_zero is true, then return 0, else return None
+            """
+            if token_id is None:
+                ret = self.data['LockedAmountCollateral']
+            else:
+                try:
+                    ret = int(self.data['LockedAmountCollateral'][token_id])
+                except (KeyError, TypeError):
+                    ret = 0
+            return ret
+
+        def get_remote_address(self, token=None):
+            if token is None:
+                return self.data['RemoteAddress']
+            try:
+                return self.data['RemoteAddresses'][token]
+            except KeyError:
+                return ""
+
+        def get_reward_amount(self, token_id=None):
+            if token_id is None:
+                return self.data['RewardAmount']
+            return int(self.data['RewardAmount'][token_id])
+
+        def wait_my_lock_collateral_to_change(self, token_id, from_amount=None, check_rate=30, timeout=180):
+            portal_state_info = self.SUT.full_node.get_latest_portal_state_info()
+            my_new_status = portal_state_info.get_custodian_info_in_pool(self)
+
+            if my_new_status is None:
+                INFO("You're not even a custodian")
+                return None
+            if from_amount is None:
+                collateral_before = my_new_status.get_locked_collateral(token_id)
+            else:
+                collateral_before = from_amount
+            current_collateral = collateral_before
+            time = 0
+            while current_collateral == collateral_before:
+                portal_state_info = self.SUT.full_node.get_latest_portal_state_info()
+                my_new_status = portal_state_info.get_custodian_info_in_pool(self)
+                if time >= timeout:
+                    INFO(f'Lock collateral does not change in the last {time}s')
+                    return 0
+                WAIT(check_rate)
+                time += check_rate
+                current_collateral = my_new_status.get_locked_collateral(token_id)
+
+            delta = current_collateral - collateral_before
+            INFO(f'Lock collateral has change {delta}')
+            return delta
+
+    class LiquidationPool(_PortalInfoBase):
+        """
+        data sample:
+         {
+             "a1cd299965f5f6fe5e870709515d6cc2dc4254bf55184f6bdbd71383133bc421": {
+                "Rates": {
+                   "b2655152784e8639fa19521a7035f331eea1f1e911b2f3200a507ebb4554387b": {
+                      "CollateralAmount": 3291170,
+                      "PubTokenAmount": 1000
+                   }
+                   "b832e5d3b1f01a4f0623f7fe91d6673461e1f5d37d91fe78c5c2e6183ff39696": {
+                      "CollateralAmount": 234256,
+                      "PubTokenAmount": 12000
+                   }
+                }
+             }
+         }
+        """
+        _collateral = 'CollateralAmount'
+        _token_amount = 'PubTokenAmount'
+        _rates = 'Rates'
+        _estimate = 'estimate'
+
+        def __add__(self, other):
+            sum_obj = PortalStateInfo.LiquidationPool()
+
+            my_tok_list = self._get_token_set()
+            other_tok_list = other._get_token_set()
+            tok_list = list(my_tok_list) + list(other_tok_list - my_tok_list)
+            for tok in tok_list:
+                sum_collateral = self.get_collateral_amount_of_token(tok) + other.get_collateral_amount_of_token(tok)
+                sum_public_tok = self.get_public_token_amount_of_token(tok) + other.get_public_token_amount_of_token(
+                    tok)
+                sum_obj.set_collateral_amount_of_token(tok, sum_collateral)
+                sum_obj.set_public_token_amount_of_token(tok, sum_public_tok)
+            return sum_obj
+
+        def __sub__(self, other):
+            sub_obj = PortalStateInfo.LiquidationPool()
+
+            my_tok_list = self._get_token_set()
+            other_tok_list = other._get_token_set()
+            tok_list = list(my_tok_list) + list(other_tok_list - my_tok_list)
+
+            for tok in tok_list:
+                sum_collateral = self.get_collateral_amount_of_token(tok) - other.get_collateral_amount_of_token(tok)
+                sum_public_tok = self.get_public_token_amount_of_token(tok) - other.get_public_token_amount_of_token(
+                    tok)
+                sub_obj.set_collateral_amount_of_token(tok, sum_collateral)
+                sub_obj.set_public_token_amount_of_token(tok, sum_public_tok)
+            return sub_obj
+
+        def __eq__(self, other):
+            my_data_copy = copy.deepcopy(self.data)
+            _, my_rates = my_data_copy.popitem()
+
+            other_data_copy = copy.deepcopy(other.data)
+            _, other_rates = other_data_copy.popitem()
+            return my_rates == other_rates
+
+        def __ne__(self, other):
+            return not self.__eq__(other)
+
+        def __str__(self):
+            ret = ""
+            for token in self._get_token_set():
+                ret += "token= %s, amount= %s, colatteral = %s\n" % (
+                    l6(token), self.get_collateral_amount_of_token(token), self.get_collateral_amount_of_token(token))
+            return ret.strip('\n')
+
+        def add_more_public_token(self, token_id, amount):
+            new_amount = self.get_public_token_amount_of_token(token_id) + amount
+            self.set_public_token_amount_of_token(token_id, new_amount)
+
+        def add_more_collateral(self, token_id, amount):
+            new_amount = self.get_collateral_amount_of_token(token_id) + amount
+            self.set_collateral_amount_of_token(token_id, new_amount)
+
+        def get_collateral_amount_of_token(self, token_id):
+            try:
+                rates = self.get_rate_of_token(token_id)
+                return rates[PortalStateInfo.LiquidationPool._collateral] if rates is not None else 0
+            except KeyError:
+                return 0
+
+        def set_collateral_amount_of_token(self, token_id, amount):
+            if type(self.data) is not dict:
+                self.data = {PortalStateInfo.LiquidationPool._estimate: {}}
+                self.data[PortalStateInfo.LiquidationPool._estimate][
+                    PortalStateInfo.LiquidationPool._rates] = {}  # possible bug here since this dict level could contains 2 token_id here
+                self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates][
+                    token_id] = {}
+
+            try:
+                self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates][token_id][
+                    PortalStateInfo.LiquidationPool._collateral] = amount
+            except KeyError:
+                self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates][
+                    token_id] = {}
+                self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates][token_id][
+                    PortalStateInfo.LiquidationPool._collateral] = amount
+
+            return self
+
+        def get_public_token_amount_of_token(self, token_id):
+            try:
+                rates = self.get_rate_of_token(token_id)
+                return rates[PortalStateInfo.LiquidationPool._token_amount] if rates is not None else 0
+            except KeyError:
+                return 0
+
+        def set_public_token_amount_of_token(self, token_id, amount):
+            if type(self.data) is not dict:
+                self.data = {PortalStateInfo.LiquidationPool._estimate: {}}
+                self.data[PortalStateInfo.LiquidationPool._estimate][
+                    PortalStateInfo.LiquidationPool._rates] = {}  # possible bug here since this dict level could contains 2 token_id here
+                self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates][
+                    token_id] = {}
+
+            try:
+                self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates][token_id][
+                    PortalStateInfo.LiquidationPool._token_amount] = amount
+            except KeyError:
+                self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates][token_id][
+                    PortalStateInfo.LiquidationPool._token_amount] = amount
+                self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates][token_id][
+                    PortalStateInfo.LiquidationPool._token_amount] = amount
+            return self
+
+        def get_rate_of_token(self, token_id):
+            rates = self.get_rates()
+            return None if rates is None else self.get_rates()[PortalStateInfo.LiquidationPool._rates][token_id]
+
+        def get_rates(self):
+            if self.data == {}:
+                return None
+            clone = copy.deepcopy(self.data)
+            _, rates = clone.popitem()
+            return rates
+
+        def get_pool_id(self):
+            clone = copy.deepcopy(self.data)
+            key, _ = clone.popitem()
+            return key
+
+        def _get_token_set(self):
+            tok_list = set()
+            if self.get_rates() is None:
+                return tok_list
+            rates = self.get_rates()['Rates']
+            for token, _ in rates.items():
+                tok_list.add(token)
+            return tok_list
+
+    def get_custodian_pool(self) -> List[CustodianInfo]:
         custodian_pool = self.data['CustodianPool']
-        custodian_list = [_CustodianInfo(value) for key, value in custodian_pool.items()]
+        custodian_list = [PortalStateInfo.CustodianInfo(value) for key, value in custodian_pool.items()]
         return custodian_list
 
     def get_custodian_info_in_pool(self, custodian_info):
@@ -557,9 +560,9 @@ class PortalStateInfo(PortalInfoObj):
                 req_list.append(req)
         return req_list
 
-    def get_liquidation_pool(self) -> _LiquidationPool:
+    def get_liquidation_pool(self) -> LiquidationPool:
         pool_data = self.data['LiquidationPool']
-        return _LiquidationPool(pool_data)
+        return PortalStateInfo.LiquidationPool(pool_data)
 
     def help_get_highest_free_collateral_custodian(self):
         custodian_pool = self.get_custodian_pool()
@@ -656,10 +659,10 @@ class PortalStateInfo(PortalInfoObj):
                 liquidating_list.append(custodian)
         return liquidating_list
 
-    def estimate_liquidation_pool(self, token_id, new_token_rate, new_prv_rate) -> _LiquidationPool:
+    def estimate_liquidation_pool(self, token_id, new_token_rate, new_prv_rate) -> LiquidationPool:
         liquidating_custodian = self.find_custodians_will_be_liquidate_with_new_rate(token_id, new_token_rate,
                                                                                      new_prv_rate)
-        estimate_liquidate_pool = _LiquidationPool()
+        estimate_liquidate_pool = PortalStateInfo.LiquidationPool()
         estimate_liquidate_pool.set_public_token_amount_of_token(token_id, 0)
         estimate_liquidate_pool.set_collateral_amount_of_token(token_id, 0)
         if not liquidating_custodian:  # liquidate_custodian is empty
@@ -780,7 +783,7 @@ class PortalStateInfo(PortalInfoObj):
         return custodian.get_locked_collateral(token_id) - sum_waiting_porting_collateral
 
 
-class UnlockCollateralReqInfo(PortalInfoObj):
+class UnlockCollateralReqInfo(_PortalInfoBase):
     def get_unlock_collateral_req_stat(self, tx_id, retry=True):
         self.data = self.SUT.full_node.portal().get_portal_req_unlock_collateral_status(tx_id).get_result()
         if self.is_none() and retry:
@@ -792,7 +795,7 @@ class UnlockCollateralReqInfo(PortalInfoObj):
         return int(self.data['UnlockAmount'])
 
 
-class DepositTxInfo(PortalInfoObj):
+class DepositTxInfo(_PortalInfoBase):
     _amount = 'DepositedAmount'
 
     def get_deposit_info(self, tx_id, retry=True):
@@ -806,7 +809,7 @@ class DepositTxInfo(PortalInfoObj):
         return self.data[DepositTxInfo._amount]
 
 
-class CustodianWithdrawTxInfo(PortalInfoObj):
+class CustodianWithdrawTxInfo(_PortalInfoBase):
     _info = 'CustodianWithdraw'
     _payment_addr = 'PaymentAddress'
     _remain_free_collateral = 'RemainCustodianFreeCollateral'
@@ -826,7 +829,7 @@ class CustodianWithdrawTxInfo(PortalInfoObj):
         return self.data[CustodianWithdrawTxInfo._remain_free_collateral]
 
 
-class RewardWithdrawTxInfo(PortalInfoObj):
+class RewardWithdrawTxInfo(_PortalInfoBase):
     _CustodianAddressStr = 'CustodianAddressStr'
     _RewardAmount = 'RewardAmount'
     _TxReqID = 'TxReqID'
