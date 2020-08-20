@@ -124,6 +124,13 @@ class BlockChainCore(BlockChainInfoBaseClass):
     def get_num_of_shard(self):
         return len(self._get_best_blocks_raw()) - 1  # block "-1" is beacon block
 
+    def get_active_shards(self):
+        """
+        only has this field since "Dynamic committee size"
+        :return:
+        """
+        return self.data['ActiveShards']
+
     class BlockChainBlock(BlockChainInfoBaseClass):
         def get_height(self):
             return self.data['Height']

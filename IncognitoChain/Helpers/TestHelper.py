@@ -29,12 +29,13 @@ def to_num(*args):
 
 def extract_incognito_addr(obj):
     from IncognitoChain.Objects.AccountObject import Account
-    from IncognitoChain.Objects.PortalObjects import _CustodianInfo
+    from IncognitoChain.Objects.PortalObjects import PortalStateInfo
+
     if type(obj) == str:
         addr = obj
     elif type(obj) == Account:
         addr = obj.incognito_addr
-    elif type(obj) == _CustodianInfo:
+    elif type(obj) == PortalStateInfo.CustodianInfo:
         addr = obj.get_incognito_addr()
     else:
         raise TypeError("Input must be incognito address (string), CustodianInfo or Account object")

@@ -8,6 +8,174 @@ from IncognitoChain.Objects import BlockChainInfoBaseClass
 
 
 class PDEStateInfo(BlockChainInfoBaseClass):
+    class WaitingContribution(BlockChainInfoBaseClass):
+        """
+        example:
+        {
+             "waitingpdecontribution-33737-token_prv_1341": {
+                "ContributorAddressStr": "12Rrk9r3Chmt5Wibkmu2VcFSUffGZbkz2rzMWdmmB3GEu8t8RF4v2wc1gBQtkJFZmPfUP29bSXR4Wn8kDveLQBTBK5Hck9BoGRnuM7n",
+                "TokenIDStr": "7b36db7edddb3a2aeda99801aaa85865b3ad6240394c4251f8c75e45fd7139e3",
+                "Amount": 20000000000000,
+                "TxReqID": "808eb02455463e15f54f58a362ff630744d77283c71bdf9d1d4142d18e6eea65"
+             }
+         }
+
+        """
+
+        def __eq__(self, other):
+            return self.get_amount() == other.get_amount() and \
+                   self.get_contributor_address() == other.get_contributor_address() and \
+                   self.get_pair_id() == other.get_pair_id() and \
+                   self.get_token_id() == other.get_token_id() and \
+                   self.get_tx_req_id() == other.get_tx_req_id()
+
+        def __init__(self, raw_data):
+            super(PDEStateInfo.WaitingContribution, self).__init__(raw_data)
+            raw_data = copy.copy(self.data)
+            self.id, self.info = raw_data.popitem()
+
+        def __str__(self):
+            return f'{l6(self.get_contributor_address())} - {l6(self.get_token_id())} - {self.get_pair_id()} - ' \
+                   f'{self.get_amount()}'
+
+        def get_contribution_id(self):
+            return self.id
+
+        def get_contributor_address(self):
+            return self.info['ContributorAddressStr']
+
+        def get_token_id(self):
+            return self.info['TokenIDStr']
+
+        def get_amount(self):
+            return self.info['Amount']
+
+        def get_tx_req_id(self):
+            return self.info['TxReqID']
+
+        def get_beacon_height(self):
+            return int(self.id.split('-')[1])
+
+        def get_pair_id(self):
+            # the rest of id is pair id, could also contains '-', take the rest as pair id
+            pair_id_split = self.id.split('-')[2:]
+            pair_id = '-'.join(pair_id_split)
+            return pair_id
+
+    class PoolPair(BlockChainInfoBaseClass):
+        """
+            {
+                "pdepool-35982-0000000000000000000000000000000000000000000000000000000000000004-7b36db7edddb3a2aeda99801aaa85865b3ad6240394c4251f8c75e45fd7139e3": {
+                    "Token1IDStr": "0000000000000000000000000000000000000000000000000000000000000004",
+                    "Token1PoolValue": 0,
+                    "Token2IDStr": "7b36db7edddb3a2aeda99801aaa85865b3ad6240394c4251f8c75e45fd7139e3",
+                    "Token2PoolValue": 0
+                }
+            }
+        """
+
+        def __eq__(self, other):
+            return self.get_token1_id() == other.get_token1_id() and \
+                   self.get_token1_pool_value() == other.get_token1_pool_value() and \
+                   self.get_token2_id() == other.get_token2_id() and \
+                   self.get_token2_pool_value() == other.get_token2_pool_value()
+
+        def __init__(self, raw_data):
+            super(PDEStateInfo.PoolPair, self).__init__(raw_data)
+            raw_data = copy.copy(self.data)
+            self.id, self.info = raw_data.popitem()
+
+        def __str__(self):
+            return f'{l6(self.get_token1_id())}: {l6(self.get_token2_id())} | ' \
+                   f'{self.get_token1_pool_value()}:{self.get_token2_pool_value()}'
+
+        def get_pair_id(self):
+            return self.id
+
+        def get_token1_id(self):
+            return self.info['Token1IDStr']
+
+        def get_token2_id(self):
+            return self.info['Token2IDStr']
+
+        def get_token1_pool_value(self):
+            return self.info['Token1PoolValue']
+
+        def get_token2_pool_value(self):
+            return self.info['Token2PoolValue']
+
+    class PdeShare(BlockChainInfoBaseClass):
+        """
+        {
+            "pdeshare-35982-0000000000000000000000000000000000000000000000000000000000000004-7b36db7edddb3a2aeda99801aaa85865b3ad6240394c4251f8c75e45fd7139e3-12Rrk9r3Chmt5Wibkmu2VcFSUffGZbkz2rzMWdmmB3GEu8t8RF4v2wc1gBQtkJFZmPfUP29bSXR4Wn8kDveLQBTBK5Hck9BoGRnuM7n": 0
+        }
+        """
+
+        def __eq__(self, other):
+            return self.get_token1_id() == other.get_token1_id() and \
+                   self.get_token2_id() == other.get_token2_id() and \
+                   self.get_share_amount() == other.get_share_amount() and \
+                   self.get_payment_k() == other.get_payment_k()
+
+        def __init__(self, raw_data):
+            super(PDEStateInfo.PdeShare, self).__init__(raw_data)
+            raw_data = copy.copy(self.data)
+            self.id, self.info = raw_data.popitem()
+
+        def __str__(self):
+            return f'{l6(self.get_token1_id())}-{l6(self.get_token2_id())}-' \
+                   f'{l6(self.get_payment_k())}-{self.get_share_amount()}'
+
+        def get_share_id(self):
+            return self.id
+
+        def get_share_amount(self):
+            return self.info
+
+        def get_beacon_height(self):
+            return int(self.id.split('-')[1])
+
+        def get_token1_id(self):
+            return self.id.split('-')[2]
+
+        def get_token2_id(self):
+            return self.id.split('-')[3]
+
+        def get_payment_k(self):
+            return self.id.split('-')[4]
+
+    class PdeReward(BlockChainInfoBaseClass):
+
+        def __eq__(self, other):
+            return self.get_payment_k() == other.get_payment_k() and \
+                   self.get_token1_id() == other.get_token1_id() and \
+                   self.get_token2_id() == other.get_token2_id() and \
+                   self.get_amount() == other.get_amount()
+
+        def __init__(self, raw_data):
+            super(PDEStateInfo.PdeReward, self).__init__(raw_data)
+            raw_data = copy.copy(self.data)
+            self.key, self.value = raw_data.popitem()
+
+        def __str__(self):
+            return f'{l6(self.get_token1_id())}-{l6(self.get_token2_id())}-' \
+                   f'{l6(self.get_payment_k())}-{self.get_amount()}'
+
+        def get_beacon_height(self):
+            return int(self.key.split('-')[1])
+
+        def get_token1_id(self):
+            return self.key.split('-')[2]
+
+        def get_token2_id(self):
+            return self.key.split('-')[3]
+
+        def get_payment_k(self):
+            return self.key.split('-')[4]
+
+        def get_amount(self):
+            return self.value
+
     def __eq__(self, other):
         self_waiting_contributions = self.get_waiting_contributions()
         self_pde_pool = self.get_pde_pool_pairs()
@@ -32,7 +200,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         waiting_contribute_objs = []
         for k, v in raw_waiting_list.items():
             waiting_contribute_data = {k: v}
-            waiting_contribute_obj = _WaitingContribution(waiting_contribute_data)
+            waiting_contribute_obj = PDEStateInfo.WaitingContribution(waiting_contribute_data)
             waiting_contribute_objs.append(waiting_contribute_obj)
         return waiting_contribute_objs
 
@@ -80,7 +248,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         pool_pair_raw = self.data['PDEPoolPairs']
         for k, v in pool_pair_raw.items():
             pool_pair_data = {k: v}
-            pool_pair_obj = _PoolPair(pool_pair_data)
+            pool_pair_obj = PDEStateInfo.PoolPair(pool_pair_data)
             pool_pair_objs.append(pool_pair_obj)
         return pool_pair_objs
 
@@ -96,7 +264,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         reward_pool_raw = self.data['PDETradingFees']
         for k, v in reward_pool_raw.items():
             reward_raw_data = {k: v}
-            reward_obj = _PdeReward(reward_raw_data)
+            reward_obj = PDEStateInfo.PdeReward(reward_raw_data)
 
             DEBUG(f"Checking reward: {reward_obj}")
             match = True
@@ -157,7 +325,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         pde_share_objs = []
         for k, v in pde_share_raw.items():
             pde_share_data = {k: v}
-            pde_share_obj = _PdeShare(pde_share_data)
+            pde_share_obj = PDEStateInfo.PdeShare(pde_share_data)
 
             DEBUG(f"Checking share: {pde_share_obj}")
             match = True
@@ -326,175 +494,6 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
 
         WARNING(f'contribution status: {self.get_status()} is NOT as expected')
         return None
-
-
-class _WaitingContribution(BlockChainInfoBaseClass):
-    """
-    example:
-    {
-         "waitingpdecontribution-33737-token_prv_1341": {
-            "ContributorAddressStr": "12Rrk9r3Chmt5Wibkmu2VcFSUffGZbkz2rzMWdmmB3GEu8t8RF4v2wc1gBQtkJFZmPfUP29bSXR4Wn8kDveLQBTBK5Hck9BoGRnuM7n",
-            "TokenIDStr": "7b36db7edddb3a2aeda99801aaa85865b3ad6240394c4251f8c75e45fd7139e3",
-            "Amount": 20000000000000,
-            "TxReqID": "808eb02455463e15f54f58a362ff630744d77283c71bdf9d1d4142d18e6eea65"
-         }
-     }
-
-    """
-
-    def __eq__(self, other):
-        return self.get_amount() == other.get_amount() and \
-               self.get_contributor_address() == other.get_contributor_address() and \
-               self.get_pair_id() == other.get_pair_id() and \
-               self.get_token_id() == other.get_token_id() and \
-               self.get_tx_req_id() == other.get_tx_req_id()
-
-    def __init__(self, raw_data):
-        super(_WaitingContribution, self).__init__(raw_data)
-        raw_data = copy.copy(self.data)
-        self.id, self.info = raw_data.popitem()
-
-    def __str__(self):
-        return f'{l6(self.get_contributor_address())} - {l6(self.get_token_id())} - {self.get_pair_id()} - ' \
-               f'{self.get_amount()}'
-
-    def get_contribution_id(self):
-        return self.id
-
-    def get_contributor_address(self):
-        return self.info['ContributorAddressStr']
-
-    def get_token_id(self):
-        return self.info['TokenIDStr']
-
-    def get_amount(self):
-        return self.info['Amount']
-
-    def get_tx_req_id(self):
-        return self.info['TxReqID']
-
-    def get_beacon_height(self):
-        return int(self.id.split('-')[1])
-
-    def get_pair_id(self):
-        return self.id.split('-')[2]
-
-
-class _PoolPair(BlockChainInfoBaseClass):
-    """
-        {
-            "pdepool-35982-0000000000000000000000000000000000000000000000000000000000000004-7b36db7edddb3a2aeda99801aaa85865b3ad6240394c4251f8c75e45fd7139e3": {
-                "Token1IDStr": "0000000000000000000000000000000000000000000000000000000000000004",
-                "Token1PoolValue": 0,
-                "Token2IDStr": "7b36db7edddb3a2aeda99801aaa85865b3ad6240394c4251f8c75e45fd7139e3",
-                "Token2PoolValue": 0
-            }
-        }
-    """
-
-    def __eq__(self, other):
-        return self.get_token1_id() == other.get_token1_id() and \
-               self.get_token1_pool_value() == other.get_token1_pool_value() and \
-               self.get_token2_id() == other.get_token2_id() and \
-               self.get_token2_pool_value() == other.get_token2_pool_value()
-
-    def __init__(self, raw_data):
-        super(_PoolPair, self).__init__(raw_data)
-        raw_data = copy.copy(self.data)
-        self.id, self.info = raw_data.popitem()
-
-    def __str__(self):
-        return f'{l6(self.get_token1_id())}: {l6(self.get_token2_id())} | ' \
-               f'{self.get_token1_pool_value()}:{self.get_token2_pool_value()}'
-
-    def get_pair_id(self):
-        return self.id
-
-    def get_token1_id(self):
-        return self.info['Token1IDStr']
-
-    def get_token2_id(self):
-        return self.info['Token2IDStr']
-
-    def get_token1_pool_value(self):
-        return self.info['Token1PoolValue']
-
-    def get_token2_pool_value(self):
-        return self.info['Token2PoolValue']
-
-
-class _PdeShare(BlockChainInfoBaseClass):
-    """
-    {
-        "pdeshare-35982-0000000000000000000000000000000000000000000000000000000000000004-7b36db7edddb3a2aeda99801aaa85865b3ad6240394c4251f8c75e45fd7139e3-12Rrk9r3Chmt5Wibkmu2VcFSUffGZbkz2rzMWdmmB3GEu8t8RF4v2wc1gBQtkJFZmPfUP29bSXR4Wn8kDveLQBTBK5Hck9BoGRnuM7n": 0
-    }
-    """
-
-    def __eq__(self, other):
-        return self.get_token1_id() == other.get_token1_id() and \
-               self.get_token2_id() == other.get_token2_id() and \
-               self.get_share_amount() == other.get_share_amount() and \
-               self.get_payment_k() == other.get_payment_k()
-
-    def __init__(self, raw_data):
-        super(_PdeShare, self).__init__(raw_data)
-        raw_data = copy.copy(self.data)
-        self.id, self.info = raw_data.popitem()
-
-    def __str__(self):
-        return f'{l6(self.get_token1_id())}-{l6(self.get_token2_id())}-' \
-               f'{l6(self.get_payment_k())}-{self.get_share_amount()}'
-
-    def get_share_id(self):
-        return self.id
-
-    def get_share_amount(self):
-        return self.info
-
-    def get_beacon_height(self):
-        return int(self.id.split('-')[1])
-
-    def get_token1_id(self):
-        return self.id.split('-')[2]
-
-    def get_token2_id(self):
-        return self.id.split('-')[3]
-
-    def get_payment_k(self):
-        return self.id.split('-')[4]
-
-
-class _PdeReward(BlockChainInfoBaseClass):
-
-    def __eq__(self, other):
-        return self.get_payment_k() == other.get_payment_k() and \
-               self.get_token1_id() == other.get_token1_id() and \
-               self.get_token2_id() == other.get_token2_id() and \
-               self.get_amount() == other.get_amount()
-
-    def __init__(self, raw_data):
-        super(_PdeReward, self).__init__(raw_data)
-        raw_data = copy.copy(self.data)
-        self.key, self.value = raw_data.popitem()
-
-    def __str__(self):
-        return f'{l6(self.get_token1_id())}-{l6(self.get_token2_id())}-' \
-               f'{l6(self.get_payment_k())}-{self.get_amount()}'
-
-    def get_beacon_height(self):
-        return int(self.key.split('-')[1])
-
-    def get_token1_id(self):
-        return self.key.split('-')[2]
-
-    def get_token2_id(self):
-        return self.key.split('-')[3]
-
-    def get_payment_k(self):
-        return self.key.split('-')[4]
-
-    def get_amount(self):
-        return self.value
 
 
 def wait_for_user_contribution_in_waiting(user, pair_id, token_id, check_interval=10, timeout=120):

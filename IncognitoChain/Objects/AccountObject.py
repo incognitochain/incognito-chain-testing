@@ -12,7 +12,7 @@ from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
 from IncognitoChain.Objects.CoinObject import Coin
-from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, _CustodianInfo, PortalStateInfo
+from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 
 
 class Account:
@@ -51,6 +51,8 @@ class Account:
             self.mining_public_k = mining_public_k
             self.committee_public_k = committee_public_k
             self.shard = int(shard_id)
+        else:
+            self.private_key = None
 
         self.cache = {}
         from IncognitoChain.Objects.IncognitoTestCase import SUT
@@ -674,20 +676,9 @@ class Account:
     def pde_clean_all_waiting_contribution(self, pde_state=None):
         pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
         waiting_contributions = pde_state.get_waiting_contributions()
-        thread_pool = []
-        with ThreadPoolExecutor() as executor:
-            for contribution in waiting_contributions:
-                future = executor.submit(self.pde_contribute, contribution.get_token_id(), contribution.get_amount(),
-                                         contribution.get_pair_id())
-                thread_pool.append(future)
-        concurrent.futures.wait(thread_pool)
-
-        tx_thread = []
-        with ThreadPoolExecutor() as executor:
-            for thread in thread_pool:
-                future = executor.submit(thread.result().subscribe_transaction_obj)
-                tx_thread.append(future)
-        concurrent.futures.wait(tx_thread)
+        for contribution in waiting_contributions:
+            self.pde_contribute(contribution.get_token_id(), 100,
+                                contribution.get_pair_id()).subscribe_transaction()
 
     def pde_clean_my_waiting_contribution(self, pde_state=None):
         pde_state = self.__SUT.REQUEST_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
@@ -890,7 +881,7 @@ class Account:
         """
 
         :param psi: PortalStateInfo
-        :return:
+        :return: Response if current total collateral > 0, None if = 0
         """
         if psi is None:
             psi = self.__SUT.full_node.get_latest_portal_state_info()
@@ -915,7 +906,7 @@ class Account:
         return self.__SUT.full_node.portal().create_n_send_tx_with_req_ptoken(self.private_key, self.payment_key,
                                                                               porting_id, token_id, amount, proof)
 
-    def portal_get_my_custodian_info(self, psi: PortalStateInfo = None) -> (_CustodianInfo, None):
+    def portal_get_my_custodian_info(self, psi: PortalStateInfo = None):
         """
 
         :param psi: PortalStateInfo

@@ -13,7 +13,7 @@ from IncognitoChain.APIs.Transaction import TransactionRpc
 from IncognitoChain.Configs.Constants import BlockChain, PRV_ID
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
 from IncognitoChain.Helpers import TestHelper
-from IncognitoChain.Helpers.Logging import INFO, DEBUG
+from IncognitoChain.Helpers.Logging import INFO, DEBUG, WARNING
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account
@@ -263,19 +263,29 @@ class Node:
         # calculate number of shard block in each shard of this epoch
         for shard_id in shard_range:
             try:
+                DEBUG(f"Try finding shard {shard_id} state in 1st beacon block of epoch")
                 shard_first_block = first_BB_of_epoch.get_shard_states(shard_id).get_smallest_block_height()
             except AttributeError:  # case shard state in beacon block is not exist, get it in next beacon block
                 try:
+                    WARNING(f'Could not find shard {shard_id} state in 1st beacon block of epoch. '
+                            f'Try again with 2nd block')
                     shard_first_block = second_BB_of_epoch.get_shard_states(shard_id).get_smallest_block_height()
-                except AttributeError:
+                except AttributeError:  # if could not find it in the second block then probably it just doesn't exist
+                    WARNING(f'Could not find shard {shard_id} state in 1st and 2nd beacon block, '
+                            f'assume that this shard create 0 block in this epoch')
                     shard_first_block = 0
 
             try:
+                DEBUG(f"Try finding shard {shard_id} state in last beacon block of epoch")
                 shard_last_block = last_BB_of_epoch.get_shard_states(shard_id).get_biggest_block_height()
             except AttributeError:  # case shard state in beacon block is not exist, get it in previous beacon block
                 try:
+                    WARNING(f'Could not find shard {shard_id} state in last beacon block of epoch. '
+                            f'Try again with 2nd last block')
                     shard_last_block = pre_last_BB_of_epoch.get_shard_states(shard_id).get_biggest_block_height()
-                except AttributeError:
+                except AttributeError:  # if could not find it in the previous block then probably it just doesn't exist
+                    WARNING(f'Could not find shard {shard_id} state in last and 2nd last beacon block, '
+                            f'assume that this shard create 0 block in this epoch')
                     shard_last_block = -1
 
             list_num_of_shard_block.append(shard_last_block - shard_first_block + 1)

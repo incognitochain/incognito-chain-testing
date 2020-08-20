@@ -393,8 +393,9 @@ class PortalStateInfo(_PortalInfoBase):
         def set_collateral_amount_of_token(self, token_id, amount):
             if type(self.data) is not dict:
                 self.data = {PortalStateInfo.LiquidationPool._estimate: {}}
-                self.data[PortalStateInfo.LiquidationPool._estimate][
-                    PortalStateInfo.LiquidationPool._rates] = {}  # possible bug here since this dict level could contains 2 token_id here
+                self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates] = {}
+                # possible bug here since this dict level could contains 2 token_id here
+
                 self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates][
                     token_id] = {}
 
@@ -419,8 +420,8 @@ class PortalStateInfo(_PortalInfoBase):
         def set_public_token_amount_of_token(self, token_id, amount):
             if type(self.data) is not dict:
                 self.data = {PortalStateInfo.LiquidationPool._estimate: {}}
-                self.data[PortalStateInfo.LiquidationPool._estimate][
-                    PortalStateInfo.LiquidationPool._rates] = {}  # possible bug here since this dict level could contains 2 token_id here
+                self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates] = {}
+                # possible bug here since this dict level could contains 2 token_id here
                 self.data[PortalStateInfo.LiquidationPool._estimate][PortalStateInfo.LiquidationPool._rates][
                     token_id] = {}
 

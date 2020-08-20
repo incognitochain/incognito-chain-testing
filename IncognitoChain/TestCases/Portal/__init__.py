@@ -15,7 +15,7 @@ def find_custodian_account_by_incognito_addr(incognito_addr):
 portal_user = ACCOUNTS[1]
 self_pick_custodian = ACCOUNTS[6]
 
-PORTAL_REQ_TIME_OUT = 15  # minutes
+PORTAL_REQ_TIME_OUT = 30  # minutes
 TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
 TEST_SETTING_PORTING_AMOUNT = 100
 TEST_SETTING_REDEEM_AMOUNT = 10
@@ -76,12 +76,12 @@ def setup_module():
 
 
 def teardown_module():
-    breakpoint()
     INFO_HEADLINE(f'TEST MODULE TEAR DOWN: Withdraw all free collateral')
     PSI = SUT.full_node.get_latest_portal_state_info()
     for cus in all_custodians_remote_addr.keys():
         cus_stat = PSI.get_custodian_info_in_pool(cus)
-        cus.portal_withdraw_my_collateral(cus_stat.get_free_collateral()).subscribe_transaction()
+        if cus_stat is not None:
+            cus.portal_withdraw_my_collateral(cus_stat.get_free_collateral()).subscribe_transaction()
 
     # clean up redeem special case: big fat custodian send back prv to COIN_MASTER and return rate back to default
     # if not fat_custodian.is_empty:
