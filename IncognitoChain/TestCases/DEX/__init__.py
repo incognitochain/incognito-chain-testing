@@ -133,7 +133,7 @@ def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_st
     sum_share_of_pair = pde_state_b4.sum_share_pool_of_pair(None, token1, token2)
     sum_split_reward = 0
     final_reward_result = True
-    global SUMMARY
+    SUMMARY = ''
     for contributor in contributors_of_pair:
         INFO()
         share_of_contributor = pde_state_b4.get_pde_shares_amount(contributor, token1, token2)
@@ -165,7 +165,7 @@ def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_st
                        f'estimated/actual received {calculated_reward}/{actual_reward} \n'
             final_reward_result = final_reward_result and False
 
-    return final_reward_result
+    return final_reward_result, SUMMARY
 
 
 def verify_trading_prv_token(trade_amount_list, trading_fees_list, trade_order, tx_fees_list, token_sell, token_buy,

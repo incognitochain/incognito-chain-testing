@@ -14,7 +14,6 @@ from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_
 
 # trade_amount = random.randrange(9900000, 10000000)
 trade_amounts = [123456] * 10
-SUMMARY = '\n'
 
 
 def setup_function():
@@ -42,7 +41,6 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     else:
         traders = acc_list_n_shard
 
-    global SUMMARY
     print(f"""
        Test bulk swap {test_mode}:
         - token {l6(token_sell)} vs {l6(token_buy)}
@@ -205,13 +203,14 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
 
     STEP(8, 'Verify each contributor reward ')
     if token_buy == PRV_ID or token_sell == PRV_ID:
-        final_reward_result = verify_contributor_reward_prv_token(sum_trading_fee, token_sell, token_buy, pde_state_b4,
-                                                                  pde_state_af)
+        final_reward_result, SUMMARY = verify_contributor_reward_prv_token(sum_trading_fee, token_sell, token_buy,
+                                                                           pde_state_b4, pde_state_af)
     else:
-        reward_result_1 = verify_contributor_reward_prv_token(first_half_reward, token_sell, PRV_ID, pde_state_b4,
-                                                              pde_state_af)
-        reward_result_2 = verify_contributor_reward_prv_token(second_half_reward, PRV_ID, token_buy, pde_state_b4,
-                                                              pde_state_af)
+        reward_result_1, SUMMARY1 = verify_contributor_reward_prv_token(first_half_reward, token_sell, PRV_ID,
+                                                                        pde_state_b4, pde_state_af)
+        reward_result_2, SUMMARY2 = verify_contributor_reward_prv_token(second_half_reward, PRV_ID, token_buy,
+                                                                        pde_state_b4, pde_state_af)
+        SUMMARY = SUMMARY1 + '\n' + SUMMARY2
         final_reward_result = reward_result_1 and reward_result_2
 
     INFO_HEADLINE('Test summary')
