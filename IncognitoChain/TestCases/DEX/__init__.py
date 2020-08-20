@@ -151,11 +151,14 @@ def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_st
                         share amount                : {share_of_contributor}
                         sum share of pair           : {sum_share_of_pair}
                         sum trading fee             : {sum_fee_expected}''')
-        if pde_reward_af == pde_reward_b4 and pde_reward_af == 0:
+        if actual_reward == calculated_reward == 0:
             SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} IS  correct: ' \
                        f'estimated/actual received {calculated_reward}/{actual_reward}\n'
             final_reward_result = final_reward_result and True
-
+        elif actual_reward != 0 and calculated_reward == 0:
+            SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} NOT correct: ' \
+                       f'estimated/actual received {calculated_reward}/{actual_reward} \n'
+            final_reward_result = final_reward_result and False
         elif abs(actual_reward / calculated_reward - 1) < 0.001:
             SUMMARY += f'\tPde reward of {l6(contributor)}:{l6(token1)}-{l6(token2)} IS  correct: ' \
                        f'estimated/actual received {calculated_reward}/{actual_reward}\n'
