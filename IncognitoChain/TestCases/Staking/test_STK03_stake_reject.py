@@ -1,12 +1,14 @@
-import pytest
 import re
 
+import pytest
+
+from IncognitoChain.Configs import Constants
 from IncognitoChain.Configs.Constants import coin
-from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Helpers.Logging import STEP, INFO
+from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER, SUT
 from IncognitoChain.TestCases.Staking import stake_account, amount_stake_under_1750, \
-    amount_stake_over_1750, block_per_epoch
+    amount_stake_over_1750
 
 
 def setup_function():
@@ -43,10 +45,10 @@ def test_stake_double():
     beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_info()
     beacon_height = beacon_state.get_beacon_height()
     epoch_number = beacon_state.get_epoch()
-    while beacon_height % block_per_epoch >= (block_per_epoch / 2) - 1:
+    while beacon_height % Constants.BlockChain.BLOCK_PER_EPOCH >= (Constants.BlockChain.BLOCK_PER_EPOCH / 2) - 1:
         # -1 just to be sure that staking will be successful
-        INFO(f'block height % block per epoch = {beacon_height % block_per_epoch}')
-        WAIT((block_per_epoch - (beacon_height % block_per_epoch)) * 10)
+        INFO(f'block height % block per epoch = {beacon_height % Constants.BlockChain.BLOCK_PER_EPOCH}')
+        WAIT((Constants.BlockChain.BLOCK_PER_EPOCH - (beacon_height % Constants.BlockChain.BLOCK_PER_EPOCH)) * 10)
         beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_info()
         beacon_height = beacon_state.get_beacon_height()
         epoch_number = beacon_state.get_epoch()
