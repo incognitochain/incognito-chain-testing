@@ -2,11 +2,10 @@ import sys
 from distutils.util import strtobool
 
 from IncognitoChain.Configs import config
-from IncognitoChain.Configs.Constants import DAO_private_key, DAO_payment_key, ONE_COIN
+from IncognitoChain.Configs.Constants import ONE_COIN, DAO_private_key, DAO_payment_key
 from IncognitoChain.Helpers.Logging import INFO_HEADLINE
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.TestBedObject import *
-from IncognitoChain.Objects.TestBedObject import TestBed
 
 # noinspection PyProtectedMember
 PARAMS = sys._xoptions
@@ -32,7 +31,11 @@ SUT.precondition_check()
 __account_file = config.test_data
 if PARAMS.get('testData') is not None:
     __account_file = PARAMS.get('testData').strip('.py')
-ACCOUNTS: List[Account] = load_test_data(__account_file).account_list
+
+TEST_DATA = load_test_data(__account_file)
+ACCOUNTS: List[Account] = TEST_DATA.account_list
+BEACON_ACCOUNTS: List[Account] = TEST_DATA.beacons
+COMMITTEE_ACCOUNTS: List[Account] = TEST_DATA.committees
 
 PORTAL_FEEDER = Account(
     '112t8roezimTQwKbmsoxY9h494xhMZNBe94ux6hCH4SaFYBFnFXS9JoNbUjmeFLQiFWHeFP9MLPcy1sEiDasdW4ZkzEDzXDLG3wmwMU551tv',

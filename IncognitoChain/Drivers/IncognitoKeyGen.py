@@ -55,8 +55,3 @@ def __get_key_from_output(output, k_name):
             # print(f"\t{k_name}: {key}")
             return key
 
-
-def test_():
-    from IncognitoChain.Drivers.IncognitoKeyGen import get_key_set_from_private_k
-    pk = '112t8rnXVMJJZzfF1naXvfE9nkTKwUwFWFeh8cfEyViG1vpA8A9khJk3mhyB1hDuJ4RbreDTsZpgJK4YcSxdEpXJKMEd8Vmp5UqKWwBcYzxv'
-    get_key_set_from_private_k(pk)

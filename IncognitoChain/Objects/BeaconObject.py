@@ -445,6 +445,15 @@ class BeaconBlock(BlockChainInfoBaseClass):
         return list_obj_inst_w_type
 
     def get_transaction_reward_from_instruction(self, token=None):
+        """
+
+        :param token:
+        :return:
+        :type: dict {'beacon': amount,
+                    'DAO': amount,
+                    shard_id: amount,
+                    ...}
+        """
         RESULT = {}
         token = PRV_ID if token is None else token
         INFO(f'GET reward info, epoch {self.get_epoch() - 1}, height {self.get_height()}, token {l6(token)}')

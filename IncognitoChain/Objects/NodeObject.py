@@ -31,7 +31,7 @@ class Node:
     default_ws_port = 19334
 
     def __init__(self, address=default_address, username=default_user, password=default_password,
-                 rpc_port=default_rpc_port, ws_port=default_ws_port, validator: Account = None, sshkey=None,
+                 rpc_port=default_rpc_port, ws_port=default_ws_port, account: Account = None, sshkey=None,
                  node_name=None):
         self._address = address
         self._username = username
@@ -43,7 +43,7 @@ class Node:
         self._spawn = pxssh.pxssh()
         self._web_socket = None
         self._rpc_connection = RpcConnection(self._get_rpc_url())
-        self.validator: Account = validator
+        self.account: Account = account
 
     def ssh_connect(self):
         if self._password is not None:
@@ -184,6 +184,11 @@ class Node:
         return len(shard_committee)
 
     def help_get_current_epoch(self, refresh_cache=True):
+        """
+        DEPRECATED, please don't use this method anymore
+        :param refresh_cache:
+        :return:
+        """
         DEBUG(f'Get current epoch number')
         beacon_best_state = self.system_rpc().get_beacon_best_state_detail(refresh_cache)
         epoch = beacon_best_state.get_result('Epoch')
