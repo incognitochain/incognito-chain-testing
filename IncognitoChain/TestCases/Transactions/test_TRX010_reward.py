@@ -53,7 +53,7 @@ def test_verify_reward_instruction(from_epoch, num_of_epoch_to_test, shard_tx_fe
     print(f' shard accumulated reward : {sum_shards_rw_accumulated}')
 
 
-def test_verify_reward_received_by_committee():
+def test_verify_reward_received():
     # WARNING: for now, this test does not cover the case which committees are swapped in and out in the next epoch
     # NOTE: when run this test, tester observes that the rewards always come late 1 epoch,
     # so this test will take instruction reward of this epoch to compare with real received reward of the future epoch
@@ -122,13 +122,3 @@ def test_verify_reward_received_by_committee():
     for shard_id in range(0, len(committees_earned_reward_af)):
         assert BB_reward_instruction[str(shard_id)] == committees_earned_reward_af[shard_id] - \
                committees_earned_reward_b4[shard_id]
-
-
-def todo_test_verify_reward_received_by_beacon():
-    # todo
-    pass
-
-
-def todo_test_verify_reward_received_by_dao():
-    # todo
-    pass
