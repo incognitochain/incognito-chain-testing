@@ -53,3 +53,6 @@ class SystemRpc:
         return self.rpc_connection.with_method('getrewardamountbyepoch'). \
             with_params([shard_id, epoch]). \
             execute()
+
+    def get_shard_best_detail(self, shard_id):
+        return self.rpc_connection.with_method('getshardbeststatedetail').with_params([shard_id]).execute()

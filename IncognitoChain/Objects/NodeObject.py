@@ -325,3 +325,7 @@ class Node:
             RESULT['DAO'] = int(total_DAO_reward)
 
         return RESULT
+
+    def help_get_shard_height(self, shard_num=None):
+        chain_info = self.get_block_chain_info()
+        return chain_info.get_shard_block(shard_num).get_height()

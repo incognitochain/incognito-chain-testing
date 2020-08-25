@@ -2,6 +2,7 @@ from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT
     PortalDepositStatus, PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT, BlockChain
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.Time import WAIT
+from datetime import datetime
 
 
 def l6(string):
@@ -95,6 +96,36 @@ class ChainHelper:
         current_beacon_h = SUT.full_node.help_get_beacon_height()
 
         return ChainHelper.wait_till_beacon_height(current_beacon_h + num_of_beacon_height_to_wait, wait, timeout)
+
+    @staticmethod
+    def wait_till_next_shard_height(shard_id, num_of_shard_height_to_wait=1, wait=40, timeout=120):
+        """
+        Function to wait for an amount of shard height to pass
+        :param shard_id:
+        :param num_of_shard_height_to_wait:
+        :param wait:
+        :param timeout:
+        :return:
+        """
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        current_shard_h = SUT.full_node.help_get_shard_height(shard_id)
+        shard_height = current_shard_h + num_of_shard_height_to_wait
+        INFO(f'Waiting till shard {shard_id} height {shard_height}')
+
+        if shard_height <= current_shard_h:
+            INFO(f'Shard {shard_id} height {shard_height} is passed already')
+            return current_shard_h
+
+        while shard_height > current_shard_h:
+            WAIT(wait)
+            timeout -= wait
+            current_shard_h = SUT.full_node.help_get_shard_height(shard_id)
+            if timeout <= 0:
+                INFO(f'Time out and current shard {shard_id} height is {current_shard_h}')
+                return current_shard_h
+
+        INFO(f'Time out and current shard {shard_id} height is {current_shard_h}')
+        return current_shard_h
 
 
 def calculate_contribution(token_1_contribute_amount, token_2_contribute_amount, current_rate: list):
@@ -300,3 +331,84 @@ class PortalHelper:
         prv_equivalent = collateral // PORTAL_COLLATERAL_PERCENT
         return int(
             PortalHelper.cal_portal_exchange_prv_to_tok(prv_equivalent, prv_rate, token_rate))
+
+def get_beacon_best_detail(number_of_beacons_to_get=1, wait=5, timeout=120):
+    """
+    Function to get beacon best detail
+    :param number_of_beacons_to_get:
+    :param wait:
+    :param timeout:
+    :return:
+    """
+    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    log_file = "./log_beacon_best_detail.log"
+    for i in range(1, number_of_beacons_to_get + 1):
+        log_content = '*' * 32 + "\n"
+        f = open(log_file, "a+")
+        f.write(log_content)
+        f.close()
+
+        log_content = ''
+        dictionary_data = SUT.full_node.system_rpc().get_beacon_best_state_detail().get_result()
+        now = datetime.now()
+        date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+        log_content = f"{date_time} - Current beacon height is {dictionary_data['BeaconHeight']}\n"
+        for key, value in dictionary_data.items():
+            a_log = f'{key}: {value}\n'
+            log_content = log_content + a_log
+
+        # Waiting till beacon height increase
+        ChainHelper.wait_till_next_beacon_height(num_of_beacon_height_to_wait=1, wait=wait, timeout=timeout)
+
+        dictionary_data = SUT.full_node.system_rpc().get_beacon_best_state_detail().get_result()
+        now = datetime.now()
+        date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+        log_content = f"{date_time} - Current beacon height is {dictionary_data['BeaconHeight']}\n"
+        for key, value in dictionary_data.items():
+            a_log = f'{key}: {value}\n'
+            log_content = log_content + a_log
+
+        f = open(log_file, "a+")
+        f.write(log_content+"\n")
+        f.close()
+
+def get_shard_best_detail(shard_id=0, number_of_shards_to_get=1, wait=5, timeout=120):
+    """
+    Function to get shard best detail
+    :param shard_id:
+    :param number_of_shards_to_get:
+    :param wait:
+    :param timeout:
+    :return:
+    """
+    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    log_file = "./log_shard_best_detail.log"
+    for i in range(1, number_of_shards_to_get + 1):
+        log_content = '*' * 32 + "\n"
+        f = open(log_file, "a+")
+        f.write(log_content)
+        f.close()
+
+        log_content = ''
+        dictionary_data = SUT.full_node.system_rpc().get_shard_best_detail(shard_id).get_result()
+        now = datetime.now()
+        date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+        log_content = f"{date_time} - Current shard {shard_id} height is {dictionary_data['ShardHeight']}\n"
+        for key, value in dictionary_data.items():
+            a_log = f'{key}: {value}\n'
+            log_content = log_content + a_log
+
+        # Waiting till shard height increase
+        ChainHelper.wait_till_next_shard_height(shard_id=shard_id, num_of_shard_height_to_wait=1, wait=wait, timeout=timeout)
+
+        dictionary_data = SUT.full_node.system_rpc().get_shard_best_detail(shard_id).get_result()
+        now = datetime.now()
+        date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+        log_content = f"{date_time} - Current shard {shard_id} height is {dictionary_data['ShardHeight']}\n"
+        for key, value in dictionary_data.items():
+            a_log = f'{key}: {value}\n'
+            log_content = log_content + a_log
+
+        f = open(log_file, "a+")
+        f.write(log_content + "\n")
+        f.close()
