@@ -1,8 +1,11 @@
+import json
+from datetime import datetime
+from json.decoder import JSONDecodeError
+
 from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, PORTAL_COLLATERAL_PERCENT, \
     PortalDepositStatus, PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT, BlockChain
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.Time import WAIT
-from datetime import datetime
 
 
 def l6(string):
@@ -12,6 +15,20 @@ def l6(string):
     :return:
     """
     return string[-6:]
+
+
+def json_extract(string):
+    """
+    strip all none json part a string
+    :param string:
+    :return: dictionary
+    """
+    try:
+        string = '{' + string.split('{', 1)[-1]  # remove all non-sense before the first {
+        string = string.split(', error', 1)[0]  # remove all non-sense from ', error'
+        return json.loads(string)
+    except JSONDecodeError:
+        return None
 
 
 def to_num(*args):

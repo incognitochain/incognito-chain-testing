@@ -33,9 +33,18 @@ if PARAMS.get('testData') is not None:
     __account_file = PARAMS.get('testData').strip('.py')
 
 TEST_DATA = load_test_data(__account_file)
-ACCOUNTS: List[Account] = TEST_DATA.account_list
-BEACON_ACCOUNTS: List[Account] = TEST_DATA.beacons
-COMMITTEE_ACCOUNTS: List[Account] = TEST_DATA.committees
+try:
+    ACCOUNTS: List[Account] = TEST_DATA.account_list
+except:
+    ACCOUNTS = []
+try:
+    BEACON_ACCOUNTS: List[Account] = TEST_DATA.beacons
+except:
+    BEACON_ACCOUNTS = []
+try:
+    COMMITTEE_ACCOUNTS: List[Account] = TEST_DATA.committees
+except:
+    COMMITTEE_ACCOUNTS = []
 
 PORTAL_FEEDER = Account(
     '112t8roezimTQwKbmsoxY9h494xhMZNBe94ux6hCH4SaFYBFnFXS9JoNbUjmeFLQiFWHeFP9MLPcy1sEiDasdW4ZkzEDzXDLG3wmwMU551tv',

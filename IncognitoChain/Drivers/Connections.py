@@ -69,17 +69,26 @@ class RpcConnection:
         return self
 
     def execute(self):
-        data = {"jsonrpc": self._json_rpc,
-                "id": self._id,
-                "method": self._method}
-        if self._params is not None:
-            data["params"] = self._params
+        data = self.make_payload()
         Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(data, indent=3)}')
         try:
             response = requests.post(self._base_url, data=json.dumps(data), headers=self._headers)
         except NewConnectionError:
             ERROR('Connection refused')
         return Response(response, f'From: {self._base_url}')
+
+    def print_pay_load(self):
+        data = self.make_payload()
+        print(f'{json.dumps(data, indent=3)}')
+        return data
+
+    def make_payload(self):
+        data = {"jsonrpc": self._json_rpc,
+                "id": self._id,
+                "method": self._method}
+        if self._params is not None:
+            data["params"] = self._params
+        return data
 
 
 class WebSocket(RpcConnection):

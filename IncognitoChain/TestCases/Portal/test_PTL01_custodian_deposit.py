@@ -10,7 +10,7 @@ from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT, PORTAL_FEEDER
 from IncognitoChain.Objects.PortalObjects import CustodianWithdrawTxInfo
 from IncognitoChain.TestCases.Portal import TEST_SETTING_DEPOSIT_AMOUNT, self_pick_custodian, \
-    custodian_remote_address, just_another_remote_addr, portal_user, all_custodians_remote_addr
+    portal_user, custodian_remote_addr, another_btc_addr, another_bnb_addr
 
 custodian_need_change_remote_addr_back = Account()
 
@@ -21,14 +21,24 @@ def teardown_function():
         return
 
     INFO("Change remote address back")
-    previous_remote_addr = all_custodians_remote_addr[custodian]
+    previous_bnb_addr = custodian_remote_addr.get_remote_addr(PBNB_ID, custodian)
+    previous_btc_addr = custodian_remote_addr.get_remote_addr(PBTC_ID, custodian)
     custodian_info = custodian.portal_get_my_custodian_info()
-    if previous_remote_addr != custodian_info.get_remote_address(PBNB_ID):
+    withdraw_tx = custodian.portal_withdraw_my_all_free_collateral()
+    if withdraw_tx is not None:
+        withdraw_tx.subscribe_transaction()
+    WAIT(60)
+    if previous_bnb_addr != custodian_info.get_remote_address(PBNB_ID):
         try:
-            custodian.portal_withdraw_my_all_free_collateral().subscribe_transaction()
-            WAIT(60)
             self_pick_custodian.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT, PBNB_ID,
-                                                      previous_remote_addr).subscribe_transaction()
+                                                      previous_bnb_addr).subscribe_transaction()
+        except:
+            pass
+
+    if previous_btc_addr != custodian_info.get_remote_address(PBTC_ID):
+        try:
+            self_pick_custodian.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT, PBTC_ID,
+                                                      previous_btc_addr).subscribe_transaction()
         except:
             pass
 
@@ -37,7 +47,8 @@ def teardown_function():
     (ACCOUNTS[3], PRV_ID, False),
     (self_pick_custodian, PBNB_ID, True),
     (ACCOUNTS[3], PBNB_ID, True),
-    # (ACCOUNTS[3], PBTC_ID, True),
+    (self_pick_custodian, PBTC_ID, True),
+    (ACCOUNTS[3], PBTC_ID, True),
 ])
 @pytest.mark.dependency()
 def test_custodian_deposit(depositor, token, expected_pass):
@@ -48,7 +59,7 @@ def test_custodian_deposit(depositor, token, expected_pass):
 
     STEP(1, "Make a valid custodian deposit")
     deposit_response = depositor.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, token,
-                                                          custodian_remote_address)
+                                                          custodian_remote_addr.get_remote_addr(token, depositor))
     deposit_tx = deposit_response.subscribe_transaction()
     tx_fee = deposit_tx.get_fee()
 
@@ -74,7 +85,7 @@ def test_custodian_deposit(depositor, token, expected_pass):
 
 @pytest.mark.parametrize('depositor,token,expected_pass', [
     (ACCOUNTS[3], PBNB_ID, True),
-    # (ACCOUNTS[3],PBTC_ID, True),
+    (ACCOUNTS[3], PBTC_ID, True),
     (ACCOUNTS[3], PRV_ID, False),
 ])
 @pytest.mark.dependency(depends=["test_custodian_deposit"])
@@ -87,7 +98,8 @@ def test_add_more_collateral(depositor, token, expected_pass):
         pytest.skip(f'{l6(depositor.incognito_addr)} is not an existing custodian,'
                     f' add more collateral test cannot proceed')
     STEP(2, "Add more collateral")
-    deposit_tx = depositor.portal_add_collateral(deposit_amount, token, custodian_remote_address)
+    deposit_tx = depositor.portal_add_collateral(deposit_amount, token,
+                                                 custodian_remote_addr.get_remote_addr(token, depositor))
     if expected_pass:
         deposit_tx.expect_no_error()
         deposit_tx_result = deposit_tx.subscribe_transaction()
@@ -115,12 +127,14 @@ def test_add_more_collateral(depositor, token, expected_pass):
         assert bal_b4 == balance_after
 
 
-@pytest.mark.parametrize("custodian,token,total_collateral_precondition,expected_pass", [
-    (ACCOUNTS[3], PBNB_ID, 0, True),
-    (ACCOUNTS[3], PBNB_ID, 100, False),
-    (ACCOUNTS[3], PRV_ID, 0, False),
+@pytest.mark.parametrize("custodian,token,total_collateral_precondition,new_addr,expected_pass", [
+    (ACCOUNTS[3], PBNB_ID, 0, another_bnb_addr, True),
+    (ACCOUNTS[3], PBNB_ID, 100, another_bnb_addr, False),
+    (ACCOUNTS[3], PRV_ID, 0, another_bnb_addr, False),
+    (ACCOUNTS[3], PBTC_ID, 0, another_btc_addr, True),
+    (ACCOUNTS[3], PBTC_ID, 100, another_btc_addr, False),
 ])
-def test_update_remote_address(custodian, token, total_collateral_precondition, expected_pass):
+def test_update_remote_address(custodian, token, total_collateral_precondition, new_addr, expected_pass):
     STEP(0, "precondition check")
     custodian_info_b4 = custodian.portal_get_my_custodian_info()
     deposit_amount = 123
@@ -128,7 +142,7 @@ def test_update_remote_address(custodian, token, total_collateral_precondition, 
     if custodian_info_b4.get_total_collateral() > custodian_info_b4.get_free_collateral():
         pytest.skip(f'{l6(custodian.incognito_addr)} holding '
                     f'{custodian_info_b4.get_holding_token_amount(token)} token {l6(token)}')
-    old_remote_address = custodian_info_b4.get_remote_address(PBNB_ID)
+    old_remote_address = custodian_info_b4.get_remote_address(token)
 
     if total_collateral_precondition == 0:
         STEP(1, "Withdraw all collateral")
@@ -144,13 +158,13 @@ def test_update_remote_address(custodian, token, total_collateral_precondition, 
         STEP(1, "DO NOT Withdraw collateral")
 
     STEP(2, "Change remote address")
-    deposit_tx = custodian.portal_add_collateral(deposit_amount, token, just_another_remote_addr)
+    deposit_tx = custodian.portal_add_collateral(deposit_amount, token, new_addr)
     WAIT(40)
     deposit_tx_result = deposit_tx.subscribe_transaction()
     custodian_info_af = custodian.portal_get_my_custodian_info()
     if expected_pass:
         assert bal_b4 == custodian.get_prv_balance() + deposit_tx_result.get_fee() + deposit_amount
-        assert custodian_info_af.get_remote_address(PBNB_ID) == just_another_remote_addr
+        assert custodian_info_af.get_remote_address(token) == new_addr
         assert custodian_info_af.get_total_collateral() == custodian_info_b4.get_total_collateral() + deposit_amount
         deposit_tx.expect_no_error()
     else:
@@ -163,7 +177,7 @@ def test_update_remote_address(custodian, token, total_collateral_precondition, 
                    + deposit_tx_result.get_fee() + deposit_amount
             assert custodian_info_af.get_total_collateral() == custodian_info_b4.get_total_collateral() \
                    + deposit_amount
-        assert custodian_info_af.get_remote_address(PBNB_ID) == old_remote_address
+        assert custodian_info_af.get_remote_address(token) == old_remote_address
 
     global custodian_need_change_remote_addr_back
     custodian_need_change_remote_addr_back = custodian

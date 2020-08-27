@@ -272,3 +272,6 @@ class PortalRpc:
         return self.rpc_connection.with_method('getrequestwithdrawportalrewardstatus'). \
             with_params([{"ReqTxID": tx_id}]).execute()
 
+    def get_btc_relaying_state(self):
+        return self.rpc_connection.with_method('getbtcrelayingbeststate'). \
+            with_params([]).execute()

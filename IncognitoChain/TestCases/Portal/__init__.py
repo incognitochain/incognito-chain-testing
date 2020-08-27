@@ -3,33 +3,29 @@ from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, COIN_MASTER, SUT, PORTAL_FEEDER
-
-
-def find_custodian_account_by_incognito_addr(incognito_addr):
-    for acc in all_custodians_remote_addr.keys():
-        if acc.payment_key == incognito_addr:
-            return acc
-    return None
-
+from IncognitoChain.TestCases.Portal.HelpClasses import CustodianRemoteAddr
 
 portal_user = ACCOUNTS[1]
 self_pick_custodian = ACCOUNTS[6]
 
-PORTAL_REQ_TIME_OUT = 30  # minutes
+PORTAL_REQ_TIME_OUT = 60  # minutes
 TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
 TEST_SETTING_PORTING_AMOUNT = 100
 TEST_SETTING_REDEEM_AMOUNT = 10
-custodian_remote_address = 'tbnb1d90lad6rg5ldh8vxgtuwzxd8n6rhhx7mfqek38'
-portal_user_remote_addr = 'tbnb1zyqrky9zcumc2e4smh3xwh2u8kudpdc56gafuk'
+self_pick_cus_bnb_address = 'tbnb1d90lad6rg5ldh8vxgtuwzxd8n6rhhx7mfqek38'
+self_pick_cus_btc_address = 'mgdwpAgvYNuJ2MyUimiKdTYsu2vpDZNpAa'
+portal_user_bnb_addr = 'tbnb1zyqrky9zcumc2e4smh3xwh2u8kudpdc56gafuk'
+portal_user_btc_addr = 'mhpTRAPdmyB1PUvXR2yqaSBK8ZJhEQ8rEw'
 bnb_pass_phrase = '123123Az'
-just_another_remote_addr = 'tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss'
+another_bnb_addr = 'tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss'
+another_btc_addr = 'mytWP2jW6Hsj5YdPvucm8Kkop9789adjQn'
 
-all_custodians_remote_addr = {
-    ACCOUNTS[3]: 'tbnb172pnrmd0409237jwlq5qjhw2s2r7lq6ukmaeke',
-    ACCOUNTS[4]: 'tbnb19cmxazhx5ujlhhlvj9qz0wv8a4vvsx8vuy9cyc',
-    ACCOUNTS[5]: 'tbnb1n5lrzass9l28djvv7drst53dcw7y9yj4pyvksf',
-    self_pick_custodian: custodian_remote_address
-}
+custodian_remote_addr = CustodianRemoteAddr({
+    ACCOUNTS[3]: ['tbnb172pnrmd0409237jwlq5qjhw2s2r7lq6ukmaeke', 'mg3me76RFFWeRuYqM6epwjMHHMTaouYLDe'],
+    ACCOUNTS[4]: ['tbnb19cmxazhx5ujlhhlvj9qz0wv8a4vvsx8vuy9cyc', 'mkgT1mphBPX1C3tn9yRK7HmVSYkVEn7VzY'],
+    ACCOUNTS[5]: ['tbnb1n5lrzass9l28djvv7drst53dcw7y9yj4pyvksf', 'myo25dPxQNqk94HwFLeFr42cH8VbwTGbBm'],
+    self_pick_custodian: [self_pick_cus_bnb_address, self_pick_cus_btc_address]
+})
 
 init_portal_rate = {
     PRV_ID: '83159',
@@ -47,7 +43,7 @@ big_rate = {PBNB_ID: '105873200000',
 # 37772966455153490
 # 37772966455153487
 
-for acc in all_custodians_remote_addr:  # find account which has most PRV
+for acc in custodian_remote_addr.get_accounts():  # find account which has most PRV
     if fat_custodian.get_prv_balance_cache() is None:
         fat_custodian = acc
     elif acc.get_prv_balance_cache() >= fat_custodian.get_prv_balance_cache():
@@ -60,8 +56,8 @@ fat_custodian_prv = big_collateral + coin(1)
 def setup_module():
     INFO()
     INFO('SETUP TEST MODULE, TOP UP PRV FOR CUSTODIAN AND PORTAL FEEDER')
-    COIN_MASTER.top_him_up_prv_to_amount_if(TEST_SETTING_DEPOSIT_AMOUNT * 2, TEST_SETTING_DEPOSIT_AMOUNT * 2 + coin(1),
-                                            all_custodians_remote_addr.keys())
+    COIN_MASTER.top_him_up_prv_to_amount_if(TEST_SETTING_DEPOSIT_AMOUNT * 4, TEST_SETTING_DEPOSIT_AMOUNT * 4 + coin(1),
+                                            custodian_remote_addr.get_accounts())
     COIN_MASTER.top_him_up_prv_to_amount_if(100, coin(1), PORTAL_FEEDER)
     INFO("Check rate")
     PSI_current = SUT.full_node.get_latest_portal_state_info()
@@ -78,7 +74,7 @@ def setup_module():
 def teardown_module():
     INFO_HEADLINE(f'TEST MODULE TEAR DOWN: Withdraw all free collateral')
     PSI = SUT.full_node.get_latest_portal_state_info()
-    for cus in all_custodians_remote_addr.keys():
+    for cus in custodian_remote_addr.get_accounts():
         cus_stat = PSI.get_custodian_info_in_pool(cus)
         if cus_stat is not None:
             cus.portal_withdraw_my_collateral(cus_stat.get_free_collateral()).subscribe_transaction()

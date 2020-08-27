@@ -1,16 +1,15 @@
 import pytest
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PortalPortingStatusByPortingId, PortalPortingStatusByTxId, \
-    PortalPtokenReqStatus, PRV_ID, coin
-from IncognitoChain.Drivers.BnbCli import BnbCli, build_bnb_proof
-from IncognitoChain.Drivers.BtcGo import BtcGo
+    PortalPtokenReqStatus, PRV_ID, coin, PBTC_ID
+from IncognitoChain.Drivers.NeighborChainCli import NeighborChainCli
 from IncognitoChain.Helpers.Logging import STEP, INFO, WARNING, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER, PORTAL_FEEDER
 from IncognitoChain.Objects.PortalObjects import PortingReqInfo, PTokenReqInfo
-from IncognitoChain.TestCases.Portal import portal_user, portal_user_remote_addr, bnb_pass_phrase, \
-    TEST_SETTING_PORTING_AMOUNT, all_custodians_remote_addr, big_collateral, fat_custodian_prv, big_rate, \
+from IncognitoChain.TestCases.Portal import portal_user, portal_user_bnb_addr as user_addr, bnb_pass_phrase, \
+    TEST_SETTING_PORTING_AMOUNT, custodian_remote_addr, big_collateral, fat_custodian_prv, big_rate, \
     big_porting_amount, \
     init_portal_rate, fat_custodian, TEST_SETTING_DEPOSIT_AMOUNT, PORTAL_REQ_TIME_OUT
 
@@ -22,20 +21,24 @@ def setup_module():
     PSI = SUT.full_node.get_latest_portal_state_info()
 
     deposit_more = False
-    for cus in all_custodians_remote_addr.keys():
+    for cus in custodian_remote_addr.get_accounts():
         cus_stat = cus.portal_get_my_custodian_info(PSI)
 
         if cus_stat is None:
             INFO(f'{l6(cus.payment_key)} is not yet custodian, make him one')
             cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT, PBNB_ID,
-                                      all_custodians_remote_addr[cus]).subscribe_transaction()
+                                      custodian_remote_addr.get_remote_addr(PBNB_ID)).subscribe_transaction()
+            cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT, PBNB_ID,
+                                      custodian_remote_addr.get_remote_addr(PBTC_ID)).subscribe_transaction()
         elif cus_stat.get_free_collateral() < TEST_SETTING_DEPOSIT_AMOUNT / 10:
             free_collateral = cus_stat.get_free_collateral()
             INFO(f'{l6(cus.payment_key)} free collateral = {free_collateral} <= {TEST_SETTING_DEPOSIT_AMOUNT} / 10,'
                  f' deposit a bit more of collateral')
             try:
                 cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT - free_collateral, PBNB_ID,
-                                          all_custodians_remote_addr[cus]).subscribe_transaction()
+                                          custodian_remote_addr.get_remote_addr(PBNB_ID)).subscribe_transaction()
+                cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT - free_collateral, PBNB_ID,
+                                          custodian_remote_addr.get_remote_addr(PBTC_ID)).subscribe_transaction()
             except:
                 pass
             deposit_more = True
@@ -48,45 +51,45 @@ def setup_module():
         SUT.full_node.help_wait_till_next_epoch()
 
 
-@pytest.mark.parametrize("token,porting_amount,porting_fee,num_of_custodian,desired_status", [
-    # BNB
-    # 1 custodian
-    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "valid"),  # None means auto calculate fee
-    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "expire"),  # None means auto calculate fee
-    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "liquidate"),  # None means auto calculate fee
-    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, 1, 1, "invalid"),
-    (PBNB_ID, big_porting_amount, None, 1, "valid"),  # this test should be run alone
-    # n custodian
-    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "valid"),  # None means auto calculate fee
-    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "expire"),  # None means auto calculate fee
-    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "liquidate"),  # None means auto calculate fee
-    (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, 1, n, "invalid"),
+@pytest.mark.parametrize("token, porting_amount, user, user_remote_addr, porting_fee, num_of_custodian, desired_status",
+                         [  # fee = None means auto calculate fee
+                             # big amount porting test should be run alone
+                             # BNB
+                             # 1 custodian
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "valid"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "expire"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "liquidate"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, 1, 1, "invalid"),
+                             (PBNB_ID, big_porting_amount, None, 1, portal_user, user_addr, "valid"),
+                             # n custodian
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "valid"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "expire"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "liquidate"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, 1, n, "invalid"),
 
-    # BTC # todo: implement BtcGo for this test to run
-    # 1 custodian
-    # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "valid"),  # None means auto calculate fee
-    # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "expire"),  # None means auto calculate fee
-    # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, None, 1, "liquidate"),  # None means auto calculate fee
-    # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, 1, 1, "invalid"),
-    # (PBTC_ID, big_porting_amount, None, 1, "valid"),  # this test should be run alone
-    # # n custodian
-    # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "valid"),  # None means auto calculate fee
-    # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "expire"),  # None means auto calculate fee
-    # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, None, n, "liquidate"),  # None means auto calculate fee
-    # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, 1, n, "invalid"),
+                             # BTC
+                             # 1 custodian
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "valid"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "expire"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "liquidate"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, 1, 1, "invalid"),
+                             (PBTC_ID, big_porting_amount, None, 1, portal_user, user_addr, "valid"),
+                             # n custodian
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "valid"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "expire"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "liquidate"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, 1, n, "invalid"),
 
-])
-def test_create_porting_req_1_1(token, porting_amount, porting_fee, num_of_custodian, desired_status):
-    if token == PBNB_ID:
-        cli = BnbCli()
-    else:
-        cli = BtcGo()
+                         ])
+def test_create_porting_req_1_1(token, porting_amount, user, user_remote_addr, porting_fee, num_of_custodian,
+                                desired_status):
+    cli = NeighborChainCli.new(token)
 
     STEP(0, "Preparation before test")
     remote_receiver_dict = {}
     PSI_before_test = SUT.full_node.get_latest_portal_state_info()
-    prv_bal_be4_test = portal_user.get_prv_balance()
-    tok_bal_be4_test = portal_user.get_token_balance(token)
+    prv_bal_be4_test = user.get_prv_balance()
+    tok_bal_be4_test = user.get_token_balance(token)
     tok_rate = PSI_before_test.get_portal_rate(token)
     prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
     estimated_porting_fee = PortalHelper.cal_portal_portal_fee(porting_amount, tok_rate, prv_rate)
@@ -112,14 +115,13 @@ def test_create_porting_req_1_1(token, porting_amount, porting_fee, num_of_custo
         tok_rate = PSI_before_test.get_portal_rate(token)
         prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
 
-    if portal_user.get_prv_balance() < estimated_porting_fee:
-        COIN_MASTER.send_prv_to(portal_user,
-                                estimated_porting_fee - portal_user.get_prv_balance_cache() + coin(
-                                    1)).subscribe_transaction()
-        prv_bal_be4_test = portal_user.wait_for_balance_change(from_balance=prv_bal_be4_test)
+    if user.get_prv_balance() < estimated_porting_fee:
+        COIN_MASTER.send_prv_to(user,
+                                estimated_porting_fee - user.get_prv_balance_cache() + coin(1)).subscribe_transaction()
+        prv_bal_be4_test = user.wait_for_balance_change(from_balance=prv_bal_be4_test)
 
     STEP(1, f"Create a {desired_status} porting request")
-    porting_req = portal_user.portal_create_porting_request(token, porting_amount, porting_fee=porting_fee)
+    porting_req = user.portal_create_porting_request(token, porting_amount, porting_fee=porting_fee)
     porting_id = porting_req.params().get_portal_register_id()
     porting_fee = porting_req.params().get_portal_porting_fee()
     tx_block = porting_req.subscribe_transaction()
@@ -133,7 +135,7 @@ def test_create_porting_req_1_1(token, porting_amount, porting_fee, num_of_custo
             porting id                     = {porting_id}, 
             tx fee                         = {tx_fee}, 
             tx size                        = {tx_size}
-            prv bal after req              = {portal_user.get_prv_balance()}
+            prv bal after req              = {user.get_prv_balance()}
             estimate total lock collateral = {estimated_total_lock_collateral}""")
     STEP(1.2, 'verify porting fee')
     if desired_status == 'valid':
@@ -170,7 +172,7 @@ def test_create_porting_req_1_1(token, porting_amount, porting_fee, num_of_custo
     if desired_status == 'invalid':
         STEP(4, "Porting req fail, wait 60s to return porting fee (only take tx fee), verify user balance")
         WAIT(60)
-        assert portal_user.get_prv_balance() == prv_bal_be4_test - tx_fee
+        assert user.get_prv_balance() == prv_bal_be4_test - tx_fee
     elif desired_status == 'expire':
         STEP(4, f'Wait {PORTAL_REQ_TIME_OUT + 0.5} for the req to be expired')
         WAIT((PORTAL_REQ_TIME_OUT + 0.5) * 60)
@@ -199,7 +201,7 @@ def test_create_porting_req_1_1(token, porting_amount, porting_fee, num_of_custo
                 token)
 
         STEP(7, "Verify user balance, porting fee and tx fee will not be returned")
-        user_prv_bal_after_test = portal_user.get_prv_balance()
+        user_prv_bal_after_test = user.get_prv_balance()
         assert prv_bal_be4_test - tx_fee - porting_fee == user_prv_bal_after_test
     else:  # desired_status == valid or liquidate
         STEP(4, "Check number of custodian")
@@ -220,12 +222,12 @@ def test_create_porting_req_1_1(token, porting_amount, porting_fee, num_of_custo
                 custodian_info.get_remote_address()] = tok_amount_to_send // 10  # pbtc,pbnb 10^-9, while btc,bnb 10^-8
 
         memo = porting_req_info.get_porting_id()
-        bnb_send_tx = cli.send_to_multi(portal_user_remote_addr, remote_receiver_dict, bnb_pass_phrase, memo)
+        send_public_token_tx = cli.send_to_multi(user_addr, remote_receiver_dict, bnb_pass_phrase, memo)
 
         STEP(6, 'Submit proof to request ported token')
-        balance_before_req_ported_token = portal_user.get_token_balance(token)
-        proof = build_bnb_proof(bnb_send_tx.get_tx_hash())
-        req_tx = portal_user.portal_req_ported_ptoken(porting_id, token, porting_amount, proof)
+        balance_before_req_ported_token = user.get_token_balance(token)
+        proof = cli.build_proof(send_public_token_tx.get_tx_hash())
+        req_tx = user.portal_req_ported_ptoken(porting_id, token, porting_amount, proof)
         req_tx.subscribe_transaction()
         WAIT(90)  # wait for the req to be processed
         token_req_info = PTokenReqInfo(req_tx.get_result())
@@ -235,7 +237,7 @@ def test_create_porting_req_1_1(token, porting_amount, porting_fee, num_of_custo
             f'Req for ported token is rejected. CODE = {ported_token_req_status}'
 
         STEP(7, 'Verify user balance')
-        balance_after_req = portal_user.wait_for_balance_change(token, balance_before_req_ported_token)
+        balance_after_req = user.wait_for_balance_change(token, balance_before_req_ported_token)
         assert balance_after_req == balance_before_req_ported_token + porting_amount
         assert tok_bal_be4_test == balance_before_req_ported_token
 
@@ -410,10 +412,16 @@ def est_porting_req_expired(num_of_custodian):
 
 
 def prepare_fat_custodian():
-    COIN_MASTER.top_him_up_prv_to_amount_if(big_collateral, fat_custodian_prv, fat_custodian)
+    COIN_MASTER.top_him_up_prv_to_amount_if(big_collateral * 2, fat_custodian_prv * 2, fat_custodian)
     # deposit big collateral
     deposit_tx = fat_custodian.portal_make_me_custodian((big_collateral + 1), PBNB_ID,
-                                                        all_custodians_remote_addr[fat_custodian])
-    SUT.full_node.help_wait_till_next_epoch()
+                                                        custodian_remote_addr.get_remote_addr(fat_custodian))
     deposit_tx.expect_no_error()
     deposit_tx.subscribe_transaction()
+
+    deposit_tx = fat_custodian.portal_make_me_custodian((big_collateral + 1), PBTC_ID,
+                                                        custodian_remote_addr.get_remote_addr(fat_custodian))
+    deposit_tx.expect_no_error()
+    deposit_tx.subscribe_transaction()
+
+    SUT.full_node.help_wait_till_next_epoch()

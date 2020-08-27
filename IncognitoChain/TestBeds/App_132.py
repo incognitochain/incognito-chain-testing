@@ -1,4 +1,4 @@
-from IncognitoChain.Objects.ShardObject import *
+from IncognitoChain.Objects.TestBedObject import Node, Shard, Beacon
 
 addr = "128.199.176.132"
 
