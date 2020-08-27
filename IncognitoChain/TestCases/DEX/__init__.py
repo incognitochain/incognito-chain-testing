@@ -142,7 +142,8 @@ def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_st
         calculated_reward = int(sum_fee_expected * share_of_contributor / sum_share_of_pair)
         actual_reward = pde_reward_af - pde_reward_b4
         sum_split_reward += calculated_reward
-        if contributor == contributors_of_pair[-1]:  # last contributor get all remaining fee as reward
+        if len(contributors_of_pair) > 1 and contributor == contributors_of_pair[-1]:
+            # last contributor get all remaining fee as reward
             calculated_reward = sum_fee_expected - sum_split_reward
         INFO(f'''Verify PDE reward for contributor {l6(contributor)} with: 
                         reward before               : {pde_reward_b4}
