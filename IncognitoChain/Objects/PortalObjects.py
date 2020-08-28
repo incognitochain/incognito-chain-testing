@@ -2,7 +2,7 @@ import copy
 from typing import List
 
 from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, \
-    PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT, PBNB_ID, PBTC_ID, PRV_ID
+    PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT, PBNB_ID, PBTC_ID, PRV_ID, PortalRedeemMatchingStatus
 from IncognitoChain.Helpers.Logging import INFO, DEBUG, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper, extract_incognito_addr
 from IncognitoChain.Helpers.Time import WAIT
@@ -160,6 +160,29 @@ class RedeemReqInfo(_PortalInfoBase):
 
     def get_redeem_amount(self):
         return int(self.data['RedeemAmount'])
+
+
+class RedeemMatchingInfo(_PortalInfoBase):
+    def get_matching_amount(self):
+        return self.data['MatchingAmount']
+
+    def get_redeem_id(self):
+        return self.data['RedeemID']
+
+    def get_custodian_inc_addr(self):
+        return self.data['CustodianAddressStr']
+
+    def is_accepted(self):
+        return self.get_status() == PortalRedeemMatchingStatus.ACCEPT
+
+    def is_rejected(self):
+        return self.get_status() == PortalRedeemMatchingStatus.REJECTED
+
+    def get_matching_info_by_tx(self, tx_id):
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        response = SUT.REQUEST_HANDLER.portal().get_req_matching_redeem_status(tx_id)
+        self.data = response.get_result()
+        return self
 
 
 class PTokenReqInfo(_PortalInfoBase):

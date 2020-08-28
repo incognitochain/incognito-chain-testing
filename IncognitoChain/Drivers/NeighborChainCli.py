@@ -101,26 +101,6 @@ class BnbCli:
             return BnbCli.BnbResponse(err)
 
     @staticmethod
-    def build_proof(tx_hash):
-        INFO()
-        INFO(f'Portal | Building proof | tx {tx_hash}')
-        bnb_get_block_url = f"{BnbCli.get_bnb_rpc_url()}/tx?hash=0x{tx_hash}&prove=true"
-        block_response = RpcConnection(bnb_get_block_url, id_num='', json_rpc='2.0'). \
-            with_params([]).with_method('').execute()
-        block_height = int(block_response.data()['result']['height'])
-        proof = {"Proof": block_response.data()['result']['proof'],
-                 "BlockHeight": block_height}
-
-        proof['Proof']['Proof']['total'] = int(proof['Proof']['Proof']['total'])  # convert to int
-        proof['Proof']['Proof']['index'] = int(proof['Proof']['Proof']['index'])  # convert to int
-        proof_string = json.dumps(proof, separators=(',', ':'))  # separators=(',', ':') to remove all spaces
-        proof_ascii = proof_string.encode('ascii')  # convert to byte
-        string_base64 = base64.b64encode(proof_ascii)  # encode
-        string_base64_utf8 = string_base64.decode('utf-8')  # convert to string
-        DEBUG(f""" Proof: =================  \n{proof}""")
-        return string_base64_utf8
-
-    @staticmethod
     def get_bnb_rpc_url():
         return f'{BnbCli._bnb_rpc_protocol}://{BnbCli._bnb_host}:{BnbCli._bnb_rpc_port}'
 
@@ -176,6 +156,25 @@ class BnbCli:
 
         def get_tx_hash(self):
             return self.data['hash']
+
+        def build_proof(self):
+            INFO()
+            INFO(f'Portal | Building proof | tx {self.get_tx_hash()}')
+            bnb_get_block_url = f"{BnbCli.get_bnb_rpc_url()}/tx?hash=0x{self.get_tx_hash()}&prove=true"
+            block_response = RpcConnection(bnb_get_block_url, id_num='', json_rpc='2.0'). \
+                with_params([]).with_method('').execute()
+            block_height = int(block_response.data()['result']['height'])
+            proof = {"Proof": block_response.data()['result']['proof'],
+                     "BlockHeight": block_height}
+
+            proof['Proof']['Proof']['total'] = int(proof['Proof']['Proof']['total'])  # convert to int
+            proof['Proof']['Proof']['index'] = int(proof['Proof']['Proof']['index'])  # convert to int
+            proof_string = json.dumps(proof, separators=(',', ':'))  # separators=(',', ':') to remove all spaces
+            proof_ascii = proof_string.encode('ascii')  # convert to byte
+            string_base64 = base64.b64encode(proof_ascii)  # encode
+            string_base64_utf8 = string_base64.decode('utf-8')  # convert to string
+            DEBUG(f""" Proof: =================  \n{proof}""")
+            return string_base64_utf8
 
 
 # ============= BTC ===================
@@ -262,40 +261,6 @@ class BtcGo:
         return BtcGo._exe_command(command)
 
     @staticmethod
-    def build_proof(tx_hash):
-        INFO()
-        INFO(f'Portal | Building proof | tx {tx_hash}')
-        tx_by_hash = BtcGo.get_tx_by_hash(tx_hash)
-        height = tx_by_hash.get_block_height()
-        timeout = 2 * 60 * 60  # 2hours
-        interval = 120
-        while timeout > 0:
-            if height != -1:
-                break
-
-            WAIT(interval)
-            tx_by_hash = BtcGo.get_tx_by_hash(tx_hash)
-            height = tx_by_hash.get_block_height()
-
-            timeout -= interval
-
-        WAIT(30)
-
-        command = [BtcGo.btc_build_proof_cli, '-blockHeight', f'{height}', '-txhash', f'{tx_hash}']
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE,
-                                   universal_newlines=True)
-        stdout, stderr = process.communicate()
-        INFO(f"\n"
-             f"+++ command: {' '.join(command)}\n\n"
-             f"+++ out: {stdout}\n\n"
-             f"+++ err: {stderr}")
-        breakpoint()
-        proof = stdout.split()[1]
-        DEBUG(f""" Proof: =================  \n{proof}""")
-
-        return proof
-
-    @staticmethod
     def _exe_command(command):
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE,
                                    universal_newlines=True)
@@ -324,3 +289,36 @@ class BtcGo:
                 return self.data['tx']["block_height"]
             except KeyError:
                 return self.data["block_height"]
+
+        def build_proof(self):
+            INFO()
+            INFO(f'Portal | Building proof | tx {self.get_tx_hash()}')
+            tx_by_hash = BtcGo.get_tx_by_hash(self.get_tx_hash())
+            height = tx_by_hash.get_block_height()
+            timeout = 2 * 60 * 60  # 2hours
+            interval = 120
+            while timeout > 0:
+                if height != -1:
+                    break
+
+                WAIT(interval)
+                tx_by_hash = BtcGo.get_tx_by_hash(self.get_tx_hash())
+                height = tx_by_hash.get_block_height()
+
+                timeout -= interval
+
+            WAIT(30)
+
+            command = [BtcGo.btc_build_proof_cli, '-blockHeight', f'{height}', '-txhash', f'{self.get_tx_hash()}']
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE,
+                                       universal_newlines=True)
+            stdout, stderr = process.communicate()
+            INFO(f"\n"
+                 f"+++ command: {' '.join(command)}\n\n"
+                 f"+++ out: {stdout}\n\n"
+                 f"+++ err: {stderr}")
+            breakpoint()
+            proof = stdout.split()[1]
+            DEBUG(f""" Proof: =================  \n{proof}""")
+
+            return proof

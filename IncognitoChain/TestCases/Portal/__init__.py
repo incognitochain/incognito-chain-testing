@@ -1,31 +1,29 @@
 from IncognitoChain.Configs.Constants import coin, PBNB_ID, PRV_ID, PBTC_ID
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
-from IncognitoChain.Objects.AccountObject import Account
+from IncognitoChain.Objects.AccountObject import Account, AccountGroup
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, COIN_MASTER, SUT, PORTAL_FEEDER
-from IncognitoChain.TestCases.Portal.HelpClasses import CustodianRemoteAddr
-
-portal_user = ACCOUNTS[1]
-self_pick_custodian = ACCOUNTS[6]
 
 PORTAL_REQ_TIME_OUT = 60  # minutes
 TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
 TEST_SETTING_PORTING_AMOUNT = 100
 TEST_SETTING_REDEEM_AMOUNT = 10
-self_pick_cus_bnb_address = 'tbnb1d90lad6rg5ldh8vxgtuwzxd8n6rhhx7mfqek38'
-self_pick_cus_btc_address = 'mgdwpAgvYNuJ2MyUimiKdTYsu2vpDZNpAa'
-portal_user_bnb_addr = 'tbnb1zyqrky9zcumc2e4smh3xwh2u8kudpdc56gafuk'
-portal_user_btc_addr = 'mhpTRAPdmyB1PUvXR2yqaSBK8ZJhEQ8rEw'
-bnb_pass_phrase = '123123Az'
+
+self_pick_custodian = ACCOUNTS[6]. \
+    set_remote_addr('tbnb1d90lad6rg5ldh8vxgtuwzxd8n6rhhx7mfqek38', 'mgdwpAgvYNuJ2MyUimiKdTYsu2vpDZNpAa')
+portal_user = ACCOUNTS[1]. \
+    set_remote_addr('tbnb1zyqrky9zcumc2e4smh3xwh2u8kudpdc56gafuk', 'mhpTRAPdmyB1PUvXR2yqaSBK8ZJhEQ8rEw')
+
+cli_pass_phrase = '123123Az'
 another_bnb_addr = 'tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss'
 another_btc_addr = 'mytWP2jW6Hsj5YdPvucm8Kkop9789adjQn'
 
-custodian_remote_addr = CustodianRemoteAddr({
-    ACCOUNTS[3]: ['tbnb172pnrmd0409237jwlq5qjhw2s2r7lq6ukmaeke', 'mg3me76RFFWeRuYqM6epwjMHHMTaouYLDe'],
-    ACCOUNTS[4]: ['tbnb19cmxazhx5ujlhhlvj9qz0wv8a4vvsx8vuy9cyc', 'mkgT1mphBPX1C3tn9yRK7HmVSYkVEn7VzY'],
-    ACCOUNTS[5]: ['tbnb1n5lrzass9l28djvv7drst53dcw7y9yj4pyvksf', 'myo25dPxQNqk94HwFLeFr42cH8VbwTGbBm'],
-    self_pick_custodian: [self_pick_cus_bnb_address, self_pick_cus_btc_address]
-})
+custodian_remote_addr = AccountGroup(
+    ACCOUNTS[3].set_remote_addr('tbnb172pnrmd0409237jwlq5qjhw2s2r7lq6ukmaeke', 'mg3me76RFFWeRuYqM6epwjMHHMTaouYLDe'),
+    ACCOUNTS[4].set_remote_addr('tbnb19cmxazhx5ujlhhlvj9qz0wv8a4vvsx8vuy9cyc', 'mkgT1mphBPX1C3tn9yRK7HmVSYkVEn7VzY'),
+    ACCOUNTS[5].set_remote_addr('tbnb1n5lrzass9l28djvv7drst53dcw7y9yj4pyvksf', 'myo25dPxQNqk94HwFLeFr42cH8VbwTGbBm'),
+    self_pick_custodian
+)
 
 init_portal_rate = {
     PRV_ID: '83159',

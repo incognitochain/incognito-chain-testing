@@ -6,8 +6,9 @@ from typing import List
 from websocket import WebSocketTimeoutException
 
 from IncognitoChain.Configs import Constants
-from IncognitoChain.Configs.Constants import PRV_ID, coin, PortalCustodianReqMatchingStatus
+from IncognitoChain.Configs.Constants import PRV_ID, coin, PortalCustodianReqMatchingStatus, PBNB_ID, PBTC_ID
 from IncognitoChain.Drivers.IncognitoKeyGen import get_key_set_from_private_k
+from IncognitoChain.Drivers.NeighborChainCli import NeighborChainCli
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
@@ -16,9 +17,32 @@ from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 
 
 class Account:
+    class RemoteAddress:
+        def __init__(self, data=None):
+            data = {} if data is None else data
+            self.data: dict = data
+
     _cache_custodian_inf = 'custodian_info'
     _cache_bal_prv = 'balance_prv'
     _cache_bal_tok = 'balance_token'
+
+    def set_remote_addr(self, *addresses):
+        """
+
+        :param addresses:
+            address list with following order: BNB, BTC. Set to None if you wish to leave the address empty
+        :return:
+        """
+        support_token_list = [PBNB_ID, PBTC_ID]
+        for token, address in zip(support_token_list, addresses):
+            self.remote_addr.data[token] = address
+        return self
+
+    def get_remote_addr(self, token_id):
+        try:
+            return self.remote_addr.data[token_id]
+        except KeyError:
+            return None
 
     def _generate_keys(self):
         private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
@@ -41,6 +65,7 @@ class Account:
             private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
             bridge_public_k, mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(private_key)
 
+            self.remote_addr = Account.RemoteAddress()
             self.private_key = private_k
             self.validator_key = validator_k
             self.payment_key = self.incognito_addr = payment_k
@@ -98,7 +123,7 @@ class Account:
         return copy_obj
 
     def __eq__(self, other):
-        if self.private_key == other.private_key:
+        if self.payment_key == other.payment_key:
             return True
         return False
 
@@ -364,6 +389,25 @@ class Account:
             return self.cache[Account._cache_bal_prv]
         except KeyError:
             return None
+
+    def send_public_token(self, token_id, amount, receiver, password=None, memo=None):
+        """
+
+        :param token_id:
+        :param amount:
+        :param receiver: Account or remote address
+        :param password:
+        :param memo:
+        :return:
+        """
+        cli = NeighborChainCli.new(token_id)
+        receiver_remote_addr = receiver.get_remote_addr(token_id) if type(receiver) is Account else receiver
+        return cli.send_to(self.get_remote_addr(token_id), receiver_remote_addr, amount, password,
+                           memo)
+
+    def send_public_token_multi(self, token_id, receiver_amount_dict, password=None, *memo):
+        cli = NeighborChainCli.new(token_id)
+        return cli.send_to_multi(self.get_remote_addr(token_id), receiver_amount_dict, password, memo)
 
     def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1):
         """
@@ -845,7 +889,7 @@ class Account:
         """
         return self.portal_add_collateral(collateral, ptoken, remote_addr)
 
-    def portal_let_me_take_care_this_redeem(self, redeem_id):
+    def portal_let_me_take_care_this_redeem(self, redeem_id, do_assert=True):
         INFO(f"{l6(self.payment_key)} will take this redeem: {redeem_id}")
         req_tx = self.__SUT.full_node.portal().create_n_send_tx_with_req_matching_redeem(self.private_key,
                                                                                          self.payment_key, redeem_id)
@@ -853,11 +897,12 @@ class Account:
         info = RedeemReqInfo()
         info.get_req_matching_redeem_status(req_tx.get_tx_id())
 
-        assert info.get_status() == PortalCustodianReqMatchingStatus.ACCEPT, \
-            f'Req matching status is {info.get_status()}'
+        if do_assert:
+            assert info.get_status() == PortalCustodianReqMatchingStatus.ACCEPT, \
+                f'Req matching status is {info.get_status()}'
         return req_tx
 
-    def portal_req_redeem_my_token(self, remote_addr, token_id, redeem_amount, redeem_fee=None, privacy=True):
+    def portal_req_redeem_my_token(self, token_id, redeem_amount, redeem_fee=None, privacy=True):
         INFO()
         redeem_id = f"{l6(token_id)}_{get_current_date_time()}"
         INFO(f'Portal | Custodian {l6(self.payment_key)} | req redeem token |'
@@ -868,9 +913,9 @@ class Account:
         if redeem_fee is None:
             redeem_fee = self.__SUT.full_node.portal().get_porting_req_fees(token_id, redeem_amount,
                                                                             beacon_height).get_result(token_id)
-        return self.__SUT.full_node.portal().create_n_send_tx_with_redeem_req(self.private_key, self.payment_key,
-                                                                              remote_addr, token_id, redeem_amount,
-                                                                              redeem_fee, redeem_id, privacy)
+        return self.__SUT.full_node.portal(). \
+            create_n_send_tx_with_redeem_req(self.private_key, self.payment_key, self.get_remote_addr(token_id),
+                                             token_id, redeem_amount, redeem_fee, redeem_id, privacy)
 
     def portal_withdraw_my_collateral(self, amount):
         INFO(f'Portal | Custodian {l6(self.payment_key)} | Withdraw collateral: {amount}')
@@ -1074,6 +1119,27 @@ class Account:
         for acc, amount in receiver.items():
             acc.wait_for_balance_change(from_balance=acc.get_prv_balance_cache())
         return send_tx
+
+
+class AccountGroup:
+    def __init__(self, *accounts):
+        self.account_list: List[Account] = list(accounts)
+
+    def get_remote_addr(self, token, custodian_acc=None):
+        if custodian_acc is not None:
+            for acc in self.account_list:
+                if acc == custodian_acc:
+                    return acc.get_remote_addr(token)
+        else:
+            return [account.get_remote_addr(token) for account in self.account_list]
+
+    def get_accounts(self, inc_addr=None):
+        if inc_addr is None:
+            return self.account_list
+        else:
+            for acc in self.account_list:
+                if acc.payment_key == inc_addr:
+                    return acc
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:

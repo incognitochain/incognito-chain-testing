@@ -14,7 +14,7 @@ def l6(string):
     :param string:
     :return:
     """
-    return string[-6:]
+    return str(string)[-6:]
 
 
 def json_extract(string):

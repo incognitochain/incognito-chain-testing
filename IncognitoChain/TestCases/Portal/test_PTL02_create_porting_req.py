@@ -2,13 +2,12 @@ import pytest
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PortalPortingStatusByPortingId, PortalPortingStatusByTxId, \
     PortalPtokenReqStatus, PRV_ID, coin, PBTC_ID
-from IncognitoChain.Drivers.NeighborChainCli import NeighborChainCli
 from IncognitoChain.Helpers.Logging import STEP, INFO, WARNING, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER, PORTAL_FEEDER
 from IncognitoChain.Objects.PortalObjects import PortingReqInfo, PTokenReqInfo
-from IncognitoChain.TestCases.Portal import portal_user, portal_user_bnb_addr as user_addr, bnb_pass_phrase, \
+from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, \
     TEST_SETTING_PORTING_AMOUNT, custodian_remote_addr, big_collateral, fat_custodian_prv, big_rate, \
     big_porting_amount, \
     init_portal_rate, fat_custodian, TEST_SETTING_DEPOSIT_AMOUNT, PORTAL_REQ_TIME_OUT
@@ -51,40 +50,38 @@ def setup_module():
         SUT.full_node.help_wait_till_next_epoch()
 
 
-@pytest.mark.parametrize("token, porting_amount, user, user_remote_addr, porting_fee, num_of_custodian, desired_status",
+@pytest.mark.parametrize("token, porting_amount, user, porting_fee, num_of_custodian, desired_status",
                          [  # fee = None means auto calculate fee
                              # big amount porting test should be run alone
                              # BNB
                              # 1 custodian
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "valid"),
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "expire"),
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "liquidate"),
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, 1, 1, "invalid"),
-                             (PBNB_ID, big_porting_amount, None, 1, portal_user, user_addr, "valid"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "valid"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "expire"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "liquidate"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, 1, "invalid"),
+                             (PBNB_ID, big_porting_amount, None, 1, portal_user, "valid"),
                              # n custodian
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "valid"),
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "expire"),
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "liquidate"),
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, 1, n, "invalid"),
-
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "valid"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "expire"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "liquidate"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, n, "invalid"),
+                             #
                              # BTC
                              # 1 custodian
-                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "valid"),
-                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "expire"),
-                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, 1, "liquidate"),
-                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, 1, 1, "invalid"),
-                             (PBTC_ID, big_porting_amount, None, 1, portal_user, user_addr, "valid"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "valid"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "expire"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "liquidate"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, 1, "invalid"),
+                             (PBTC_ID, big_porting_amount, None, 1, portal_user, "valid"),
                              # n custodian
-                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "valid"),
-                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "expire"),
-                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, None, n, "liquidate"),
-                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, user_addr, 1, n, "invalid"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "valid"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "expire"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "liquidate"),
+                             (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, n, "invalid"),
 
                          ])
-def test_create_porting_req_1_1(token, porting_amount, user, user_remote_addr, porting_fee, num_of_custodian,
+def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of_custodian,
                                 desired_status):
-    cli = NeighborChainCli.new(token)
-
     STEP(0, "Preparation before test")
     remote_receiver_dict = {}
     PSI_before_test = SUT.full_node.get_latest_portal_state_info()
@@ -222,11 +219,11 @@ def test_create_porting_req_1_1(token, porting_amount, user, user_remote_addr, p
                 custodian_info.get_remote_address()] = tok_amount_to_send // 10  # pbtc,pbnb 10^-9, while btc,bnb 10^-8
 
         memo = porting_req_info.get_porting_id()
-        send_public_token_tx = cli.send_to_multi(user_addr, remote_receiver_dict, bnb_pass_phrase, memo)
+        send_public_token_tx = user.send_public_token_multi(token, remote_receiver_dict, cli_pass_phrase, memo)
 
         STEP(6, 'Submit proof to request ported token')
         balance_before_req_ported_token = user.get_token_balance(token)
-        proof = cli.build_proof(send_public_token_tx.get_tx_hash())
+        proof = send_public_token_tx.build_proof()
         req_tx = user.portal_req_ported_ptoken(porting_id, token, porting_amount, proof)
         req_tx.subscribe_transaction()
         WAIT(90)  # wait for the req to be processed
@@ -349,7 +346,6 @@ def est_porting_req_expired(num_of_custodian):
         porting_amount = TEST_SETTING_PORTING_AMOUNT
     user_prv_bal_be4_test = portal_user.get_prv_balance()
     estimated_porting_fee = PortalHelper.cal_portal_portal_fee(porting_amount, pbnb_rate, prv_rate)
-    estimated_collateral = PortalHelper.cal_lock_collateral(porting_amount, pbnb_rate, prv_rate)
 
     STEP(1, f"Create a valid porting request")
     porting_req = portal_user.portal_create_porting_request(PBNB_ID, porting_amount)
