@@ -41,6 +41,7 @@ def coin(amount, nano=True):
         return amount / ONE_COIN
 
 
+# more portal status @ common/constants.go
 class PortalPortingStatusByPortingId:
     SUCCESS = 1
     WAITING = 2
@@ -87,5 +88,10 @@ class PortalCustodianWithdrawStatus:
 
 
 class PortalRewardWithdrawStatus:
+    ACCEPT = 1
+    REJECTED = 2
+
+
+class PortalRedeemMatchingStatus:
     ACCEPT = 1
     REJECTED = 2
