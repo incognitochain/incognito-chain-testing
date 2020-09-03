@@ -1,6 +1,7 @@
 import copy
 from re import search
 
+from IncognitoChain.Configs.Constants import PRV_ID
 from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG
 from IncognitoChain.Helpers.TestHelper import extract_incognito_addr, l6
 from IncognitoChain.Helpers.Time import WAIT
@@ -417,6 +418,25 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             if contributor == payment_k:
                 return True
         return False
+
+    def is_pair_existed(self, token1, token2):
+        pairs = self.get_pde_pool_pairs()
+        for pair in pairs:
+            match_straight = pair.get_token1_id() == token1 and pair.get_token2_id() == token2
+            match____cross = pair.get_token1_id() == token2 and pair.get_token2_id() == token1
+            if match_straight or match____cross:
+                INFO(f'Pair {pair} exists')
+                return True
+
+        INFO(f'Pair {l6(token1)}-{l6(token2)} NOT exist')
+        return False
+
+    def is_trading_pair_v2_is_possible(self, token1, token2):
+        if token1 != PRV_ID and token2 != PRV_ID:  # both are not PRV
+            if self.is_pair_existed(PRV_ID, token1) and self.is_pair_existed(PRV_ID, token2):
+                return True
+        else:  # one of the two token is PRV
+            return self.is_pair_existed(token1, token2)
 
 
 class PDEContributeInfo(BlockChainInfoBaseClass):

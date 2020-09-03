@@ -36,6 +36,10 @@ def setup_function():
     ["n shard", token_id_1, token_id_2],
 ))
 def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
+    pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    if not pde_state_b4.is_trading_pair_v2_is_possible(token_buy, token_sell):
+        pytest.skip('Pool pair missing, can not trade')
+
     if test_mode == '1 shard':
         traders = acc_list_1_shard
     else:
@@ -66,7 +70,6 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
                     random.randrange(190000, 200000),
                     random.randrange(190000, 200000),
                     0]
-    pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
 
     for i in range(0, len(traders)):
         trader = traders[i]
