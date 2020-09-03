@@ -2,7 +2,7 @@ import copy
 from re import search
 
 from IncognitoChain.Configs.Constants import PRV_ID
-from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG
+from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG, ERROR
 from IncognitoChain.Helpers.TestHelper import extract_incognito_addr, l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects import BlockChainInfoBaseClass
@@ -387,6 +387,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             elif pair.get_token2_id() == token1:
                 if pair.get_token1_id() == token2:
                     return [pair.get_token2_pool_value(), pair.get_token1_pool_value()]
+        ERROR(f'Pair {l6(token1)}-{l6(token2)} DOES NOT EXIST')
 
     def sum_share_pool_of_pair(self, user=None, token1=None, token2=None):
         INFO(f'Calculating sum share of pair...')
