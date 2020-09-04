@@ -7,9 +7,11 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, UnlockCollateralReqInfo, RedeemMatchingInfo
 from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, \
-    TEST_SETTING_REDEEM_AMOUNT, PORTAL_REQ_TIME_OUT, custodian_remote_addr
+    PORTAL_REQ_TIME_OUT, custodian_remote_addr, TEST_SETTING_REDEEM_AMOUNT
 
-n = 'n'
+n = 2
+full_holding = 'full holding'
+any_ = 'any'
 
 
 @pytest.mark.parametrize("token, redeem_amount, redeem_fee, num_of_custodian, custodian_matching, expected", [
@@ -21,8 +23,11 @@ n = 'n'
     (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, 'manual', 'valid'),
     (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, 1, 1, 'manual', 'invalid'),
     (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, 'manual', 'expire'),
+    (PBNB_ID, full_holding, None, 1, 'manual', 'valid'),  # test case 20
+    (PBNB_ID, full_holding, None, 1, 'auto', 'valid'),  # test case 20
     # n custodian
-    (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, None, n, 'auto', 'valid'),
+    (PBNB_ID, any_, None, n, 'auto', 'valid'),
+    (PBNB_ID, any_, None, n, 'manual', 'valid'),  # test case 22
 
     #
     # BTC
@@ -32,17 +37,20 @@ n = 'n'
     (PBTC_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, 'manual', 'valid'),
     (PBTC_ID, TEST_SETTING_REDEEM_AMOUNT, 1, 1, 'manual', 'invalid'),
     (PBTC_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, 'manual', 'expire'),
-    # n custodian
-    (PBTC_ID, TEST_SETTING_REDEEM_AMOUNT, None, n, 'auto', 'valid'),
+    # # n custodian
+    (PBTC_ID, any_, None, n, 'auto', 'valid'),
+    (PBTC_ID, any_, None, n, 'manual', 'valid'),  # test case 22
 
 ])
 def test_create_redeem_req_1_1(token, redeem_amount, redeem_fee, num_of_custodian, custodian_matching, expected):
     prv_bal_be4 = portal_user.get_prv_balance()
     tok_bal_be4 = portal_user.get_token_balance(token)
     PSI_before_test = SUT.full_node.get_latest_portal_state_info()
+    highest_holding_token_custodian_in_pool = PSI_before_test.help_get_highest_holding_token_custodian(token)
     if num_of_custodian == n:
-        highest_holding_token_custodian_in_pool = PSI_before_test.help_get_highest_holding_token_custodian(token)
         redeem_amount = highest_holding_token_custodian_in_pool.get_holding_token_amount(token) + 1
+    if redeem_amount == full_holding:
+        redeem_amount = highest_holding_token_custodian_in_pool.get_holding_token_amount(token)
 
     STEP(1.1, 'Create redeem req')
     redeem_req_tx = portal_user.portal_req_redeem_my_token(token, redeem_amount, redeem_fee=redeem_fee)
@@ -78,7 +86,7 @@ def test_create_redeem_req_1_1(token, redeem_amount, redeem_fee, num_of_custodia
         STEP(3.1, "Check requester bal")
         assert tok_bal_be4 - redeem_amount == portal_user.get_token_balance(token)
 
-        matching_custodian(custodian_matching, token, redeem_id, PSI_before_test)
+        matching_custodian(custodian_matching, num_of_custodian, token, redeem_id, PSI_before_test)
 
         if expected == 'valid':
             # todo: not yet cover case redeem 1_n expire and invalid, update the verify function below for that
@@ -200,15 +208,21 @@ def verify_expired_redeem(token, redeem_id, tok_bal_b4, prv_bal_b4, tx_fee, rede
     assert prv_bal_b4 - tx_fee - redeem_fee == portal_user.get_prv_balance()
 
 
-def matching_custodian(matching_mode, token, redeem_id, psi_b4):
+def matching_custodian(matching_mode, num_of_custodian, token, redeem_id, psi_b4):
     if matching_mode == 'auto':
         STEP(3.2, f'Wait 10 min for custodian auto pick')
         WAIT(10.5 * 60)
     else:  # manual matching
-        highest_holding_custodian = psi_b4.help_get_highest_holding_token_custodian(token)
-        custodian = custodian_remote_addr.get_accounts(highest_holding_custodian.get_incognito_addr())
-        STEP(3.2, f"Self-picking custodian: {l6(custodian.payment_key)}")
-        custodian.portal_let_me_take_care_this_redeem(redeem_id)
+        STEP(3.2, f"Self-matching custodian")
+        custodian_pool = psi_b4.help_sort_custodian_by_holding_token_desc(token)
+        for i in range(0, num_of_custodian):
+            custodian_info = custodian_pool[i]
+            custodian = custodian_remote_addr.get_accounts(custodian_info.get_incognito_addr())
+            custodian.portal_let_me_take_care_this_redeem(redeem_id)
+            if i != num_of_custodian - 1:  # when the last custodian is matched, status will change to accept instead
+                # Test case 21
+                redeem_info = RedeemReqInfo().get_redeem_status_by_redeem_id(redeem_id)
+                assert redeem_info.get_status() == PortalRedeemStatus.WAITING
 
 
 def verify_rematching_test_19(token, redeem_id, psi_b4, custodian_info_b4):
