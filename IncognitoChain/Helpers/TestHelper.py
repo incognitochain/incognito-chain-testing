@@ -349,83 +349,72 @@ class PortalHelper:
         return int(
             PortalHelper.cal_portal_exchange_prv_to_tok(prv_equivalent, prv_rate, token_rate))
 
-def get_beacon_best_detail(number_of_beacons_to_get=1, wait=5, timeout=120):
+def get_beacon_best_state_detail(number_of_beacon_height_to_get=100, wait=5, timeout=50):
     """
-    Function to get beacon best detail
-    :param number_of_beacons_to_get:
+    Function to get beacon best state detail
+    :param number_of_beacon_height_to_get: number of beacon height to get
     :param wait:
     :param timeout:
-    :return:
+    :return: a list beacon best state detail obj
     """
     from IncognitoChain.Objects.IncognitoTestCase import SUT
-    log_file = "./log_beacon_best_detail.log"
-    for i in range(1, number_of_beacons_to_get + 1):
-        log_content = '*' * 32 + "\n"
-        f = open(log_file, "a+")
-        f.write(log_content)
-        f.close()
-
-        log_content = ''
-        dictionary_data = SUT.full_node.system_rpc().get_beacon_best_state_detail().get_result()
-        now = datetime.now()
-        date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
-        log_content = f"{date_time} - Current beacon height is {dictionary_data['BeaconHeight']}\n"
-        for key, value in dictionary_data.items():
-            a_log = f'{key}: {value}\n'
-            log_content = log_content + a_log
-
+    list_beacon_best_state_detail_objs = []
+    for i in range(1, number_of_beacon_height_to_get + 1):
+        list_beacon_best_state_detail_objs.append(SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info())
         # Waiting till beacon height increase
         ChainHelper.wait_till_next_beacon_height(num_of_beacon_height_to_wait=1, wait=wait, timeout=timeout)
+        list_beacon_best_state_detail_objs.append(SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info())
+    return list_beacon_best_state_detail_objs
 
-        dictionary_data = SUT.full_node.system_rpc().get_beacon_best_state_detail().get_result()
-        now = datetime.now()
-        date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
-        log_content = f"{date_time} - Current beacon height is {dictionary_data['BeaconHeight']}\n"
-        for key, value in dictionary_data.items():
-            a_log = f'{key}: {value}\n'
-            log_content = log_content + a_log
-
-        f = open(log_file, "a+")
-        f.write(log_content+"\n")
-        f.close()
-
-def get_shard_best_detail(shard_id=0, number_of_shards_to_get=1, wait=5, timeout=120):
+def get_shard_best_state_detail(shard_id, number_of_shard_height_to_get=100, wait=5, timeout=50):
     """
-    Function to get shard best detail
+    Function to get shard best state detail
     :param shard_id:
-    :param number_of_shards_to_get:
+    :param number_of_shard_height_to_get: number of shard height to get
     :param wait:
     :param timeout:
-    :return:
+    :return: a list shard detail obj
     """
     from IncognitoChain.Objects.IncognitoTestCase import SUT
-    log_file = "./log_shard_best_detail.log"
-    for i in range(1, number_of_shards_to_get + 1):
-        log_content = '*' * 32 + "\n"
-        f = open(log_file, "a+")
-        f.write(log_content)
-        f.close()
-
-        log_content = ''
-        dictionary_data = SUT.full_node.system_rpc().get_shard_best_detail(shard_id).get_result()
-        now = datetime.now()
-        date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
-        log_content = f"{date_time} - Current shard {shard_id} height is {dictionary_data['ShardHeight']}\n"
-        for key, value in dictionary_data.items():
-            a_log = f'{key}: {value}\n'
-            log_content = log_content + a_log
-
+    list_shard_best_state_detail_objs = []
+    for i in range(1, number_of_shard_height_to_get + 1):
+        list_shard_best_state_detail_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_detail_info(shard_id))
         # Waiting till shard height increase
         ChainHelper.wait_till_next_shard_height(shard_id=shard_id, num_of_shard_height_to_wait=1, wait=wait, timeout=timeout)
+        list_shard_best_state_detail_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_detail_info(shard_id))
+    return list_shard_best_state_detail_objs
 
-        dictionary_data = SUT.full_node.system_rpc().get_shard_best_detail(shard_id).get_result()
-        now = datetime.now()
-        date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
-        log_content = f"{date_time} - Current shard {shard_id} height is {dictionary_data['ShardHeight']}\n"
-        for key, value in dictionary_data.items():
-            a_log = f'{key}: {value}\n'
-            log_content = log_content + a_log
+def get_beacon_best_state(number_of_beacon_height_to_get=100, wait=5, timeout=50):
+    """
+    Function to get beacon best state
+    :param number_of_beacon_height_to_get: number of beacon height to get
+    :param wait:
+    :param timeout:
+    :return: a list beacon best state obj
+    """
+    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    list_beacon_best_state_objs = []
+    for i in range(1, number_of_beacon_height_to_get + 1):
+        list_beacon_best_state_objs.append(SUT.REQUEST_HANDLER.get_beacon_best_state_info())
+        # Waiting till beacon height increase
+        ChainHelper.wait_till_next_beacon_height(num_of_beacon_height_to_wait=1, wait=wait, timeout=timeout)
+        list_beacon_best_state_objs.append(SUT.REQUEST_HANDLER.get_beacon_best_state_info())
+    return list_beacon_best_state_objs
 
-        f = open(log_file, "a+")
-        f.write(log_content + "\n")
-        f.close()
+def get_shard_best_state(shard_id, number_of_shard_height_to_get=100, wait=5, timeout=50):
+    """
+    Function to get shard best state
+    :param shard_id: shard id
+    :param number_of_shard_height_to_get: number of shard height to get
+    :param wait:
+    :param timeout:
+    :return: a list shard best state obj
+    """
+    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    list_shard_best_state_objs = []
+    for i in range(1, number_of_shard_height_to_get + 1):
+        list_shard_best_state_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_info(shard_id))
+        # Waiting till shard height increase
+        ChainHelper.wait_till_next_shard_height(shard_id=shard_id, num_of_shard_height_to_wait=1, wait=wait, timeout=timeout)
+        list_shard_best_state_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_info(shard_id))
+    return list_shard_best_state_objs

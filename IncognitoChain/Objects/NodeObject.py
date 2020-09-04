@@ -17,10 +17,11 @@ from IncognitoChain.Helpers.Logging import INFO, DEBUG, WARNING
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account
-from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock
+from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock, BeaconBestStateInfo
 from IncognitoChain.Objects.BlockChainObjects import BlockChainCore
 from IncognitoChain.Objects.PdeObjects import PDEStateInfo
 from IncognitoChain.Objects.PortalObjects import PortalStateInfo
+from IncognitoChain.Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
 
 
 class Node:
@@ -136,7 +137,7 @@ class Node:
         beacon_height = TestHelper.ChainHelper.cal_first_height_of_epoch(epoch)
         return self.get_latest_beacon_block(beacon_height)
 
-    def get_beacon_best_state_info(self):
+    def get_beacon_best_state_detail_info(self):
         beacon_detail_raw = self.system_rpc().get_beacon_best_state_detail().get_result()
         beacon_state_obj = BeaconBestStateDetailInfo(beacon_detail_raw)
         return beacon_state_obj
@@ -327,5 +328,32 @@ class Node:
         return RESULT
 
     def help_get_shard_height(self, shard_num=None):
-        chain_info = self.get_block_chain_info()
-        return chain_info.get_shard_block(shard_num).get_height()
+        """
+        Function to get shard height
+        :param shard_num:
+        :return:
+        """
+        if shard_num is None:
+            dict_shard_height = {}
+            num_shards_info = self.get_block_chain_info().get_num_of_shard()
+            for shard_id in range(0, num_shards_info):
+                shard_height = self.get_block_chain_info().get_shard_block(shard_id).get_height()
+                dict_shard_height.update({str(shard_id):shard_height})
+            return dict_shard_height
+        else:
+            return self.get_block_chain_info().get_shard_block(shard_num).get_height()
+
+    def get_shard_best_state_detail_info(self, shard_num=None):
+        shard_state_detail_raw = self.system_rpc().get_shard_best_state_detail(shard_num).get_result()
+        shard_state_detail_obj = ShardBestStateDetailInfo(shard_state_detail_raw)
+        return shard_state_detail_obj
+
+    def get_beacon_best_state_info(self):
+        beacon_best_state_raw = self.system_rpc().get_beacon_best_state().get_result()
+        beacon_best_state_obj = BeaconBestStateInfo(beacon_best_state_raw)
+        return beacon_best_state_obj
+
+    def get_shard_best_state_info(self, shard_num=None):
+        shard_state_raw = self.system_rpc().get_shard_best_state(shard_num).get_result()
+        shard_state_obj = ShardBestStateInfo(shard_state_raw)
+        return shard_state_obj

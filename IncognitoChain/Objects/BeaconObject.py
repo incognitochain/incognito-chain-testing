@@ -58,7 +58,7 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         return self.data["BestBlockHash"]
 
     def get_previous_block_hash(self):
-        return self.data["get_previous_block_hash"]
+        return self.data["PreviousBestBlockHash"]
 
     def get_epoch(self):
         return self.data["Epoch"]
@@ -153,12 +153,32 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         else:
             return
 
-    def _get_shard_pending_validator(self):
-        return self.data['ShardPendingValidator']
+    def get_shard_pending_validator(self, shard_num=None, validator_number=None):
+        obj_list = []
+        committee_dict_raw = self.data['ShardPendingValidator']  # get all committee in all shard
 
-    def get_shard_pending_validator(self, shard_num, validator_number):
-        return BeaconBestStateDetailInfo.Committee(
-            self._get_shard_pending_validator()[str(shard_num)][validator_number])
+        if shard_num is not None and validator_number is not None:  # get a specific committee
+            committee_raw = committee_dict_raw[str(shard_num)][validator_number]
+            committee_obj = BeaconBestStateDetailInfo.Committee(committee_raw)
+            return committee_obj
+        elif shard_num is not None and validator_number is None:  # get all committee in a shard
+            committee_list_raw = committee_dict_raw[str(shard_num)]
+            for committee_raw in committee_list_raw:
+                committee_obj = BeaconBestStateDetailInfo.Committee(committee_raw)
+                obj_list.append(committee_obj)
+            return obj_list
+        elif shard_num is None and validator_number is None:
+            dict_objs = {}
+            list_objs = []
+            for key, value in committee_dict_raw.items():
+                for info in value:
+                    obj = BeaconBestStateDetailInfo.Committee(info)
+                    list_objs.append(obj)
+                dict_objs.update({key: list_objs})
+                list_objs = []
+            return dict_objs
+        else:
+            return
 
     def get_auto_staking_committees(self, auto_staking_number=None):
         auto_staking_objs = []
@@ -214,10 +234,19 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
                 return committee.is_auto_staking()
         return
 
-    # TODO: Will update after getting the data
     def get_candidate_shard_waiting_current_random(self):
-        return self.data["CandidateShardWaitingForCurrentRandom"]
+        """
+        Function to get candidate shard waiting current random
+        :return: a list candidate shard waiting current random objs
+        """
+        candidate_shard_waiting_current_random_objs = []
+        candidate_shard_waiting_current_random_list_raw = self.data['CandidateShardWaitingForCurrentRandom']
+        for obj in candidate_shard_waiting_current_random_list_raw:
+            candidate_shard_waiting_current_random_obj = BeaconBestStateDetailInfo.Committee(obj)
+            candidate_shard_waiting_current_random_objs.append(candidate_shard_waiting_current_random_obj)
+        return candidate_shard_waiting_current_random_objs
 
+    # TODO: Will update after getting the data
     def get_candidate_beacon_waiting_current_random(self):
         return self.data["CandidateBeaconWaitingForCurrentRandom"]
 
@@ -225,7 +254,17 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         return self.data["CandidateBeaconWaitingForNextRandom"]
 
     def get_candidate_shard_waiting_next_random(self):
-        return self.data["CandidateShardWaitingForNextRandom"]
+        """
+        Function to get candidate shard waiting next random
+        :return: a list candidate shard waiting next random objs
+        :return:
+        """
+        candidate_shard_waiting_next_random_objs = []
+        candidate_shard_waiting_next_random_list_raw = self.data['CandidateShardWaitingForNextRandom']
+        for obj in candidate_shard_waiting_next_random_list_raw:
+            candidate_shard_waiting_next_random_obj = BeaconBestStateDetailInfo.Committee(obj)
+            candidate_shard_waiting_next_random_objs.append(candidate_shard_waiting_next_random_obj)
+        return candidate_shard_waiting_next_random_objs
 
     def get_reward_receiver(self):
         return self.data["RewardReceiver"]
@@ -477,3 +516,81 @@ class BeaconBlock(BlockChainInfoBaseClass):
         RESULT['DAO'] = DAO_amount
 
         return RESULT
+
+
+class BeaconBestStateInfo(BeaconBestStateDetailInfo):
+
+    def get_beacon_committee(self):
+        return self.data['BeaconCommittee']
+
+    def get_candidate_shard_waiting_next_random(self):
+        candidate_shard_waiting_next_random_list_raw = self.data['CandidateShardWaitingForNextRandom']
+        return candidate_shard_waiting_next_random_list_raw
+
+    def get_candidate_shard_waiting_current_random(self):
+        candidate_shard_waiting_current_random_list_raw = self.data['CandidateShardWaitingForCurrentRandom']
+        return candidate_shard_waiting_current_random_list_raw
+
+    def get_shard_committees(self, shard_num=None, validator_number=None):
+        """
+        Function to get shard committee
+        :param shard_num: shard id
+        :param validator_number: position of validator in shard committee
+        :return:
+        Return a committee public key that shard_num and validator_num are specified
+        Return list of committee public key if only shard_num is specify
+        Return dict of {shard_num: list of committee public key} if only shard_num and validator_num are specify
+        """
+        committee_dict_raw = self.data['ShardCommittee']  # get all committee in all shard
+
+        if shard_num is not None and validator_number is not None:  # get a specific committee
+            committee_public_key = committee_dict_raw[str(shard_num)][validator_number]
+            return committee_public_key
+
+        elif shard_num is not None and validator_number is None:  # get all committee in a shard
+            committee_public_key_list = committee_dict_raw[str(shard_num)]
+            return committee_public_key_list
+
+        elif shard_num is None and validator_number is None:  # get all committee in all shard
+            committee_public_key_dict = self.data['ShardCommittee']
+            return committee_public_key_dict
+
+    def get_auto_staking_committees(self, committee_public_key=None):
+        """
+        Function to get auto staking committee
+        :param committee_public_key: committee public key of account
+        :return: a dict if committee public key is None
+        """
+        auto_staking_dict_raw = self.data['AutoStaking']
+
+        if committee_public_key is None:  # get all committee auto staking
+            return auto_staking_dict_raw
+
+        elif committee_public_key is not None:  # get a committee auto staking
+            for key, value in auto_staking_dict_raw.items():
+                if committee_public_key == key:
+                    return value
+
+    def get_shard_pending_validator(self, shard_num=None, validator_number=None):
+        """
+        Function to get committee in shard pending validator
+        :param shard_num: shard id
+        :param validator_number: position of validator in shard pending validator
+        :return:
+        Return a committee public key that shard_num and validator_num are specified
+        Return list of committee public key if only shard_num is specify
+        Return dict of {shard_num: list of committee public key} if only shard_num and validator_num are specify
+        """
+        committee_dict_raw = self.data['ShardPendingValidator']  # get all committee in all shard
+
+        if shard_num is not None and validator_number is not None:  # get a specific committee
+            committee_public_key = committee_dict_raw[str(shard_num)][validator_number]
+            return committee_public_key
+
+        elif shard_num is not None and validator_number is None:  # get all committee in a shard
+            committee_public_key_list = committee_dict_raw[str(shard_num)]
+            return committee_public_key_list
+
+        elif shard_num is None and validator_number is None:  # get all committee in all shard
+            committee_public_key_dict = self.data['ShardPendingValidator']
+            return committee_public_key_dict

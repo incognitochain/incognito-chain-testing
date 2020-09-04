@@ -54,5 +54,8 @@ class SystemRpc:
             with_params([shard_id, epoch]). \
             execute()
 
-    def get_shard_best_detail(self, shard_id):
+    def get_shard_best_state_detail(self, shard_id):
         return self.rpc_connection.with_method('getshardbeststatedetail').with_params([shard_id]).execute()
+
+    def get_shard_best_state(self, shard_id):
+        return self.rpc_connection.with_method('getshardbeststate').with_params([shard_id]).execute()
