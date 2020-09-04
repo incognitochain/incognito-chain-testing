@@ -98,8 +98,7 @@ def test_add_more_collateral(depositor, token, expected_pass):
         pytest.skip(f'{l6(depositor.incognito_addr)} is not an existing custodian,'
                     f' add more collateral test cannot proceed')
     STEP(2, "Add more collateral")
-    deposit_tx = depositor.portal_add_collateral(deposit_amount, token,
-                                                 custodian_remote_addr.get_remote_addr(token, depositor))
+    deposit_tx = depositor.portal_add_collateral(deposit_amount, token)
     if expected_pass:
         deposit_tx.expect_no_error()
         deposit_tx_result = deposit_tx.subscribe_transaction()

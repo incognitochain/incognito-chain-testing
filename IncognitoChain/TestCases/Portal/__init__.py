@@ -1,10 +1,10 @@
 from IncognitoChain.Configs.Constants import coin, PBNB_ID, PRV_ID, PBTC_ID
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
-from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
+from IncognitoChain.Helpers.TestHelper import PortalHelper
 from IncognitoChain.Objects.AccountObject import Account, AccountGroup
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, COIN_MASTER, SUT, PORTAL_FEEDER
 
-PORTAL_REQ_TIME_OUT = 60  # minutes
+PORTAL_REQ_TIME_OUT = 15  # minutes
 TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
 TEST_SETTING_PORTING_AMOUNT = 100
 TEST_SETTING_REDEEM_AMOUNT = 10
@@ -87,23 +87,4 @@ def teardown_module():
 
 def setup_function():
     INFO_HEADLINE('Portal Info before test')
-    portal_state_info = SUT.full_node.get_latest_portal_state_info()
-    custodian_pool_info = portal_state_info.get_custodian_pool()
-    sum_total_collateral = 0
-    sum_free_collateral = 0
-    for custodian_info in custodian_pool_info:
-        if custodian_info is not None:
-            sum_total_collateral += custodian_info.get_total_collateral()
-            sum_free_collateral += custodian_info.get_free_collateral()
-            INFO(f"--------------------------------------------------------------\n"
-                 f"\t\tCustodian             : {l6(custodian_info.get_incognito_addr())}\n"
-                 f"\t\tTotal collateral      : {custodian_info.get_total_collateral()}\n"
-                 f"\t\tFree collateral       : {custodian_info.get_free_collateral()}\n"
-                 f"\t\tLocked BNB collateral : {custodian_info.get_locked_collateral(PBNB_ID)}\n"
-                 f"\t\tHold BNB              : {custodian_info.get_holding_token_amount(PBNB_ID)} \n"
-                 f"\t\tLocked BTC collateral : {custodian_info.get_locked_collateral(PBTC_ID)} \n"
-                 f"\t\tHold BTC              : {custodian_info.get_holding_token_amount(PBTC_ID)}")
-    INFO(f"--------------------------------------------------------------\n"
-         f"\t\tSum total collateral: {sum_total_collateral}\n"
-         f"\t\tSum free collateral : {sum_free_collateral}")
-    INFO_HEADLINE('End of portal Info before test')
+    SUT.full_node.get_latest_portal_state_info().print_state()

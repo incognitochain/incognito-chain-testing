@@ -6,7 +6,7 @@ from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
 
 
-@pytest.mark.parametrize('token, account_list', [
+@pytest.mark.parametrize('token_id, account_list', [
     (PRV_ID, ACCOUNTS),
     # ('token',ACCOUNTS)
 ])

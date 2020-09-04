@@ -1,4 +1,5 @@
 import copy
+import random
 from typing import List
 
 from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, \
@@ -496,7 +497,7 @@ class PortalStateInfo(_PortalInfoBase):
     def get_custodian_info_in_pool(self, custodian_info):
         """
 
-        :param custodian_info: incognito address or CustodianInfo obj
+        :param custodian_info: incognito address, Account, or CustodianInfo obj
         :return:
         """
         addr = extract_incognito_addr(custodian_info)
@@ -734,6 +735,11 @@ class PortalStateInfo(_PortalInfoBase):
             if custodian.get_holding_token_amount(token_id) == holding_amount:
                 return custodian
         return None
+
+    def get_a_random_custodian(self):
+        custodian_pool = self.get_custodian_pool()
+        random_index = random.randrange(0, len(custodian_pool))
+        return custodian_pool[random_index]
 
     @staticmethod
     def _find_all_req_of_custodian_in_req_list(custodian_account, req_list):

@@ -18,34 +18,35 @@ n = 'n'
 def setup_module():
     INFO("Check if custodian need to add more collateral")
     PSI = SUT.full_node.get_latest_portal_state_info()
+    deposit_amount = 0
+    COIN_MASTER.top_him_up_prv_to_amount_if(deposit_amount * 2, deposit_amount * 2 + 1,
+                                            custodian_remote_addr.get_accounts())
 
-    deposit_more = False
     for cus in custodian_remote_addr.get_accounts():
         cus_stat = cus.portal_get_my_custodian_info(PSI)
 
         if cus_stat is None:
             INFO(f'{l6(cus.payment_key)} is not yet custodian, make him one')
-            cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT, PBNB_ID,
-                                      custodian_remote_addr.get_remote_addr(PBNB_ID)).subscribe_transaction()
-            cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT, PBNB_ID,
-                                      custodian_remote_addr.get_remote_addr(PBTC_ID)).subscribe_transaction()
+            deposit_amount = TEST_SETTING_DEPOSIT_AMOUNT
         elif cus_stat.get_free_collateral() < TEST_SETTING_DEPOSIT_AMOUNT / 10:
             free_collateral = cus_stat.get_free_collateral()
+            deposit_amount = TEST_SETTING_DEPOSIT_AMOUNT
             INFO(f'{l6(cus.payment_key)} free collateral = {free_collateral} <= {TEST_SETTING_DEPOSIT_AMOUNT} / 10,'
                  f' deposit a bit more of collateral')
-            try:
-                cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT - free_collateral, PBNB_ID,
-                                          custodian_remote_addr.get_remote_addr(PBNB_ID)).subscribe_transaction()
-                cus.portal_add_collateral(TEST_SETTING_DEPOSIT_AMOUNT - free_collateral, PBNB_ID,
-                                          custodian_remote_addr.get_remote_addr(PBTC_ID)).subscribe_transaction()
-            except:
-                pass
-            deposit_more = True
         else:
+            deposit_amount = 0
             INFO(f'{l6(cus.payment_key)} '
                  f'{TEST_SETTING_DEPOSIT_AMOUNT} / 10 <= total collateral = {cus_stat.get_total_collateral()} '
                  f'which is fine')
-    if deposit_more:
+
+        if deposit_amount > 0:
+            try:
+                cus.portal_add_collateral(deposit_amount, PBNB_ID).subscribe_transaction()
+                cus.portal_add_collateral(deposit_amount, PBNB_ID).subscribe_transaction()
+            except:
+                pass
+
+    if deposit_amount > 0:
         INFO_HEADLINE("WAIT FOR THE DEPOSIT TO TAKE EFFECT")
         SUT.full_node.help_wait_till_next_epoch()
 

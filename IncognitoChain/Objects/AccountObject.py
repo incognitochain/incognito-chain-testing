@@ -163,18 +163,6 @@ class Account:
             pass
         return f'{string}\n'
 
-    def _where_am_i(self, a_list: list):
-        """
-        find index of self in a_list of account
-
-        :param a_list:
-        :return: if self is in a_list then return index of self in the list or else return -1
-        """
-        for account in a_list:
-            if self.__eq__(account):
-                return a_list.index(account)
-        return -1
-
     def find_payment_key(self, force=False):
         """
         find payment address from private key
@@ -433,7 +421,7 @@ class Account:
         :return:
         """
         send_param = dict()
-        INFO("Sending prv to multiple accounts: ------------------------------------------------ ")
+        INFO(f"{l6(self.private_key)} sending prv to multiple accounts: --------------------------------------------- ")
         for account, amount in dict_to_account_and_amount.items():
             INFO(f'{amount} prv to {account}')
             send_param[account.payment_key] = amount
@@ -876,10 +864,11 @@ class Account:
             self.private_key, self.payment_key, token_id, amount, burn_fee=porting_fee, port_fee=porting_fee,
             register_id=register_id)
 
-    def portal_add_collateral(self, collateral, ptoken, remote_addr):
+    def portal_add_collateral(self, collateral, ptoken, remote_addr=None):
         INFO()
         INFO(f'Portal | Custodian {l6(self.payment_key)} | '
              f'Add collateral to become custodian: {coin(collateral, False)}')
+        remote_addr = self.get_remote_addr(ptoken) if remote_addr is None else remote_addr
         return self.__SUT.full_node.portal().create_n_send_tx_with_custodian_deposit(
             self.private_key, self.payment_key, collateral, ptoken, remote_addr)
 
