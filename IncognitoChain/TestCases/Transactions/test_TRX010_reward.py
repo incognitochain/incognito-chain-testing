@@ -59,7 +59,7 @@ def test_verify_reward_received():
     # so this test will take instruction reward of this epoch to compare with real received reward of the future epoch
     # BEST USE WITH account_sample
     STEP(0, ' prepare')
-    beacon_detail = SUT.REQUEST_HANDLER.get_beacon_best_state_info()
+    beacon_detail = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
 
     STEP(1, "Get current epoch")
     current_bb = SUT.REQUEST_HANDLER.get_latest_beacon_block()

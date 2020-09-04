@@ -130,7 +130,7 @@ tear_down_trx008 = False
 def setup_module():
     INFO("SETUP MODULE")
     STEP(0.1, 'Check current committee to make sure that this test wont be running on testnet')
-    beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_info()
+    beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
     all_shard_committee = beacon_state.get_shard_committees()
     list_public_k = []
     for shard, committees in committee_list.items():
