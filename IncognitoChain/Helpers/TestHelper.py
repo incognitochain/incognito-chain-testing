@@ -349,6 +349,7 @@ class PortalHelper:
         return int(
             PortalHelper.cal_portal_exchange_prv_to_tok(prv_equivalent, prv_rate, token_rate))
 
+
 def get_beacon_best_state_detail(number_of_beacon_height_to_get=100, wait=5, timeout=50):
     """
     Function to get beacon best state detail
@@ -366,6 +367,7 @@ def get_beacon_best_state_detail(number_of_beacon_height_to_get=100, wait=5, tim
         list_beacon_best_state_detail_objs.append(SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info())
     return list_beacon_best_state_detail_objs
 
+
 def get_shard_best_state_detail(shard_id, number_of_shard_height_to_get=100, wait=5, timeout=50):
     """
     Function to get shard best state detail
@@ -380,9 +382,11 @@ def get_shard_best_state_detail(shard_id, number_of_shard_height_to_get=100, wai
     for i in range(1, number_of_shard_height_to_get + 1):
         list_shard_best_state_detail_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_detail_info(shard_id))
         # Waiting till shard height increase
-        ChainHelper.wait_till_next_shard_height(shard_id=shard_id, num_of_shard_height_to_wait=1, wait=wait, timeout=timeout)
+        ChainHelper.wait_till_next_shard_height(shard_id=shard_id, num_of_shard_height_to_wait=1, wait=wait,
+                                                timeout=timeout)
         list_shard_best_state_detail_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_detail_info(shard_id))
     return list_shard_best_state_detail_objs
+
 
 def get_beacon_best_state(number_of_beacon_height_to_get=100, wait=5, timeout=50):
     """
@@ -401,6 +405,7 @@ def get_beacon_best_state(number_of_beacon_height_to_get=100, wait=5, timeout=50
         list_beacon_best_state_objs.append(SUT.REQUEST_HANDLER.get_beacon_best_state_info())
     return list_beacon_best_state_objs
 
+
 def get_shard_best_state(shard_id, number_of_shard_height_to_get=100, wait=5, timeout=50):
     """
     Function to get shard best state
@@ -415,6 +420,7 @@ def get_shard_best_state(shard_id, number_of_shard_height_to_get=100, wait=5, ti
     for i in range(1, number_of_shard_height_to_get + 1):
         list_shard_best_state_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_info(shard_id))
         # Waiting till shard height increase
-        ChainHelper.wait_till_next_shard_height(shard_id=shard_id, num_of_shard_height_to_wait=1, wait=wait, timeout=timeout)
+        ChainHelper.wait_till_next_shard_height(shard_id=shard_id, num_of_shard_height_to_wait=1, wait=wait,
+                                                timeout=timeout)
         list_shard_best_state_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_info(shard_id))
     return list_shard_best_state_objs

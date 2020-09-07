@@ -1,19 +1,20 @@
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER, SUT
 from IncognitoChain.Configs.Constants import coin
-from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Helpers.Logging import INFO, ERROR
 from IncognitoChain.Configs.Constants import BlockChain
 from IncognitoChain.Helpers.TestHelper import l6
-from IncognitoChain.Helpers.Time import WAIT
 
-
-stake_account = Account("112t8sw6zCUr3AHqEDvEwisiAdvueNXBgxF9FncvX7gvB8AZtgjrrKcimuumszHsv1UdjqrFmfWGwK6wZWKwb3vhcmAkWRjL9t3jj2vZc67W")
+stake_account = Account(
+    "112t8sw4ZAc1wwbKog9NhE6VqpEiPii4reg8Zc5AVGu7BkxtPYv95dXRJtzP9CkepgzfUwTseNzgHXRovo9oDb8XrEpb5EgFhKdZhwjzHTbd")
 
 # Prepare coin to test
 if stake_account.get_prv_balance() < coin(1750):
-    COIN_MASTER.send_prv_to(stake_account, coin(1850) - stake_account.get_prv_balance_cache(), privacy=0).subscribe_transaction()
+    COIN_MASTER.send_prv_to(stake_account, coin(1850) - stake_account.get_prv_balance_cache(),
+                            privacy=0).subscribe_transaction()
     if stake_account.shard != COIN_MASTER.shard:
         stake_account.subscribe_cross_output_coin()
+
 
 def stake_and_check_balance_after_stake(account):
     """
@@ -25,13 +26,6 @@ def stake_and_check_balance_after_stake(account):
     beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_info()
     beacon_height = beacon_state.get_beacon_height()
     epoch_number = beacon_state.get_epoch()
-    while beacon_height % BlockChain.BLOCK_PER_EPOCH >= (BlockChain.BLOCK_PER_EPOCH / 2) - 1:
-        # -1 just to be sure that staking will be successful
-        INFO(f'block height % block per epoch = {beacon_height % BlockChain.BLOCK_PER_EPOCH}')
-        WAIT((BlockChain.BLOCK_PER_EPOCH - (beacon_height % BlockChain.BLOCK_PER_EPOCH)) * 10)
-        beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_info()
-        beacon_height = beacon_state.get_beacon_height()
-        epoch_number = beacon_state.get_epoch()
     INFO(f'Ready to stake at epoch: {epoch_number}, beacon height: {beacon_height}')
 
     INFO('Stake and check balance after stake')
@@ -43,9 +37,11 @@ def stake_and_check_balance_after_stake(account):
     tx_id = stake_response.get_tx_id()
     assert balance_before_staking == balance_after_staking + stake_fee + coin(1750)
 
-    return balance_after_staking, tx_id
+    return balance_after_staking, tx_id, epoch_number, beacon_height
 
-def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, thread_result_beacon):
+
+def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, thread_result_beacon, stake_at_epoch,
+                                                stake_at_beacon_height):
     """
     Function to find public key in beacon best state detail
     :param account: account for testing
@@ -56,11 +52,13 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
     shard_waiting_next_random_bool = False
     shard_waiting_current_random_bool = False
     shard_pending_validator_bool = False
+    swap_out_of_committee_bool = False
     shard_committee_bool = False
     epoch_before = 0
-    beacon_height_before =0
+    beacon_height_before = 0
     count_committee_times = 0
     position_committee = 0
+    shard_id_in_shard_committee = 0
 
     for beacon in thread_result_beacon:
         # Find public key of account stake in candidate shard waiting next random
@@ -74,7 +72,6 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
                     beacon_height_in_shard_waiting_next_random = beacon.get_beacon_height()
                     shard_height_in_shard_waiting_next_random_0 = beacon.get_best_shard_height(0)
                     shard_height_in_shard_waiting_next_random_1 = beacon.get_best_shard_height(1)
-                    reward_receiver = beacon.get_reward_receiver()[account.public_key]
                     for auto_staking in beacon.get_auto_staking_committees():
                         if account.public_key == auto_staking.get_inc_public_key():
                             auto_staking_variable = auto_staking.is_auto_staking()
@@ -85,8 +82,26 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
                             - BeaconHeight: {beacon_height_in_shard_waiting_next_random}
                             - Best Shard Height 0: {shard_height_in_shard_waiting_next_random_0}
                             - Best Shard Height 1: {shard_height_in_shard_waiting_next_random_1}
-                            - Reward Receiver: {reward_receiver}     
                             - Auto Staking: {auto_staking_variable}
+                            ****************************************************************
+                                """)
+
+                if account.public_key == candidate_shard_waiting_next_random.get_inc_public_key() and \
+                        beacon.get_beacon_height() > stake_at_beacon_height + BlockChain.BLOCK_PER_EPOCH and beacon.get_epoch() == stake_at_epoch + 1:
+                    ERROR(f""" 
+                            ************* Candidate Shard Waiting For Next Random *********
+                            - Public key of committee: {account.public_key} exist in candidate shard waiting for next random
+                            - Epoch: {beacon.get_epoch()}
+                            - BeaconHeight: {beacon.get_beacon_height()}
+                            ****************************************************************
+                                """)
+                elif account.public_key == candidate_shard_waiting_next_random.get_inc_public_key() and \
+                        beacon.get_beacon_height() > stake_at_beacon_height + BlockChain.BLOCK_PER_EPOCH / 2 and beacon.get_epoch() == stake_at_epoch:
+                    ERROR(f""" 
+                            ************* Candidate Shard Waiting For Next Random *********
+                            - Public key of committee: {account.public_key} exist in candidate shard waiting for next random
+                            - Epoch: {beacon.get_epoch()}
+                            - BeaconHeight: {beacon.get_beacon_height()}
                             ****************************************************************
                                 """)
 
@@ -107,6 +122,25 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
                             - BeaconHeight: {beacon_height_in_shard_waiting_current_random}
                             - Best Shard Height 0: {shard_height_in_shard_waiting_current_random_0}
                             - Best Shard Height 1: {shard_height_in_shard_waiting_current_random_1}
+                            ****************************************************************
+                                """)
+
+                if account.public_key == candidate_shard_waiting_current_random.get_inc_public_key() and \
+                        beacon.get_beacon_height() > (stake_at_epoch * BlockChain.BLOCK_PER_EPOCH - BlockChain.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch:
+                    ERROR(f""" 
+                            ************* Candidate Shard Waiting For Current Random *********
+                            - Public key of committee: {account.public_key} exist in candidate shard waiting for current random
+                            - Epoch: {beacon.get_epoch()}
+                            - BeaconHeight: {beacon.get_beacon_height()}
+                            ****************************************************************
+                                """)
+                elif account.public_key == candidate_shard_waiting_current_random.get_inc_public_key() and \
+                        beacon.get_beacon_height() > ((stake_at_epoch + 1) * BlockChain.BLOCK_PER_EPOCH - BlockChain.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch + 1:
+                    ERROR(f""" 
+                            ************* Candidate Shard Waiting For Current Random *********
+                            - Public key of committee: {account.public_key} exist in candidate shard waiting for current random
+                            - Epoch: {beacon.get_epoch()}
+                            - BeaconHeight: {beacon.get_beacon_height()}
                             ****************************************************************
                                 """)
 
@@ -135,6 +169,7 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
 
         # Find public key and the location of account stake in shard committee
         for key, value in beacon.get_shard_committees().items():
+            count_committee = 0
             for committee in value:
                 if account.public_key == committee.get_inc_public_key():
                     epoch_after = beacon.get_epoch()
@@ -167,36 +202,41 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
                             ****************************************************************
                                     """)
 
-    if shard_committee_bool == True and count_committee_times >= BlockChain.COMMITTEE_TIMES and position_committee == BlockChain.SMALLEST_POSITION_IN_COMMITTEE:
-
-        INFO(f'Verify that validator key {account.validator_key} no longer a committee')
-        beacon_best_state_detail_obj = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
-        for key, value in beacon_best_state_detail_obj.get_shard_committees().items():
-            count_committee = 0
-            for committee in value:
-                if account.public_key != committee.get_inc_public_key():
+                if account.public_key != committee.get_inc_public_key() and shard_committee_bool == True and shard_id_in_shard_committee == key:
                     count_committee = count_committee + 1
-            assert count_committee == len(value), f"Error: Validator key {account.validator_key} still exists in shard committee"
 
-        INFO(f'Balance before refund (after staking) = {balance_after_staking}')
-        balance_after_refund = account.wait_for_balance_change(from_balance=balance_after_staking, timeout=180)
+                if count_committee == len(value) and swap_out_of_committee_bool == False:
+                    swap_out_of_committee_bool = True
+                    INFO(f""" 
+                        ********************** Shard Committee *************************
+                        - Validator key {account.validator_key} no longer a committee
+                        - Epoch: {beacon.get_epoch()}
+                        - BeaconHeight: {beacon.get_beacon_height()}
+                        ****************************************************************
+                                """)
 
-        INFO(f"Verify that balance after refund +1750 prv = {balance_after_refund}")
-        assert balance_after_refund == balance_after_staking + coin(1750), \
-            f'Error: Balance before refund {balance_after_staking} and Balance after refund {balance_after_refund} are not equal'
+                    INFO(f'Balance before refund (after staking) = {balance_after_staking}')
+                    balance_after_refund = account.wait_for_balance_change(from_balance=balance_after_staking,
+                                                                           timeout=180)
 
-        prv_reward_amount = account.stk_get_reward_amount()
-        INFO(f"Total PRV reward amount on {count_committee_times} epoch: {prv_reward_amount}")
+                    INFO(f"Verify that balance after refund +1750 prv = {balance_after_refund}")
+                    assert balance_after_refund == balance_after_staking + coin(1750), \
+                        f'Error: Balance before refund {balance_after_staking} and Balance after refund {balance_after_refund} are not equal'
 
-        avg_prv_reward = prv_reward_amount / count_committee_times
-        INFO(f'AVG PRV reward per 1 epoch = {avg_prv_reward}')
+                    prv_reward_amount = account.stk_get_reward_amount()
+                    INFO(f"Total PRV reward amount on {count_committee_times} epoch: {prv_reward_amount}")
 
-        INFO('Withdraw PRV reward and verify balance')
-        account.stk_withdraw_reward_to_me().subscribe_transaction()
-        prv_bal_after_withdraw_reward = account.wait_for_balance_change(from_balance=balance_after_refund, timeout=180)
+                    avg_prv_reward = prv_reward_amount / count_committee_times
+                    INFO(f'AVG PRV reward per 1 epoch = {avg_prv_reward}')
 
-        INFO(f'Expect reward amount to received {prv_reward_amount}')
-        assert prv_bal_after_withdraw_reward == balance_after_refund + prv_reward_amount
+                    INFO('Withdraw PRV reward and verify balance')
+                    account.stk_withdraw_reward_to_me().subscribe_transaction()
+                    prv_bal_after_withdraw_reward = account.wait_for_balance_change(from_balance=balance_after_refund,
+                                                                                    timeout=180)
+
+                    INFO(f'Expect reward amount to received {prv_reward_amount}')
+                    assert prv_bal_after_withdraw_reward == balance_after_refund + prv_reward_amount
+
 
 def find_public_key_in_shard_best_state_detail(account, staking_tx_id, thread_result_shard_id):
     """
@@ -209,12 +249,12 @@ def find_public_key_in_shard_best_state_detail(account, staking_tx_id, thread_re
     shard_pending_validator_bool = False
     shard_committee_bool = False
     check_staking_tx = False
+    swap_out_of_committee_bool = False
     position_committee = 0
     count_committee_times = 0
     shard_height_before = 0
-    shard_id_in_shard_committee = 0
     count_staking_tx = 0
-    count_committee = 0
+
     for shard_id in thread_result_shard_id:
         # Find staking transaction
         if shard_id.get_staking_tx() != []:
@@ -251,6 +291,7 @@ def find_public_key_in_shard_best_state_detail(account, staking_tx_id, thread_re
 
         # Find public key of account stake in shard committee
         if shard_id.get_shard_committee() != []:
+            count_committee = 0
             for committee in shard_id.get_shard_committee():
                 if account.public_key == committee.get_inc_public_key():
                     shard_committee_bool = True
@@ -278,25 +319,42 @@ def find_public_key_in_shard_best_state_detail(account, staking_tx_id, thread_re
                             - Position: {position_committee}
                             ************************************************************
                                     """)
+            for committee in shard_id.get_shard_committee():
+                if account.public_key != committee.get_inc_public_key() and shard_committee_bool == True:
+                    count_committee = count_committee + 1
+                    if count_committee == len(shard_id.get_shard_committee()) and swap_out_of_committee_bool == False:
+                        swap_out_of_committee_bool = True
+                        INFO(f""" 
+                            ****************** Shard {shard_id.get_shard_id()} Committee *****************
+                            - Validator key {account.validator_key} no longer a committee
+                            - Epoch: {shard_id.get_epoch()}
+                            - BeaconHeight: {shard_id.get_beacon_height()}
+                            ****************************************************************
+                                    """)
+                        for index_staking_tx in shard_id.get_staking_tx():
+                            for key, value in index_staking_tx.items():
+                                if staking_tx_id != value:
+                                    count_staking_tx = count_staking_tx + 1
+                        if count_staking_tx == len(shard_id.get_staking_tx()):
+                            INFO(f""" 
+                            ****************** Shard {shard_id.get_shard_id()} Committee *****************
+                            - Staking transaction id: {staking_tx_id} does not exist in StakingTx
+                            - Epoch: {shard_id.get_epoch()}
+                            - BeaconHeight: {shard_id.get_beacon_height()}
+                            ****************************************************************
+                                        """)
+                        else:
+                            ERROR(f""" 
+                            ****************** Shard {shard_id.get_shard_id()} Committee *****************
+                            - Staking transaction id: {staking_tx_id} exists in StakingTx
+                            - Epoch: {shard_id.get_epoch()}
+                            - BeaconHeight: {shard_id.get_beacon_height()}
+                            ****************************************************************
+                                        """)
 
-    if shard_committee_bool == True and count_committee_times >= BlockChain.COMMITTEE_TIMES and position_committee == BlockChain.SMALLEST_POSITION_IN_COMMITTEE:
 
-        shard_detail_obj = SUT.REQUEST_HANDLER.get_shard_best_state_detail_info(shard_id_in_shard_committee)
-        INFO(f'Verify that validator key {account.validator_key} no longer a committee in shard {shard_id_in_shard_committee} committee')
-        for committee in shard_detail_obj.get_shard_committee():
-            if account.public_key != committee.get_inc_public_key():
-                count_committee = count_committee + 1
-        assert count_committee == len(shard_detail_obj.get_shard_committee()), f"Error: validator key {account.validator_key} still exists in shard committee"
-
-        if shard_detail_obj.get_staking_tx() != []:
-            for index_staking_tx in shard_detail_obj.get_staking_tx():
-                for key, value in index_staking_tx.items():
-                    if account.public_key != key and staking_tx_id != value:
-                        count_staking_tx = count_staking_tx + 1
-            INFO(f'Verify that {staking_tx_id} does not exist in StakingTx')
-            assert count_staking_tx == len(shard_detail_obj.get_staking_tx()), f"Error: {staking_tx_id} still exists in StakingTx"
-
-def find_committee_public_key_in_beacon_best_state(account, balance_after_staking, thread_result_beacon):
+def find_committee_public_key_in_beacon_best_state(account, balance_after_staking, thread_result_beacon, stake_at_epoch,
+                                                   stake_at_beacon_height):
     """
     Function to find committee public key in beacon best state detail
     :param account: account for testing
@@ -308,10 +366,12 @@ def find_committee_public_key_in_beacon_best_state(account, balance_after_stakin
     shard_waiting_current_random_bool = False
     shard_pending_validator_bool = False
     shard_committee_bool = False
+    swap_out_of_committee_bool = False
     epoch_before = 0
-    beacon_height_before =0
+    beacon_height_before = 0
     count_committee_times = 0
     position_committee = 0
+    shard_id_in_shard_committee = 0
 
     for beacon in thread_result_beacon:
         # Find committee public key of account stake in candidate shard waiting next random
@@ -324,7 +384,6 @@ def find_committee_public_key_in_beacon_best_state(account, balance_after_stakin
                     beacon_height_in_shard_waiting_next_random = beacon.get_beacon_height()
                     shard_height_in_shard_waiting_next_random_0 = beacon.get_best_shard_height(0)
                     shard_height_in_shard_waiting_next_random_1 = beacon.get_best_shard_height(1)
-                    reward_receiver = beacon.get_reward_receiver()[account.public_key]
                     auto_staking_variable = beacon.get_auto_staking_committees(account.committee_public_k)
                     INFO(f"""
                             ************* Candidate Shard Waiting For Next Random *********
@@ -333,8 +392,26 @@ def find_committee_public_key_in_beacon_best_state(account, balance_after_stakin
                             - Beacon Height: {beacon_height_in_shard_waiting_next_random}
                             - Best Shard Height 0: {shard_height_in_shard_waiting_next_random_0}
                             - Best Shard Height 1: {shard_height_in_shard_waiting_next_random_1}
-                            - Reward Receiver: {reward_receiver}
                             - Auto Staking: {auto_staking_variable}
+                            ****************************************************************
+                                """)
+
+                if account.committee_public_k == candidate_shard_waiting_next_random and \
+                        beacon.get_beacon_height() > stake_at_beacon_height + BlockChain.BLOCK_PER_EPOCH and beacon.get_epoch() == stake_at_epoch + 1:
+                    ERROR(f""" 
+                            ************* Candidate Shard Waiting For Next Random *********
+                            - Committee public key: {l6(account.committee_public_k)} exist in candidate shard waiting for next random
+                            - Epoch: {beacon.get_epoch()}
+                            - BeaconHeight: {beacon.get_beacon_height()}
+                            ****************************************************************
+                                """)
+                elif account.committee_public_k == candidate_shard_waiting_next_random and \
+                        beacon.get_beacon_height() > stake_at_beacon_height + BlockChain.BLOCK_PER_EPOCH / 2 and beacon.get_epoch() == stake_at_epoch:
+                    ERROR(f""" 
+                            ************* Candidate Shard Waiting For Next Random *********
+                            - Committee public key: {l6(account.committee_public_k)} exist in candidate shard waiting for next random
+                            - Epoch: {beacon.get_epoch()}
+                            - BeaconHeight: {beacon.get_beacon_height()}
                             ****************************************************************
                                 """)
 
@@ -355,6 +432,25 @@ def find_committee_public_key_in_beacon_best_state(account, balance_after_stakin
                             - Beacon Height: {beacon_height_in_shard_waiting_current_random}
                             - Best Shard Height 0: {shard_height_in_shard_waiting_current_random_0}
                             - Best Shard Height 1: {shard_height_in_shard_waiting_current_random_1}
+                            ****************************************************************
+                                """)
+
+                if account.committee_public_k == candidate_shard_waiting_current_random and \
+                        beacon.get_beacon_height() > (stake_at_epoch * BlockChain.BLOCK_PER_EPOCH - BlockChain.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch:
+                    ERROR(f"""
+                            ************ Candidate Shard Waiting For Current Random ********
+                            - Committee public key: {l6(account.committee_public_k)} exist in candidate shard waiting for current random
+                            - Epoch: {beacon.get_epoch()}
+                            - Beacon Height: {beacon.get_beacon_height()}
+                            ****************************************************************
+                                """)
+                elif account.committee_public_k == candidate_shard_waiting_current_random and \
+                        beacon.get_beacon_height() > ((stake_at_epoch + 1) * BlockChain.BLOCK_PER_EPOCH - BlockChain.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch + 1:
+                    ERROR(f"""
+                            ************ Candidate Shard Waiting For Current Random ********
+                            - Committee public key: {l6(account.committee_public_k)} exist in candidate shard waiting for current random
+                            - Epoch: {beacon.get_epoch()}
+                            - Beacon Height: {beacon.get_beacon_height()}
                             ****************************************************************
                                 """)
 
@@ -383,6 +479,7 @@ def find_committee_public_key_in_beacon_best_state(account, balance_after_stakin
 
         # Find committee public key and the location of account stake in shard committee
         for key, value in beacon.get_shard_committees().items():
+            count_committee = 0
             for committee_public_key in value:
                 if account.committee_public_k == committee_public_key:
                     epoch_after = beacon.get_epoch()
@@ -415,36 +512,41 @@ def find_committee_public_key_in_beacon_best_state(account, balance_after_stakin
                             ****************************************************************
                                     """)
 
-    if shard_committee_bool == True and count_committee_times >= BlockChain.COMMITTEE_TIMES and position_committee == BlockChain.SMALLEST_POSITION_IN_COMMITTEE:
-
-        INFO(f'Verify that committee public key {l6(account.committee_public_k)} no longer a committee in shard committee')
-        beacon_best_state_obj = SUT.REQUEST_HANDLER.get_beacon_best_state_info()
-        for key, value in beacon_best_state_obj.get_shard_committees().items():
-            count_committee = 0
-            for committee in value:
-                if committee != account.committee_public_k:
+                if account.committee_public_k != committee_public_key and shard_committee_bool == True and shard_id_in_shard_committee == key:
                     count_committee = count_committee + 1
-            assert count_committee == len(value), f"Error: Committee public key {l6(account.committee_public_k)} still exists in shard committee"
 
-        INFO(f'Balance before refund (after staking) = {balance_after_staking}')
-        balance_after_refund = account.wait_for_balance_change(from_balance=balance_after_staking, timeout=180)
+                if count_committee == len(value) and swap_out_of_committee_bool == False:
+                    swap_out_of_committee_bool = True
+                    INFO(f""" 
+                        ********************** Shard Committee *************************
+                        - Validator key {account.validator_key} no longer a committee
+                        - Epoch: {beacon.get_epoch()}
+                        - BeaconHeight: {beacon.get_beacon_height()}
+                        ****************************************************************
+                                """)
 
-        INFO(f"Verify that balance after refund +1750 prv = {balance_after_refund}")
-        assert balance_after_refund == balance_after_staking + coin(1750), \
-            f'Error: Balance before refund {balance_after_staking} and Balance after refund {balance_after_refund} are not equal'
+                    INFO(f'Balance before refund (after staking) = {balance_after_staking}')
+                    balance_after_refund = account.wait_for_balance_change(from_balance=balance_after_staking,
+                                                                           timeout=180)
 
-        prv_reward_amount = account.stk_get_reward_amount()
-        INFO(f"Total PRV reward amount on {count_committee_times} epoch: {prv_reward_amount}")
+                    INFO(f"Verify that balance after refund +1750 prv = {balance_after_refund}")
+                    assert balance_after_refund == balance_after_staking + coin(1750), \
+                        f'Error: Balance before refund {balance_after_staking} and Balance after refund {balance_after_refund} are not equal'
 
-        avg_prv_reward = prv_reward_amount / count_committee_times
-        INFO(f'AVG PRV reward per 1 epoch = {avg_prv_reward}')
+                    prv_reward_amount = account.stk_get_reward_amount()
+                    INFO(f"Total PRV reward amount on {count_committee_times} epoch: {prv_reward_amount}")
 
-        INFO('Withdraw PRV reward and verify balance')
-        account.stk_withdraw_reward_to_me().subscribe_transaction()
-        prv_bal_after_withdraw_reward = account.wait_for_balance_change(from_balance=balance_after_refund, timeout=180)
+                    avg_prv_reward = prv_reward_amount / count_committee_times
+                    INFO(f'AVG PRV reward per 1 epoch = {avg_prv_reward}')
 
-        INFO(f'Expect reward amount to received {prv_reward_amount}')
-        assert prv_bal_after_withdraw_reward == balance_after_refund + prv_reward_amount
+                    INFO('Withdraw PRV reward and verify balance')
+                    account.stk_withdraw_reward_to_me().subscribe_transaction()
+                    prv_bal_after_withdraw_reward = account.wait_for_balance_change(
+                        from_balance=balance_after_refund, timeout=180)
+
+                    INFO(f'Expect reward amount to received {prv_reward_amount}')
+                    assert prv_bal_after_withdraw_reward == balance_after_refund + prv_reward_amount
+
 
 def find_committee_public_key_in_shard_best_state(account, staking_tx_id, thread_result_shard_id):
     """
@@ -457,13 +559,11 @@ def find_committee_public_key_in_shard_best_state(account, staking_tx_id, thread
     shard_pending_validator_bool = False
     shard_committee_bool = False
     check_staking_tx = False
+    swap_out_of_committee_bool = False
     count_committee_times = 0
     shard_height_before = 0
-    epoch_before = 0
-    shard_id_in_shard_committee = 0
     position_committee = 0
     count_staking_tx = 0
-    count_committee = 0
 
     for shard_id in thread_result_shard_id:
         # Find staking transaction
@@ -501,13 +601,12 @@ def find_committee_public_key_in_shard_best_state(account, staking_tx_id, thread
 
         # Find committee public key of account stake in shard committee
         if shard_id.get_shard_committee() != []:
+            count_committee = 0
             for committee in shard_id.get_shard_committee():
                 if account.committee_public_k == committee:
                     shard_committee_bool = True
-                    epoch_after = shard_id.get_epoch()
                     shard_height_after = shard_id.get_shard_height()
-                    if epoch_after > epoch_before and shard_height_after >= shard_height_before + BlockChain.BLOCK_PER_EPOCH:
-                        epoch_before = epoch_after
+                    if shard_height_after >= shard_height_before + BlockChain.BLOCK_PER_EPOCH:
                         shard_height_before = shard_height_after
                         count_committee_times = count_committee_times + 1
                         committee_public_key_in_shard_committee = account.committee_public_k
@@ -531,18 +630,35 @@ def find_committee_public_key_in_shard_best_state(account, staking_tx_id, thread
                             ************************************************************
                                     """)
 
-    if shard_committee_bool == True and count_committee_times >= BlockChain.COMMITTEE_TIMES and position_committee == BlockChain.SMALLEST_POSITION_IN_COMMITTEE:
-        shard_best_state_obj = SUT.REQUEST_HANDLER.get_shard_best_state_info(shard_id_in_shard_committee)
-        INFO(f'Verify that committee public key {l6(account.committee_public_k)} no longer a committee in shard {shard_id_in_shard_committee} committee')
-        for committee in shard_best_state_obj.get_shard_committee():
-            if committee != account.committee_public_k:
-                count_committee = count_committee + 1
-        assert count_committee == len(shard_best_state_obj.get_shard_committee()), f"Error: Committee public key {l6(account.committee_public_k)} still exists in shard committee"
-
-        if shard_best_state_obj.get_staking_tx() != []:
-            for index_staking_tx in shard_best_state_obj.get_staking_tx():
-                for key, value in index_staking_tx.items():
-                    if account.committee_public_k != key and staking_tx_id != value:
-                        count_staking_tx = count_staking_tx + 1
-            INFO(f'Verify that {staking_tx_id} does not exist in StakingTx')
-            assert count_staking_tx == len(shard_best_state_obj.get_staking_tx()), f"Error: {staking_tx_id} still exists in StakingTx"
+            for committee in shard_id.get_shard_committee():
+                if account.committee_public_k != committee and shard_committee_bool == True:
+                    count_committee = count_committee + 1
+                    if count_committee == len(shard_id.get_shard_committee()) and swap_out_of_committee_bool == False:
+                        swap_out_of_committee_bool = True
+                        INFO(f""" 
+                            ****************** Shard {shard_id.get_shard_id()} Committee *****************
+                            - Validator key {account.validator_key} no longer a committee
+                            - Epoch: {shard_id.get_epoch()}
+                            - BeaconHeight: {shard_id.get_beacon_height()}
+                            ****************************************************************
+                                    """)
+                        for index_staking_tx in shard_id.get_staking_tx():
+                            for key, value in index_staking_tx.items():
+                                if staking_tx_id != value:
+                                    count_staking_tx = count_staking_tx + 1
+                        if count_staking_tx == len(shard_id.get_staking_tx()):
+                            INFO(f""" 
+                            ****************** Shard {shard_id.get_shard_id()} Committee *****************
+                            - Staking transaction id: {staking_tx_id} does not exist in StakingTx
+                            - Epoch: {shard_id.get_epoch()}
+                            - BeaconHeight: {shard_id.get_beacon_height()}
+                            ****************************************************************
+                                    """)
+                        else:
+                            ERROR(f"""
+                            ****************** Shard {shard_id.get_shard_id()} Committee *****************
+                            - Staking transaction id: {staking_tx_id} exists in StakingTx
+                            - Epoch: {shard_id.get_epoch()}
+                            - BeaconHeight: {shard_id.get_beacon_height()}
+                            ****************************************************************    
+                                    """)

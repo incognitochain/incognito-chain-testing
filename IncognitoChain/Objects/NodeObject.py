@@ -338,7 +338,7 @@ class Node:
             num_shards_info = self.get_block_chain_info().get_num_of_shard()
             for shard_id in range(0, num_shards_info):
                 shard_height = self.get_block_chain_info().get_shard_block(shard_id).get_height()
-                dict_shard_height.update({str(shard_id):shard_height})
+                dict_shard_height.update({str(shard_id): shard_height})
             return dict_shard_height
         else:
             return self.get_block_chain_info().get_shard_block(shard_num).get_height()

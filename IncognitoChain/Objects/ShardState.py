@@ -1,6 +1,7 @@
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo
 
+
 class ShardBestStateDetailInfo(BlockChainInfoBaseClass):
 
     def get_block_hash(self):
