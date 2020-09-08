@@ -400,6 +400,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         INFO(f'Calculating PDE reward of pair...')
         reward_pool = self.get_contributor_reward(user, token1, token2)
         sum_reward = sum(reward_pool) if type(reward_pool) is list else reward_pool
+        sum_reward = 0 if sum_reward is None else sum_reward
         INFO(f'Sum reward = {sum_reward}')
         return sum_reward
 
