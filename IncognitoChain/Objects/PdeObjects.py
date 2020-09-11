@@ -312,7 +312,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             return list_amount[0]
         elif len(list_amount) > 1:
             return list_amount
-        return None
+        return 0
 
     def _get_pde_shares(self, user=None, token1=None, token2=None):
         DEBUG('==================================================================================================')

@@ -45,10 +45,10 @@ def test_stake_double():
     beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_info()
     beacon_height = beacon_state.get_beacon_height()
     epoch_number = beacon_state.get_epoch()
-    while beacon_height % Constants.BlockChain.BLOCK_PER_EPOCH >= (Constants.BlockChain.BLOCK_PER_EPOCH / 2) - 1:
+    while beacon_height % Constants.ChainConfig.BLOCK_PER_EPOCH >= (Constants.ChainConfig.BLOCK_PER_EPOCH / 2) - 1:
         # -1 just to be sure that staking will be successful
-        INFO(f'block height % block per epoch = {beacon_height % Constants.BlockChain.BLOCK_PER_EPOCH}')
-        WAIT((Constants.BlockChain.BLOCK_PER_EPOCH - (beacon_height % Constants.BlockChain.BLOCK_PER_EPOCH)) * 10)
+        INFO(f'block height % block per epoch = {beacon_height % Constants.ChainConfig.BLOCK_PER_EPOCH}')
+        WAIT((Constants.ChainConfig.BLOCK_PER_EPOCH - (beacon_height % Constants.ChainConfig.BLOCK_PER_EPOCH)) * 10)
         beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_info()
         beacon_height = beacon_state.get_beacon_height()
         epoch_number = beacon_state.get_epoch()

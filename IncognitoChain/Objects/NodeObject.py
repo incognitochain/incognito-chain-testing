@@ -10,7 +10,7 @@ from IncognitoChain.APIs.Portal import PortalRpc
 from IncognitoChain.APIs.Subscription import SubscriptionWs
 from IncognitoChain.APIs.System import SystemRpc
 from IncognitoChain.APIs.Transaction import TransactionRpc
-from IncognitoChain.Configs.Constants import BlockChain, PRV_ID
+from IncognitoChain.Configs.Constants import ChainConfig, PRV_ID
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
 from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, DEBUG, WARNING
@@ -299,8 +299,8 @@ class Node:
         list_beacon_reward_from_shard = []
         list_DAO_reward_from_shard = []
         for shard_id in shard_range:
-            DAO_share = BlockChain.DAO_REWARD_PERCENT
-            basic_reward = BlockChain.BASIC_REWARD_PER_BLOCK
+            DAO_share = ChainConfig.DAO_REWARD_PERCENT
+            basic_reward = ChainConfig.BASIC_REWARD_PER_BLOCK
             num_of_shard_block = list_num_of_shard_block[shard_id]
             shard_fee_total = shard_txs_fee_list[shard_id]
 

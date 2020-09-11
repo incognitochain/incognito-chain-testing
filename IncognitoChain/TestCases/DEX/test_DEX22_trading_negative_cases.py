@@ -275,7 +275,6 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
     INFO(f"{l6(token_buy)}  balance token buy after trade return       : {bal_tok_buy_af_ret}")
 
     # todo: verify algorithm later, for now there's seem a bug here that does not match with trading priority
-    breakpoint()
     trade_pass_count = 0
     for bal_b4, bal_af, trade_amount in zip(bal_tok_sell_b4, bal_tok_sell_af_ret, trade_amounts):
         if bal_b4 - bal_af == trade_amount:

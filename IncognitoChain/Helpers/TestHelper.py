@@ -1,9 +1,7 @@
 import json
-from datetime import datetime
 from json.decoder import JSONDecodeError
 
-from IncognitoChain.Configs.Constants import PORTAL_COLLATERAL_LIQUIDATE_PERCENT, PORTAL_COLLATERAL_PERCENT, \
-    PortalDepositStatus, PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT, BlockChain
+from IncognitoChain.Configs.Constants import ChainConfig, Status
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.Time import WAIT
 
@@ -63,15 +61,15 @@ def extract_incognito_addr(obj):
 class ChainHelper:
     @staticmethod
     def cal_epoch_from_height(height):
-        return height / BlockChain.BLOCK_PER_EPOCH + 1
+        return height / ChainConfig.BLOCK_PER_EPOCH + 1
 
     @staticmethod
     def cal_first_height_of_epoch(epoch):
-        return ((epoch - 1) * BlockChain.BLOCK_PER_EPOCH) + 1
+        return ((epoch - 1) * ChainConfig.BLOCK_PER_EPOCH) + 1
 
     @staticmethod
     def cal_last_height_of_epoch(epoch):
-        return ChainHelper.cal_first_height_of_epoch(epoch) + BlockChain.BLOCK_PER_EPOCH - 1
+        return ChainHelper.cal_first_height_of_epoch(epoch) + ChainConfig.BLOCK_PER_EPOCH - 1
 
     @staticmethod
     def wait_till_beacon_height(beacon_height, wait=40, timeout=120):
@@ -217,7 +215,8 @@ class PortalHelper:
     @staticmethod
     def cal_lock_collateral(token_amount, token_rate, prv_rate):
         token_amount, token_rate, prv_rate = to_num(token_amount, token_rate, prv_rate)
-        estimated_lock_collateral = int(int(token_amount * PORTAL_COLLATERAL_PERCENT) * token_rate // prv_rate)
+        estimated_lock_collateral = int(
+            int(token_amount * ChainConfig.Portal.COLLATERAL_PERCENT) * token_rate // prv_rate)
         INFO(f'''Calculating lock collateral: 
             token amount: {token_amount}, 
             token rate:   {token_rate}, 
@@ -252,8 +251,8 @@ class PortalHelper:
         :return:
         """
 
-        new_prv_rate = (percent * prv_rate) // PORTAL_COLLATERAL_PERCENT
-        new_tok_rate = (PORTAL_COLLATERAL_PERCENT * token_rate) // percent
+        new_prv_rate = (percent * prv_rate) // ChainConfig.Portal.COLLATERAL_PERCENT
+        new_tok_rate = (ChainConfig.Portal.COLLATERAL_PERCENT * token_rate) // percent
 
         if change_token_rate:
             INFO(f'Current token rate {token_rate}, new rate {new_tok_rate}')
@@ -289,7 +288,7 @@ class PortalHelper:
     @staticmethod
     def cal_rate_to_liquidate_collateral(token_holding, prv_collateral, current_tok_rate,
                                          current_prv_rate, new_rate='token',
-                                         liquidate_percent=PORTAL_COLLATERAL_LIQUIDATE_PERCENT):
+                                         liquidate_percent=ChainConfig.Portal.COLLATERAL_LIQUIDATE_PERCENT):
         """
 
         :param liquidate_percent:
@@ -327,9 +326,9 @@ class PortalHelper:
         info = DepositTxInfo()
         info.get_deposit_info(tx_id)
         if expected.lower() == "accept":
-            assert info.get_status() == PortalDepositStatus.ACCEPT
+            assert info.get_status() == Status.Portal.DepositStatus.ACCEPT
         else:
-            assert info.get_status() == PortalDepositStatus.REJECTED
+            assert info.get_status() == Status.Portal.DepositStatus.REJECTED
 
     @staticmethod
     def cal_liquidation_of_porting(porting_amount, current_token_rate, current_prv_rate):
@@ -339,13 +338,13 @@ class PortalHelper:
         estimate_lock_collateral = PortalHelper.cal_lock_collateral(porting_amount, current_token_rate,
                                                                     current_prv_rate)
         estimated_liquidated_collateral = int(
-            PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT * porting_amount_in_new_prv_rate)
+            ChainConfig.Portal.COLLATERAL_LIQUIDATE_TO_POOL_PERCENT * porting_amount_in_new_prv_rate)
         return_collateral = estimate_lock_collateral - estimated_liquidated_collateral
         return int(estimated_liquidated_collateral), int(return_collateral)
 
     @staticmethod
     def cal_token_amount_from_collateral(collateral, token_rate, prv_rate):
-        prv_equivalent = collateral // PORTAL_COLLATERAL_PERCENT
+        prv_equivalent = collateral // ChainConfig.Portal.COLLATERAL_PERCENT
         return int(
             PortalHelper.cal_portal_exchange_prv_to_tok(prv_equivalent, prv_rate, token_rate))
 

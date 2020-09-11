@@ -16,7 +16,7 @@
 import pytest
 from websocket import WebSocketTimeoutException
 
-from IncognitoChain.Configs.Constants import coin, BlockChain
+from IncognitoChain.Configs.Constants import coin, ChainConfig
 from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
@@ -42,10 +42,10 @@ def test_self_stake_n_stake_other_with_auto_stake_false(the_stake, the_staked):
     STEP(1, 'Get epoch number')
     beacon_height = SUT.full_node.help_get_beacon_height_in_best_state_detail(refresh_cache=True)
     epoch_number = SUT.full_node.help_get_current_epoch(refresh_cache=False)
-    while beacon_height % BlockChain.BLOCK_PER_EPOCH >= (BlockChain.BLOCK_PER_EPOCH / 2) - 1:
+    while beacon_height % ChainConfig.BLOCK_PER_EPOCH >= (ChainConfig.BLOCK_PER_EPOCH / 2) - 1:
         # -1 just to be sure that staking will be successful
-        INFO(f'block height % block per epoch = {beacon_height % BlockChain.BLOCK_PER_EPOCH}')
-        WAIT((BlockChain.BLOCK_PER_EPOCH - (beacon_height % BlockChain.BLOCK_PER_EPOCH)) * 10)
+        INFO(f'block height % block per epoch = {beacon_height % ChainConfig.BLOCK_PER_EPOCH}')
+        WAIT((ChainConfig.BLOCK_PER_EPOCH - (beacon_height % ChainConfig.BLOCK_PER_EPOCH)) * 10)
         epoch_number = SUT.full_node.help_get_current_epoch(refresh_cache=False)
         beacon_height = SUT.full_node.help_get_beacon_height_in_best_state_detail(refresh_cache=True)
 

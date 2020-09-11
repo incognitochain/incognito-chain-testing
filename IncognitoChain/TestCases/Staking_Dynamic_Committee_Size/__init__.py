@@ -1,9 +1,8 @@
+from IncognitoChain.Configs.Constants import coin, ChainConfig
+from IncognitoChain.Helpers.Logging import INFO, ERROR
+from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER, SUT
-from IncognitoChain.Configs.Constants import coin
-from IncognitoChain.Helpers.Logging import INFO, ERROR
-from IncognitoChain.Configs.Constants import BlockChain
-from IncognitoChain.Helpers.TestHelper import l6
 
 stake_account = Account(
     "112t8sw4ZAc1wwbKog9NhE6VqpEiPii4reg8Zc5AVGu7BkxtPYv95dXRJtzP9CkepgzfUwTseNzgHXRovo9oDb8XrEpb5EgFhKdZhwjzHTbd")
@@ -87,7 +86,7 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
                                 """)
 
                 if account.public_key == candidate_shard_waiting_next_random.get_inc_public_key() and \
-                        beacon.get_beacon_height() > stake_at_beacon_height + BlockChain.BLOCK_PER_EPOCH and beacon.get_epoch() == stake_at_epoch + 1:
+                    beacon.get_beacon_height() > stake_at_beacon_height + ChainConfig.BLOCK_PER_EPOCH and beacon.get_epoch() == stake_at_epoch + 1:
                     ERROR(f""" 
                             ************* Candidate Shard Waiting For Next Random *********
                             - Public key of committee: {account.public_key} exist in candidate shard waiting for next random
@@ -96,7 +95,7 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
                             ****************************************************************
                                 """)
                 elif account.public_key == candidate_shard_waiting_next_random.get_inc_public_key() and \
-                        beacon.get_beacon_height() > stake_at_beacon_height + BlockChain.BLOCK_PER_EPOCH / 2 and beacon.get_epoch() == stake_at_epoch:
+                    beacon.get_beacon_height() > stake_at_beacon_height + ChainConfig.BLOCK_PER_EPOCH / 2 and beacon.get_epoch() == stake_at_epoch:
                     ERROR(f""" 
                             ************* Candidate Shard Waiting For Next Random *********
                             - Public key of committee: {account.public_key} exist in candidate shard waiting for next random
@@ -126,7 +125,8 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
                                 """)
 
                 if account.public_key == candidate_shard_waiting_current_random.get_inc_public_key() and \
-                        beacon.get_beacon_height() > (stake_at_epoch * BlockChain.BLOCK_PER_EPOCH - BlockChain.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch:
+                    beacon.get_beacon_height() > (
+                    stake_at_epoch * ChainConfig.BLOCK_PER_EPOCH - ChainConfig.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch:
                     ERROR(f""" 
                             ************* Candidate Shard Waiting For Current Random *********
                             - Public key of committee: {account.public_key} exist in candidate shard waiting for current random
@@ -135,7 +135,8 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
                             ****************************************************************
                                 """)
                 elif account.public_key == candidate_shard_waiting_current_random.get_inc_public_key() and \
-                        beacon.get_beacon_height() > ((stake_at_epoch + 1) * BlockChain.BLOCK_PER_EPOCH - BlockChain.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch + 1:
+                    beacon.get_beacon_height() > ((
+                                                      stake_at_epoch + 1) * ChainConfig.BLOCK_PER_EPOCH - ChainConfig.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch + 1:
                     ERROR(f""" 
                             ************* Candidate Shard Waiting For Current Random *********
                             - Public key of committee: {account.public_key} exist in candidate shard waiting for current random
@@ -175,7 +176,7 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
                     epoch_after = beacon.get_epoch()
                     beacon_height_after = beacon.get_beacon_height()
                     shard_committee_bool = True
-                    if epoch_after > epoch_before and beacon_height_after >= beacon_height_before + BlockChain.BLOCK_PER_EPOCH:
+                    if epoch_after > epoch_before and beacon_height_after >= beacon_height_before + ChainConfig.BLOCK_PER_EPOCH:
                         count_committee_times = count_committee_times + 1
                         epoch_before = epoch_after
                         beacon_height_before = beacon_height_after
@@ -296,7 +297,7 @@ def find_public_key_in_shard_best_state_detail(account, staking_tx_id, thread_re
                 if account.public_key == committee.get_inc_public_key():
                     shard_committee_bool = True
                     shard_height_after = shard_id.get_shard_height()
-                    if shard_height_after >= shard_height_before + BlockChain.BLOCK_PER_EPOCH:
+                    if shard_height_after >= shard_height_before + ChainConfig.BLOCK_PER_EPOCH:
                         shard_height_before = shard_height_after
                         count_committee_times = count_committee_times + 1
                         public_key_in_shard_committee = account.public_key
@@ -397,7 +398,7 @@ def find_committee_public_key_in_beacon_best_state(account, balance_after_stakin
                                 """)
 
                 if account.committee_public_k == candidate_shard_waiting_next_random and \
-                        beacon.get_beacon_height() > stake_at_beacon_height + BlockChain.BLOCK_PER_EPOCH and beacon.get_epoch() == stake_at_epoch + 1:
+                    beacon.get_beacon_height() > stake_at_beacon_height + ChainConfig.BLOCK_PER_EPOCH and beacon.get_epoch() == stake_at_epoch + 1:
                     ERROR(f""" 
                             ************* Candidate Shard Waiting For Next Random *********
                             - Committee public key: {l6(account.committee_public_k)} exist in candidate shard waiting for next random
@@ -406,7 +407,7 @@ def find_committee_public_key_in_beacon_best_state(account, balance_after_stakin
                             ****************************************************************
                                 """)
                 elif account.committee_public_k == candidate_shard_waiting_next_random and \
-                        beacon.get_beacon_height() > stake_at_beacon_height + BlockChain.BLOCK_PER_EPOCH / 2 and beacon.get_epoch() == stake_at_epoch:
+                    beacon.get_beacon_height() > stake_at_beacon_height + ChainConfig.BLOCK_PER_EPOCH / 2 and beacon.get_epoch() == stake_at_epoch:
                     ERROR(f""" 
                             ************* Candidate Shard Waiting For Next Random *********
                             - Committee public key: {l6(account.committee_public_k)} exist in candidate shard waiting for next random
@@ -436,7 +437,8 @@ def find_committee_public_key_in_beacon_best_state(account, balance_after_stakin
                                 """)
 
                 if account.committee_public_k == candidate_shard_waiting_current_random and \
-                        beacon.get_beacon_height() > (stake_at_epoch * BlockChain.BLOCK_PER_EPOCH - BlockChain.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch:
+                    beacon.get_beacon_height() > (
+                    stake_at_epoch * ChainConfig.BLOCK_PER_EPOCH - ChainConfig.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch:
                     ERROR(f"""
                             ************ Candidate Shard Waiting For Current Random ********
                             - Committee public key: {l6(account.committee_public_k)} exist in candidate shard waiting for current random
@@ -445,7 +447,8 @@ def find_committee_public_key_in_beacon_best_state(account, balance_after_stakin
                             ****************************************************************
                                 """)
                 elif account.committee_public_k == candidate_shard_waiting_current_random and \
-                        beacon.get_beacon_height() > ((stake_at_epoch + 1) * BlockChain.BLOCK_PER_EPOCH - BlockChain.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch + 1:
+                    beacon.get_beacon_height() > ((
+                                                      stake_at_epoch + 1) * ChainConfig.BLOCK_PER_EPOCH - ChainConfig.BLOCK_PER_EPOCH / 2 + 1) and beacon.get_epoch() == stake_at_epoch + 1:
                     ERROR(f"""
                             ************ Candidate Shard Waiting For Current Random ********
                             - Committee public key: {l6(account.committee_public_k)} exist in candidate shard waiting for current random
@@ -485,7 +488,7 @@ def find_committee_public_key_in_beacon_best_state(account, balance_after_stakin
                     epoch_after = beacon.get_epoch()
                     beacon_height_after = beacon.get_beacon_height()
                     shard_committee_bool = True
-                    if epoch_after > epoch_before and beacon_height_after >= beacon_height_before + BlockChain.BLOCK_PER_EPOCH:
+                    if epoch_after > epoch_before and beacon_height_after >= beacon_height_before + ChainConfig.BLOCK_PER_EPOCH:
                         epoch_before = epoch_after
                         beacon_height_before = beacon_height_after
                         count_committee_times = count_committee_times + 1
@@ -606,7 +609,7 @@ def find_committee_public_key_in_shard_best_state(account, staking_tx_id, thread
                 if account.committee_public_k == committee:
                     shard_committee_bool = True
                     shard_height_after = shard_id.get_shard_height()
-                    if shard_height_after >= shard_height_before + BlockChain.BLOCK_PER_EPOCH:
+                    if shard_height_after >= shard_height_before + ChainConfig.BLOCK_PER_EPOCH:
                         shard_height_before = shard_height_after
                         count_committee_times = count_committee_times + 1
                         committee_public_key_in_shard_committee = account.committee_public_k

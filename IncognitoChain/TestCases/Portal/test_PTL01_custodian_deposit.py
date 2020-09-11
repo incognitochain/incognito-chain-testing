@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, PortalCustodianWithdrawStatus, PBTC_ID
+from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status
 from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 from IncognitoChain.Helpers.Time import WAIT
@@ -204,7 +204,7 @@ def test_with_draw_collateral(custodian):
     withdraw_tx.subscribe_transaction()
     withdraw_tx_info = CustodianWithdrawTxInfo()
     withdraw_tx_info.get_custodian_withdraw_info_by_tx(withdraw_tx.get_tx_id())
-    assert withdraw_tx_info.get_status() == PortalCustodianWithdrawStatus.ACCEPT
+    assert withdraw_tx_info.get_status() == Status.Portal.CustodianWithdrawStatus.ACCEPT
     assert withdraw_tx_info.get_remain_free_collateral() == 0
 
     STEP(2, "Keep withdrawing when free collateral = 0 already, expect rejected")
@@ -216,7 +216,7 @@ def test_with_draw_collateral(custodian):
             withdraw_tx.subscribe_transaction()
             withdraw_tx_info = CustodianWithdrawTxInfo()
             withdraw_tx_info.get_custodian_withdraw_info_by_tx(withdraw_tx.get_tx_id())
-            assert withdraw_tx_info.get_status() == PortalCustodianWithdrawStatus.REJECTED and \
+            assert withdraw_tx_info.get_status() == Status.Portal.CustodianWithdrawStatus.REJECTED and \
                    INFO(f"Withdraw {withdraw_amount}, Rejected")
             assert withdraw_tx_info.get_remain_free_collateral() == 0
         else:

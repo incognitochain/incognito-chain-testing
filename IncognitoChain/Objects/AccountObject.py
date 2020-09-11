@@ -6,9 +6,10 @@ from typing import List
 from websocket import WebSocketTimeoutException
 
 from IncognitoChain.Configs import Constants
-from IncognitoChain.Configs.Constants import PRV_ID, coin, PortalCustodianReqMatchingStatus, PBNB_ID, PBTC_ID
+from IncognitoChain.Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status
 from IncognitoChain.Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from IncognitoChain.Drivers.NeighborChainCli import NeighborChainCli
+from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
@@ -872,10 +873,11 @@ class Account:
         return self.__SUT.full_node.portal().create_n_send_tx_with_custodian_deposit(
             self.private_key, self.payment_key, collateral, ptoken, remote_addr)
 
-    def portal_make_me_custodian(self, collateral, ptoken, remote_addr):
+    def portal_make_me_custodian(self, collateral, ptoken, remote_addr=None):
         """
         just an alias of add_collateral
         """
+        remote_addr = self.get_remote_addr(ptoken) if remote_addr is None else remote_addr
         return self.portal_add_collateral(collateral, ptoken, remote_addr)
 
     def portal_let_me_take_care_this_redeem(self, redeem_id, do_assert=True):
@@ -887,7 +889,7 @@ class Account:
         info.get_req_matching_redeem_status(req_tx.get_tx_id())
 
         if do_assert:
-            assert info.get_status() == PortalCustodianReqMatchingStatus.ACCEPT, \
+            assert info.get_status() == Status.Portal.CustodianReqMatchingStatus.ACCEPT, \
                 f'Req matching status is {info.get_status()}'
         return req_tx
 
@@ -994,6 +996,7 @@ class Account:
         return sum_amount
 
     def portal_req_unlock_collateral(self, token_id, amount_redeem, redeem_id, proof):
+        INFO(f'{l6(self.payment_key)} request unlock collateral: {l6(token_id)} {amount_redeem} {redeem_id}')
         return self.__SUT.full_node.portal(). \
             create_n_send_tx_with_req_unlock_collateral(self.private_key, self.payment_key, token_id, amount_redeem,
                                                         redeem_id, proof)
@@ -1123,9 +1126,14 @@ class AccountGroup:
             return [account.get_remote_addr(token) for account in self.account_list]
 
     def get_accounts(self, inc_addr=None):
+        """
+        :param inc_addr: incognito address or Account object or CustodianInfo object
+        :return:
+        """
         if inc_addr is None:
             return self.account_list
         else:
+            inc_addr = TestHelper.extract_incognito_addr(inc_addr)
             for acc in self.account_list:
                 if acc.payment_key == inc_addr:
                     return acc

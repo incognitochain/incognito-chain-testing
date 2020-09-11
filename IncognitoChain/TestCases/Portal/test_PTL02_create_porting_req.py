@@ -1,7 +1,6 @@
 import pytest
 
-from IncognitoChain.Configs.Constants import PBNB_ID, PortalPortingStatusByPortingId, PortalPortingStatusByTxId, \
-    PortalPtokenReqStatus, PRV_ID, coin, PBTC_ID
+from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status, ChainConfig
 from IncognitoChain.Helpers.Logging import STEP, INFO, WARNING, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 from IncognitoChain.Helpers.Time import WAIT
@@ -9,8 +8,7 @@ from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER, PORTAL_FE
 from IncognitoChain.Objects.PortalObjects import PortingReqInfo, PTokenReqInfo
 from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, \
     TEST_SETTING_PORTING_AMOUNT, custodian_remote_addr, big_collateral, fat_custodian_prv, big_rate, \
-    big_porting_amount, \
-    init_portal_rate, fat_custodian, TEST_SETTING_DEPOSIT_AMOUNT, PORTAL_REQ_TIME_OUT
+    big_porting_amount, init_portal_rate, fat_custodian, TEST_SETTING_DEPOSIT_AMOUNT
 
 n = 'n'
 
@@ -81,8 +79,7 @@ def setup_module():
                              (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, n, "invalid"),
 
                          ])
-def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of_custodian,
-                                desired_status):
+def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of_custodian, desired_status):
     STEP(0, "Preparation before test")
     remote_receiver_dict = {}
     PSI_before_test = SUT.full_node.get_latest_portal_state_info()
@@ -143,14 +140,14 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
     porting_req_info = PortingReqInfo().get_porting_req_by_tx_id(tx_id)
 
     if desired_status != 'invalid':  # desired_status == valid or liquidate
-        assert porting_req_info.get_status() == PortalPortingStatusByTxId.ACCEPTED
+        assert porting_req_info.get_status() == Status.Portal.PortingStatusByTxId.ACCEPTED
     else:  # case req is invalid, reject
-        assert porting_req_info.get_status() == PortalPortingStatusByTxId.REJECTED
+        assert porting_req_info.get_status() == Status.Portal.PortingStatusByTxId.REJECTED
 
     STEP(3, "Check req status by req id")
     if desired_status != 'invalid':  # desired_status == valid or liquidate
         porting_req_info.get_porting_req_by_porting_id(porting_id)
-        assert porting_req_info.get_status() == PortalPortingStatusByPortingId.WAITING
+        assert porting_req_info.get_status() == Status.Portal.PortingStatusByPortingId.WAITING
     else:
         pass
     PSI_after_req = SUT.full_node.get_latest_portal_state_info()
@@ -172,35 +169,8 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         WAIT(60)
         assert user.get_prv_balance() == prv_bal_be4_test - tx_fee
     elif desired_status == 'expire':
-        STEP(4, f'Wait {PORTAL_REQ_TIME_OUT + 0.5} for the req to be expired')
-        WAIT((PORTAL_REQ_TIME_OUT + 0.5) * 60)
-        STEP(5, "Check req status")
-        porting_req_info.get_porting_req_by_porting_id(porting_id)
-        assert porting_req_info.get_status() == PortalPortingStatusByPortingId.EXPIRED
-
-        STEP(6, "Custodian collateral must be unlock")
-        custodians_info = porting_req_info.get_custodians()
-        INFO(f'Number of custodian for this req = {len(custodians_info)}')
-        if num_of_custodian == 1:
-            assert len(custodians_info) == 1
-        else:
-            assert len(custodians_info) > 1
-
-        PSI_after_expired = SUT.full_node.get_latest_portal_state_info()
-        for custodian in custodians_info:
-            state_before_test = PSI_before_test.get_custodian_info_in_pool(custodian)
-            state_after_expire = PSI_after_expired.get_custodian_info_in_pool(custodian)
-            INFO(f'Custodian info before: \n{state_before_test}')
-            INFO(f'Custodian info after : \n{state_after_expire}')
-            assert state_before_test.get_locked_collateral() == state_after_expire.get_locked_collateral()
-            assert state_before_test.get_free_collateral() == state_after_expire.get_free_collateral()
-            assert state_before_test.get_total_collateral() == state_after_expire.get_total_collateral()
-            assert state_before_test.get_holding_token_amount(token) == state_after_expire.get_holding_token_amount(
-                token)
-
-        STEP(7, "Verify user balance, porting fee and tx fee will not be returned")
-        user_prv_bal_after_test = user.get_prv_balance()
-        assert prv_bal_be4_test - tx_fee - porting_fee == user_prv_bal_after_test
+        verify_expire_porting(user, porting_id, token, num_of_custodian, PSI_before_test, prv_bal_be4_test, tx_fee,
+                              porting_fee)
     else:  # desired_status == valid or liquidate
         STEP(4, "Check number of custodian")
         num = len(porting_req_info.get_custodians())
@@ -231,7 +201,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         token_req_info = PTokenReqInfo(req_tx.get_result())
         ported_token_req = token_req_info.get_ptoken_req_by_tx_id(req_tx.get_tx_id())
         ported_token_req_status = ported_token_req.get_status()
-        assert ported_token_req_status == PortalPtokenReqStatus.ACCEPTED, \
+        assert ported_token_req_status == Status.Portal.PtokenReqStatus.ACCEPTED, \
             f'Req for ported token is rejected. CODE = {ported_token_req_status}'
 
         STEP(7, 'Verify user balance')
@@ -368,20 +338,20 @@ def est_porting_req_expired(num_of_custodian):
     porting_req_info_after_req = PortingReqInfo()
     porting_req_info_after_req.get_porting_req_by_tx_id(tx_id)
 
-    assert porting_req_info_after_req.get_status() == PortalPortingStatusByTxId.ACCEPTED
+    assert porting_req_info_after_req.get_status() == Status.Portal.PortingStatusByTxId.ACCEPTED
 
     STEP(2.2, "Check req status by req id")
     porting_req_info_after_req.get_porting_req_by_porting_id(porting_id)
-    assert porting_req_info_after_req.get_status() == PortalPortingStatusByPortingId.WAITING
+    assert porting_req_info_after_req.get_status() == Status.Portal.PortingStatusByPortingId.WAITING
 
     STEP(3, 'Verify balance')
     assert user_prv_bal_be4_test - porting_fee - tx_fee == portal_user.get_prv_balance()
 
-    STEP(4, f'Wait {PORTAL_REQ_TIME_OUT + 0.5} for the req to be expired')
-    WAIT((PORTAL_REQ_TIME_OUT + 0.5) * 60)
+    STEP(4, f'Wait {ChainConfig.Portal.REQ_TIME_OUT + 0.5} for the req to be expired')
+    WAIT(ChainConfig.Portal.REQ_TIME_OUT + 0.5, 'm')
     STEP(5, "Check req status")
     porting_req_info_after_req.get_porting_req_by_porting_id(porting_id)
-    assert porting_req_info_after_req.get_status() == PortalPortingStatusByPortingId.EXPIRED
+    assert porting_req_info_after_req.get_status() == Status.Portal.PortingStatusByPortingId.EXPIRED
 
     STEP(6, "Custodian collateral must be unlock")
     custodians_info = porting_req_info_after_req.get_custodians()
@@ -422,3 +392,35 @@ def prepare_fat_custodian():
     deposit_tx.subscribe_transaction()
 
     SUT.full_node.help_wait_till_next_epoch()
+
+
+def verify_expire_porting(user, porting_id, token, num_of_custodian, psi_b4, prv_bal_b4, tx_fee, porting_fee):
+    STEP(4, f'Wait {ChainConfig.Portal.REQ_TIME_OUT + 0.5} for the req to be expired')
+    WAIT(ChainConfig.Portal.REQ_TIME_OUT + 0.5, 'm')
+    STEP(5, "Check req status")
+    porting_req_info = PortingReqInfo().get_porting_req_by_porting_id(porting_id)
+    assert porting_req_info.get_status() == Status.Portal.PortingStatusByPortingId.EXPIRED
+
+    STEP(6, "Custodian collateral must be unlock")
+    custodians_info = porting_req_info.get_custodians()
+    INFO(f'Number of custodian for this req = {len(custodians_info)}')
+    if num_of_custodian == 1:
+        assert len(custodians_info) == 1
+    else:
+        assert len(custodians_info) > 1
+
+    PSI_after_expired = SUT.full_node.get_latest_portal_state_info()
+    for custodian in custodians_info:
+        state_before_test = psi_b4.get_custodian_info_in_pool(custodian)
+        state_after_expire = PSI_after_expired.get_custodian_info_in_pool(custodian)
+        INFO(f'Custodian info before: \n{state_before_test}')
+        INFO(f'Custodian info after : \n{state_after_expire}')
+        assert state_before_test.get_locked_collateral() == state_after_expire.get_locked_collateral()
+        assert state_before_test.get_free_collateral() == state_after_expire.get_free_collateral()
+        assert state_before_test.get_total_collateral() == state_after_expire.get_total_collateral()
+        assert state_before_test.get_holding_token_amount(token) == state_after_expire.get_holding_token_amount(
+            token)
+
+    STEP(7, "Verify user balance, porting fee and tx fee will not be returned")
+    user_prv_bal_after_test = user.get_prv_balance()
+    assert prv_bal_b4 - tx_fee - porting_fee == user_prv_bal_after_test

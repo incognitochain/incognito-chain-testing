@@ -1,6 +1,6 @@
 import pytest
 
-from IncognitoChain.Configs.Constants import PRV_ID, PortalRewardWithdrawStatus
+from IncognitoChain.Configs.Constants import PRV_ID, Status
 from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
@@ -34,7 +34,7 @@ def test_withdraw_portal_reward(custodian_account):
     fee = withdraw_tx.subscribe_transaction().get_fee()
     withdraw_tx_info = RewardWithdrawTxInfo()
     withdraw_tx_info.get_reward_info_by_tx_id(withdraw_tx.get_tx_id())
-    assert withdraw_tx_info.get_status() == PortalRewardWithdrawStatus.ACCEPT
+    assert withdraw_tx_info.get_status() == Status.Portal.RewardWithdrawStatus.ACCEPT
 
     STEP(4, 'Verify balance')
     prv_balance_after = custodian_account.wait_for_balance_change()
@@ -46,7 +46,7 @@ def test_withdraw_portal_reward(custodian_account):
     fee = withdraw_tx.subscribe_transaction().get_fee()
     withdraw_tx_info = RewardWithdrawTxInfo()
     withdraw_tx_info.get_reward_info_by_tx_id(withdraw_tx.get_tx_id())
-    assert withdraw_tx_info.get_status() == PortalRewardWithdrawStatus.REJECTED
+    assert withdraw_tx_info.get_status() == Status.Portal.RewardWithdrawStatus.REJECTED
 
     STEP(6, 'Verify balance')
     prv_balance_after_2 = custodian_account.get_prv_balance()

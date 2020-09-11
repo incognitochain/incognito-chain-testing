@@ -4,7 +4,6 @@ from IncognitoChain.Helpers.TestHelper import PortalHelper
 from IncognitoChain.Objects.AccountObject import Account, AccountGroup
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, COIN_MASTER, SUT, PORTAL_FEEDER
 
-PORTAL_REQ_TIME_OUT = 15  # minutes
 TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
 TEST_SETTING_PORTING_AMOUNT = 100
 TEST_SETTING_REDEEM_AMOUNT = 10
@@ -69,7 +68,7 @@ def setup_module():
             break
 
 
-def teardown_module():
+def noteardown_module():
     INFO_HEADLINE(f'TEST MODULE TEAR DOWN: Withdraw all free collateral')
     PSI = SUT.full_node.get_latest_portal_state_info()
     for cus in custodian_remote_addr.get_accounts():

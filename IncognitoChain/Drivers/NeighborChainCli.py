@@ -317,7 +317,6 @@ class BtcGo:
                  f"+++ command: {' '.join(command)}\n\n"
                  f"+++ out: {stdout}\n\n"
                  f"+++ err: {stderr}")
-            breakpoint()
             proof = stdout.split()[1]
             DEBUG(f""" Proof: =================  \n{proof}""")
 

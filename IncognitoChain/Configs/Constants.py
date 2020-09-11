@@ -1,10 +1,16 @@
-class BlockChain:
+class ChainConfig:
     BLOCK_PER_EPOCH = 10
     RANDOM_TIME = 5
     BASIC_REWARD_PER_BLOCK = 400000000
     DAO_REWARD_PERCENT = 0.1
     SMALLEST_POSITION_IN_COMMITTEE = 5
     COMMITTEE_TIMES = 2
+
+    class Portal:
+        COLLATERAL_PERCENT = 1.5
+        COLLATERAL_LIQUIDATE_PERCENT = 1.2
+        COLLATERAL_LIQUIDATE_TO_POOL_PERCENT = 1.05
+        REQ_TIME_OUT = 15  # minutes
 
 
 BURNING_ADDR = \
@@ -26,10 +32,6 @@ DAO_payment_key = \
 ONE_COIN = 1000000000
 MIN_FEE_PER_KB = 100000
 
-PORTAL_COLLATERAL_PERCENT = 1.5
-PORTAL_COLLATERAL_LIQUIDATE_PERCENT = 1.2
-PORTAL_COLLATERAL_LIQUIDATE_TO_POOL_PERCENT = 1.05
-
 
 def coin(amount, nano=True):
     """
@@ -43,57 +45,50 @@ def coin(amount, nano=True):
         return amount / ONE_COIN
 
 
-# more portal status @ common/constants.go
-class PortalPortingStatusByPortingId:
-    SUCCESS = 1
-    WAITING = 2
-    EXPIRED = 3
-    LIQUIDATED = 4
+class Status:
+    class Portal:
+        # more portal status @ common/constants.go
+        class PortingStatusByPortingId:
+            SUCCESS = 1
+            WAITING = 2
+            EXPIRED = 3
+            LIQUIDATED = 4
 
+        class PortingStatusByTxId:
+            ACCEPTED = 1
+            REJECTED = 3
 
-class PortalPortingStatusByTxId:
-    ACCEPTED = 1
-    REJECTED = 3
+        class RedeemStatus:
+            SUCCESS = 1
+            WAITING = 2
+            MATCHED = 3
+            LIQUIDATED = 4
+            CANCEL_BY_LIQUIDATION_STATUS = 5
 
+        class PtokenReqStatus:
+            ACCEPTED = 1
+            REJECTED = 2
 
-class PortalRedeemStatus:
-    SUCCESS = 1
-    WAITING = 2
-    LIQUIDATED = 3
-    REJECTED_BY_LIQUIDATION = 4
-    CANCEL_BY_LIQUIDATION_STAT = 5
+        class UnlockCollateralReqStatus:
+            ACCEPTED = 1
+            REJECTED = 2
 
+        class CustodianReqMatchingStatus:
+            ACCEPT = 1
+            REJECTED = 2
 
-class PortalPtokenReqStatus:
-    ACCEPTED = 1
-    REJECTED = 2
+        class DepositStatus:
+            ACCEPT = 1
+            REJECTED = 2
 
+        class CustodianWithdrawStatus:
+            ACCEPT = 1
+            REJECTED = 2
 
-class PortalUnlockCollateralReqStatus:
-    ACCEPTED = 1
-    REJECTED = 2
+        class RewardWithdrawStatus:
+            ACCEPT = 1
+            REJECTED = 2
 
-
-class PortalCustodianReqMatchingStatus:
-    ACCEPT = 1
-    REJECTED = 2
-
-
-class PortalDepositStatus:
-    ACCEPT = 1
-    REJECTED = 2
-
-
-class PortalCustodianWithdrawStatus:
-    ACCEPT = 1
-    REJECTED = 2
-
-
-class PortalRewardWithdrawStatus:
-    ACCEPT = 1
-    REJECTED = 2
-
-
-class PortalRedeemMatchingStatus:
-    ACCEPT = 1
-    REJECTED = 2
+        class RedeemMatchingStatus:
+            ACCEPT = 1
+            REJECTED = 2

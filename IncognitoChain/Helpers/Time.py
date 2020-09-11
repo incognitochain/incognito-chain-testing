@@ -10,19 +10,29 @@ def get_current_date_time(my_format=None):
     return datetime.now().strftime(my_format)
 
 
-def WAIT(_time):
+def WAIT(_time, unit='s'):
     """
-    Wait time.
-    Args:
-      _time(num): wait time in second
+
+    :param _time:
+    :param unit: s (second), m (minute) or h (hour)
+    :return:
     """
-    pool = 5
-    INFO(f"Wait for {_time} second(s)")
+    INFO(f"Wait for {_time}{unit}")
+
+    _unit = {"s": 1,
+             "m": 60,
+             "h": 60 * 60}
+    try:
+        _time = int(_time * _unit[unit])
+    except KeyError:
+        raise Exception(f"Expect time unit to be [s/m/h], got {unit} instead") from None
+
+    gap = 5
     print(f'{_time:>10}s', end="\r", flush=True)
-    time.sleep(_time % pool)
-    _time -= (_time % pool)
-    while _time >= pool:
+    time.sleep(_time % gap)
+    _time -= (_time % gap)
+    while _time >= gap:
         print(f'{_time:>10}s', end="\r", flush=True)
-        time.sleep(pool)
-        _time -= pool
+        time.sleep(gap)
+        _time -= gap
     print(f'{0:>10}s', end="\r", flush=True)
