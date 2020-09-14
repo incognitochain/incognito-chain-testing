@@ -1,13 +1,13 @@
+import concurrent
 import math
-from threading import Thread
+from concurrent.futures.thread import ThreadPoolExecutor
 
 from IncognitoChain.Configs.Constants import DAO_private_key, DAO_payment_key
 from IncognitoChain.Drivers.Response import Response
 from IncognitoChain.Helpers.Logging import *
-from IncognitoChain.Helpers.ThreadHelper import wait_threads_to_complete
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, Account
 from IncognitoChain.Objects.IncognitoTestCase import SUT
-from IncognitoChain.TestCases.Performace import sending_prv_thread, account_list
+from IncognitoChain.TestCases.Performace import account_list
 
 dict_tx_save_fullnode = dict()
 dict_tx_save_shard = dict()
@@ -38,36 +38,34 @@ def teardown_function():
 
 
 def test_max_tx_in_same_block_with_some_fail():
-    all_thread = list()
     STEP(1, "Prepare bunch of addresses that has PRV - same shard")
     STEP(2, 'Pick 20 address, send 3/4 PRV to shard, and 1/2 to fullnode')
-    for sender_account in sender_account_list:
-        thread_shard = Thread(target=sending_prv_thread, args=(
-            sender_account, receiver_account, math.floor(sender_account.get_prv_balance_cache() * 3 / 5), 1, -1,
-            dict_tx_save_shard))
-        thread_fullnode = Thread(target=sending_prv_thread, args=(
-            sender_account, receiver_account, math.floor(sender_account.get_prv_balance_cache() / 2), -1, -1,
-            dict_tx_save_fullnode))
+    with ThreadPoolExecutor() as executor:
+        for sender_account in sender_account_list:
+            send_amount = math.floor(sender_account.get_prv_balance_cache() * 3 / 5)
 
-        thread_shard.start()
-        thread_fullnode.start()
-        all_thread.append(thread_fullnode)
-        all_thread.append(thread_shard)
-    wait_threads_to_complete(all_thread)
+            thread = executor.submit(sender_account.send_prv_to, receiver_account, send_amount, shard_handle=1)
+            dict_tx_save_shard[sender_account] = thread
+
+            thread = executor.submit(sender_account.send_prv_to, receiver_account, send_amount, )
+            dict_tx_save_fullnode[sender_account] = thread
+
+    concurrent.futures.wait(dict_tx_save_fullnode.values())
+    concurrent.futures.wait(dict_tx_save_shard.values())
 
     STEP(3, 'find stuck and success transactions')
     INFO(f'transactions_save_shard: ')
     i = 0
-    for account in dict_tx_save_shard.keys():
-        tx = dict_tx_save_shard[account]
+    for account, thread in dict_tx_save_shard.items():
+        tx = thread.result()
         tx_id = tx.get_tx_id()
         INFO(f' s{i} sender {account.private_key} - {tx_id}')
         i += 1
 
     INFO(f'transactions_save_fullnode: ')
     i = 0
-    for account in dict_tx_save_fullnode.keys():
-        tx = dict_tx_save_fullnode[account]
+    for account, thread in dict_tx_save_fullnode.items():
+        tx = thread.result()
         INFO(f' f{i} sender {account.private_key} - {tx.get_tx_id()}')
         i += 1
 
@@ -76,24 +74,17 @@ def test_max_tx_in_same_block_with_some_fail():
     count_tx_none_fullnode = 0
     try:  # wait all transaction to be sent
         INFO('no need to subscribe fullnode tx')
-        i = 0
-        while i < len(dict_tx_save_fullnode):
-            account = list(dict_tx_save_fullnode.keys())[i]
-            tx: Response = dict_tx_save_fullnode[account]
+        for account, thread in dict_tx_save_fullnode.items():
+            tx: Response = thread.result()
             if tx.get_tx_id() is None:
-                del dict_tx_save_fullnode[account]  # remove all tx has tx id = None from the list
                 count_tx_none_fullnode += 1
                 continue
-            i += 1
 
         INFO('subscribe shard tx')
-        i = 0
         one_subscription_pass_already = False
-        while i < len(dict_tx_save_shard):
-            account = list(dict_tx_save_shard.keys())[i]
-            tx: Response = dict_tx_save_shard[account]
+        for account, thread in dict_tx_save_shard.items():
+            tx: Response = thread.result()
             if tx.get_tx_id() is None:
-                del dict_tx_save_shard[account]  # remove all tx has tx id = None from the list
                 count_tx_none_shard += 1
                 continue
             if not one_subscription_pass_already:
@@ -102,7 +93,6 @@ def test_max_tx_in_same_block_with_some_fail():
                     one_subscription_pass_already = True
                 except Exception as e:
                     ERROR(e)
-            i += 1
 
         receiver_account.subscribe_cross_output_coin()
     except Exception as e:
@@ -117,16 +107,20 @@ def test_max_tx_in_same_block_with_some_fail():
     else:
         for tx_id in transactions_in_mem_pool:
             INFO(f' ____ tx in mem pool {tx_id}')
-            for account in dict_tx_save_fullnode.keys():
+            for account, thread in dict_tx_save_fullnode.items():
                 # INFO(f' ___ tx in trans {transaction.get_tx_id()}')
-                transaction = dict_tx_save_fullnode[account]
+                transaction = thread.result()
+                if transaction.get_error_msg() is not None:
+                    continue
                 if tx_id == transaction.get_tx_id():
                     stuck_tx_count_fullnode += 1
                     INFO(f'tx found in mem pool {transaction.get_tx_id()}')
                     break
-            for account in dict_tx_save_shard.keys():
+            for account, thread in dict_tx_save_shard.items():
                 # INFO(f' ___ tx in trans {transaction.get_tx_id()}')
-                transaction = dict_tx_save_shard[account]
+                transaction = thread.result()
+                if transaction.get_error_msg() is not None:
+                    continue
                 if tx_id == transaction.get_tx_id():
                     stuck_tx_count_shard += 1
                     INFO(f'tx found in mem pool {transaction.get_tx_id()}')
@@ -137,8 +131,10 @@ def test_max_tx_in_same_block_with_some_fail():
     block_height_0 = -1
     count_block_height_0_shard = 0
     count_block_height_0_fullnode = 0
-    for account in dict_tx_save_fullnode:
-        transaction: Response = dict_tx_save_fullnode[account]
+    for account, thread in dict_tx_save_fullnode.items():
+        transaction: Response = thread.result()
+        if transaction.get_error_msg() is not None:
+            continue
         try:
             tx_block_height = transaction.get_transaction_by_hash().get_block_height()
         except Exception:
@@ -153,8 +149,10 @@ def test_max_tx_in_same_block_with_some_fail():
             # assert (0 <= tx_block_height - block_height_0 <= 1) and \
             INFO(f'f:{transaction.get_tx_id()} : {tx_block_height}')
 
-    for account in dict_tx_save_shard:
-        transaction: Response = dict_tx_save_shard[account]
+    for account, thread in dict_tx_save_shard.items():
+        transaction: Response = thread.result()
+        if transaction.get_error_msg() is not None:
+            continue
         try:
             tx_block_height = transaction.get_transaction_by_hash().get_block_height()
         except Exception:
@@ -171,13 +169,20 @@ def test_max_tx_in_same_block_with_some_fail():
 
     STEP(5.2, "Verify block tx hashes > 10")
     count_tx_in_block = 0
+    INFO(f'block {block_height_0}')
     tx_hashes_in_block = SUT.full_node.system_rpc().retrieve_block_by_height(block_height_0, 0).get_tx_hashes()
-    INFO(f'block {block_height_0}'
-         f'{tx_hashes_in_block}')
-    for account, tx in dict_tx_save_fullnode.items():
+    output = "\n\t\t".join(tx_hashes_in_block)
+    INFO(f'hashes:\n\t{output}')
+    for account, thread in dict_tx_save_fullnode.items():
+        tx = thread.result()
+        if tx.get_error_msg() is not None:
+            continue
         if tx.get_tx_id() in tx_hashes_in_block:
             count_tx_in_block += 1
-    for account, tx in dict_tx_save_shard.items():
+    for account, thread in dict_tx_save_shard.items():
+        tx = thread.result()
+        if tx.get_error_msg() is not None:
+            continue
         if tx.get_tx_id() in tx_hashes_in_block:
             count_tx_in_block += 1
     assert count_tx_in_block > 10 and INFO(f" sum tx in block {block_height_0} = {count_tx_in_block}")
