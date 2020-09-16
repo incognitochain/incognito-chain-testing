@@ -10,11 +10,11 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, UnlockCollateralReqInfo, RedeemMatchingInfo
 from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, custodian_remote_addr, \
-    TEST_SETTING_REDEEM_AMOUNT
+    TEST_SETTING_REDEEM_AMOUNT, test_PTL02_create_porting_req, TEST_SETTING_PORTING_AMOUNT
 
 n = 2
 full_holding = 'full holding'
-any_ = 'any'
+any_ = 'redeem mount will be calculated for redeem N custodian'
 auto_matching = 'auto matching'
 manual_matching = 'manual matching'
 valid = 'valid'
@@ -31,9 +31,9 @@ expire_one_send = 'expire because only one custodian send public token'
     (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, 1, 1, auto_matching, invalid),
     (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, manual_matching, valid),
     (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, 1, 1, manual_matching, invalid),
+    (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, manual_matching, expire_not_send),  # Test case 23
     (PBNB_ID, full_holding, None, 1, manual_matching, valid),  # test case 20
     (PBNB_ID, full_holding, None, 1, auto_matching, valid),  # test case 20
-    (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, manual_matching, expire_not_send),  # Test case 23
     # n custodian
     (PBNB_ID, any_, None, n, auto_matching, valid),
     (PBNB_ID, any_, None, n, manual_matching, valid),  # test case 22
@@ -59,15 +59,25 @@ expire_one_send = 'expire because only one custodian send public token'
     # (PBTC_ID, any_, None, n, manual_matching, expire_one_send),  # test case 25
 
 ])
-def test_create_redeem_req_1_1(token, redeem_amount, redeem_fee, num_of_custodian, custodian_matching, expected):
-    prv_bal_be4 = portal_user.get_prv_balance()
-    tok_bal_be4 = portal_user.get_token_balance(token)
+def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, custodian_matching, expected):
     PSI_before_test = SUT.full_node.get_latest_portal_state_info()
     highest_holding_token_custodian_in_pool = PSI_before_test.help_get_highest_holding_token_custodian(token)
+    # check if there are enough custodian holding token for the test to run
+    # if not, porting more token
+    num_of_holding_custodians = len(PSI_before_test.find_custodian_hold_more_than_amount(token, 0))
+    while 0 <= num_of_holding_custodians < num_of_custodian:
+        test_PTL02_create_porting_req.test_create_porting_req_1_1(token, TEST_SETTING_PORTING_AMOUNT, portal_user, None,
+                                                                  1, 'valid')
+        WAIT(1, 'm')
+        PSI_before_test = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+        num_of_holding_custodians = len(PSI_before_test.find_custodian_hold_more_than_amount(token, 0))
+
     if num_of_custodian == n:
         redeem_amount = highest_holding_token_custodian_in_pool.get_holding_token_amount(token) + 1
     if redeem_amount == full_holding:
         redeem_amount = highest_holding_token_custodian_in_pool.get_holding_token_amount(token)
+    prv_bal_be4 = portal_user.get_prv_balance()
+    tok_bal_be4 = portal_user.get_token_balance(token)
 
     STEP(1.1, 'Create redeem req')
     redeem_req_tx = portal_user.portal_req_redeem_my_token(token, redeem_amount, redeem_fee=redeem_fee)
@@ -120,7 +130,7 @@ def test_create_redeem_req_1_1(token, redeem_amount, redeem_fee, num_of_custodia
 
 def verify_valid_redeem(psi_b4, redeem_id, redeem_amount, token, matching):
     redeem_info = RedeemReqInfo()
-    STEP(3.3, 'Verify that the request move on to Matched `redeem list')
+    STEP(3.3, 'Verify that the request move on to Matched redeem list')
     WAIT(40)
     redeem_info_b4_re_match = redeem_info.get_redeem_status_by_redeem_id(redeem_id)
     PSI_after_match = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
@@ -155,17 +165,18 @@ def verify_valid_redeem(psi_b4, redeem_id, redeem_amount, token, matching):
              f'Custodian submit proof: {custodian_acc.get_remote_addr(token)}')
         custodian_info = redeem_info.get_custodian(custodian_acc)
         redeem_amount_of_this_custodian = custodian_info.get_amount()
-        custodian_status_after_req = PSI_after_req.get_custodian_info_in_pool(custodian_acc)
-        locked_collateral_before = custodian_status_after_req.get_locked_collateral(token)
-        holding_token_after_req = custodian_status_after_req.get_holding_token_amount(token)
+        custodian_status_af_req = PSI_after_req.get_custodian_info_in_pool(custodian_acc)
+        custodian_status_b4_req = psi_b4.get_custodian_info_in_pool(custodian_acc)
+        locked_collateral_b4 = custodian_status_b4_req.get_locked_collateral(token)
+        holding_token_after_req = custodian_status_af_req.get_holding_token_amount(token)
         sum_waiting_porting_req_lock_collateral = PSI_after_req.sum_collateral_porting_waiting(token, custodian_acc)
         sum_waiting_redeem_req_holding_tok = PSI_after_req.sum_holding_token_matched_redeem_req(token, custodian_acc)
         estimated_unlock_collateral_of_1_custodian = \
-            redeem_amount_of_this_custodian * (locked_collateral_before - sum_waiting_porting_req_lock_collateral) // (
-                holding_token_after_req + redeem_amount_of_this_custodian + sum_waiting_redeem_req_holding_tok)
+            psi_b4.estimate_custodian_collateral_unlock(custodian_info, redeem_amount_of_this_custodian, token)
+
         INFO(f"""Status before req unlock collateral:
                                 redeem amount     = {redeem_amount_of_this_custodian}
-                                locked collateral = {locked_collateral_before}
+                                locked collateral = {locked_collateral_b4}
                                 holding token     = {holding_token_after_req}
                                 sum waiting colla = {sum_waiting_porting_req_lock_collateral}
                                 sum holding token = {sum_waiting_redeem_req_holding_tok} 
@@ -187,15 +198,15 @@ def verify_valid_redeem(psi_b4, redeem_id, redeem_amount, token, matching):
     sum_delta_holding_token = 0
     PSI_after_submit_proof = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
     for custodian_info in custodians_of_this_req:
-        custodian_status_after_req = PSI_after_submit_proof.get_custodian_info_in_pool(custodian_info)
-        locked_collateral_after = custodian_status_after_req.get_locked_collateral(token)
-        holding_token_after = custodian_status_after_req.get_holding_token_amount(token)
+        custodian_status_af_req = PSI_after_submit_proof.get_custodian_info_in_pool(custodian_info)
+        locked_collateral_after = custodian_status_af_req.get_locked_collateral(token)
+        holding_token_after = custodian_status_af_req.get_holding_token_amount(token)
 
         custodian_status_before = psi_b4.get_custodian_info_in_pool(custodian_info)
-        locked_collateral_before = custodian_status_before.get_locked_collateral(token)
+        locked_collateral_b4 = custodian_status_before.get_locked_collateral(token)
         holding_token_before = custodian_status_before.get_holding_token_amount(token)
 
-        unlock_collateral_amount = locked_collateral_before - locked_collateral_after
+        unlock_collateral_amount = locked_collateral_b4 - locked_collateral_after
         release_token_amount = holding_token_before - holding_token_after
 
         INFO(f"""Status after req unlock collateral: {l6(custodian_info.get_incognito_addr())}
@@ -274,7 +285,7 @@ def verify_expired_redeem_1_custodian_sent(token, redeem_id, tok_bal_b4, prv_bal
 def matching_custodian(matching_mode, num_of_custodian, token, redeem_id, psi_b4):
     if matching_mode == auto_matching:
         STEP(3.2, f'Wait 10 min for custodian auto pick')
-        WAIT(10.5 * 60)
+        WAIT(10.5, 'm')
     else:  # manual matching
         STEP(3.2, f"Self-matching custodian")
         custodian_pool = psi_b4.help_sort_custodian_by_holding_token_desc(token)
@@ -296,8 +307,13 @@ def verify_rematching_custodian_with_0_holding(token, redeem_id, psi_b4, custodi
         WARNING("There's no custodian with 0 holding token")
     else:
         poor_custodian = custodian_remote_addr.get_accounts(custodian_has_no_holding.get_incognito_addr())
-        matching_tx = poor_custodian.portal_let_me_take_care_this_redeem(redeem_id, do_assert=False)
-        assert RedeemMatchingInfo().get_matching_info_by_tx(matching_tx.get_tx_id()).is_rejected()
+        if poor_custodian is not None:
+            matching_tx = poor_custodian.portal_let_me_take_care_this_redeem(redeem_id, do_assert=False)
+            assert RedeemMatchingInfo().get_matching_info_by_tx(matching_tx.get_tx_id()).is_rejected()
+        else:
+            WARNING(f'Account with following payment key not exist in test data '
+                    f'{custodian_has_no_holding.get_incognito_addr()}. \n'
+                    f'Skip rematch with custodian has no holding test step')
 
     STEP(3.5, f'Make sure matched custodian must not change')
     redeem_info_af_re_match = redeem_info.get_redeem_status_by_redeem_id(redeem_id)

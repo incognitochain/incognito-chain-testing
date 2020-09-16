@@ -398,10 +398,11 @@ class Account:
         cli = NeighborChainCli.new(token_id)
         return cli.send_to_multi(self.get_remote_addr(token_id), receiver_amount_dict, password, memo)
 
-    def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1):
+    def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1, shard_handle=None):
         """
         send amount_prv of prv to to_account. by default fee=-1 and privacy=1
 
+        :param shard_handle: shard id to send request to. If None, send to full node
         :param receiver_account:
         :param amount:
         :param fee: default = auto
@@ -409,8 +410,12 @@ class Account:
         :return: Response object
         """
         INFO(f'From: {l6(self.private_key)}. Send {amount} prv to: {l6(receiver_account.payment_key)}')
+        if shard_handle is None:
+            node = self.__SUT.REQUEST_HANDLER
+        else:
+            node = self.__SUT.shards[shard_handle].get_representative_node()
 
-        return self.__SUT.REQUEST_HANDLER.transaction(). \
+        return node.transaction(). \
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
 
     def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1):

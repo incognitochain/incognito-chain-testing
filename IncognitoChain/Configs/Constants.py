@@ -11,6 +11,7 @@ class ChainConfig:
         COLLATERAL_LIQUIDATE_PERCENT = 1.2
         COLLATERAL_LIQUIDATE_TO_POOL_PERCENT = 1.05
         REQ_TIME_OUT = 15  # minutes
+        # REQ_TIME_OUT = 60  # minutes, TestNet
 
 
 BURNING_ADDR = \

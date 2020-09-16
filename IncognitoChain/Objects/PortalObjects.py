@@ -101,10 +101,16 @@ class PortingReqInfo(_PortalInfoBase):
 
 class RedeemReqInfo(_PortalInfoBase):
     def __str__(self):
+        custodian_list = self.get_redeem_matching_custodians()
+        cust_short = ''
+        for cust in custodian_list:
+            cust_short += "%s/%s/%s " % (
+                l6(cust.get_incognito_addr()), l6(cust.get_remote_address()), cust.get_amount())
+        cust_short = cust_short.strip()
 
-        return "id= %s, requester= %s, amount= %s, fee= %s, b height= %s" % (
-            self.get_redeem_id(), self.get_requester(), self.get_redeem_amount(), self.get_redeem_fee(),
-            self.get_beacon_height())
+        return "id= %s, requester= %s, amount= %s, fee= %s, b height= %s, custodian: %s" % (
+            self.get_redeem_id(), l6(self.get_requester()), self.get_redeem_amount(), self.get_redeem_fee(),
+            self.get_beacon_height(), cust_short)
 
     def get_redeem_id(self):
         return self.data['UniqueRedeemID']
@@ -114,7 +120,7 @@ class RedeemReqInfo(_PortalInfoBase):
 
     def get_requester(self):
         try:
-            return self.data['RedeemerIncAddressStr']
+            return self.data['RedeemerAddress']
         except KeyError:
             return self.data['RedeemerRemoteAddress']
 
@@ -757,13 +763,27 @@ class PortalStateInfo(_PortalInfoBase):
         """
         :param token_id:
         :param holding_amount:
-        :return:
+        :return: CustodianInfo who holds specific <holding_amount> of <token_id>
         """
         pool = self.get_custodian_pool()
         for custodian in pool:
             if custodian.get_holding_token_amount(token_id) == holding_amount:
                 return custodian
         return None
+
+    def find_custodian_hold_more_than_amount(self, token_id, holding_amount):
+        """
+
+        :param token_id:
+        :param holding_amount:
+        :return: List of CustodianInfo who holds <token_id> with amount > <holding_amount>
+        """
+        pool = self.get_custodian_pool()
+        list_custodian = []
+        for custodian in pool:
+            if custodian.get_holding_token_amount(token_id) > holding_amount:
+                list_custodian.append(custodian)
+        return list_custodian
 
     def get_a_random_custodian(self, token=None):
         """
@@ -865,9 +885,11 @@ class PortalStateInfo(_PortalInfoBase):
                                              percent=ChainConfig.Portal.COLLATERAL_PERCENT):
         custodian_holding = self.get_custodian_info_in_pool(custodian).get_holding_token_amount(token)
         custodian_lock_collateral = self.get_custodian_info_in_pool(custodian).get_locked_collateral(token)
-
-        unlock_token_amount = holding_amount_to_unlock * int(percent / ChainConfig.Portal.COLLATERAL_PERCENT)
-        unlock_prv = unlock_token_amount * int(custodian_lock_collateral / custodian_holding)
+        if holding_amount_to_unlock == custodian_holding:
+            unlock_prv = custodian_lock_collateral
+        else:
+            unlock_token_amount = holding_amount_to_unlock * percent / ChainConfig.Portal.COLLATERAL_PERCENT
+            unlock_prv = int(unlock_token_amount * (custodian_lock_collateral / custodian_holding))
         INFO(f'Estimated: custodian {l6(custodian.get_incognito_addr())}, '
              f'holding {custodian_holding}, '
              f'unlock {holding_amount_to_unlock} '
