@@ -1,28 +1,39 @@
 from IncognitoChain.Configs.Constants import coin, PBNB_ID, PRV_ID, PBTC_ID
+from IncognitoChain.Drivers.NeighborChainCli import BnbCli
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import PortalHelper
 from IncognitoChain.Objects.AccountObject import Account, AccountGroup
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, COIN_MASTER, SUT, PORTAL_FEEDER
 
+# ---- import BNB key for testing
+cli_pass_phrase = '123123Az'
+BNB_MNEMONIC_LIST = [
+    'web dwarf series matrix promote verb ahead topple blue maple vicious must useful then ice slice useless teach skate fork giraffe bamboo undo answer',
+    'orbit endless sample emotion black armor duck erosion next grow apart envelope inform museum aspect task buddy salt adjust bag eyebrow involve void unfair',
+    'place gas monkey narrow leaf cross electric hero minimum nothing improve soul slow casual fun clerk muffin piece wool admit immense search response miracle',
+    'enemy moral minute rude field seven setup odor address salad state select board useful punch fault mass flip culture duty metal much priority joy',
+    'luggage guide power apple transfer swarm mammal raw super bubble buffalo thunder sister insane veteran sheriff sport body crack belt outdoor grit drama range',
+]
+
+cli = BnbCli()
+cli.import_key_mnemonic('user', cli_pass_phrase, BNB_MNEMONIC_LIST)
+bnb_address_list = list(cli.list_user_addresses().values())
+# ----------------------------------------------------------------------------------------------------------------------
+
 TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
 TEST_SETTING_PORTING_AMOUNT = 100
 TEST_SETTING_REDEEM_AMOUNT = 10
 
-self_pick_custodian = ACCOUNTS[6]. \
-    set_remote_addr('tbnb1d90lad6rg5ldh8vxgtuwzxd8n6rhhx7mfqek38', 'mgdwpAgvYNuJ2MyUimiKdTYsu2vpDZNpAa')
-portal_user = ACCOUNTS[1]. \
-    set_remote_addr('tbnb1zyqrky9zcumc2e4smh3xwh2u8kudpdc56gafuk', 'mhpTRAPdmyB1PUvXR2yqaSBK8ZJhEQ8rEw')
-
-cli_pass_phrase = '123123Az'
-another_bnb_addr = 'tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss'
-another_btc_addr = 'mytWP2jW6Hsj5YdPvucm8Kkop9789adjQn'
-
+self_pick_custodian = ACCOUNTS[6].set_remote_addr(bnb_address_list[0], 'mgdwpAgvYNuJ2MyUimiKdTYsu2vpDZNpAa')
+portal_user = ACCOUNTS[1].set_remote_addr(bnb_address_list[1], 'mhpTRAPdmyB1PUvXR2yqaSBK8ZJhEQ8rEw')
 custodian_remote_addr = AccountGroup(
-    ACCOUNTS[3].set_remote_addr('tbnb172pnrmd0409237jwlq5qjhw2s2r7lq6ukmaeke', 'mg3me76RFFWeRuYqM6epwjMHHMTaouYLDe'),
-    ACCOUNTS[4].set_remote_addr('tbnb19cmxazhx5ujlhhlvj9qz0wv8a4vvsx8vuy9cyc', 'mkgT1mphBPX1C3tn9yRK7HmVSYkVEn7VzY'),
-    ACCOUNTS[5].set_remote_addr('tbnb1n5lrzass9l28djvv7drst53dcw7y9yj4pyvksf', 'myo25dPxQNqk94HwFLeFr42cH8VbwTGbBm'),
+    ACCOUNTS[3].set_remote_addr(bnb_address_list[2], 'mg3me76RFFWeRuYqM6epwjMHHMTaouYLDe'),
+    ACCOUNTS[4].set_remote_addr(bnb_address_list[3], 'mkgT1mphBPX1C3tn9yRK7HmVSYkVEn7VzY'),
+    ACCOUNTS[5].set_remote_addr(bnb_address_list[4], 'myo25dPxQNqk94HwFLeFr42cH8VbwTGbBm'),
     self_pick_custodian
 )
+another_bnb_addr = 'tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss'
+another_btc_addr = 'mytWP2jW6Hsj5YdPvucm8Kkop9789adjQn'
 
 init_portal_rate = {
     PRV_ID: '83159',
@@ -32,7 +43,6 @@ init_portal_rate = {
 
 # special case
 fat_custodian = Account()
-# fat_custodian.get_prv_balance()
 big_porting_amount = coin(10)
 big_rate = {PBNB_ID: '105873200000',
             PBTC_ID: '105873200000'}
@@ -40,11 +50,13 @@ big_rate = {PBNB_ID: '105873200000',
 # 37772966455153490
 # 37772966455153487
 
-for acc in custodian_remote_addr.get_accounts():  # find account which has most PRV
+for acc in custodian_remote_addr.get_accounts():  # find custodian account who has most PRV
     if fat_custodian.get_prv_balance_cache() is None:
         fat_custodian = acc
     elif acc.get_prv_balance_cache() >= fat_custodian.get_prv_balance_cache():
         fat_custodian = acc
+INFO(f' FAT CUSTODIAN \n'
+     f'{fat_custodian}')
 big_collateral = PortalHelper.cal_lock_collateral(big_porting_amount, big_rate[PBNB_ID],
                                                   init_portal_rate[PRV_ID])
 fat_custodian_prv = big_collateral + coin(1)

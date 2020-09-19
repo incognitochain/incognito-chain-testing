@@ -207,7 +207,8 @@ class Account:
         else:
             where_to_ask = self.__SUT.shards[shard_id].get_representative_node().transaction()
 
-        balance = where_to_ask.get_custom_token_balance(self.private_key, token_id).get_result()
+        result = where_to_ask.get_custom_token_balance(self.private_key, token_id).get_result()
+        balance = result if result is not None else 0
 
         self.cache[f'{Account._cache_bal_tok}_{token_id}'] = balance
         INFO(f"Private k = {l6(self.private_key)}, token id = {l6(token_id)}, bal = {coin(balance, False)} ")
@@ -288,12 +289,12 @@ class Account:
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
                                                 someone.payment_key, stake_amount, auto_re_stake)
 
-    def un_stake_me(self):
+    def stk_un_stake_me(self):
         INFO('Un-stake me')
         return self.__SUT.full_node.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, self.payment_key, self.validator_key)
 
-    def un_stake_him(self, him):
+    def stk_un_stake_him(self, him):
         INFO(f"Un-stake other: {him.validator_key}")
         return self.__SUT.full_node.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, him.payment_key, him.validator_key)

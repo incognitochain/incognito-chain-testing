@@ -1,3 +1,5 @@
+import json
+
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 
 """
@@ -158,3 +160,14 @@ class BlockChainCore(BlockChainInfoBaseClass):
 
         def get_epoch_block(self):
             return self.data['EpochBlock']
+
+        def __str__(self):
+            pass
+
+    def __str__(self):
+        pass
+
+    def print_raw_data(self):
+        raw_json = json.dumps(self.data, indent=3)
+        print(raw_json)
+        return raw_json

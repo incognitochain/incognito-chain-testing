@@ -1,4 +1,4 @@
-from IncognitoChain.Helpers.Logging import WARNING
+from IncognitoChain.Helpers.Logging import DEBUG
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 
@@ -86,5 +86,5 @@ class Coin(BlockChainInfoBaseClass):
         try:
             return int(self.data['Version'])
         except KeyError:
-            WARNING('Error while get coin version. Assume ver=1')
+            DEBUG('Error while get coin version. Assume ver=1')
             return 1

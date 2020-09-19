@@ -18,52 +18,49 @@ from websocket import WebSocketTimeoutException
 
 from IncognitoChain.Configs.Constants import coin, ChainConfig
 from IncognitoChain.Helpers.Logging import STEP, INFO
+from IncognitoChain.Helpers.TestHelper import ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
 from IncognitoChain.TestCases.Staking import stake_account, token_holder_shard_1, \
-    amount_token_send, amount_token_fee, token_holder_shard_0, staked_account
+    amount_token_send, amount_token_fee, token_holder_shard_0, staked_account, token_id
 
 
-def setup_function():
-    if stake_account.get_prv_balance() < coin(1750):
-        COIN_MASTER.send_prv_to(stake_account, coin(1850) - stake_account.get_prv_balance_cache(),
-                                privacy=0).subscribe_transaction()
-        if stake_account.shard != COIN_MASTER.shard:
-            stake_account.subscribe_cross_output_coin()
-
-
-@pytest.mark.parametrize("the_stake,the_staked", [
-    (stake_account, stake_account),  # self stake
-    (stake_account, staked_account)  # stake other
+@pytest.mark.parametrize("the_stake,the_staked,auto_re_stake", [
+    (stake_account, stake_account, False),  # self stake
+    (stake_account, staked_account, False)  # stake other
 ])
-def test_self_stake_n_stake_other_with_auto_stake_false(the_stake, the_staked):
-    from IncognitoChain.TestCases.Staking import token_id
+def test_staking(the_stake, the_staked, auto_re_stake):
+    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), the_stake)
     INFO(f'Run test with token: {token_id}')
     STEP(1, 'Get epoch number')
-    beacon_height = SUT.full_node.help_get_beacon_height_in_best_state_detail(refresh_cache=True)
-    epoch_number = SUT.full_node.help_get_current_epoch(refresh_cache=False)
+    blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
+    beacon_height = blk_chain_info.get_beacon_block().get_height()
+    epoch_number = blk_chain_info.get_beacon_block().get_epoch()
+
     while beacon_height % ChainConfig.BLOCK_PER_EPOCH >= (ChainConfig.BLOCK_PER_EPOCH / 2) - 1:
         # -1 just to be sure that staking will be successful
         INFO(f'block height % block per epoch = {beacon_height % ChainConfig.BLOCK_PER_EPOCH}')
         WAIT((ChainConfig.BLOCK_PER_EPOCH - (beacon_height % ChainConfig.BLOCK_PER_EPOCH)) * 10)
-        epoch_number = SUT.full_node.help_get_current_epoch(refresh_cache=False)
-        beacon_height = SUT.full_node.help_get_beacon_height_in_best_state_detail(refresh_cache=True)
+        blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
+        beacon_height = blk_chain_info.get_beacon_block().get_height()
+        epoch_number = blk_chain_info.get_beacon_block().get_epoch()
 
     INFO(f'Ready to stake at epoch: {epoch_number}, beacon height: {beacon_height}')
 
     STEP(2, 'Stake and check balance after stake')
     bal_before_stake = the_stake.get_prv_balance()
-    stake_response = the_stake.stake_someone_reward_him(the_staked, auto_re_stake=False)
+    stake_response = the_stake.stake_someone_reward_him(the_staked, auto_re_stake=auto_re_stake).expect_no_error()
     stake_response.subscribe_transaction()
     stake_fee = stake_response.get_transaction_by_hash().get_fee()
     assert the_stake.get_prv_balance_cache() == the_stake.get_prv_balance() + stake_fee + coin(1750)
 
     STEP(3, f'Wait until epoch {epoch_number} + n and Check if the stake become a committee')
     epoch_plus_n = the_staked.stk_wait_till_i_am_committee()
-    staked_shard = the_staked.am_i_a_committee(refresh_cache=False)
+    staked_shard = the_staked.am_i_a_committee(refresh_cache=auto_re_stake)
     assert staked_shard is not False
 
     STEP(4, "Sending token")
+    # sending from staked shard, so that the committee will have ptoken reward
     if staked_shard == 0:
         token_sender = token_holder_shard_0
         token_receiver = token_holder_shard_1
@@ -73,7 +70,7 @@ def test_self_stake_n_stake_other_with_auto_stake_false(the_stake, the_staked):
 
     token_bal_b4_withdraw_reward = token_receiver.get_token_balance(token_id)
     token_sender.send_token_to(token_receiver, token_id, amount_token_send, token_fee=amount_token_fee) \
-        .subscribe_transaction()
+        .expect_no_error().subscribe_transaction()
     try:
         if token_sender.shard != token_receiver.shard:
             token_receiver.subscribe_cross_output_token()
@@ -81,8 +78,12 @@ def test_self_stake_n_stake_other_with_auto_stake_false(the_stake, the_staked):
         pass
     assert token_bal_b4_withdraw_reward + amount_token_send == token_receiver.get_token_balance(token_id)
 
-    STEP(5, "Wait for the stake to be swapped out")
-    epoch_x = the_staked.stk_wait_till_i_am_swapped_out_of_committee()
+    if not auto_re_stake:
+        STEP(5, "Wait for the stake to be swapped out")
+        epoch_x = the_staked.stk_wait_till_i_am_swapped_out_of_committee()
+    else:
+        STEP(5, 'Wait for next epoch')
+        epoch_x = ChainHelper.wait_till_next_epoch()
 
     STEP(6.1, "Calculate avg PRV reward per epoch")
     prv_reward = the_staked.stk_get_reward_amount()
@@ -93,10 +94,13 @@ def test_self_stake_n_stake_other_with_auto_stake_false(the_stake, the_staked):
     token_reward = the_staked.stk_get_reward_amount(token_id)
     INFO(f'Token reward at epoch {epoch_x} = {token_reward}')
 
-    STEP(7.1, 'Wait for staking refund')
-    bal_after_stake_refund = the_stake.wait_for_balance_change()
-    STEP(7.2, 'Verify staking refund')
-    assert bal_before_stake - stake_fee == bal_after_stake_refund
+    if not auto_re_stake:
+        STEP(7.1, 'Wait for staking refund in case auto-stake = false')
+        bal_after_stake_refund = the_stake.wait_for_balance_change()
+        STEP(7.2, 'Verify staking refund')
+        assert bal_before_stake - stake_fee == bal_after_stake_refund
+    else:
+        STEP(7, 'Auto staking = True, not verify refund')
 
     STEP(8.1, 'Withdraw PRV reward and verify balance')
     prv_bal_b4_withdraw_reward = the_staked.get_prv_balance()

@@ -1,4 +1,5 @@
 import json
+import time
 from json.decoder import JSONDecodeError
 
 from IncognitoChain.Configs.Constants import ChainConfig, Status
@@ -141,6 +142,36 @@ class ChainHelper:
 
         INFO(f'Time out and current shard {shard_id} height is {current_shard_h}')
         return current_shard_h
+
+    @staticmethod
+    def wait_till_next_epoch(epoch_wait=None, check_interval=40, timeout=180):
+        f"""
+        Wait till {epoch_wait} to come, if {epoch_wait} is None, just wait till next epoch
+        :param epoch_wait: 
+        :param check_interval: 
+        :param timeout: 
+        :return: 
+        """
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+
+        INFO(f'Wait until epoch {epoch_wait}, check every {check_interval}s, timeout {timeout}s')
+        blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
+        current_epoch = blk_chain_info.get_beacon_block().get_epoch()
+        epoch_wait = current_epoch + 1 if epoch_wait is None else epoch_wait
+        if current_epoch >= epoch_wait:
+            return current_epoch
+        time_start = time.perf_counter()
+        while current_epoch < epoch_wait:
+            WAIT(check_interval)
+            blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
+            current_epoch = blk_chain_info.get_beacon_block().get_epoch()
+            if current_epoch == epoch_wait:
+                INFO(f"Now epoch = {current_epoch}")
+                return current_epoch
+            time_current = time.perf_counter()
+            if time_current - time_start > timeout:
+                INFO('Timeout')
+                return None
 
 
 def calculate_contribution(token_1_contribute_amount, token_2_contribute_amount, current_rate: list):

@@ -6,6 +6,8 @@ import subprocess
 import sys
 import typing
 
+import pexpect
+
 from IncognitoChain.Configs.Constants import PBNB_ID, PBTC_ID
 from IncognitoChain.Drivers.Connections import RpcConnection
 from IncognitoChain.Helpers.Logging import INFO, DEBUG
@@ -83,6 +85,14 @@ class BnbCli:
                    bnb_output, '--json', '--memo', memo_encoded]
         return self._exe_bnb_cli(command, password)
 
+    def _spawn(self, command, timeout=15, local=False):
+        if not local:
+            command += self.get_default_conn()
+        INFO(command)
+        child = pexpect.spawn(command, encoding='utf-8', timeout=timeout)
+        child.logfile = sys.stdout
+        return child
+
     def _exe_bnb_cli(self, command, more_input):
         command += self.get_default_conn()
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE,
@@ -134,6 +144,83 @@ class BnbCli:
         b64_encode = base64.b64encode(sha3_256.digest())
         encode_memo_str_output = b64_encode.decode('utf-8')
         return encode_memo_str_output
+
+    def import_key_mnemonic(self, username, pass_phrase, mnemonic, overwrite=True):
+        """
+
+        :param overwrite: option to overwrite existing username
+        :param username:
+        :param pass_phrase:
+        :param mnemonic: could be a string or a list of strings
+        :return:
+        """
+        mnemonic_list = [mnemonic] if type(mnemonic) is str else mnemonic
+        i = 1
+        for m in mnemonic_list:
+            name = f'{username}{i}'
+            i += 1
+            INFO(f'Importing key with passphrase: {pass_phrase} | {m}')
+            command = f"{self.cmd} keys add --recover {name}"
+            child = self._spawn(command, local=True)
+            try:
+                child.expect('override the existing name', timeout=2)
+                if overwrite:
+                    child.sendline('y')
+                else:
+                    child.sendline('n')
+                    child.close()
+                    return
+            except pexpect.exceptions.TIMEOUT:
+                pass
+
+            child.expect('Enter a passphrase for your key:')
+            child.sendline(pass_phrase)
+            child.expect('Repeat the passphrase:')
+            child.sendline(pass_phrase)
+            child.expect('> Enter your recovery seed phrase:')
+            child.sendline(m)
+            child.expect(pexpect.EOF)
+            child.close()
+
+    def delete_local_address(self, user=None, password=None):
+        if user is None:
+            users_to_del = self.list_user_addresses()
+        elif type(user) is str:
+            users_to_del = [user]
+        elif type(user) is list:
+            users_to_del = user
+        else:
+            raise Exception('un-support arg type of <user> arg')
+
+        password = '123123Az' if password is None else password
+
+        for user in users_to_del:
+            command = f'{self.cmd} keys delete {user}'
+            child = self._spawn(command, local=True)
+            try:
+                child.expect('not found', timeout=2)
+                child.close()
+                continue
+            except pexpect.exceptions.TIMEOUT:
+                pass
+            child.expect('DANGER - enter password to permanently delete key:')
+            child.sendline(password)
+            child.expect(pexpect.EOF)
+            child.close()
+
+    def list_user_addresses(self):
+        user_addresses = {}
+        command = f"{self.cmd} keys list"
+        child = self._spawn(command, local=True)
+        line = child.readline()
+        while line != '':
+            list_ = line.strip('\r\n').split('\t')
+            if 'bnb' in list_[2]:
+                user = list_[0]
+                address = list_[2]
+                user_addresses[user] = address
+            line = child.readline()
+        return user_addresses
 
     class BnbResponse:
         def __init__(self, stdout):

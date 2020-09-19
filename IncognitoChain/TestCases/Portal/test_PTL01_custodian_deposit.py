@@ -157,7 +157,7 @@ def test_update_remote_address(custodian, token, total_collateral_precondition, 
         STEP(1, "DO NOT Withdraw collateral")
 
     STEP(2, "Change remote address")
-    deposit_tx = custodian.portal_add_collateral(deposit_amount, token, new_addr)
+    deposit_tx = custodian.portal_add_collateral(deposit_amount, token, new_addr).expect_no_error()
     WAIT(40)
     deposit_tx_result = deposit_tx.subscribe_transaction()
     custodian_info_af = custodian.portal_get_my_custodian_info()

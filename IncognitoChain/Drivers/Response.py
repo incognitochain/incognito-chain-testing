@@ -20,11 +20,11 @@ class Response:
 
     def expect_no_error(self):
         assert self.get_error_msg() is None, self.get_error_trace().get_message()
-        return True
+        return self
 
     def expect_error(self):
         assert self.get_error_msg() is not None, 'Found no error while expect one'
-        return True
+        return self
 
     def data(self):
         if type(self.response) is str:

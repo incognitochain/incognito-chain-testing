@@ -99,8 +99,11 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
     def get_best_shard_hash(self, shard_number):
         return self.data['BestShardHash'][str(shard_number)]
 
-    def get_best_shard_height(self, shard_number):
-        return self.data['BestShardHeight'][str(shard_number)]
+    def get_best_shard_height(self, shard_number=None):
+        if shard_number is not None:
+            return self.data['BestShardHeight'][str(shard_number)]
+        else:
+            return self.data['BestShardHeight']
 
     def get_beacon_committee(self):
         raw_beacon_committee_list = self.data['BeaconCommittee']
@@ -198,7 +201,7 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         """
         Function to find shard committee number by using Account or public key
         :param account: Account obj or public key
-        :return: shard committee number
+        :return: shard committee number or False if not a committee
         """
         if type(account) == str:
             public_key = account
