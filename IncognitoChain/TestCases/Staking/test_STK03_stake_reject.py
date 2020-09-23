@@ -32,11 +32,12 @@ def test_stake_under_over_1750_prv(amount_prv_stake):
 
     STEP(2, "Verify that the transaction was rejected and PRV was not sent")
     assert stake_response.get_error_msg() == 'Can not send tx', "something went wrong, this tx must failed"
-    assert re.search(r'Reject not sansity tx transaction', stake_response.get_error_trace().get_message()), "something went so wrong"
+    assert re.search(r'Reject not sansity tx transaction',
+                     stake_response.get_error_trace().get_message()), "something went so wrong"
     assert balance_before_stake == stake_account.get_prv_balance()
 
-def test_stake_double():
 
+def test_stake_double():
     if stake_account.get_prv_balance() < coin(3600):
         COIN_MASTER.send_prv_to(stake_account, coin(3700) - stake_account.get_prv_balance_cache(),
                                 privacy=0).subscribe_transaction()
@@ -63,17 +64,19 @@ def test_stake_double():
 
     STEP(3, f'Wait until epoch {epoch_number} + n and Check if the stake become a committee')
     epoch_plus_n = stake_account.stk_wait_till_i_am_committee()
-    staked_shard = stake_account.am_i_a_committee(refresh_cache=False)
+    beacon_bsd = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    staked_shard = beacon_bsd.is_he_a_committee(stake_account)
     assert staked_shard is not False
 
     STEP(4, 'Stake the second time')
     balance_before_stake_second = stake_account.get_prv_balance()
     stake_response = stake_account.stake_and_reward_me(auto_re_stake=False)
-    print("stake_response = %s" %stake_response)
+    print("stake_response = %s" % stake_response)
 
     STEP(5, 'Verify that the transaction was rejected and PRV was not sent')
     assert stake_response.get_error_msg() == 'Can not send tx', "something went wrong, this tx must failed"
-    assert re.search(r'Double Spend With Current Blockchain', stake_response.get_error_trace().get_message()), "something went so wrong"
+    assert re.search(r'Double Spend With Current Blockchain',
+                     stake_response.get_error_trace().get_message()), "something went so wrong"
     assert balance_before_stake_second == stake_account.get_prv_balance()
 
     STEP(6, "Wait for the stake to be swapped out")
@@ -93,6 +96,6 @@ def test_stake_double():
     prv_reward_amount = stake_account.stk_get_reward_amount()
     stake_account.stk_withdraw_reward_to_me().subscribe_transaction()
     prv_bal_after_withdraw_reward = stake_account.wait_for_balance_change(from_balance=prv_bal_withdraw_reward,
-                                                                       timeout=180)
+                                                                          timeout=180)
     INFO(f'Expect reward amount to received: {prv_reward_amount}')
     assert prv_bal_withdraw_reward == prv_bal_after_withdraw_reward - prv_reward_amount

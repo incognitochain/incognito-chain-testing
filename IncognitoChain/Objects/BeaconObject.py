@@ -215,7 +215,9 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
             committees_in_shard = self.get_shard_committees(shard_number)
             for committee in committees_in_shard:
                 if committee.get_inc_public_key() == public_key:
+                    INFO(f" IS committee: pub_key = {public_key} : shard {shard_number}")
                     return shard_number
+        INFO(f"NOT committee: pub_key = {public_key}")
         return False
 
     def is_this_committee_auto_stake(self, account):

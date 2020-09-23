@@ -246,7 +246,8 @@ class Account:
         obj_coins = []
         for bal in custom_token_bal_raw:
             tok_id = bal['TokenID']
-            raw_response = self.__SUT.full_node.transaction().list_unspent_output_tokens(self.private_key, tok_id)
+            raw_response = self.__SUT.full_node.transaction(). \
+                list_unspent_output_tokens(self.private_key, tok_id).expect_no_error()
             raw_coins = raw_response.get_result('Outputs')[self.private_key]
             for raw_coin in raw_coins:
                 obj_coins.append(Coin(raw_coin))
@@ -303,7 +304,9 @@ class Account:
         t = timeout
         INFO(f"Wait until {self.validator_key} become a committee, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
-            if self.am_i_a_committee() is False:
+            beacon_bsd = self.__SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+            staked_shard = beacon_bsd.is_he_a_committee(self)
+            if staked_shard is False:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
@@ -318,7 +321,8 @@ class Account:
         t = timeout
         INFO(f"Wait until {self.validator_key} no longer a committee, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
-            if not (self.am_i_a_committee() is False):  # am_i_a_committee returns False or shard number
+            beacon_bsd = self.__SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+            if not (beacon_bsd.is_he_a_committee(self) is False):  # is_he_a_committee returns False or shard number
                 # (number which is not False) so must use this comparision to cover the cases
                 WAIT(check_cycle)
                 timeout -= check_cycle
@@ -603,28 +607,6 @@ class Account:
                                                                                  prv_fee, token_fee,
                                                                                  prv_privacy, token_privacy)
 
-    def am_i_a_committee(self, refresh_cache=True):
-        """
-
-        :return: shard id of which this account is a committee, if not a committee in any shard, return False
-        """
-        best = self.__SUT.full_node.system_rpc().get_beacon_best_state_detail(refresh_cache=refresh_cache)
-        shard_committee_list = best.get_result()['ShardCommittee']
-        for i in range(0, len(shard_committee_list)):
-            committees_in_shard = shard_committee_list[f'{i}']
-            for committee in committees_in_shard:
-                if self.public_key is None:
-                    self.find_public_key()
-
-                if committee['IncPubKey'] == self.public_key:
-                    INFO(f" IS committee: {self.validator_key} : shard {i}")
-                    return i
-        INFO(f"NOT committee: {self.validator_key}")
-        return False
-
-    def am_i_stake(self):
-        pass
-
     def burn_token(self, token_id, amount_custom_token):
         """
         Burning token (this mean send token to burning address)
@@ -774,11 +756,11 @@ class Account:
         return self.__SUT.full_node.dex().trade_token(self.private_key, self.payment_key, token_id_to_sell, sell_amount,
                                                       token_id_to_buy, min_amount_to_buy, trading_fee)
 
-    def pde_trade_prv(self, amount_to_sell, token_id_to_buy, min_amount_to_buy):
+    def pde_trade_prv(self, amount_to_sell, token_id_to_buy, min_amount_to_buy, trading_fee=0):
         INFO(f'User {l6(self.payment_key)}: '
              f'Trade {amount_to_sell} of PRV for {token_id_to_buy[-6:]}')
         return self.__SUT.full_node.dex().trade_prv(self.private_key, self.payment_key, amount_to_sell, token_id_to_buy,
-                                                    min_amount_to_buy)
+                                                    min_amount_to_buy, trading_fee)
 
     def pde_trade(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
         if token_id_to_sell == PRV_ID:

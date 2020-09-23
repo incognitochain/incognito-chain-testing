@@ -56,7 +56,8 @@ def test_staking(the_stake, the_staked, auto_re_stake):
 
     STEP(3, f'Wait until epoch {epoch_number} + n and Check if the stake become a committee')
     epoch_plus_n = the_staked.stk_wait_till_i_am_committee()
-    staked_shard = the_staked.am_i_a_committee(refresh_cache=auto_re_stake)
+    beacon_bsd = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    staked_shard = beacon_bsd.is_he_a_committee(the_staked)
     assert staked_shard is not False
 
     STEP(4, "Sending token")

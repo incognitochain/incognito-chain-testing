@@ -8,6 +8,7 @@ from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2
 
 
 @pytest.mark.parametrize('withdrawer, token1, token2, percent_of_share_amount_to_withdraw', [
+    # todo: fix 3 first test, always fail at step 3
     (token_owner, PRV_ID, token_id_1, 1.1),
     (token_owner, token_id_1, token_id_2, 0.01),
     (ACCOUNTS[3], PRV_ID, token_id_1, 1.1),

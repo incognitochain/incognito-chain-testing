@@ -55,7 +55,10 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
     trade_amount = random.randint(1000, 20000000)
     trading_fee = max(1, trade_amount // 100)
 
-    STEP(0, 'Check balance before trade')
+    STEP(0, 'Check balance before trade and token pair is not existed in pool')
+    pde = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    if pde.is_trading_pair_v2_is_possible(token_sell, token_buy):
+        pytest.skip(f"trade possible due to prv-token pair is exist")
     bal_tok_sell_b4 = trader.get_token_balance(token_sell)
     bal_tok_buy_b4 = trader.get_token_balance(token_buy)
 
@@ -73,7 +76,7 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
     if token_sell == PRV_ID:
         assert bal_tok_sell_af == bal_tok_sell_b4 - trade_amount - trading_fee - trade_tx.get_fee()
     else:
-        assert bal_tok_sell_af == bal_tok_sell_b4 - trade_amount - trading_fee
+        assert bal_tok_sell_af == bal_tok_sell_b4 - trade_amount
 
     STEP(4.2, f"Verify buy token balance does not change")
     if token_buy == PRV_ID:
@@ -94,14 +97,14 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
 
 
 @pytest.mark.parametrize('test_mode,token_sell,token_buy', (
-    ["1 shard", token_id_1, PRV_ID],
-    # ["1 shard", PRV_ID, token_id_1],
-    # ["n shard", token_id_1, PRV_ID],
-    # ["n shard", PRV_ID, token_id_1],
-    # ["1 shard", token_id_2, token_id_1],
-    # ["n shard", token_id_2, token_id_1],
-    # ["1 shard", token_id_1, token_id_2],
-    # ["n shard", token_id_1, token_id_2],
+        ["1 shard", token_id_1, PRV_ID],
+        ["1 shard", PRV_ID, token_id_1],
+        ["n shard", token_id_1, PRV_ID],
+        ["n shard", PRV_ID, token_id_1],
+        ["1 shard", token_id_2, token_id_1],
+        ["n shard", token_id_2, token_id_1],
+        ["1 shard", token_id_1, token_id_2],
+        ["n shard", token_id_1, token_id_2],
 ))
 def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell, token_buy):
     trade_amounts = [12345600] * 10

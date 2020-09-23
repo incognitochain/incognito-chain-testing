@@ -11,10 +11,10 @@ from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2
 
 
 @pytest.mark.parametrize('token1,token2', (
-    [PRV_ID, PRV_ID],
-    [token_id_1, token_id_1],
-    [token_id_1, token_id_2],
-    [token_id_2, token_id_1]
+        [PRV_ID, PRV_ID],
+        [token_id_1, token_id_1],
+        [token_id_1, token_id_2],
+        [token_id_2, token_id_1]
 ))
 def test_contribute_prv(token1, token2):
     pair_id = f'auto_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
@@ -71,9 +71,14 @@ def test_contribute_prv(token1, token2):
 
     STEP(5, f'Get contribution status of {pair_id}')
     # PDENotFoundStatus = 0
-    # PDEContributionWaitingStatus = 1 PDEContributionAcceptedStatus = 2 PDEContributionRefundStatus = 3 PDEContributionMatchedNReturnedStatus = 4
-    # PDETradeAcceptedStatus = 1 PDETradeRefundStatus = 2
-    # PDEWithdrawalAcceptedStatus = 1 PDEWithdrawalRejectedStatus = 2
+    # PDEContributionWaitingStatus = 1
+    # PDEContributionAcceptedStatus = 2
+    # PDEContributionRefundStatus = 3
+    # PDEContributionMatchedNReturnedStatus = 4
+    # PDETradeAcceptedStatus = 1
+    # PDETradeRefundStatus = 2
+    # PDEWithdrawalAcceptedStatus = 1
+    # PDEWithdrawalRejectedStatus = 2
     # -------
 
     # Wait for contribution status is rejected
@@ -105,10 +110,10 @@ def test_contribute_prv(token1, token2):
         assert bal_tok1_be4_contrib == bal_tok1_aft_contrib + contrib_fee_sum
     elif token1 == token2 and token1 != PRV_ID:  # token 1 = 1 token 2 and both are NOT PRV
         assert bal_tok1_be4_contrib == bal_tok1_aft_contrib
-    elif token2 == PRV_ID:
+    elif token1 != token2 == PRV_ID:
         assert bal_tok1_be4_contrib == bal_tok1_aft_contrib
         assert bal_tok2_be4_contrib == bal_tok2_aft_contrib + contrib_fee_sum
-    else:
+    elif token2 != token1 == PRV_ID:
         assert bal_tok1_be4_contrib == bal_tok1_aft_contrib + contrib_fee_sum
         assert bal_tok2_be4_contrib == bal_tok2_aft_contrib
 
@@ -116,7 +121,7 @@ def test_contribute_prv(token1, token2):
 
     STEP(6, f'Check rate {l6(token1)} vs {l6(token2)} after contribution')
     pde_state_af = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
-    rate_after = pde_state_af.get_rate_between_token(token1, token2)
+    rate_after = pde_state_af.get_rate_between_token(token2, token1)
     INFO(f'rate {l6(token1)} vs {l6(token2)} = {rate_after}')
     owner_share_amount_after = pde_state_af.get_pde_shares_amount(token_owner, token2, token1)
     all_share_amount_after = pde_state_af.get_pde_shares_amount(None, token1, token2)

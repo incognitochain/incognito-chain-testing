@@ -157,7 +157,13 @@ def test_update_remote_address(custodian, token, total_collateral_precondition, 
         STEP(1, "DO NOT Withdraw collateral")
 
     STEP(2, "Change remote address")
-    deposit_tx = custodian.portal_add_collateral(deposit_amount, token, new_addr).expect_no_error()
+    deposit_tx = custodian.portal_add_collateral(deposit_amount, token, new_addr)
+    if token == PRV_ID:
+        deposit_tx.expect_error()
+        assert 'public token is not supported' in deposit_tx.get_error_trace().get_message()
+        return
+    else:
+        deposit_tx.expect_no_error()
     WAIT(40)
     deposit_tx_result = deposit_tx.subscribe_transaction()
     custodian_info_af = custodian.portal_get_my_custodian_info()

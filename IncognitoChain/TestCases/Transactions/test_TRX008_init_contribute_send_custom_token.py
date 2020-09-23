@@ -98,6 +98,7 @@ def test_init_ptoken():
             break
     INFO(f"rate prv vs token: {rate}")
     assert rate == contribute_rate, "Contribution Failed"
+    return custom_token_id
     # breakpoint()
 
 

@@ -215,7 +215,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         :param token_id:
         :type token_id:
         :return:
-        :rtype:
+        :rtype: List of WaitingContribution obj
         """
         user_payment_addr = extract_incognito_addr(account)
         contribution_list = []
@@ -370,10 +370,12 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         for obj in share_objects:
             list_amount.append(obj.get_share_amount())
 
-        if len(list_amount) == 1:
-            return list_amount[0]
-        elif len(list_amount) > 1:
-            return list_amount
+        if user is not None:
+            if len(list_amount) == 1:
+                return list_amount[0]
+            return 0
+
+        return list_amount
 
     def get_beacon_time_stamp(self):
         return self.data["BeaconTimeStamp"]
@@ -422,6 +424,12 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         return False
 
     def is_pair_existed(self, token1, token2):
+        """
+        Check if pair exist in pool pair
+        :param token1:
+        :param token2:
+        :return:
+        """
         pairs = self.get_pde_pool_pairs()
         for pair in pairs:
             match_straight = pair.get_token1_id() == token1 and pair.get_token2_id() == token2
@@ -439,6 +447,20 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 return True
         else:  # one of the two token is PRV
             return self.is_pair_existed(token1, token2)
+
+    def cal_trade_receive(self, token_sell, token_buy, amount_sell):
+        rate = self.get_rate_between_token(token_sell, token_buy)
+        pool_token_sell = rate[0]
+        pool_token_buy = rate[1]
+        pool_token_buy_remain = (pool_token_buy * pool_token_sell) / (amount_sell + pool_token_sell)
+        # print("-remain before mod: " + str(remain))
+        if (pool_token_buy * pool_token_sell) % (amount_sell + pool_token_sell) != 0:
+            pool_token_buy_remain = int(pool_token_buy_remain) + 1
+            # print("-remain after mod: " + str(remain))
+
+        received_amount = pool_token_buy - pool_token_buy_remain
+        print("-expecting received amount: " + str(received_amount))
+        return received_amount
 
 
 class PDEContributeInfo(BlockChainInfoBaseClass):

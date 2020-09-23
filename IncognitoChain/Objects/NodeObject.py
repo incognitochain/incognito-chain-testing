@@ -155,10 +155,6 @@ class Node:
     def get_block_chain_info(self):
         return BlockChainCore(self.system_rpc().get_block_chain_info().get_result())
 
-    def help_get_current_pde_status(self):
-        current_beacon_height = self.help_get_beacon_height()
-        return self.dex().get_pde_state(current_beacon_height)
-
     def help_get_beacon_height(self):
         chain_info = self.get_block_chain_info()
         return chain_info.get_beacon_block().get_height()

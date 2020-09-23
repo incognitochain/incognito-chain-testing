@@ -117,8 +117,9 @@ def setup_module():
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), auto_stake_list + [stake_account, staked_account])
 
     STEP(0.3, 'Stake and wait till becoming committee')
+    beacon_bsd = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
     for committee in auto_stake_list:
-        if committee.am_i_a_committee() is False:
+        if beacon_bsd.is_he_a_committee(committee) is False:
             committee.stake_and_reward_me()
 
     for committee in auto_stake_list:

@@ -156,7 +156,7 @@ class DexRpc:
             }, "", 0
         ]).execute()
 
-    def trade_prv(self, private_key, payment_address, amount_to_sell, token_id_to_buy, min_amount_to_buy):
+    def trade_prv(self, private_key, payment_address, amount_to_sell, token_id_to_buy, min_amount_to_buy, trading_fee):
         return self.rpc_connection. \
             with_method("createandsendtxwithprvtradereq"). \
             with_params([private_key,
@@ -168,7 +168,8 @@ class DexRpc:
                              "TokenIDToSellStr": Const.PRV_ID,
                              "SellAmount": amount_to_sell,
                              "MinAcceptableAmount": min_amount_to_buy,
-                             "TraderAddressStr": payment_address
+                             "TraderAddressStr": payment_address,
+                             "TradingFee": trading_fee
                          }
                          ]). \
             execute()
