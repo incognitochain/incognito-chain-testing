@@ -12,7 +12,7 @@ from IncognitoChain.TestCases import Staking
 from IncognitoChain.TestCases.Sanity import account_0, account_1
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token
 
-new_ptoken = '1fdc8235f3c7170b5b860dd2d9f19cde094bfea3d86b9a3540612a11bc8e6530'
+new_ptoken = 'e4ee6277935d280728de8724ab24e4aa227d36672ac1aed2153ec5a2c3297b41'
 brd_token_id = '0000000000000000000000000000000000000000000000000000000000000100'
 pde_rate = {new_ptoken: coin(1500),
             brd_token_id: coin(1000)}
@@ -310,8 +310,8 @@ def test_07_transaction_ptoken(token, privacy):
     # __________________________________________________
 
     pde = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
-    if not pde.is_pair_existed(token, PRV_ID):
-        pytest.skip(f'token-PRV is not existed in pde pool, cannot use token to pay fee')
+    if not pde.can_token_use_for_fee(token):
+        pytest.skip(f'Cannot use token to pay fee')
 
     send_amounts = {account_0: random.randrange(1000, 10000),
                     account_1: random.randrange(1000, 10000)}
@@ -319,8 +319,8 @@ def test_07_transaction_ptoken(token, privacy):
                        account_1: account_1.get_token_balance(token)}
     bal_sender_b4 = COIN_MASTER.get_token_balance(token)
     STEP(1, 'Send token multi output')
-    send_tx = COIN_MASTER.send_token_multi_output(send_amounts, token, token_privacy=privacy, token_fee=100). \
-        expect_no_error().subscribe_transaction()
+    send_tx = COIN_MASTER.send_token_multi_output(send_amounts, token, token_privacy=privacy, token_fee=10000). \
+        expect_no_error('Token-PRV pair existed').subscribe_transaction()
 
     if privacy == 0:
         assert not send_tx.is_privacy_custom_token()

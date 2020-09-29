@@ -13,7 +13,7 @@ from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
 
 token_init_amount = coin(1000000)
 # contribute rate 1:2
-prv_contribute_amount = coin(10000)
+prv_contribute_amount = coin(15000)
 token_contribute_amount = coin(20000)
 
 custom_token_symbol = get_current_date_time()
