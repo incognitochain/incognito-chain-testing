@@ -23,7 +23,7 @@ beacon_list = [
     Account(
         '112t8rnpXg6CLjvBg2ZiyMDgpgQoZuAjYGzbm6b2eXVSHUKjZUyb2LVJmJDPw4yNaP5M14DomzC514joTH3EVknRwnnGViWuH2HJuN6cpNhz')]
 
-committee_list = {
+fixed_validators = {
     "0": [
         Account(
             '112t8rnqijhT2AqiS8NBVgifb86sqjfwQwf4MHLMAxK3gr1mwxMaeUWQtR1MfxHscrKQ2MsyQMvJ3LEu49LEcZzTzoJCkCiewQ9p6wN5SrG1'),
@@ -33,10 +33,6 @@ committee_list = {
             '112t8rnw7XyoehhKAUbNTqtVcda1eki89zrD2PfGMBKoYHvdE94ApWvXDtJvgotQohRot8yV52RZz2JjPtYGh4xsxb3gahn7RRWocEtW2Vei'),
         Account(
             '112t8ro1sHxz5xDkTs9i9VHA4cXVb5iqwCq2H2ffYYbGRh2wUHSHRRbnSQEMSnGiMvZAFLCccNzjZV9bSrphwGxxgtskVcauKNdgTEqA9bsf'),
-        Account(
-            '112t8ro424gNfJkKqDj25PjgWqCFTgG83TRERX1djUVr2wgJB6Lwk7NFi4pU8KxWSHsb4xK7UwPVYJ48FEGTzrB9jM58WfyvaJGCsT83jfNs'),
-        Account(
-            '112t8ro719sBgnX2GouVjLEZUvVwaepg8FkG35GtrFiFHeuE3y47PjXBbxHQdX1z87AAtEH5WCMZ8GUbhaZL3DbJuLqj7AAxGoc85damvB4J')
     ],
 
     "1": [
@@ -48,10 +44,6 @@ committee_list = {
             '112t8rngznzWowvtXKyTnE9avawQGJCVgfJounHDT5nWucoVFv43TYu9PyjiGpPXXXQbCVEzxxCSfDmPNEBknK5B8n5qFiaddStg2M9pCYkZ'),
         Account(
             '112t8rnk4jduDzQGcmzKXr6r1F69TeQtHqDBCehDXPpwQTo7eDkEKFGMDGar46Jy4gmqSZDgwyUwpnxGkCnE2oEXmQ5FQpQJ4iMpDqLkgzwy'),
-        Account(
-            '112t8rnkSY1EtXtfZNGTKU6CFhfrdQ2YqLbLpfFEUGzVfoQeC6d47M5jWwv542aHJgEdtBKxmr2aikjxibL75rqGXEyKfUPXg1yp3xnCpL7D'),
-        Account(
-            '112t8rnmCktTnBnX866sSj5BzU33bUNZozJRes9xL7GPqSTQX9gsqG3qkiizsZuzV7BFs7CtpqNhcWfEMUZkkT7JnzknDB49jD2UBUemdnbK')
     ]
 }
 auto_stake_list = [
@@ -98,20 +90,24 @@ tear_down_trx008 = False
 
 def setup_module():
     INFO("SETUP MODULE")
-    STEP(0.1, 'Check current committee to make sure that this test wont be running on testnet')
+    STEP(0.1, 'Check current fixed validators to make sure that this test wont be running on testnet')
     beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
     all_shard_committee = beacon_state.get_shard_committees()
-    list_public_k = []
-    for shard, committees in committee_list.items():
+    list_fixed_validator_public_k = []
+    for shard, committees in fixed_validators.items():
         for committee in committees:
-            list_public_k.append(committee.public_key)
+            list_fixed_validator_public_k.append(committee.public_key)
 
+    count_fixed_validator_in_beacon_state = 0
     for shard, committees in all_shard_committee.items():
         for committee in committees:
-            if committee.get_inc_public_key() not in list_public_k:
-                msg = 'Suspect that this chain is TestNet. Skip staking tests to prevent catastrophic disaster'
-                INFO(msg)
-                pytest.skip(msg)
+            if committee.get_inc_public_key() in list_fixed_validator_public_k:
+                count_fixed_validator_in_beacon_state += 1
+
+    if count_fixed_validator_in_beacon_state < len(list_fixed_validator_public_k):
+        msg = 'Suspect that this chain is TestNet. Skip staking tests to prevent catastrophic disaster'
+        INFO(msg)
+        pytest.skip(msg)
 
     STEP(0.2, 'Top up committees')
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), auto_stake_list + [stake_account, staked_account])
@@ -146,7 +142,7 @@ def setup_module():
         token_id = trx008.custom_token_id
         INFO(f'Setup module: new token: {token_id}')
         token_holder_shard_0.send_token_to(token_holder_shard_1, token_id, token_contribute_amount / 2, prv_fee=-1,
-                                           prv_privacy=0).expect_no_error().subscribe_transaction_obj()
+                                           prv_privacy=0).expect_no_error().subscribe_transaction()
         tear_down_trx008 = True
 
     else:

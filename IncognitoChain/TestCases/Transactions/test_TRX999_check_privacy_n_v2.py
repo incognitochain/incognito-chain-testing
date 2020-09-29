@@ -72,10 +72,11 @@ def test_convert_coin_to_v2(token_id, account_list):
                    convert_tx.get_error_trace().get_message()
         else:
             for token in custom_token_list:
-                convert_tx = account.convert_token_to_v2(token).subscribe_transaction()
+                convert_tx = account.convert_token_to_v2(token)
                 assert convert_tx.get_error_msg() == 'Can not create tx'
                 assert 'Have switched all coins ver 1, there is no coins ver 1 left' in \
                        convert_tx.get_error_trace().get_message()
+                convert_tx.subscribe_transaction()
 
 
 def test_check_all_coin_v2():

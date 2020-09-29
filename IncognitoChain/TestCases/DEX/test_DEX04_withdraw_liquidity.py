@@ -4,7 +4,7 @@ from IncognitoChain.Configs.Constants import PRV_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO, INFO_HEADLINE, ERROR
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects.IncognitoTestCase import SUT, ACCOUNTS
-from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2
+from IncognitoChain.TestCases.DEX import token_id_1, token_id_2
 
 
 @pytest.mark.parametrize('withdrawer, token1, token2, percent_of_share_amount_to_withdraw', [
@@ -32,7 +32,7 @@ def test_withdraw_liquidity(withdrawer, token1, token2, percent_of_share_amount_
     }
 
     STEP(2, f'Withdraw {percent_of_share_amount_to_withdraw} of my share')
-    withdraw_tx = withdrawer.pde_withdraw_contribution(token1, token2, withdraw_share).subscribe_transaction_obj()
+    withdraw_tx = withdrawer.pde_withdraw_contribution(token1, token2, withdraw_share).subscribe_transaction()
 
     STEP(3, f'Wait for money to come')
     bal_af = {}

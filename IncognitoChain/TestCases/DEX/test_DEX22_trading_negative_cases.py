@@ -66,7 +66,7 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
     trade_tx = trader.pde_trade_v2(token_sell, trade_amount, token_buy, trading_fee)
 
     STEP(2, 'Wait for tx to be confirmed')
-    trade_tx = trade_tx.subscribe_transaction_obj()
+    trade_tx = trade_tx.subscribe_transaction()
 
     STEP(3, "Wait for balance to update")
     bal_tok_sell_af = trader.wait_for_balance_change(token_sell, bal_tok_sell_b4, -trade_amount / 2)
@@ -80,7 +80,7 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
 
     STEP(4.2, f"Verify buy token balance does not change")
     if token_buy == PRV_ID:
-        assert bal_tok_buy_b4 == bal_tok_buy_af - trade_tx.get_fee()
+        assert bal_tok_buy_b4 - trade_tx.get_fee() == bal_tok_buy_af
     else:
         assert bal_tok_buy_b4 == bal_tok_buy_af
 

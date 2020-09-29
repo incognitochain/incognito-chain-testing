@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # python=./venv/bin/python3
-python=python3
+python=python3.7
 
 if [ $1 = "clear" ]; then
   rm reports/*.html
@@ -8,9 +8,9 @@ if [ $1 = "clear" ]; then
   exit
 fi
 
-html_report="reports/$(date '+%Y-%m-%d-%H-%M-%S').html"
 test_bed=$1
 test_data=$2
+html_report="reports/$(date '+%Y.%m.%d-%H.%M.%S')-${test_bed}-${test_data}.html"
 xoption="-XprepareCoin=True "
 
 if [ "$test_bed" != "-" ]; then
@@ -30,4 +30,4 @@ else
   param4="-k $4"
 fi
 set -x
-$python $xoption -m pytest --show-capture=no -s -v --html="$html_report" "$3" $param4
+$python $xoption -m pytest --show-capture=no -s -v --html="$html_report" --self-contained-html "$3" $param4

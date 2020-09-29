@@ -83,10 +83,10 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
 
     STEP(10, f"Check transaction privacy, it must be {privacy}")
     if privacy == 1:
-        is_privacy = step5_result.is_prv_privacy()
+        is_privacy = send_transaction.verify_prv_privacy()
         assert is_privacy and INFO("transaction is privacy"), "transaction must be privacy "
     else:  # privacy =0
-        is_privacy = step5_result.is_prv_privacy()
+        is_privacy = send_transaction.verify_prv_privacy()
         assert not is_privacy and INFO("transaction is not privacy"), "transaction must not be privacy "
 
     STEP(11, "Return the money")

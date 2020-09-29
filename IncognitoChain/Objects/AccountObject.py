@@ -598,7 +598,7 @@ class Account:
 
     def send_token_multi_output(self, receiver_token_amount_dict, token_id, prv_fee=0, token_fee=0, prv_privacy=0,
                                 token_privacy=0):
-        INFO(f'Sending token multi output')
+        INFO(f'Sending token {l6(token_id)} multi output')
         payment_key_amount_dict = {}
         for acc in receiver_token_amount_dict.keys():
             payment_key_amount_dict[acc.payment_key] = receiver_token_amount_dict[acc]
@@ -667,11 +667,13 @@ class Account:
         result = self.__SUT.full_node.transaction().get_reward_amount(self.payment_key)
         try:
             if token_id is None:
-                return result.get_result("PRV")
+                reward = result.get_result("PRV")
             else:
-                return result.get_result(token_id)
+                reward = result.get_result(token_id)
+            reward = 0 if reward is None else reward
+            return reward
         except KeyError:
-            return None
+            return 0
 
     def stk_get_reward_amount_all_token(self):
         """
@@ -715,7 +717,7 @@ class Account:
         tx_thread = []
         with ThreadPoolExecutor() as executor:
             for thread in thread_pool:
-                future = executor.submit(thread.result().subscribe_transaction_obj)
+                future = executor.submit(thread.result().subscribe_transaction)
                 tx_thread.append(future)
         concurrent.futures.wait(tx_thread)
 

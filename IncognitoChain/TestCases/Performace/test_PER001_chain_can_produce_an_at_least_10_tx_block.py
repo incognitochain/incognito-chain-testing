@@ -2,7 +2,11 @@ import concurrent
 import random
 from concurrent.futures.thread import ThreadPoolExecutor
 
+import pytest
+
+from IncognitoChain.Configs.Constants import PRV_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO
+from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER, SUT
 from IncognitoChain.TestCases.Performace import *
@@ -77,6 +81,12 @@ def test_x_shard_prv_ptoken_send_with_mix_privacy():
     prv_send_threads = []
     token_send_threads = []
 
+    STEP(0, f'Check if token can be use to pay fee')
+    if not SUT.REQUEST_HANDLER.get_latest_pde_state_info().is_pair_existed(PRV_ID, ptoken_id):
+        msg = f'pair {l6(PRV_ID)}-{l6(ptoken_id)} is not existed in DEX, cannot use toke to pay fee'
+        INFO(msg)
+        pytest.skip(msg)
+
     STEP(1, 'Create 10 prv transaction simultaneously ')
     with ThreadPoolExecutor() as executor:
         for sender in prv_senders:
@@ -106,7 +116,7 @@ def test_x_shard_prv_ptoken_send_with_mix_privacy():
     concurrent.futures.wait(send_token_tx + send_prv_tx)
 
     STEP(4, 'Check if all 20 transactions are in the same block or the next block only')
-    block_height = send_prv_tx[0].result().get_transaction_by_hash().get_block_height()
+    block_height = send_prv_tx[0].result().get_block_height()
     count_tx_in_block = {block_height: 0,
                          block_height + 1: 0,
                          0: 0}
@@ -114,7 +124,7 @@ def test_x_shard_prv_ptoken_send_with_mix_privacy():
     i = 1
     for thread in send_prv_tx + send_token_tx:
         tx_id = thread.result().get_tx_id()
-        block_h = thread.result().get_transaction_by_hash().get_block_height()
+        block_h = thread.result().get_block_height()
         INFO(f'{i} tx: {tx_id}, block {block_h}')
         if tx_id is not None:
             count_tx_in_block[block_h] += 1

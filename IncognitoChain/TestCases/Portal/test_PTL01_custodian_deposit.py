@@ -60,11 +60,14 @@ def test_custodian_deposit(depositor, token, expected_pass):
     STEP(1, "Make a valid custodian deposit")
     deposit_response = depositor.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, token,
                                                           custodian_remote_addr.get_remote_addr(token, depositor))
-    deposit_tx = deposit_response.subscribe_transaction()
-    tx_fee = deposit_tx.get_fee()
+    if token == PRV_ID:
+        deposit_response.expect_error()
+    else:
+        deposit_tx = deposit_response.subscribe_transaction()
+        tx_fee = deposit_tx.get_fee()
+        WAIT(60)  # wait for collateral to be added to portal status
 
     STEP(2, "Verify custodian PRV balance and portal status")
-    WAIT(60)  # wait for collateral to be added to portal status
     custodian_info_af = depositor.portal_get_my_custodian_info()
     if expected_pass:
         INFO('Verify deposit is successful and user becomes custodian')

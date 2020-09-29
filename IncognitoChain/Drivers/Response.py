@@ -1,6 +1,5 @@
 import json
 import re
-from builtins import Exception
 
 import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.Helpers.Logging import INFO
@@ -23,7 +22,8 @@ class Response:
         return self
 
     def expect_error(self):
-        assert self.get_error_msg() is not None, 'Found no error while expect one'
+        assert INFO(
+            f'{self.get_error_trace().get_message()}') and self.get_error_msg() is not None, 'Found no error while expect one'
         return self
 
     def data(self):
@@ -153,19 +153,6 @@ class Response:
         Subscribe transaction by txid
 
         :param tx_id: if not specified, use tx id from self
-        :return: Response Object
-        """
-        if tx_id is None:
-            tx_id = self.get_tx_id()
-        INFO(f'Subscribe to transaction tx_id = {tx_id}')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.subscription().subscribe_pending_transaction(tx_id)
-
-    def subscribe_transaction_obj(self, tx_id=None):
-        """
-        Subscribe transaction by txid
-
-        :param tx_id: if not specified, use tx id from self
         :return: TransactionDetail Object
         """
         if tx_id is None:
@@ -176,80 +163,17 @@ class Response:
         tx = SUT.full_node.subscription().subscribe_pending_transaction(tx_id)
         return TransactionDetail(tx.get_result('Result'))
 
-    def get_proof_detail_input_coin_value_prv(self):
+    def is_transaction_v2_error_appears(self):
         try:
-            return self.get_result('ProofDetail')['InputCoins'][0]['CoinDetails']['Value']
-        except TypeError:
-            return None
-
-    def is_prv_privacy(self):
-        return self.is_prv_privacy_v1()
-
-    def is_prv_privacy_v2(self):
-        """
-        check if prv transaction is privacy or not
-
-        :return: True = privacy, False = no privacy
-        """
-        tx_info = self.get_transaction_by_hash()
-        value = int(tx_info.get_result('ProofDetail')['InputCoins'][0]['Value'])
-        privacy = tx_info.get_privacy()
-        if not privacy:
-            raise Exception("Transaction PRV v2 must always have privacy")
-        INFO(f'Checking PRV v2 privacy. isPrivacy = {tx_info.get_privacy()}, input coin value = {value}')
-        return value == 0
-
-    def is_prv_privacy_v1(self):
-        """
-        check if prv transaction is privacy or not
-
-        :return: True = privacy, False = no privacy
-        """
-        result = self.get_transaction_by_hash()
-        value = result.get_proof_detail_input_coin_value_prv()
-        INFO(f'Checking PRV v1 privacy. isPrivacy = {result.get_privacy()}, input coin value = {value}')
-        return result.get_privacy() and result.get_proof_detail_input_coin_value_prv() == 0
-
-    def get_proof_detail_input_coin_value_custom_token(self):
-        try:
-            return self.get_result('PrivacyCustomTokenProofDetail')['InputCoins'][0]['CoinDetails']['Value']
-        except TypeError:
-            return None
-
-    def is_token_privacy(self):
-        return self.is_token_privacy_v2()
-
-    def is_token_privacy_v2(self):
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        tx_info = SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
-        value = int(tx_info.get_result('PrivacyCustomTokenProofDetail')['InputCoins'][0]['Value'])
-        privacy = tx_info.get_custom_token_privacy()
-        if not privacy:
-            raise Exception("Transaction token v2 must always have privacy")
-        INFO(f'Checking tok v2 privacy. isPrivacy = {tx_info.get_custom_token_privacy()}, input coin value = {value}')
-        return value == 0
-
-    def is_token_privacy_v1(self):
-        """
-        check if token transaction is privacy or  not
-
-        :return: True = privacy, False = no privacy
-        """
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        result = SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
-        value = result.get_proof_detail_input_coin_value_custom_token()
-        INFO(f'Checking tok v1 privacy. isPrivacy = {result.get_custom_token_privacy()}, input coin value = {value}')
-        return result.get_custom_token_privacy() and value == 0
-
-    def is_transaction_v2(self):
-        stack_trace_msg = self.get_error_trace().get_message()
+            stack_trace_msg = self.get_error_trace().get_message()
+        except AttributeError:
+            return False
         if 'error calling MarshalJSON for type *transaction.TxTokenVersion2' in stack_trace_msg:
             INFO('Transaction v2 no longer support paying fee with token')
             return True
 
     def get_transaction_by_hash(self):
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        return SUT.full_node.transaction().get_tx_by_hash(self.get_tx_id())
+        return TransactionDetail().get_transaction_by_hash(self.get_tx_id())
 
     def get_mem_pool_transactions_id_list(self) -> list:
         hashes = self.get_list_txs()
@@ -259,15 +183,6 @@ class Response:
         for entry in hashes:
             tx_id_list.append(entry['TxID'])
         return tx_id_list
-
-    def get_tx_proof(self):
-        """
-        :return: tx proof from the response it self
-        """
-        return self.get_result('Proof')
-
-    def get_tx_object(self):
-        return TransactionDetail(self.get_result())
 
 
 class StackTrace:

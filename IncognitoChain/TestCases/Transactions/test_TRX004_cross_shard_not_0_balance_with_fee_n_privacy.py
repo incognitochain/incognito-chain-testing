@@ -33,7 +33,7 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
 
     STEP(4, "Subcribe transaction")
     try:
-        send_transaction.subscribe_transaction()
+        send_transaction = send_transaction.subscribe_transaction()
     except TimeoutError:
         ERROR(f"Timeout while subscribing tx: {send_transaction.get_tx_id()}")
 
@@ -46,20 +46,21 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
     STEP(6, "Check sender balance")
     sender_bal_after = sender.get_prv_balance()
     INFO(f"sender balance after: {sender_bal_after}")
-    assert sender_bal_after == sender_bal - send_amount - send_transaction.get_transaction_by_hash().get_fee(), \
+    assert sender_bal_after == sender_bal - send_amount - send_transaction.get_fee(), \
         "something wrong"  # when privacy=1, ws cannot get fee
 
     STEP(7, "Check receiver balance")
     receiver_bal_after = receiver.get_prv_balance()
     INFO(f"receiver balance after: {receiver_bal_after}")
     assert receiver_bal_after == receiver_bal + send_amount, \
-        f"Receiver balance after={receiver_bal_after}\n\t receiver bal before + send amount = {receiver_bal} + {send_amount}"
+        f"Receiver balance after={receiver_bal_after}\n\t " \
+        f"receiver bal before + send amount = {receiver_bal} + {send_amount}"
 
     STEP(8, "Check transaction privacy")
     if privacy == 0:
-        assert not send_transaction.is_prv_privacy() and INFO("transaction is not privacy"), \
+        assert not send_transaction.verify_prv_privacy() and INFO("transaction is not privacy"), \
             "transaction must be no privacy "
 
     if privacy == 1:
-        assert send_transaction.is_prv_privacy() and INFO('transaction is privacy'), \
+        assert send_transaction.verify_prv_privacy() and INFO('transaction is privacy'), \
             "transaction must be private "

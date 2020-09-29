@@ -7,6 +7,7 @@ class ChainConfig:
     COMMITTEE_TIMES = 2
     FIX_BLOCK_VALIDATOR = 4
     SHARD_COMMITTEE_SIZE = 6
+    PRIVACY_VERSION = 1
 
     class Portal:
         COLLATERAL_PERCENT = 1.5

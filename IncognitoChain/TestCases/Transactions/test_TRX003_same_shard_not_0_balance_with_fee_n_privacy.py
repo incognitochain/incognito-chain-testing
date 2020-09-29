@@ -1,10 +1,10 @@
 import pytest
 
 from IncognitoChain.Helpers.Logging import *
-from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
+from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, Account
 
-sender_account = None
-receiver_account = None
+sender_account = Account()
+receiver_account = Account()
 send_amount = None
 
 
@@ -47,10 +47,10 @@ def test_send_prv_1shard_with_fee_privacy(fee, privacy):
 
     STEP(6, "Check transaction privacy")
     if privacy == 0:
-        assert not send_transaction.is_prv_privacy() and INFO(
+        assert not transaction_result.verify_prv_privacy() and INFO(
             "transaction is no privacy"), "transaction must be no privacy "
     if privacy == 1:
-        assert send_transaction.is_prv_privacy() and INFO(
+        assert transaction_result.verify_token_privacy() and INFO(
             "transaction is privacy"), "transaction must be privacy "
 
     STEP(7, "Return the money")

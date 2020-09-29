@@ -99,8 +99,8 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
     if porting_amount == big_porting_amount:  # spacial case, porting large amount, send more prv to custodian and add
         prepare_fat_custodian()
         # create new rate:
-        create_rate_tx = PORTAL_FEEDER.portal_create_exchange_rate(big_rate).subscribe_transaction()
-        assert create_rate_tx.get_error_msg() is None, 'fail to create rate'
+        create_rate_tx = PORTAL_FEEDER.portal_create_exchange_rate(big_rate)
+        create_rate_tx.expect_no_error()
         # wait for new rate to take effect
         SUT.full_node.help_wait_till_next_epoch()
         # re-estimate porting fee
@@ -112,7 +112,8 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
 
     if user.get_prv_balance() < estimated_porting_fee:
         COIN_MASTER.send_prv_to(user,
-                                estimated_porting_fee - user.get_prv_balance_cache() + coin(1)).subscribe_transaction()
+                                estimated_porting_fee - user.get_prv_balance_cache() + coin(
+                                    1)).subscribe_transaction()
         prv_bal_be4_test = user.wait_for_balance_change(from_balance=prv_bal_be4_test)
 
     STEP(1, f"Create a {desired_status} porting request")
@@ -309,9 +310,7 @@ def est_porting_req_expired(num_of_custodian):
         porting_amount = PortalHelper.cal_token_amount_from_collateral(highest_collateral, pbnb_rate, prv_rate) + 10
 
         if portal_user.get_prv_balance() < coin(5):
-            COIN_MASTER.send_prv_to(portal_user, coin(5) - portal_user.get_prv_balance_cache(),
-                                    privacy=0).subscribe_transaction()
-            portal_user.wait_for_balance_change(PRV_ID, portal_user.get_prv_balance_cache())
+            COIN_MASTER.top_him_up_prv_to_amount_if(coin(5), coin(5), portal_user)
 
     else:
         porting_amount = TEST_SETTING_PORTING_AMOUNT

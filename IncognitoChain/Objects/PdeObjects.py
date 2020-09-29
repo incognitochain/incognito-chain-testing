@@ -293,7 +293,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 DEBUG(f"MATCH {debug_msg}: {reward_obj}")
                 reward_pool.append(reward_obj)
         if not reward_pool:  # empty list
-            INFO("Not found")
+            INFO(f"Reward of {of_user}:{tok1}-{tok2} not found")
         return reward_pool
 
     def get_contributor_reward(self, user=None, token1=None, token2=None):
@@ -315,7 +315,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         return 0
 
     def _get_pde_shares(self, user=None, token1=None, token2=None):
-        DEBUG('==================================================================================================')
+        # DEBUG('==================================================================================================')
         of_user = 'any' if user is None else l6(extract_incognito_addr(user))
         tok1 = 'any' if token1 is None else l6(token1)
         tok2 = 'any' if token1 is None else l6(token2)
@@ -328,7 +328,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             pde_share_data = {k: v}
             pde_share_obj = PDEStateInfo.PdeShare(pde_share_data)
 
-            DEBUG(f"Checking share: {pde_share_obj}")
+            # DEBUG(f"Checking share: {pde_share_obj}")
             match = True
             debug_msg = ''
             if user is not None:
@@ -337,7 +337,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                     match = True
                     debug_msg += f'user {of_user} | '
                 else:
-                    DEBUG(f'NOT Match user {of_user}')
+                    # DEBUG(f'NOT Match user {of_user}')
                     continue
             # breakpoint()
             if token1 is not None and token2 is not None:
@@ -351,7 +351,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                     match = False
 
             if match:
-                DEBUG(f"MATCH {debug_msg}: {pde_share_obj}")
+                # DEBUG(f"MATCH {debug_msg}: {pde_share_obj}")
                 pde_share_objs.append(pde_share_obj)
         if not pde_share_objs:  # empty list
             DEBUG("Not found")
@@ -435,8 +435,12 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             match_straight = pair.get_token1_id() == token1 and pair.get_token2_id() == token2
             match____cross = pair.get_token1_id() == token2 and pair.get_token2_id() == token1
             if match_straight or match____cross:
-                INFO(f'Pair {pair} exists')
-                return True
+                if pair.get_token1_pool_value() != 0:
+                    INFO(f'Pair {pair} exists')
+                    return True
+                else:
+                    INFO(f'Pair {pair} exists but pool = 0')
+                    return False
 
         INFO(f'Pair {l6(token1)}-{l6(token2)} NOT exist')
         return False

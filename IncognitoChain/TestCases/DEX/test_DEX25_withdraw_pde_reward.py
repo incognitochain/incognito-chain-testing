@@ -34,7 +34,7 @@ def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_reward_amo
         token2: withdrawer.get_token_balance(token2)}
 
     STEP(2, f'Withdraw {percent_of_reward_amount_to_withdraw} of my reward')
-    withdraw_tx = withdrawer.pde_withdraw_reward_v2(token1, token2, withdraw_reward_amount).subscribe_transaction_obj()
+    withdraw_tx = withdrawer.pde_withdraw_reward_v2(token1, token2, withdraw_reward_amount).subscribe_transaction()
 
     STEP(3, f'Wait for money to come')
     prv_bal_af = withdrawer.wait_for_balance_change(PRV_ID, prv_bal_b4, int(withdraw_reward_amount / 10))

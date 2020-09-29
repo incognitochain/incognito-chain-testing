@@ -1,5 +1,6 @@
 import json
 
+from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 from IncognitoChain.Objects.CoinObject import Coin
 
@@ -60,8 +61,46 @@ class TransactionDetail(BlockChainInfoBaseClass):
           "PrivacyCustomTokenSymbol": "",
           "PrivacyCustomTokenData": "",
           "PrivacyCustomTokenProofDetail": {
-             "InputCoins": null,
-             "OutputCoins": null
+            "InputCoins": [
+               {
+                  "CoinDetails": {
+                     "PublicKey": "1Hc7AkzLe7kHPZY3Ee7MMF6PuSGMTixqJCfki63H84QxhuWQTG",
+                     "CoinCommitment": "1E9oX8UkmLivs2mAwRqVESDzfJMz5df9dJMKkyPJD1U353Y96b",
+                     "SNDerivator": {},
+                     "SerialNumber": "1XVe8nmnFshHP65Pvmq1GXRzLGD6cEPPjU5yWsH8rRMMLXLFGR",
+                     "Randomness": {},
+                     "Value": 979999997187620,
+                     "Info": "13PMpZ4"
+                  },
+                  "CoinDetailsEncrypted": ""
+               }
+            ],
+            "OutputCoins": [
+               {
+                  "CoinDetails": {
+                     "PublicKey": "123vyG7GycRNSdNTxwUyUKE1jjGxWL77KhXMcoYvAKSYsr3Ff69",
+                     "CoinCommitment": "12bZV7NkjKgiR8m2Si1uJ8jgvmQFqZdiAWRPKec7HbxZ6YcuF3z",
+                     "SNDerivator": {},
+                     "SerialNumber": "",
+                     "Randomness": {},
+                     "Value": 1238,
+                     "Info": "13PMpZ4"
+                  },
+                  "CoinDetailsEncrypted": ""
+               },
+               {
+                  "CoinDetails": {
+                     "PublicKey": "1Hc7AkzLe7kHPZY3Ee7MMF6PuSGMTixqJCfki63H84QxhuWQTG",
+                     "CoinCommitment": "1xGvUFogBA5gbKarRDBRsWoZ5vDSPB7G868n3oXT3tSnpBJr9t",
+                     "SNDerivator": {},
+                     "SerialNumber": "",
+                     "Randomness": {},
+                     "Value": 979999995786382,
+                     "Info": "13PMpZ4"
+                  },
+                  "CoinDetailsEncrypted": ""
+               }
+            ]
           },
           "PrivacyCustomTokenIsPrivacy": false,
           "PrivacyCustomTokenFee": 0,
@@ -77,6 +116,58 @@ class TransactionDetail(BlockChainInfoBaseClass):
        "Jsonrpc": "1.0"
     }
     """
+
+    class TxDetailProof(BlockChainInfoBaseClass):
+        def _get_coin_list(self, coin_list_data_raw):
+            raw_coins = self.data[coin_list_data_raw]
+            list_coin_obj = []
+            for raw in raw_coins:
+                coin_obj = Coin(raw['CoinDetails'])
+                coin_obj.data['CoinDetailsEncrypted'] = raw['CoinDetailsEncrypted']
+                list_coin_obj.append(coin_obj)
+            return list_coin_obj
+
+        def get_input_coins(self):
+            return self._get_coin_list('InputCoins')
+
+        def get_output_coins(self):
+            return self._get_coin_list('OutputCoins')
+
+        def check_proof_privacy(self):
+            input_coins = self.get_input_coins()
+            privacy = True
+            for coin in input_coins:
+                key = coin.get_public_key()
+                value = coin.get_value()
+                INFO(f'Coin {key} value = {value}')
+                if value == 0:
+                    privacy = privacy and True
+                else:
+                    return False
+
+            return privacy
+
+    class MetaData(BlockChainInfoBaseClass):
+        """
+        example:
+        {\n\t\"Type\": 110,\n\t\"Sig\": \"AcLFNWLVx1No4qJyQWQN62GXf9Y/3LpADH9Lv11Y4QI63o36INV0khOwz2q6nCTtzKBeDUGH6vR3ssbTHwFeAg==\",\n\t\"PaymentAddress\": \"12Rw9oesEgd8t5NGrfqxtWTCzh1eDif55miqZ1kFzj5zeQ6UQnNB9JXRn5Vc5QVbBaiFhoYdYPnQZ5tWwcBpse5EJXM3Av6qEV2wspv\",\n\t\"Amount\": 5000000000\n}
+        """
+
+        def __init__(self, raw_data):
+            super(TransactionDetail.MetaData, self).__init__(raw_data)
+            self.data = json.loads(self.data)
+
+        def get_type(self):
+            return self.data['Type']
+
+        def get_sig(self):
+            return self.data['Sig']
+
+        def get_payment_address(self):
+            return self.data['PaymentAddress']
+
+        def get_amount(self):
+            return self.data['Amount']
 
     def get_block_hash(self):
         return self.data['BlockHash']
@@ -118,8 +209,12 @@ class TransactionDetail(BlockChainInfoBaseClass):
     def get_proof(self):
         return self.data['Proof']
 
-    def get_proof_detail(self):
-        return _TxDetailProof(self.data['ProofDetail'])
+    def get_prv_proof_detail(self):
+        """
+        prv proof
+        :return:
+        """
+        return TransactionDetail.TxDetailProof(self.data['ProofDetail'])
 
     def get_input_coin_pub_key(self):
         return self.data['InputCoinPubKey']
@@ -131,7 +226,7 @@ class TransactionDetail(BlockChainInfoBaseClass):
         return self.data['Sig']
 
     def get_meta_data(self):
-        return _MetaData(self.data['Metadata'])
+        return TransactionDetail.MetaData(self.data['Metadata'])
 
     def get_custom_token_data(self):
         return self.data['CustomTokenData']
@@ -150,19 +245,14 @@ class TransactionDetail(BlockChainInfoBaseClass):
 
     def get_privacy_custom_token_proof_detail(self):
         """
-        "PrivacyCustomTokenProofDetail": {
-            "InputCoins": null,
-            "OutputCoins": null
-        },
         :return:
         """
-        return self.data['PrivacyCustomTokenProofDetail']  # is object??
+        return TransactionDetail.TxDetailProof(self.data['PrivacyCustomTokenProofDetail'])
 
     def is_privacy_custom_token(self):
-        privacy = True if self.data['PrivacyCustomTokenIsPrivacy'] == 'true' else False
-        return privacy
+        return self.data['PrivacyCustomTokenIsPrivacy']
 
-    def privacy_custom_token_fee(self):
+    def get_privacy_custom_token_fee(self):
         return self.data['PrivacyCustomTokenFee']
 
     def is_in_mem_pool(self):
@@ -177,7 +267,10 @@ class TransactionDetail(BlockChainInfoBaseClass):
         return self.data['Info']
 
     def get_tx_id(self):
-        return self.data['TxID']
+        try:
+            return self.data['TxID']
+        except KeyError:
+            return self.get_hash()
 
     def get_transaction_by_hash(self, tx_hash=None):
         if tx_hash is None:
@@ -186,42 +279,18 @@ class TransactionDetail(BlockChainInfoBaseClass):
         self.data = SUT.REQUEST_HANDLER.transaction().get_tx_by_hash(tx_hash).get_result()
         return self
 
+    def verify_token_privacy(self):
+        INFO(f'Check tx token privacy: {self.get_tx_id()}')
+        detail_proof = self.get_privacy_custom_token_proof_detail()
+        privacy = self.is_privacy_custom_token()
+        INFO(f'PrivacyCustomTokenIsPrivacy={privacy}')
+        privacy = privacy and detail_proof.check_proof_privacy()
+        return privacy
 
-class _TxDetailProof(BlockChainInfoBaseClass):
-    def _get_coin_list(self, coin_list_data_raw):
-        raw_coins = self.data[coin_list_data_raw]
-        list_coin_obj = []
-        for raw in raw_coins:
-            coin_obj = Coin(raw['CoinDetails'])
-            coin_obj.data['CoinDetailsEncrypted'] = raw['CoinDetailsEncrypted']
-            list_coin_obj.append(coin_obj)
-        return list_coin_obj
-
-    def get_input_coins(self):
-        return self._get_coin_list('InputCoins')
-
-    def get_output_coins(self):
-        return self._get_coin_list('OutputCoins')
-
-
-class _MetaData(BlockChainInfoBaseClass):
-    """
-    example:
-    {\n\t\"Type\": 110,\n\t\"Sig\": \"AcLFNWLVx1No4qJyQWQN62GXf9Y/3LpADH9Lv11Y4QI63o36INV0khOwz2q6nCTtzKBeDUGH6vR3ssbTHwFeAg==\",\n\t\"PaymentAddress\": \"12Rw9oesEgd8t5NGrfqxtWTCzh1eDif55miqZ1kFzj5zeQ6UQnNB9JXRn5Vc5QVbBaiFhoYdYPnQZ5tWwcBpse5EJXM3Av6qEV2wspv\",\n\t\"Amount\": 5000000000\n}
-    """
-
-    def __init__(self, raw_data):
-        super(_MetaData, self).__init__(raw_data)
-        self.data = json.loads(self.data)
-
-    def get_type(self):
-        return self.data['Type']
-
-    def get_sig(self):
-        return self.data['Sig']
-
-    def get_payment_address(self):
-        return self.data['PaymentAddress']
-
-    def get_amount(self):
-        return self.data['Amount']
+    def verify_prv_privacy(self):
+        INFO(f'Check tx prv privacy: {self.get_tx_id()}')
+        detail_proof = self.get_prv_proof_detail()
+        privacy = self.is_privacy()
+        INFO(f'IsPrivacy={privacy}')
+        privacy = privacy and detail_proof.check_proof_privacy()
+        return privacy

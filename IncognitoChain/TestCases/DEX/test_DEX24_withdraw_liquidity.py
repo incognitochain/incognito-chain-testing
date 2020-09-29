@@ -35,7 +35,7 @@ def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_share_amou
         token2: withdrawer.get_token_balance(token2)}
 
     STEP(2, f'Withdraw {percent_of_share_amount_to_withdraw} of my share')
-    withdraw_tx = withdrawer.pde_withdraw_contribution_v2(token1, token2, withdraw_share).subscribe_transaction_obj()
+    withdraw_tx = withdrawer.pde_withdraw_contribution_v2(token1, token2, withdraw_share).subscribe_transaction()
 
     STEP(3, f'Wait for money to come')
     bal_af = {}

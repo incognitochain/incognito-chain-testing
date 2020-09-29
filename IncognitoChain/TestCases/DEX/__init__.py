@@ -16,12 +16,12 @@ token_owner = Account(
 # when token_id set to none, init new token and use it for the test
 # otherwise, use token id for the test without initializing new token
 # token_id = "a4442a68070fc615abee5e8c665808ebc1c670e5fd16f49ca8e992bf7c126739"
-token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
-token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
+# token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
+# token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
 # token_id_1 = "2cc0e24508a105a305e6d3cf0a742a94450ccf513e9f31f3d3f5ac5565daac4b"  # local
 # token_id_2 = "31a7452fd0666bfc6a41ea3abff93f719a5d8fb7824ef62fe24751d93c503486"  # local
-# token_id_1 = None
-# token_id_2 = None
+token_id_1 = None
+token_id_2 = None
 token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff"  # token not yet added to PDE
 
 need_withdraw_contribution_1 = False

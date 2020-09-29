@@ -5,7 +5,8 @@ from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, COIN_MASTER
 
-sender_account = is_sent = receiver_account_list_before = None
+sender_account = Account()
+is_sent = receiver_account_list_before = None
 total_sent_amount = 0
 receiver_account_dict_to_send = dict()
 
@@ -82,11 +83,12 @@ def test_send_prv_multi_output_privacy_x_shard_no_auto_fee():
                 receiver_account_list_before.remove(acc_before)
 
     STEP(7, "check transaction privacy")
-    assert send_result.is_prv_privacy() and INFO(
+    assert transaction_result.verify_prv_privacy() and INFO(
         "transaction is privacy"), "transaction must be privacy"
 
 
 def teardown_function():
     if is_sent:  # if money was sent in the test, return it
         for acc in receiver_account_dict_to_send.keys():
+            acc: Account
             acc.send_prv_to(sender_account, receiver_account_dict_to_send[acc]).subscribe_transaction()

@@ -16,11 +16,8 @@ from IncognitoChain.TestCases.Staking.test_STK01 import \
 def test_stake_complex():
     accounts = [account_a, account_t, account_u]
     multi_out_put = dict()
-    for acc in accounts:
-        if acc.get_prv_balance() <= coin(1750):
-            multi_out_put[acc] = coin(1850) - acc.get_prv_balance_cache()
 
-    COIN_MASTER.send_prv_to_multi_account(multi_out_put, privacy=0).subscribe_transaction()
+    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), accounts).subscribe_transaction()
 
     try:
         account_u.subscribe_cross_output_coin()

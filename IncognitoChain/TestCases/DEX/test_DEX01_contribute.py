@@ -10,14 +10,14 @@ from IncognitoChain.TestCases.DEX import token_id_1, token_owner, token_id_2
 
 
 @pytest.mark.parametrize('token1,token2', (
-    # all 4 cases pass on test net
-    # last 2 always fail on jenkins testbed,
-    # the very last case offend fail by missing 1 nano prv calculation of bal after contribute
-    # the other fail because contribute amount from api is always 0
-    [PRV_ID, token_id_1],  # contribute prv
-    [token_id_1, PRV_ID],  # contribute prv reverse
-    [token_id_2, token_id_1],  # contribute token
-    [token_id_1, token_id_2],  # contribute token reverse
+        # all 4 cases pass on test net
+        # last 2 always fail on jenkins testbed,
+        # the very last case offend fail by missing 1 nano prv calculation of bal after contribute
+        # the other fail because contribute amount from api is always 0
+        [PRV_ID, token_id_1],  # contribute prv
+        [token_id_1, PRV_ID],  # contribute prv reverse
+        [token_id_2, token_id_1],  # contribute token
+        [token_id_1, token_id_2],  # contribute token reverse
 ))
 def test_contribute(token1, token2):
     pair_id = f'{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
@@ -139,8 +139,9 @@ def test_contribute(token1, token2):
     if rate is not None:
         calculated_owner_share_amount_after = round((api_contrib_tok2 * sum(all_share_amount)) / rate[0]) + \
                                               owner_share_amount
-        assert calculated_owner_share_amount_after == owner_share_amount_after and INFO(
-            "Contribution shares amount is correct")
+        assert INFO(f"Contribution shares amount is correct") \
+               and abs(calculated_owner_share_amount_after - owner_share_amount_after) <= 1, \
+            f'calculated vs real = {calculated_owner_share_amount_after} - {owner_share_amount_after}'
 
     if token1 == PRV_ID:
         assert bal_tok1_be4_contrib == bal_tok1_aft_refund + api_contrib_tok1 + contrib_fee_sum

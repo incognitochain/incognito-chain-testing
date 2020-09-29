@@ -2,7 +2,7 @@ import sys
 from distutils.util import strtobool
 
 from IncognitoChain.Configs import config
-from IncognitoChain.Configs.Constants import ONE_COIN, DAO_private_key, DAO_payment_key
+from IncognitoChain.Configs.Constants import ONE_COIN, DAO_private_key, DAO_payment_key, ChainConfig
 from IncognitoChain.Helpers.Logging import INFO_HEADLINE
 from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.TestBedObject import *
@@ -51,7 +51,12 @@ PORTAL_FEEDER = Account(
     '12S2ciPBja9XCnEVEcsPvmCLeQH44vF8DMwSqgkH7wFETem5FiqiEpFfimETcNqDkARfht1Zpph9u5eQkjEnWsmZ5GB5vhc928EoNYH')
 COIN_MASTER = Account(DAO_private_key, DAO_payment_key)
 if COIN_MASTER.list_unspent_coin()[0].get_version() == 1:
-    COIN_MASTER.convert_prv_to_v2().subscribe_transaction()
+    convert_tx = COIN_MASTER.convert_prv_to_v2()
+    if convert_tx.get_error_msg() == "Method not found":
+        ChainConfig.PRIVACY_VERSION = 1
+    else:
+        ChainConfig.PRIVACY_VERSION = 2
+        convert_tx.subscribe_transaction()
 
 if COIN_MASTER.shard is None:
     COIN_MASTER.calculate_shard_id()

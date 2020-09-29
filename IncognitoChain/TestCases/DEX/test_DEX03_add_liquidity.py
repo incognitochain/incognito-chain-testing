@@ -16,7 +16,7 @@ def setup_function():
 
 @pytest.mark.parametrize('contributors, contribute_percent_of_bal_tok2, token1, token2', [
     (ACCOUNTS, 0.01, PRV_ID, token_id_1),
-    # (ACCOUNTS, 0.1, token_id_1, token_id_2),
+    (ACCOUNTS, 0.1, token_id_1, token_id_2),
 ])
 def test_add_liquidity(contributors, contribute_percent_of_bal_tok2, token1, token2):
     pde_state_b4_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
@@ -110,10 +110,11 @@ def test_add_liquidity(contributors, contribute_percent_of_bal_tok2, token1, tok
     sum_commit_token_2 = sum(commit_amount_tok2.values())
 
     INFO('Rate before test + sum contribute amount - rate after test')
-    assert abs(rate_before[0] + sum_commit_token_1 - rate_after[0]) <= len(contributors) and \
-           INFO(f'{rate_before[0]} + {sum_commit_token_1} - {rate_after[0]} '
-                f'= {rate_before[0] + sum_commit_token_1 - rate_after[0]}')
+    # each contributor's real vs estimate contribution can be off by 1 nano, so n contributors can be off at most n nano
+    INFO(f'{rate_before[0]} + {sum_commit_token_1} - {rate_after[0]} '
+         f'= {rate_before[0] + sum_commit_token_1 - rate_after[0]}')
+    INFO(f'{rate_before[1]} + {sum_commit_token_2} - {rate_after[1]} '
+         f'= {rate_before[1] + sum_commit_token_2 - rate_after[1]}')
 
-    assert abs(rate_before[1] + sum_commit_token_2 - rate_after[1]) <= len(contributors) and \
-           INFO(f'{rate_before[1]} + {sum_commit_token_2} - {rate_after[1]} '
-                f'= {rate_before[1] + sum_commit_token_2 - rate_after[1]}')
+    assert abs(rate_before[1] + sum_commit_token_2 - rate_after[1]) <= len(contributors)
+    assert abs(rate_before[0] + sum_commit_token_1 - rate_after[0]) <= len(contributors)
