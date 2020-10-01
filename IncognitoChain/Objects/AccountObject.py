@@ -1,5 +1,6 @@
 import concurrent
 import copy
+import json
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
@@ -59,6 +60,17 @@ class Account:
         self.mining_public_k = mining_public_k
         self.committee_public_k = committee_public_k
         self.shard = int(shard_id)
+
+    def _to_json(self, pretty=True):
+        key_dict = {
+            "PaymentAddress": self.payment_key,
+            "PrivateKey": self.private_key,
+            "Publickey": self.public_key,
+            "ReadOnlykey": self.read_only_key,
+            "Validatorkey": self.validator_key,
+            "CommitteePublicKey": self.committee_public_k
+        }
+        return json.dumps(key_dict, indent=3) if pretty else json.dumps(key_dict)
 
     def __init__(self, private_key=None, payment_key=None, shard=None, validator_key=None, public_key=None,
                  read_only_key=None):

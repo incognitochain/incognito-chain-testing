@@ -97,7 +97,7 @@ def test_03_portal():
     }
 
     rate_tx = PORTAL_FEEDER.portal_create_exchange_rate(portal_rate_to_change).expect_no_error()
-    ChainHelper.wait_till_next_beacon_height()
+    ChainHelper.wait_till_next_beacon_height(num_of_beacon_height_to_wait=2)
     psi_new_rate = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
     for token, rate in portal_rate_to_change.items():
         new_rate = psi_new_rate.get_portal_rate(token)
@@ -124,14 +124,14 @@ def test_03_portal():
            == custodian_info_af.get_locked_collateral(porting_token)
 
 
-def test_24_init_n_contribute_p_token():
+def test_04_init_n_contribute_p_token():
     global new_ptoken
     test_TRX008_init_contribute_send_custom_token.account_init = COIN_MASTER
     test_TRX008_init_contribute_send_custom_token.setup_module()
     new_ptoken = test_TRX008_init_contribute_send_custom_token.test_init_ptoken()
 
 
-def test_24_init_bridge_token_n_send():
+def test_04_init_bridge_token_n_send():
     amount = coin(random.randrange(1000, 10000))
     STEP(1, 'Init bridge token')
     prv_bal_b4 = COIN_MASTER.get_prv_balance()
@@ -221,7 +221,7 @@ def test_05_staking(stake_funder, the_staked, auto_stake):
     INFO(f'AVG prv reward = {avg_prv_reward}')
 
 
-def test_26_dex_v2():
+def test_06_dex_v2():
     global pde_rate
     pde_rate = {new_ptoken: coin(1500),
                 brd_token_id: coin(1000)}
@@ -282,8 +282,8 @@ def test_26_dex_v2():
     bal_tok_af_trade = COIN_MASTER.wait_for_balance_change(new_ptoken, bal_tok_b4_trade)
     bal_brd_af_trade = COIN_MASTER.wait_for_balance_change(brd_token_id, bal_brd_b4_trade)
     assert bal_tok_b4_trade - tok_new_trade_amount == bal_tok_af_trade
-    assert bal_brd_b4_trade + pde_b4_trade.cal_trade_receive_v2(new_ptoken, brd_token_id, tok_new_trade_amount) \
-           == bal_brd_af_trade
+    assert abs(bal_brd_b4_trade + pde_b4_trade.cal_trade_receive_v2(new_ptoken, brd_token_id, tok_new_trade_amount)
+               - bal_brd_af_trade) <= 1
 
     STEP(9, f'Trade v2 token {l6(new_ptoken)}-{l6(brd_token_id)}, '
             f'which is not possible since pair brd-prv is not existed in DEX')
@@ -302,7 +302,7 @@ def test_26_dex_v2():
     (brd_token_id, 0),
     (brd_token_id, 1),
 ])
-def test_27_transaction_ptoken(token, privacy):
+def test_07_transaction_ptoken(token, privacy):
     # pytest passes test parameter at load time instead of at execution time
     # this cause the new_ptoken value which has been update at test_04_init_n_contribute_p_token will not be passed into
     # this test but the original value which was declared at the top instead, while tester's desire is to use the
