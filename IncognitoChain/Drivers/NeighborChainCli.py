@@ -244,10 +244,11 @@ class BnbCli:
         def get_tx_hash(self):
             return self.data['hash']
 
-        def build_proof(self):
+        def build_proof(self, tx_hash=None):
+            tx_hash = self.get_tx_hash() if tx_hash is None else tx_hash
             INFO()
-            INFO(f'Portal | Building proof | tx {self.get_tx_hash()}')
-            bnb_get_block_url = f"{BnbCli.get_bnb_rpc_url()}/tx?hash=0x{self.get_tx_hash()}&prove=true"
+            INFO(f'Portal | Building proof | tx {tx_hash}')
+            bnb_get_block_url = f"{BnbCli.get_bnb_rpc_url()}/tx?hash=0x{tx_hash}&prove=true"
             block_response = RpcConnection(bnb_get_block_url, id_num='', json_rpc='2.0'). \
                 with_params([]).with_method('').execute()
             block_height = int(block_response.data()['result']['height'])

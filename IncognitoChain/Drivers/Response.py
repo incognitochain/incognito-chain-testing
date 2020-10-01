@@ -17,13 +17,15 @@ class Response:
     def __str__(self):
         return f'\n{json.dumps(self.data(), indent=3)}'
 
-    def expect_no_error(self):
-        assert self.get_error_msg() is None, self.get_error_trace().get_message()
+    def expect_no_error(self, additional_msg_if_fail=''):
+        assert self.get_error_msg() is None, f'self.get_error_trace().get_message()\n{additional_msg_if_fail}'
         return self
 
-    def expect_error(self):
+    def expect_error(self, expecting_error='any error'):
+        error = None if expecting_error == 'any error' else expecting_error
         assert INFO(
-            f'{self.get_error_trace().get_message()}') and self.get_error_msg() is not None, 'Found no error while expect one'
+            f'{self.get_error_trace().get_message()}') and self.get_error_msg() == error, \
+            f'Found no error while expecting {expecting_error}'
         return self
 
     def data(self):
@@ -32,7 +34,7 @@ class Response:
         return json.loads(self.response.text)  # response from rpc
 
     def params(self):
-        return Params(self.data()["Params"])
+        return Response.Params(self.data()["Params"])
 
     def size(self):
         if self.response is str:  # response from WebSocket
@@ -52,7 +54,7 @@ class Response:
     def get_error_trace(self):
         if self.data()['Error'] is None:
             return ''
-        return StackTrace(self.data()['Error']['StackTrace'][0:512])
+        return Response.StackTrace(self.data()['Error']['StackTrace'][0:512])
 
     def get_error_msg(self):
         if self.data()['Error'] is None:
@@ -78,12 +80,6 @@ class Response:
 
     def get_beacon_height(self):
         return self.get_result("BeaconHeight")
-
-    def get_pde_pool_pairs(self):
-        return self.get_result("PDEPoolPairs")
-
-    def get_pde_share(self):
-        return self.get_result("PDEShares")
 
     def get_token_id_1_str(self):
         return self.get_result("TokenID1Str")
@@ -118,14 +114,8 @@ class Response:
         except (KeyError, TypeError):
             return self.get_result('Result')['TxSize']
 
-    def get_privacy(self):
-        return self.get_result("IsPrivacy")
-
     def get_custom_token_privacy(self):
         return self.get_result("PrivacyCustomTokenIsPrivacy")
-
-    def get_balance(self):
-        return self.get_result()
 
     def get_block_height(self):
         return self.get_result("BlockHeight")
@@ -184,51 +174,49 @@ class Response:
             tx_id_list.append(entry['TxID'])
         return tx_id_list
 
+    class StackTrace:
+        def __init__(self, stack_string):
+            self.stack_string = stack_string
 
-class StackTrace:
-    def __init__(self, stack_string):
-        self.stack_string = stack_string
+        def __str__(self):
+            return self.stack_string
 
-    def __str__(self):
-        return self.stack_string
+        def get_error_codes(self):
+            code_list = re.findall("(-[0-9]\\w+: )", self.stack_string)
+            return ''.join([str(elem) for elem in code_list])
 
-    def get_error_codes(self):
-        code_list = re.findall("(-[0-9]\\w+: )", self.stack_string)
-        return ''.join([str(elem) for elem in code_list])
+        def get_message(self):
+            try:
+                i_start = len(self.get_error_codes())
+                i_end = str.index(self.stack_string, 'github.com')
+                return str(self.stack_string[i_start:i_end])
+            except ValueError:
+                return str(self.stack_string)
 
-    def get_message(self):
-        try:
-            i_start = len(self.get_error_codes())
-            i_end = str.index(self.stack_string, 'github.com')
-            return str(self.stack_string[i_start:i_end])
-        except ValueError:
-            return str(self.stack_string)
+        def get_estimated_fee(self):
+            return re.search("fee=(.*)", self.stack_string).group(1)
 
-    def get_estimated_fee(self):
-        return re.search("fee=(.*)", self.stack_string).group(1)
+    class Params:
+        def __init__(self, data):
+            self.data = data
 
+        def get_beacon_height(self):
+            return int(self.data[0]["BeaconHeight"])
 
-class Params:
-    def __init__(self, data):
-        self.data = data
+        def get_portal_redeem_req_id(self):
+            return self.data[4]["UniqueRedeemID"]
 
-    def get_beacon_height(self):
-        return int(self.data[0]["BeaconHeight"])
+        def get_portal_register_id(self):
+            return self.data[4]['UniqueRegisterId']
 
-    def get_portal_redeem_req_id(self):
-        return self.data[4]["UniqueRedeemID"]
+        def get_portal_porting_fee(self):
+            return int(self.data[4]['PortingFee'])
 
-    def get_portal_register_id(self):
-        return self.data[4]['UniqueRegisterId']
+        def get_portal_register_amount(self):
+            return int(self.data[4]['RegisterAmount'])
 
-    def get_portal_porting_fee(self):
-        return int(self.data[4]['PortingFee'])
+        def get_portal_redeem_amount(self):
+            return int(self.data[4]['TokenAmount'])
 
-    def get_portal_register_amount(self):
-        return int(self.data[4]['RegisterAmount'])
-
-    def get_portal_redeem_amount(self):
-        return int(self.data[4]['TokenAmount'])
-
-    def get_portal_redeem_fee(self):
-        return int(self.data[4]['RedeemFee'])
+        def get_portal_redeem_fee(self):
+            return int(self.data[4]['RedeemFee'])
