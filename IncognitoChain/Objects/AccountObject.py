@@ -366,14 +366,14 @@ class Account:
         :return:
         """
         if shard_id is None:
-            balance = self.__SUT.full_node.transaction().get_balance(self.private_key).get_balance()
+            balance = self.__SUT.full_node.transaction().get_balance(self.private_key).get_result()
         else:
             if shard_id == -1:
                 shard_to_ask = self.shard
             else:
                 shard_to_ask = shard_id
             balance = self.__SUT.shards[shard_to_ask].get_representative_node().transaction().get_balance(
-                self.private_key).get_balance()
+                self.private_key).get_result()
         INFO(f"Private k = {l6(self.private_key)}, prv bal = {coin(balance, False)}")
         self.cache['balance_prv'] = balance
         return balance
@@ -481,7 +481,7 @@ class Account:
         INFO('Defrag account')
 
         if self.count_unspent_output_coins() > 1:
-            return self.__SUT.full_node.transaction().defragment_account(self.private_key)
+            return self.__SUT.full_node.transaction().de_fragment_prv(self.private_key)
         INFO('No need to defrag!')
         return None
 

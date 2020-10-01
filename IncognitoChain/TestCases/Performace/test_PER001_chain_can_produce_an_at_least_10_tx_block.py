@@ -18,7 +18,7 @@ def setup_function():
     thread_list = []
     with ThreadPoolExecutor() as executor:
         for user in account_list:
-            t = executor.submit(user.defragment_account)
+            t = executor.submit(user.de_fragment_prv)
             thread_list.append(t)
 
     concurrent.futures.wait(thread_list)

@@ -452,7 +452,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         else:  # one of the two token is PRV
             return self.is_pair_existed(token1, token2)
 
-    def cal_trade_receive(self, token_sell, token_buy, amount_sell):
+    def cal_trade_receive_v1(self, token_sell, token_buy, amount_sell):
         rate = self.get_rate_between_token(token_sell, token_buy)
         pool_token_sell = rate[0]
         pool_token_buy = rate[1]
@@ -466,17 +466,26 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         print("-expecting received amount: " + str(received_amount))
         return received_amount
 
+    def cal_trade_receive_v2(self, token_sell, token_buy, amount_sell):
+        if token_buy == PRV_ID or token_sell == PRV_ID:
+            return self.cal_trade_receive_v1(token_sell, token_buy, amount_sell)
+
+        prv_receive = self.cal_trade_receive_v1(token_sell, PRV_ID, amount_sell)
+        return self.cal_trade_receive_v1(PRV_ID, token_buy, prv_receive)
+
     def can_token_use_for_fee(self, token):
         INFO(f'Check if token can be use to pay fee')
         min_prv_for_fee = coin(10000)
         pair_exist = self.is_pair_existed(PRV_ID, token)
+        if not pair_exist:
+            return False
         prv_in_pool = self.get_rate_between_token(PRV_ID, token)[0]
         prv_is_more_than_10k = prv_in_pool >= min_prv_for_fee
         if not prv_is_more_than_10k:
             INFO(f'PRV of pair is only {prv_in_pool}, while must > {min_prv_for_fee} to use for fee')
         else:
             INFO(f'PRV of pair is {prv_in_pool}, which is fine')
-        return pair_exist and prv_is_more_than_10k
+        return prv_is_more_than_10k
 
 
 class PDEContributeInfo(BlockChainInfoBaseClass):

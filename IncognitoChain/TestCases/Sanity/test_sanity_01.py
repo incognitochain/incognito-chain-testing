@@ -124,14 +124,14 @@ def test_03_portal():
            == custodian_info_af.get_locked_collateral(porting_token)
 
 
-def test_04_init_n_contribute_p_token():
+def test_24_init_n_contribute_p_token():
     global new_ptoken
     test_TRX008_init_contribute_send_custom_token.account_init = COIN_MASTER
     test_TRX008_init_contribute_send_custom_token.setup_module()
     new_ptoken = test_TRX008_init_contribute_send_custom_token.test_init_ptoken()
 
 
-def test_04_init_bridge_token_n_send():
+def test_24_init_bridge_token_n_send():
     amount = coin(random.randrange(1000, 10000))
     STEP(1, 'Init bridge token')
     prv_bal_b4 = COIN_MASTER.get_prv_balance()
@@ -221,7 +221,7 @@ def test_05_staking(stake_funder, the_staked, auto_stake):
     INFO(f'AVG prv reward = {avg_prv_reward}')
 
 
-def test_06_dex_v2():
+def test_26_dex_v2():
     global pde_rate
     pde_rate = {new_ptoken: coin(1500),
                 brd_token_id: coin(1000)}
@@ -268,7 +268,8 @@ def test_06_dex_v2():
     bal_prv_af_trade = COIN_MASTER.get_prv_balance()
     bal_tok_af_trade = COIN_MASTER.wait_for_balance_change(new_ptoken, bal_tok_b4_trade)
     assert bal_prv_b4_trade - prv_trade_amount - trade_tx.get_fee() - trading_fee == bal_prv_af_trade
-    assert bal_tok_b4_trade + pde_b4_trade.cal_trade_receive(PRV_ID, new_ptoken, prv_trade_amount) == bal_tok_af_trade
+    assert bal_tok_b4_trade + pde_b4_trade.cal_trade_receive_v1(PRV_ID, new_ptoken, prv_trade_amount) \
+           == bal_tok_af_trade
 
     STEP(8, f'Trade v2 token {l6(new_ptoken)}-{l6(brd_token_id)}')
     pde_b4_trade = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
@@ -279,12 +280,13 @@ def test_06_dex_v2():
         expect_no_error().subscribe_transaction()
 
     bal_tok_af_trade = COIN_MASTER.wait_for_balance_change(new_ptoken, bal_tok_b4_trade)
-    bal_brd_af_trade = COIN_MASTER.get_token_balance(brd_token_id)
+    bal_brd_af_trade = COIN_MASTER.wait_for_balance_change(brd_token_id, bal_brd_b4_trade)
     assert bal_tok_b4_trade - tok_new_trade_amount == bal_tok_af_trade
-    assert bal_brd_b4_trade + pde_b4_trade.cal_trade_receive(new_ptoken, brd_token_id, tok_new_trade_amount) \
+    assert bal_brd_b4_trade + pde_b4_trade.cal_trade_receive_v2(new_ptoken, brd_token_id, tok_new_trade_amount) \
            == bal_brd_af_trade
 
-    STEP(9, f'Trade v2 token {l6(new_ptoken)}-{l6(brd_token_id)}')
+    STEP(9, f'Trade v2 token {l6(new_ptoken)}-{l6(brd_token_id)}, '
+            f'which is not possible since pair brd-prv is not existed in DEX')
     bal_tok_b4_trade = COIN_MASTER.get_token_balance(new_ptoken)
     bal_brd_b4_trade = COIN_MASTER.get_token_balance(brd_token_id)
     trade_tx = COIN_MASTER.pde_trade_v2(new_ptoken, tok_new_trade_amount, brd_token_id, 0).expect_no_error()
@@ -300,7 +302,7 @@ def test_06_dex_v2():
     (brd_token_id, 0),
     (brd_token_id, 1),
 ])
-def test_07_transaction_ptoken(token, privacy):
+def test_27_transaction_ptoken(token, privacy):
     # pytest passes test parameter at load time instead of at execution time
     # this cause the new_ptoken value which has been update at test_04_init_n_contribute_p_token will not be passed into
     # this test but the original value which was declared at the top instead, while tester's desire is to use the
@@ -346,7 +348,7 @@ def test_08_pdex_withdraw_contribution():
     pde_pool = pde_state.get_rate_between_token(brd_token_id, new_ptoken)
     pde_share = pde_state.get_pde_shares_amount(COIN_MASTER, brd_token_id, new_ptoken)
     withdraw_tx = COIN_MASTER.pde_withdraw_contribution(
-        brd_token_id, new_ptoken, pde_share).expect_no_error().subscribe_transaction()
+        brd_token_id, new_ptoken, coin(99999999999999)).expect_no_error().subscribe_transaction()
 
     WAIT(30)
     bal_brd_af = COIN_MASTER.wait_for_balance_change(brd_token_id, bal_brd_b4)
@@ -355,16 +357,13 @@ def test_08_pdex_withdraw_contribution():
     assert bal_brd_b4 + pde_pool[0] == bal_brd_af
     assert bal_ptk_b4 + pde_pool[1] == bal_ptk_af
     assert bal_prv_b4 - withdraw_tx.get_fee() == bal_prv_af
-    COIN_MASTER.pde_withdraw_contribution(PRV_ID, new_ptoken, coin(100000000000)). \
-        expect_no_error().subscribe_transaction()
-    COIN_MASTER.wait_for_balance_change(least_change_amount=1000)
 
     STEP(2, f'Withdraw reward {l6(PRV_ID)}-{l6(new_ptoken)}')
     WAIT(30)
     bal_prv_b4 = COIN_MASTER.get_prv_balance()
     pde_state = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     reward_amount = pde_state.get_contributor_reward(COIN_MASTER, PRV_ID, new_ptoken)
-    withdraw_tx = COIN_MASTER.pde_withdraw_reward_v2(PRV_ID, new_ptoken, 1000000000). \
+    withdraw_tx = COIN_MASTER.pde_withdraw_reward_v2(PRV_ID, new_ptoken, reward_amount). \
         expect_no_error().subscribe_transaction()
     bal_prv_af = COIN_MASTER.wait_for_balance_change(from_balance=bal_prv_b4)
 

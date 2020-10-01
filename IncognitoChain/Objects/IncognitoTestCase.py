@@ -50,13 +50,15 @@ PORTAL_FEEDER = Account(
     '112t8roezimTQwKbmsoxY9h494xhMZNBe94ux6hCH4SaFYBFnFXS9JoNbUjmeFLQiFWHeFP9MLPcy1sEiDasdW4ZkzEDzXDLG3wmwMU551tv',
     '12S2ciPBja9XCnEVEcsPvmCLeQH44vF8DMwSqgkH7wFETem5FiqiEpFfimETcNqDkARfht1Zpph9u5eQkjEnWsmZ5GB5vhc928EoNYH')
 COIN_MASTER = Account(DAO_private_key, DAO_payment_key)
-if COIN_MASTER.list_unspent_coin()[0].get_version() == 1:
-    convert_tx = COIN_MASTER.convert_prv_to_v2()
-    if convert_tx.get_error_msg() == "Method not found":
-        ChainConfig.PRIVACY_VERSION = 1
-    else:
-        ChainConfig.PRIVACY_VERSION = 2
-        convert_tx.subscribe_transaction()
+
+convert_tx = COIN_MASTER.convert_prv_to_v2()
+if convert_tx.get_error_msg() == "Method not found":
+    ChainConfig.PRIVACY_VERSION = 1
+elif convert_tx.get_error_msg() == "Can not create tx":
+    ChainConfig.PRIVACY_VERSION = 2
+else:
+    ChainConfig.PRIVACY_VERSION = 2
+    convert_tx.subscribe_transaction()
 
 if COIN_MASTER.shard is None:
     COIN_MASTER.calculate_shard_id()
