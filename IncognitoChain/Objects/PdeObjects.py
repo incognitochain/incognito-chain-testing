@@ -1,7 +1,7 @@
 import copy
 from re import search
 
-from IncognitoChain.Configs.Constants import PRV_ID
+from IncognitoChain.Configs.Constants import PRV_ID, coin
 from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG, ERROR
 from IncognitoChain.Helpers.TestHelper import extract_incognito_addr, l6
 from IncognitoChain.Helpers.Time import WAIT
@@ -465,6 +465,18 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         received_amount = pool_token_buy - pool_token_buy_remain
         print("-expecting received amount: " + str(received_amount))
         return received_amount
+
+    def can_token_use_for_fee(self, token):
+        INFO(f'Check if token can be use to pay fee')
+        min_prv_for_fee = coin(10000)
+        pair_exist = self.is_pair_existed(PRV_ID, token)
+        prv_in_pool = self.get_rate_between_token(PRV_ID, token)[0]
+        prv_is_more_than_10k = prv_in_pool >= min_prv_for_fee
+        if not prv_is_more_than_10k:
+            INFO(f'PRV of pair is only {prv_in_pool}, while must > {min_prv_for_fee} to use for fee')
+        else:
+            INFO(f'PRV of pair is {prv_in_pool}, which is fine')
+        return pair_exist and prv_is_more_than_10k
 
 
 class PDEContributeInfo(BlockChainInfoBaseClass):
