@@ -1,5 +1,5 @@
 from IncognitoChain.Configs import Constants
-from IncognitoChain.Configs.Constants import BURNING_ADDR, PRV_ID
+from IncognitoChain.Configs.Constants import BURNING_ADDR, PRV_ID, ChainConfig
 from IncognitoChain.Drivers import Connections
 
 
@@ -215,11 +215,25 @@ class TransactionRpc:
             with_params([payment_address]). \
             execute()
 
-    def defragment_account(self, private_key, min_bill=1000000000000000):
+    def de_fragment_prv(self, private_key, min_bill=1000000000000000):
         return self.rpc_connection. \
             with_method("defragmentaccount"). \
             with_params([private_key, min_bill, -1, 0]). \
             execute()
+
+    def de_fragment_token(self, private_k, token_id, defrag_amount=0, privacy=True):
+        return self.rpc_connection.with_method('defragmentaccounttoken'). \
+            with_params([private_k, {}, -1, 1,
+                         {
+                             "Privacy": privacy,
+                             "TokenID": token_id,
+                             "TokenName": "",
+                             "TokenSymbol": "",
+                             "TokenTxType": 1,
+                             "TokenAmount": defrag_amount,
+                             "TokenReceivers": {},
+                             "TokenFee": 0
+                         }, "", 1]).execute()
 
     def list_unspent_output_coins(self, private_key, start_height=0):
         param_v1 = [0, 999999,  # old privacy
@@ -231,9 +245,10 @@ class TransactionRpc:
                       "StartHeight": start_height}],
                     ""
                     ]
+        param = param_v1 if ChainConfig.PRIVACY_VERSION == 1 else param_v2
         return self.rpc_connection. \
             with_method('listunspentoutputcoins'). \
-            with_params(param_v1). \
+            with_params(param). \
             execute()
 
     def list_unspent_output_tokens(self, private_k, token_id):
