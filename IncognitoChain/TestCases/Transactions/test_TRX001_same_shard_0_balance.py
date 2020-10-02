@@ -57,8 +57,7 @@ def test_send_prv_same_shard_0_balance_with_fee_n_privacy(fee, privacy):
     STEP(3, "from address1 send prv to address2 -- amount =0")
     send_result_3 = sender_account.send_prv_to(receiver_account, amount=0, fee=fee, privacy=privacy)
     assert send_result_3.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
-    assert 'input value less than output value' in send_result_3.get_error_trace().get_message(), \
-        "something went so wrong"
+    assert 'input value less than output value' in send_result_3.get_error_trace().get_message()
 
     # sent with amount < 0
     STEP(4, "from address1 send prv to address2 -- amount < 0")

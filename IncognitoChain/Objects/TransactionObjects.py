@@ -1,5 +1,6 @@
 import json
 
+from IncognitoChain.Configs.Constants import ChainConfig
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 from IncognitoChain.Objects.CoinObject import Coin
@@ -118,12 +119,20 @@ class TransactionDetail(BlockChainInfoBaseClass):
     """
 
     class TxDetailProof(BlockChainInfoBaseClass):
-        def _get_coin_list(self, coin_list_data_raw):
-            raw_coins = self.data[coin_list_data_raw]
+        def _get_coin_list(self, coin_list_name):
+            """
+
+            @param coin_list_name: "InputCoins" or "OutputCoins"
+            @return:
+            """
+            raw_coins = self.data[coin_list_name]
             list_coin_obj = []
             for raw in raw_coins:
-                coin_obj = Coin(raw['CoinDetails'])
-                coin_obj.data['CoinDetailsEncrypted'] = raw['CoinDetailsEncrypted']
+                if ChainConfig.PRIVACY_VERSION == 1:
+                    coin_obj = Coin(raw['CoinDetails'])
+                    coin_obj.data['CoinDetailsEncrypted'] = raw['CoinDetailsEncrypted']
+                else:  # ver 2
+                    coin_obj = Coin(raw)
                 list_coin_obj.append(coin_obj)
             return list_coin_obj
 
@@ -135,17 +144,14 @@ class TransactionDetail(BlockChainInfoBaseClass):
 
         def check_proof_privacy(self):
             input_coins = self.get_input_coins()
-            privacy = True
             for coin in input_coins:
                 key = coin.get_public_key()
                 value = coin.get_value()
                 INFO(f'Coin {key} value = {value}')
-                if value == 0:
-                    privacy = privacy and True
-                else:
+                if value != 0:
                     return False
 
-            return privacy
+            return True
 
     class MetaData(BlockChainInfoBaseClass):
         """
@@ -203,8 +209,7 @@ class TransactionDetail(BlockChainInfoBaseClass):
         return self.data['Image']
 
     def is_privacy(self):
-        privacy = True if self.data['IsPrivacy'] == 'true' else False
-        return privacy
+        return self.data['IsPrivacy']
 
     def get_proof(self):
         return self.data['Proof']
@@ -279,18 +284,28 @@ class TransactionDetail(BlockChainInfoBaseClass):
         self.data = SUT.REQUEST_HANDLER.transaction().get_tx_by_hash(tx_hash).get_result()
         return self
 
-    def verify_token_privacy(self):
+    def __verify_privacy(self, privacy_flag, detail_proof, expected_privacy=True):
+        version = ChainConfig.PRIVACY_VERSION
+        privacy = privacy_flag and detail_proof.check_proof_privacy()
+        if version == 2:
+            INFO(f'In v2, privacy must always be true no mater the hell you want')
+            assert privacy, f'Expected privacy = {expected_privacy}, actual = {privacy}'
+        else:
+            assert privacy == expected_privacy, f'Expected privacy = {expected_privacy} while actual = {privacy}'
+            return self
+
+    def verify_token_privacy(self, expected_privacy=True):
         INFO(f'Check tx token privacy: {self.get_tx_id()}')
         detail_proof = self.get_privacy_custom_token_proof_detail()
         privacy = self.is_privacy_custom_token()
         INFO(f'PrivacyCustomTokenIsPrivacy={privacy}')
-        privacy = privacy and detail_proof.check_proof_privacy()
-        return privacy
+        return self.__verify_privacy(privacy, detail_proof, expected_privacy)
 
-    def verify_prv_privacy(self):
-        INFO(f'Check tx prv privacy: {self.get_tx_id()}')
+    def verify_prv_privacy(self, expected_privacy=True):
+        version = ChainConfig.PRIVACY_VERSION
+        expected_privacy = bool(expected_privacy)
+        INFO(f'Check tx prv privacy v{version}: {self.get_tx_id()}')
         detail_proof = self.get_prv_proof_detail()
         privacy = self.is_privacy()
         INFO(f'IsPrivacy={privacy}')
-        privacy = privacy and detail_proof.check_proof_privacy()
-        return privacy
+        return self.__verify_privacy(privacy, detail_proof, expected_privacy)

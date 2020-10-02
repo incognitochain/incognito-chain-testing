@@ -65,7 +65,7 @@ class Coin(BlockChainInfoBaseClass):
         return self.data['Randomness']
 
     def get_value(self):
-        return self.data['Value']
+        return int(self.data['Value'])
 
     def get_info(self):
         return self.data['Info']

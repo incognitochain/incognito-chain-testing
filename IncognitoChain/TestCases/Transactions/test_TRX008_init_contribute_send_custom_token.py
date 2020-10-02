@@ -229,31 +229,26 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
     STEP(5, "privacy check")
     if privacy == 0:  # if privacy = 0 then all privacy type must be the same
         INFO("Check transaction prv_privacy")
-        assert not transaction_tx.verify_prv_privacy() and INFO(
-            "info value PRV must be no privacy"), "info value PRV is not privacy"
+        transaction_tx.verify_prv_privacy(False)
 
         INFO("Check transaction token privacy")
-        assert not transaction_tx.verify_token_privacy() and INFO(
-            "info value token  must be no privacy"), "info value token is NOT privacy"
+        transaction_tx.verify_token_privacy(False)
 
     else:  # privacy =1
         if privacy_type == 'token':
             INFO("Check transaction prv_privacy")
-            assert not transaction_tx.verify_prv_privacy() and INFO(
-                "info value PRV must NOT be privacy"), "info value PRV is privacy"
+            transaction_tx.verify_prv_privacy(False)
 
             INFO("Check transaction token privacy")
-            assert transaction_tx.verify_token_privacy() and INFO(
-                "info value token must be privacy"), "info value token is NOT privacy"
+            assert transaction_tx.verify_token_privacy()
+
         else:  # privacy_type  = prv while not sending prv, only token then prv privacy is false
             if fee_type == 'token':
                 INFO("Check transaction prv_privacy")
-                assert not transaction_tx.verify_prv_privacy() and INFO(
-                    "info value PRV is no privacy"), "info value PRV is privacy"
+                transaction_tx.verify_prv_privacy(False)
             else:
                 INFO("Check transaction prv_privacy")
-                assert not transaction_tx.verify_prv_privacy() and INFO(
-                    "info value PRV is no privacy"), "info value PRV is privacy"
+                transaction_tx.verify_prv_privacy(False)
 
 
 @pytest.mark.dependency(depends=["test_init_ptoken"])
@@ -396,10 +391,10 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
 
     STEP(7, "Check transaction privacy")
     INFO("Check transaction prv_privacy")
-    assert transaction_result.verify_prv_privacy(), "transaction is non-privacy"
+    transaction_result.verify_prv_privacy()
 
     INFO("Check transaction token privacy")
-    assert transaction_result.verify_token_privacy(), "transaction is non-privacy"
+    transaction_result.verify_token_privacy()
 
 
 @pytest.mark.dependency(depends=["test_init_ptoken"], reason="#761")

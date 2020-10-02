@@ -14,7 +14,11 @@ def setup_module():
     send_amount = 1000
 
 
-@pytest.mark.parametrize('fee,privacy', [(-1, 1), (-1, 0), (2, 1), (2, 0)])
+@pytest.mark.parametrize('fee,privacy', [
+    (-1, 1),
+    (-1, 0),
+    (2, 1),
+    (2, 0)])
 def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
     INFO(f"Verify send PRV to another address Xshard successfully with fee={fee} privacy={privacy}")
     STEP(1, "Get sender balance")
@@ -31,7 +35,7 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
     assert send_transaction.get_error_msg() != 'Can not create tx' and INFO(
         "make transaction success"), "transaction failed"
 
-    STEP(4, "Subcribe transaction")
+    STEP(4, "Subscribe transaction")
     try:
         send_transaction = send_transaction.subscribe_transaction()
     except TimeoutError:
@@ -57,10 +61,4 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
         f"receiver bal before + send amount = {receiver_bal} + {send_amount}"
 
     STEP(8, "Check transaction privacy")
-    if privacy == 0:
-        assert not send_transaction.verify_prv_privacy() and INFO("transaction is not privacy"), \
-            "transaction must be no privacy "
-
-    if privacy == 1:
-        assert send_transaction.verify_prv_privacy() and INFO('transaction is privacy'), \
-            "transaction must be private "
+    send_transaction.verify_prv_privacy(privacy)

@@ -46,12 +46,7 @@ def test_send_prv_1shard_with_fee_privacy(fee, privacy):
     assert balance2a == balance2b + send_amount, "receiver balance output incorrect"
 
     STEP(6, "Check transaction privacy")
-    if privacy == 0:
-        assert not transaction_result.verify_prv_privacy() and INFO(
-            "transaction is no privacy"), "transaction must be no privacy "
-    if privacy == 1:
-        assert transaction_result.verify_token_privacy() and INFO(
-            "transaction is privacy"), "transaction must be privacy "
+    transaction_result.verify_prv_privacy(privacy)
 
     STEP(7, "Return the money")
     receiver_account.send_prv_to(sender_account, send_amount).subscribe_transaction()

@@ -21,7 +21,7 @@ def test_withdraw_liquidity(withdrawer, token1, token2, percent_of_share_amount_
         token1: withdrawer.get_token_balance(token1),
         token2: withdrawer.get_token_balance(token2)}
     my_pde_share_b4 = pde_state_b4_test.get_pde_shares_amount(withdrawer, token1, token2)
-    assert my_pde_share_b4 != None, ERROR(f"share of {l6(withdrawer.private_key)} is NULL")
+    assert my_pde_share_b4 is not None, ERROR(f"share of {l6(withdrawer.private_key)} is NULL")
 
     withdraw_share = int(my_pde_share_b4 * percent_of_share_amount_to_withdraw)
     withdraw_share_actual = min(withdraw_share, my_pde_share_b4)
