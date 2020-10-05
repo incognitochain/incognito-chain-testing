@@ -3,7 +3,6 @@ class ChainConfig:
     RANDOM_TIME = 5
     BASIC_REWARD_PER_BLOCK = 400000000
     DAO_REWARD_PERCENT = 0.1
-    SMALLEST_POSITION_IN_COMMITTEE = 5
     COMMITTEE_TIMES = 2
     FIX_BLOCK_VALIDATOR = 4
     SHARD_COMMITTEE_SIZE = 6
@@ -15,6 +14,9 @@ class ChainConfig:
         COLLATERAL_LIQUIDATE_TO_POOL_PERCENT = 1.05
         REQ_TIME_OUT = 15  # minutes
         # REQ_TIME_OUT = 60  # minutes, TestNet
+
+    class Dex:
+        MIN_PRV_IN_POOL_FOR_TOKEN_FEE = 10000000000000
 
 
 BURNING_ADDR = \

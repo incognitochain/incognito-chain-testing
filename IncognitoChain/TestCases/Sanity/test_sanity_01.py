@@ -5,7 +5,7 @@ import pytest
 from IncognitoChain.Configs.Constants import coin, PBNB_ID, Status, PRV_ID, PBTC_ID, ChainConfig
 from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.TestHelper import ChainHelper, l6
-from IncognitoChain.Helpers.Time import WAIT
+from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER, PORTAL_FEEDER
 from IncognitoChain.Objects.PortalObjects import DepositTxInfo, PortingReqInfo
 from IncognitoChain.TestCases import Staking
@@ -124,7 +124,7 @@ def test_03_portal():
            == custodian_info_af.get_locked_collateral(porting_token)
 
 
-def test_04_init_n_contribute_p_token():
+def test_04_dex_v1_init_n_contribute_p_token():
     global new_ptoken
     test_TRX008_init_contribute_send_custom_token.account_init = COIN_MASTER
     test_TRX008_init_contribute_send_custom_token.setup_module()
@@ -228,26 +228,24 @@ def test_06_dex_v2():
     bal_brd_b4 = COIN_MASTER.get_token_balance(brd_token_id)
     bal_ptk_b4 = COIN_MASTER.get_token_balance(new_ptoken)
     bal_prv_b4 = COIN_MASTER.get_prv_balance()
-    STEP(1, f'Contribute token {l6(brd_token_id)}')
+
+    STEP(1, f'Contribute dex v2 token {l6(brd_token_id)}_{l6(new_ptoken)}')
     pair_id = f'{l6(brd_token_id)}-{l6(new_ptoken)}'
-    contribute_tx_1 = COIN_MASTER.pde_contribute_token(brd_token_id, pde_rate[brd_token_id], pair_id). \
+    contribute_tx_1 = COIN_MASTER.pde_contribute_v2(brd_token_id, pde_rate[brd_token_id], pair_id). \
         expect_no_error().subscribe_transaction()
     WAIT(30)
-
-    STEP(2, f'Check pde state, make sure the token is in waiting contribution list')
+    INFO(f'Check pde state, make sure the token is in waiting contribution list')
     pde_state_1 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     assert pde_state_1.find_waiting_contribution_of_user(COIN_MASTER, pair_id, brd_token_id) != []
-
-    STEP(3, f'Contribute token {l6(new_ptoken)}')
-    contribute_tx_2 = COIN_MASTER.pde_contribute_token(new_ptoken, pde_rate[new_ptoken], pair_id). \
+    INFO(f'Contribute token {l6(new_ptoken)}')
+    contribute_tx_2 = COIN_MASTER.pde_contribute_v2(new_ptoken, pde_rate[new_ptoken], pair_id). \
         expect_no_error().subscribe_transaction()
     WAIT(30)
-
-    STEP(4, f'Check pde state')
+    INFO(f'Check pde state, pair id must be out of waiting list')
     pde_state_2 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     assert pde_state_2.find_waiting_contribution_of_user(COIN_MASTER, pair_id=pair_id) == []
 
-    STEP(5, f'Check balance')
+    STEP(2, f'Check balance')
     bal_brd_af = COIN_MASTER.get_token_balance(brd_token_id)
     bal_ptk_af = COIN_MASTER.get_token_balance(new_ptoken)
     bal_prv_af = COIN_MASTER.get_prv_balance()
@@ -255,10 +253,10 @@ def test_06_dex_v2():
     assert bal_ptk_b4 - pde_rate[new_ptoken] == bal_ptk_af
     assert bal_prv_b4 - contribute_tx_1.get_fee() - contribute_tx_2.get_fee() == bal_prv_af
 
-    STEP(6, 'Check pool pair')
+    STEP(3, 'Check pool pair')
     assert pde_state_2.is_pair_existed(brd_token_id, new_ptoken)
 
-    STEP(7, f'Trade v2 prv with token {l6(new_ptoken)}')
+    STEP(4, f'Trade v2 prv with token {l6(new_ptoken)}')
     pde_b4_trade = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     bal_prv_b4_trade = COIN_MASTER.get_prv_balance()
     bal_tok_b4_trade = COIN_MASTER.get_token_balance(new_ptoken)
@@ -271,7 +269,7 @@ def test_06_dex_v2():
     assert bal_tok_b4_trade + pde_b4_trade.cal_trade_receive_v1(PRV_ID, new_ptoken, prv_trade_amount) \
            == bal_tok_af_trade
 
-    STEP(8, f'Trade v2 token {l6(new_ptoken)}-{l6(brd_token_id)}')
+    STEP(5, f'Trade v2 token {l6(new_ptoken)}-{l6(brd_token_id)}')
     pde_b4_trade = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     bal_tok_b4_trade = COIN_MASTER.get_token_balance(new_ptoken)
     bal_brd_b4_trade = COIN_MASTER.get_token_balance(brd_token_id)
@@ -285,13 +283,19 @@ def test_06_dex_v2():
     assert abs(bal_brd_b4_trade + pde_b4_trade.cal_trade_receive_v2(new_ptoken, brd_token_id, tok_new_trade_amount)
                - bal_brd_af_trade) <= 1
 
-    STEP(9, f'Trade v2 token {l6(new_ptoken)}-{l6(brd_token_id)}, '
-            f'which is not possible since pair brd-prv is not existed in DEX')
-    bal_tok_b4_trade = COIN_MASTER.get_token_balance(new_ptoken)
+    STEP(6.1, "init new token")
+    tok_symbol = f'tok_sym_{get_current_date_time()}'
+    init_tx = COIN_MASTER.init_custom_token_self(tok_symbol, coin(20000)).expect_no_error().subscribe_transaction()
+    custom_token_id = init_tx.get_token_id()
+    INFO(f"Token id: {custom_token_id}")
+
+    STEP(6.2, f'Trade v2 token {l6(custom_token_id)}-{l6(brd_token_id)}, '
+              f'which is not possible since the pair {l6(custom_token_id)}-PRV is not existed in DEX')
+    bal_tok_b4_trade = COIN_MASTER.get_token_balance(custom_token_id)
     bal_brd_b4_trade = COIN_MASTER.get_token_balance(brd_token_id)
-    trade_tx = COIN_MASTER.pde_trade_v2(new_ptoken, tok_new_trade_amount, brd_token_id, 0).expect_no_error()
+    trade_tx = COIN_MASTER.pde_trade_v2(custom_token_id, tok_new_trade_amount, brd_token_id, 0).expect_no_error()
     bal_brd_af_trade = COIN_MASTER.wait_for_balance_change(brd_token_id, bal_brd_b4_trade)
-    bal_tok_af_trade = COIN_MASTER.get_token_balance(new_ptoken)
+    bal_tok_af_trade = COIN_MASTER.get_token_balance(custom_token_id)
     assert bal_brd_b4_trade == bal_brd_af_trade
     assert bal_tok_b4_trade == bal_tok_af_trade
 
