@@ -54,17 +54,17 @@ def setup_module():
                              # big amount porting test should be run alone
                              # BNB
                              # 1 custodian
-                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "valid"),
-                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "expire"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "valid"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "expire"),
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "liquidate"),
-                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, 1, "invalid"),
-                             # (PBNB_ID, big_porting_amount, portal_user, None, 1, "valid"),
-                             # # n custodian
-                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "valid"),
-                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "expire"),
-                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "liquidate"),
-                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, n, "invalid"),
-                             # #
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, 1, "invalid"),
+                             (PBNB_ID, big_porting_amount, portal_user, None, 1, "valid"),
+                             # n custodian
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "valid"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "expire"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "liquidate"),
+                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, n, "invalid"),
+                             #
                              # # BTC
                              # # 1 custodian
                              # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "valid"),
