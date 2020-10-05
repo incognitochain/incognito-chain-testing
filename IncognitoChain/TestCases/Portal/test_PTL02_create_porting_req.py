@@ -54,16 +54,16 @@ def setup_module():
                              # big amount porting test should be run alone
                              # BNB
                              # 1 custodian
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "valid"),
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "expire"),
+                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "valid"),
+                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "expire"),
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "liquidate"),
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, 1, "invalid"),
-                             (PBNB_ID, big_porting_amount, portal_user, None, 1, "valid"),
-                             # n custodian
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "valid"),
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "expire"),
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "liquidate"),
-                             (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, n, "invalid"),
+                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, 1, "invalid"),
+                             # (PBNB_ID, big_porting_amount, portal_user, None, 1, "valid"),
+                             # # n custodian
+                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "valid"),
+                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "expire"),
+                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "liquidate"),
+                             # (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, n, "invalid"),
                              # #
                              # # BTC
                              # # 1 custodian
@@ -260,9 +260,9 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
                         estimate_liquidation_of_custodian(custodian, token, tok_rate, new_prv_rate,
                                                           amount, collateral_each_estimate)
 
-                    INFO(f'Liquidated amount           {total_collateral_after_req - total_collateral_after}')
+                    INFO(f'Real liquidated amount      {total_collateral_after_req - total_collateral_after}')
                     INFO(f'Estimated liquidated amount {estimated_liquidated_amount}')
-                    INFO(f'Return collateral           {return_collateral}')
+                    INFO(f'Estimated return collateral {return_collateral}')
 
                     # breakpoint()
                     assert collateral_each_estimate == porting_req_collateral, "Wrong lock collateral"

@@ -43,24 +43,15 @@ init_portal_rate = {
 
 # special case
 fat_custodian = Account()
+big_collateral = fat_custodian_prv = 1
 big_porting_amount = coin(10)
 big_rate = {PBNB_ID: '105873200000',
             PBTC_ID: '105873200000'}
+
+
 # 19097127190081650
 # 37772966455153490
 # 37772966455153487
-
-for acc in custodian_remote_addr.get_accounts():  # find custodian account who has most PRV
-    if fat_custodian.get_prv_balance_cache() is None:
-        fat_custodian = acc
-    elif acc.get_prv_balance_cache() >= fat_custodian.get_prv_balance_cache():
-        fat_custodian = acc
-INFO(f' FAT CUSTODIAN \n'
-     f'{fat_custodian}')
-big_collateral = PortalHelper.cal_lock_collateral(big_porting_amount, big_rate[PBNB_ID],
-                                                  init_portal_rate[PRV_ID])
-fat_custodian_prv = big_collateral + coin(1)
-
 
 def setup_module():
     INFO()
@@ -78,6 +69,18 @@ def setup_module():
             create_rate_tx.subscribe_transaction()
             SUT.full_node.help_wait_till_next_epoch()
             break
+
+    global fat_custodian, big_collateral, fat_custodian_prv
+    for acc in custodian_remote_addr.get_accounts():  # find custodian account who has most PRV
+        if fat_custodian.get_prv_balance_cache() is None:
+            fat_custodian = acc
+        elif acc.get_prv_balance_cache() >= fat_custodian.get_prv_balance_cache():
+            fat_custodian = acc
+    INFO(f' FAT CUSTODIAN \n'
+         f'{fat_custodian}')
+    big_collateral = PortalHelper.cal_lock_collateral(big_porting_amount, big_rate[PBNB_ID],
+                                                      init_portal_rate[PRV_ID])
+    fat_custodian_prv = big_collateral + coin(1)
 
 
 def noteardown_module():

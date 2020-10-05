@@ -9,14 +9,16 @@ from IncognitoChain.Objects.PortalObjects import PortalStateInfo
 from IncognitoChain.TestCases.Portal import test_PTL02_create_porting_req as porting_step, portal_user
 
 PSI_before_test = PortalStateInfo()
+need_holding_token = False
 
 
-def setup_module():
-    INFO('Setup liquidation test')
-    porting_step.setup_module()
-    porting_step.test_create_porting_req_1_1(PBNB_ID, 100, None, 1, 'valid')
-    global PSI_before_test
-    PSI_before_test = SUT.full_node.get_latest_portal_state_info()
+def setup_function():
+    if need_holding_token:
+        INFO('Setup liquidation test')
+        porting_step.setup_module()
+        porting_step.test_create_porting_req_1_1(PBNB_ID, 100, portal_user, None, 1, 'valid')
+        global PSI_before_test
+        PSI_before_test = SUT.full_node.get_latest_portal_state_info()
 
 
 @pytest.mark.parametrize("token, percent, waiting_redeem, expected", [
@@ -75,6 +77,8 @@ def test_liquidate(token, percent, waiting_redeem, expected):
     PSI_after_test.print_rate()
 
     if expected == 'liquidated':
+        global need_holding_token
+        need_holding_token = True
         INFO("liquidation pool estimated")
         INFO(f"{estimated_liquidation_pool.data}")
         INFO("liquidation pool after")
