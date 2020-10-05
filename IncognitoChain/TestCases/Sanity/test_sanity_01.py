@@ -246,15 +246,15 @@ def test_06_dex_v2():
     assert pde_state_2.find_waiting_contribution_of_user(COIN_MASTER, pair_id=pair_id) == []
 
     STEP(2, f'Check balance')
-    bal_brd_af = COIN_MASTER.get_token_balance(brd_token_id)
-    bal_ptk_af = COIN_MASTER.get_token_balance(new_ptoken)
+    bal_brd_af = COIN_MASTER.wait_for_balance_change(brd_token_id)
+    bal_ptk_af = COIN_MASTER.wait_for_balance_change(new_ptoken)
     bal_prv_af = COIN_MASTER.get_prv_balance()
-    assert bal_brd_b4 - pde_rate[brd_token_id] == bal_brd_af
-    assert bal_ptk_b4 - pde_rate[new_ptoken] == bal_ptk_af
+    assert bal_brd_b4 == bal_brd_af
+    assert bal_ptk_b4 == bal_ptk_af
     assert bal_prv_b4 - contribute_tx_1.get_fee() - contribute_tx_2.get_fee() == bal_prv_af
 
     STEP(3, 'Check pool pair')
-    assert pde_state_2.is_pair_existed(brd_token_id, new_ptoken)
+    assert not pde_state_2.is_pair_existed(brd_token_id, new_ptoken)
 
     STEP(4, f'Trade v2 prv with token {l6(new_ptoken)}')
     pde_b4_trade = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
@@ -268,8 +268,17 @@ def test_06_dex_v2():
     assert bal_prv_b4_trade - prv_trade_amount - trade_tx.get_fee() - trading_fee == bal_prv_af_trade
     assert bal_tok_b4_trade + pde_b4_trade.cal_trade_receive_v1(PRV_ID, new_ptoken, prv_trade_amount) \
            == bal_tok_af_trade
+    STEP(5.1, f'Contribute brd token vs prv if needed')
+    pde = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    if not pde.is_pair_existed(brd_token_id, PRV_ID):
+        pair_id = f'brd_prv_{get_current_date_time()}'
+        COIN_MASTER.pde_contribute_v2(PRV_ID, coin(15000), pair_id).expect_no_error().subscribe_transaction()
+        COIN_MASTER.pde_contribute_v2(brd_token_id, coin(20000), pair_id).expect_no_error().subscribe_transaction()
+        WAIT(40)
+    else:
+        INFO('NO NEED')
 
-    STEP(5, f'Trade v2 token {l6(new_ptoken)}-{l6(brd_token_id)}')
+    STEP(5.2, f'Trade v2 token {l6(new_ptoken)}-{l6(brd_token_id)}')
     pde_b4_trade = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     bal_tok_b4_trade = COIN_MASTER.get_token_balance(new_ptoken)
     bal_brd_b4_trade = COIN_MASTER.get_token_balance(brd_token_id)
