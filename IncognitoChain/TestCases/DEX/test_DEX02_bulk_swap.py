@@ -49,6 +49,8 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
         token_owner.pde_contribute(token_sell, coin(15000), pair_id).expect_no_error().subscribe_transaction()
         token_owner.pde_contribute(token_buy, coin(21000), pair_id).expect_no_error().subscribe_transaction()
         WAIT(40)
+        pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+
     else:
         INFO('Pair is already existed')
 
