@@ -41,15 +41,24 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
         - difference trading fee
         - highest trading fee get better price
        """)
+    STEP(0, 'Contribute if pair is not yet existed')
+    pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
 
-    STEP(0, "Checking balance")
+    if not pde_state_b4.is_pair_existed(token_buy, token_sell):
+        pair_id = f'pde_{l6(token_sell)}_{l6(token_buy)}_{get_current_date_time()}'
+        token_owner.pde_contribute(token_sell, coin(15000), pair_id).expect_no_error().subscribe_transaction()
+        token_owner.pde_contribute(token_buy, coin(21000), pair_id).expect_no_error().subscribe_transaction()
+        WAIT(40)
+    else:
+        INFO('Pair is already existed')
+
+    STEP(1, "Checking balance")
     balance_tok1_before = []
     balance_tok2_before = []
     balance_tok1_after = []
     balance_tok2_after = []
     private_key_alias = []
     trading_fee = [77, 22, 11, 66, 99, 2, 33, 55, 88, 44]
-    pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
 
     trade_amount_token1 = trade_amount
 
@@ -66,20 +75,12 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
         balance_tok2_before.append(bal_tok_2)
         private_key_alias.append(l6(trader.private_key))
 
+    rate_before = pde_state_b4.get_rate_between_token(token_sell, token_buy)
+
     INFO(f"Private key alias                : {str(private_key_alias)}")
     INFO(f"{token_sell[-6:]} balance before trade      : {str(balance_tok1_before)}")
     INFO(f"{token_buy[-6:]} balance before trade         : {str(balance_tok2_before)}")
-    rate_before = pde_state_b4.get_rate_between_token(token_sell, token_buy)
     INFO(f"Rate {token_sell[-6:]} vs {token_buy[-6:]} - Before Trade : {str(rate_before)}")
-
-    STEP(1, 'Contribute if pair is not yet existed')
-    if not pde_state_b4.is_pair_existed(token_buy, token_sell):
-        pair_id = f'pde_{l6(token_sell)}_{l6(token_buy)}_{get_current_date_time()}'
-        token_owner.pde_contribute(token_sell, coin(15000), pair_id).expect_no_error().subscribe_transaction()
-        token_owner.pde_contribute(token_buy, coin(21000), pair_id).expect_no_error().subscribe_transaction()
-        WAIT(40)
-    else:
-        INFO('Pair is already existed')
 
     STEP(2, f"trade {token_sell[-6:]} at the same time")
     tx_list = []
