@@ -1,6 +1,6 @@
 import pytest
 
-from IncognitoChain.Configs.Constants import PRV_ID, coin
+from IncognitoChain.Configs.Constants import PRV_ID, coin, Status
 from IncognitoChain.Helpers.Logging import INFO, STEP
 from IncognitoChain.Helpers.TestHelper import calculate_contribution, l6
 from IncognitoChain.Helpers.Time import get_current_date_time
@@ -10,10 +10,6 @@ from IncognitoChain.TestCases.DEX import token_id_1, token_owner, token_id_2
 
 
 @pytest.mark.parametrize('token1,token2', (
-        # all 4 cases pass on test net
-        # last 2 always fail on jenkins testbed,
-        # the very last case offend fail by missing 1 nano prv calculation of bal after contribute
-        # the other fail because contribute amount from api is always 0
         [PRV_ID, token_id_1],  # contribute prv
         [token_id_1, PRV_ID],  # contribute prv reverse
         [token_id_2, token_id_1],  # contribute token
@@ -108,11 +104,6 @@ def test_contribute(token1, token2):
     api_contrib_tok2 = contribution_status.get_contribute_amount_token1()
     api_return_tok1 = contribution_status.get_return_amount_2()
     api_return_tok2 = contribution_status.get_return_amount_1()
-    # contribution_status = SUT.full_node.dex().get_contribution_status(pair_id)
-    # api_contrib_tok1 = contribution_status.get_contributed_2_amount()
-    # api_contrib_tok2 = contribution_status.get_contributed_1_amount()
-    # api_return_tok1 = contribution_status.get_returned_2_amount()
-    # api_return_tok2 = contribution_status.get_returned_1_amount()
 
     INFO(f"""
         Owner share amount before: {owner_share_amount}
@@ -143,12 +134,21 @@ def test_contribute(token1, token2):
                and abs(calculated_owner_share_amount_after - owner_share_amount_after) <= 1, \
             f'calculated vs real = {calculated_owner_share_amount_after} - {owner_share_amount_after}'
 
-    if token1 == PRV_ID:
-        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + api_contrib_tok1 + contrib_fee_sum
-        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + api_contrib_tok2
-    elif token2 == PRV_ID:
-        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + api_contrib_tok1
-        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + api_contrib_tok2 + contrib_fee_sum
+    # NOTE: at first time contribute, all will be taken so API will return 0 as api_contrib_tok*
+    is_first_time_contrib = not pde_state_b4_test.is_pair_existed(token1, token2)
+    real_contrib_amount1 = tok1_contrib_amount if is_first_time_contrib else api_contrib_tok1
+    real_contrib_amount2 = tok2_contrib_amount if is_first_time_contrib else api_contrib_tok2
+    if is_first_time_contrib:
+        assert contribution_status.get_status() == Status.Dex.Contribution.ACCEPTED
     else:
-        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + api_contrib_tok1
-        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + api_contrib_tok2
+        assert contribution_status.get_status() == Status.Dex.Contribution.MATCHED_RETURNED
+
+    if token1 == PRV_ID:
+        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1 + contrib_fee_sum
+        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2
+    elif token2 == PRV_ID:
+        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1
+        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2 + contrib_fee_sum
+    else:
+        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1
+        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2

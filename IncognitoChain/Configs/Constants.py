@@ -98,3 +98,28 @@ class Status:
         class RedeemMatchingStatus:
             ACCEPT = 1
             REJECTED = 2
+
+    class Dex:
+        NOT_FOUND = 0
+
+        class Contribution:
+            WAITING = 1
+            ACCEPTED = 2
+            REFUND = 3
+            MATCHED_RETURNED = 4
+
+        class Trading:
+            ACCEPTED = 1
+            REFUND = 2
+
+        class CrossTrade:
+            ACCEPTED = 1
+            REFUND = 2
+
+        class WithdrawContribution:
+            ACCEPTED = 1
+            REJECTED = 2
+
+        class WithdrawFee:
+            ACCEPTED = 1
+            REJECTED = 2
