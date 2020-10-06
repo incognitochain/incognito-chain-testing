@@ -104,7 +104,7 @@ def test_liquidate(token, percent, waiting_redeem, expected):
             else:
                 assert return_collateral > 0
             assert new_free_collateral == current_free_collateral + return_collateral
-        assert estimated_liquidation_pool + PSI_before_test. \
-            get_liquidation_pool() == PSI_after_test.get_liquidation_pool()
+        assert estimated_liquidation_pool + PSI_before_test.get_liquidation_pool() \
+               == PSI_after_test.get_liquidation_pool()
     else:
         assert PSI_before_test.get_liquidation_pool() == PSI_after_test.get_liquidation_pool()

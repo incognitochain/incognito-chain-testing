@@ -30,4 +30,4 @@ else
   param4="-k $4"
 fi
 set -x
-$python $xoption -m pytest --show-capture=no -s -v --html="$html_report" --self-contained-html "$3" $param4
+$python $xoption -m pytest --show-capture=no -s -v --html="$html_report" --self-contained-html $3 $param4

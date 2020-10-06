@@ -808,19 +808,18 @@ class PortalStateInfo(_PortalInfoBase):
                 result.append(req)
         return result
 
-    def estimate_liquidation_of_custodian(self, custodian, token_id, new_token_rate, new_prv_rate,
-                                          porting_amount=0, porting_collateral=0):
+    def estimate_liquidation_of_custodian(self, custodian, token_id, porting_amount=0, porting_collateral=0):
         """
         Estimate liquidate collateral and return collateral of custodian
         :param porting_collateral:
         :param porting_amount:
         :param custodian:a CustodianInfo, Account object or incognito addr of custodian
         :param token_id:
-        :param new_token_rate:
-        :param new_prv_rate:
         :return:
         """
         custodian = self.get_custodian_info_in_pool(custodian)
+        new_prv_rate = self.get_portal_rate(PRV_ID)
+        new_token_rate = self.get_portal_rate(token_id)
         my_holding_token = custodian.get_holding_token_amount(token_id)
         lock_collateral_minus_waiting_porting = \
             self._lock_collateral_minus_waiting_porting_of_custodian(custodian, token_id) + porting_collateral

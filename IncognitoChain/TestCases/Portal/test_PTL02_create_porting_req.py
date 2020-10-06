@@ -65,8 +65,8 @@ def setup_module():
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "liquidate"),
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, n, "invalid"),
                              #
-                             # # BTC
-                             # # 1 custodian
+                             # BTC
+                             # 1 custodian
                              # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "valid"),
                              # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "expire"),
                              # (PBTC_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "liquidate"),
@@ -253,12 +253,10 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
                 assert lock_collateral_after - lock_collateral_before == collateral_each_estimate
                 assert lock_collateral_after - lock_collateral_before == porting_req_collateral
             else:  # case liquidate
-                if PSI_after_req.will_custodian_be_liquidated_with_new_rate(custodian, token, tok_rate,
-                                                                            new_prv_rate):
+                if PSI_after_req.will_custodian_be_liquidated_with_new_rate(custodian, token, tok_rate, new_prv_rate):
                     INFO(f'Verify custodian {l6(custodian.get_incognito_addr())} collateral and holding token')
                     estimated_liquidated_amount, return_collateral = PSI_porting_completed. \
-                        estimate_liquidation_of_custodian(custodian, token, tok_rate, new_prv_rate,
-                                                          amount, collateral_each_estimate)
+                        estimate_liquidation_of_custodian(custodian, token, amount, collateral_each_estimate)
 
                     INFO(f'Real liquidated amount      {total_collateral_after_req - total_collateral_after}')
                     INFO(f'Estimated liquidated amount {estimated_liquidated_amount}')
