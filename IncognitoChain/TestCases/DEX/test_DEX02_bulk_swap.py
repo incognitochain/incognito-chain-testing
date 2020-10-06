@@ -5,10 +5,10 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
-from IncognitoChain.Configs.Constants import PRV_ID
+from IncognitoChain.Configs.Constants import PRV_ID, coin
 from IncognitoChain.Helpers.Logging import STEP, INFO, DEBUG, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import calculate_actual_trade_received, l6
-from IncognitoChain.Helpers.Time import WAIT
+from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
 from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_owner, token_id_2
 
@@ -24,10 +24,10 @@ def setup_function():
 
 
 @pytest.mark.parametrize('test_mode,token_sell,token_buy', (
-    ["1 shard", token_id_1, PRV_ID],
-    ["n shard", token_id_1, PRV_ID],
-    ["1 shard", token_id_1, token_id_2],
-    ["n shard", token_id_1, token_id_2]
+        ["1 shard", token_id_1, PRV_ID],
+        ["n shard", token_id_1, PRV_ID],
+        ["1 shard", token_id_1, token_id_2],
+        ["n shard", token_id_1, token_id_2]
 ))
 def test_bulk_swap(test_mode, token_sell, token_buy):
     if test_mode == '1 shard':
@@ -71,6 +71,15 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     INFO(f"{token_buy[-6:]} balance before trade         : {str(balance_tok2_before)}")
     rate_before = pde_state_b4.get_rate_between_token(token_sell, token_buy)
     INFO(f"Rate {token_sell[-6:]} vs {token_buy[-6:]} - Before Trade : {str(rate_before)}")
+
+    STEP(1, 'Contribute if pair is not yet existed')
+    if not pde_state_b4.is_pair_existed(token_buy, token_sell):
+        pair_id = f'pde_{l6(token_sell)}_{l6(token_buy)}_{get_current_date_time()}'
+        token_owner.pde_contribute(token_sell, coin(15000), pair_id).expect_no_error().subscribe_transaction()
+        token_owner.pde_contribute(token_buy, coin(21000), pair_id).expect_no_error().subscribe_transaction()
+        WAIT(40)
+    else:
+        INFO('Pair is already existed')
 
     STEP(2, f"trade {token_sell[-6:]} at the same time")
     tx_list = []
@@ -151,7 +160,7 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
         else:
             result_token.append(str(order) + "Trade_False")
         print("  Actual Trade amount: %d " % (
-            balance_tok1_before[order] - balance_tok1_after[order] - trading_fee[order]))
+                balance_tok1_before[order] - balance_tok1_after[order] - trading_fee[order]))
 
         calculated_rate[1] = calculated_rate[1] - received_amount_prv
         calculated_rate[0] = calculated_rate[0] + trade_amount_token1 + trading_fee[order]
