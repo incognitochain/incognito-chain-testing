@@ -630,14 +630,18 @@ class PortalStateInfo(_PortalInfoBase):
         for i in range(0, _len - 1):
             index_of_max = i
             _max = custodian_pool[index_of_max]
+            print(f'i max = {index_of_max}: {_max}')
             for j in range(i + 1, _len):
                 _next = custodian_pool[j]
                 if _next.get_holding_token_amount(token_id) > _max.get_holding_token_amount(token_id):
+                    print(f'j max = {j}: {_next}')
                     index_of_max = j
             # swap
-            temp = custodian_pool[i]
-            custodian_pool[i] = custodian_pool[index_of_max]
-            custodian_pool[index_of_max] = temp
+            if index_of_max != i:
+                print(f'swap {i}-{index_of_max}')
+                temp = custodian_pool[i]
+                custodian_pool[i] = custodian_pool[index_of_max]
+                custodian_pool[index_of_max] = temp
 
         return custodian_pool
 

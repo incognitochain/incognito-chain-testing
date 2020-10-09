@@ -87,9 +87,8 @@ def test_add_liquidity(contributors, contribute_percent_of_bal_tok2, token1, tok
         contributor_balance_tok1_af[account] = account.get_token_balance(token1)
         contributor_balance_tok2_af[account] = account.get_token_balance(token2)
 
-    INFO(f'User  | bal {l6(token1)} before/after  | {l6(token1)} commit amount | '
-         f'bal {l6(token2)} before/after  | {l6(token2)} commit amount | '
-         f'share amount before/after')
+    summary_msg = f'\nUser   | bal {l6(token1)} before/after    | {l6(token1)} commit amount | ' \
+                  f'bal {l6(token2)} before/after  | {l6(token2)} commit amount | share amount before/after'
     for account in contributors:
         pde_share_b4 = pde_state_b4_test.get_pde_shares_amount(account, token1, token2)
         pde_share_after = pde_state_after_test.get_pde_shares_amount(account, token1, token2)
@@ -97,10 +96,10 @@ def test_add_liquidity(contributors, contribute_percent_of_bal_tok2, token1, tok
         bal_tok2_b4 = contributor_balance_tok2_b4[account]
         bal_tok1_af = contributor_balance_tok1_af[account]
         bal_tok2_af = contributor_balance_tok2_af[account]
-
-        INFO(f'{l6(account.payment_key)} | {bal_tok1_b4}/{bal_tok1_af} | {commit_amount_tok1[account]} | '
-             f'{bal_tok2_b4}/{bal_tok2_af} | {commit_amount_tok2[account]} | '
-             f'{pde_share_b4}/{pde_share_after}')
+        summary_msg += '\n%s | %13s/%13s | %21s | $13s/%13s | %21s | 13s/%13s' \
+                       % l6(account.payment_key), bal_tok1_b4, bal_tok1_af, commit_amount_tok1[account], \
+                       bal_tok2_b4, bal_tok2_af, commit_amount_tok2[account], pde_share_b4, pde_share_after
+    INFO(summary_msg)
 
     STEP(6, f"Check rate {l6(token2)} vs {l6(token1)}")
     rate_before = pde_state_b4_test.get_rate_between_token(token1, token2)

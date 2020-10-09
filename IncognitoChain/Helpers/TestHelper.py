@@ -193,14 +193,15 @@ def calculate_contribution(token_1_contribute_amount, token_2_contribute_amount,
     return actual_contribution_token1, actual_contribution_token2, refund_token1, refund_token2
 
 
-def calculate_actual_trade_received(trade_amount, pool_token2_sell, pool_token2_buy):
-    remain = (pool_token2_buy * pool_token2_sell) / (trade_amount + pool_token2_sell)
-    # print("-remain before mod: " + str(remain))
-    if (pool_token2_buy * pool_token2_sell) % (trade_amount + pool_token2_sell) != 0:
+def calculate_actual_trade_received(trade_amount, pool_token_sell, pool_token_buy):
+    print(f'amount, pool sell-buy: {trade_amount}, {pool_token_sell} - {pool_token_buy}')
+    remain = (pool_token_buy * pool_token_sell) / (trade_amount + pool_token_sell)
+    print("-remain before mod: " + str(remain))
+    if (pool_token_buy * pool_token_sell) % (trade_amount + pool_token_sell) != 0:
         remain = int(remain) + 1
-        # print("-remain after mod: " + str(remain))
+        print("-remain after mod: " + str(remain))
 
-    received_amount = pool_token2_buy - remain
+    received_amount = pool_token_buy - remain
     print("-expecting received amount: " + str(received_amount))
     return received_amount
 

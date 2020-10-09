@@ -15,8 +15,9 @@ def setup_function():
 
 
 @pytest.mark.parametrize('contributors, contribute_percent_of_bal_tok2, token1, token2', [
-    (ACCOUNTS, 0.01, PRV_ID, token_id_1),
-    # (ACCOUNTS, 0.1, token_id_1, token_id_2),
+    pytest.param(ACCOUNTS, 0.01, PRV_ID, token_id_1),
+    pytest.param(ACCOUNTS, 0.1, token_id_1, token_id_2,
+                 marks=pytest.mark.xfail(reason="there's no token-token in dex v2")),
 ])
 def test_add_liquidity_v2(contributors, contribute_percent_of_bal_tok2, token1, token2):
     pde_state_b4_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
@@ -84,9 +85,9 @@ def test_add_liquidity_v2(contributors, contribute_percent_of_bal_tok2, token1, 
         contributor_balance_tok1_af[account] = account.get_token_balance(token1)
         contributor_balance_tok2_af[account] = account.get_token_balance(token2)
 
-    INFO(f'User  | bal {l6(token1)} before/after  | {l6(token1)} commit amount | '
-         f'bal {l6(token2)} before/after  | {l6(token2)} commit amount | '
-         f'share amount before/after')
+    summary = f'\nUser  | bal {l6(token1)} before/after  | {l6(token1)} commit amount | ' \
+              f'bal {l6(token2)} before/after  | {l6(token2)} commit amount | ' \
+              f'share amount before/after'
     for account in contributors:
         pde_share_b4 = pde_state_b4_test.get_pde_shares_amount(account, token1, token2)
         pde_share_after = pde_state_after_test.get_pde_shares_amount(account, token1, token2)
@@ -95,9 +96,10 @@ def test_add_liquidity_v2(contributors, contribute_percent_of_bal_tok2, token1, 
         bal_tok1_af = contributor_balance_tok1_af[account]
         bal_tok2_af = contributor_balance_tok2_af[account]
 
-        INFO(f'{l6(account.payment_key)} | {bal_tok1_b4}/{bal_tok1_af} | {commit_amount_tok1[account]} | '
-             f'{bal_tok2_b4}/{bal_tok2_af} | {commit_amount_tok2[account]} | '
-             f'{pde_share_b4}/{pde_share_after}')
+        summary += f'\n{l6(account.payment_key)} | {bal_tok1_b4}/{bal_tok1_af} | {commit_amount_tok1[account]} | ' \
+                   f'{bal_tok2_b4}/{bal_tok2_af} | {commit_amount_tok2[account]} | ' \
+                   f'{pde_share_b4}/{pde_share_after}'
+    INFO(summary)
 
     STEP(6, f"Check rate {l6(token2)} vs {l6(token1)}")
     rate_before = pde_state_b4_test.get_rate_between_token(token1, token2)
@@ -106,7 +108,7 @@ def test_add_liquidity_v2(contributors, contribute_percent_of_bal_tok2, token1, 
     sum_commit_token_1 = sum(commit_amount_tok1.values())
     sum_commit_token_2 = sum(commit_amount_tok2.values())
 
-    INFO('Rate before test + sum contribute amount - rate after test')
+    INFO('Rate before test + sum contribute amount = rate after test')
     # each contribute calculation can be off by 1 nano,
     # so expect sum calculation will be off no more than: 1 * num of contributors
     assert abs(rate_before[0] + sum_commit_token_1 - rate_after[0]) <= len(contributors) and \

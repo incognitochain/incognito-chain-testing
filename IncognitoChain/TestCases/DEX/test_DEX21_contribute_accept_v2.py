@@ -11,12 +11,8 @@ from IncognitoChain.TestCases.DEX import token_id_1, token_owner
 
 
 @pytest.mark.parametrize('token1,token2', (
-    # all 4 cases pass on test net
-    # last 2 always fail on jenkins testbed,
-    # the very last case offend fail by missing 1 nano prv calculation of bal after contribute
-    # the other fail because contribute amount from api is always 0
-    [PRV_ID, token_id_1],
-    [token_id_1, PRV_ID]
+        [PRV_ID, token_id_1],
+        [token_id_1, PRV_ID]
 ))
 def test_contribute_prv(token1, token2):
     pair_id = f'{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
@@ -132,7 +128,7 @@ def test_contribute_prv(token1, token2):
     INFO(f"{l6(token1)} balance after contribution (after refund): {bal_tok1_aft_refund}")
     INFO(f"{l6(token2)} balance after contribution (after refund): {bal_tok2_aft_refund}")
 
-    if rate_b4 is not None:
+    if rate_b4 != 0:
         calculated_owner_share_amount_after = round((api_contrib_tok2 * sum(all_share_amount_b4)) / rate_b4[0]) + \
                                               owner_share_amount_b4
         assert abs(calculated_owner_share_amount_after - owner_share_amount_after) <= 1 and INFO(

@@ -10,9 +10,10 @@ STEP_LVL = 12
 RESULT_LVL = 22
 
 log_level_console = STEP_LVL
-log_level_file = logging.DEBUG
 
-_log_file = datetime.now().strftime("run_%d%m%y_%H%M%S.log")
+now = datetime.now().strftime("%d%m%y_%H%M%S")
+_log_file_full = f'run_{now}.log'
+_log_file_short = f'run_{now}_short.log'
 
 
 def _log():
@@ -39,11 +40,17 @@ def _log():
     # By default, log all messages
     logger.setLevel(logging.DEBUG)
 
-    # create and add file logging handle
-    file_handler = logging.FileHandler(filename=os.path.join('log', _log_file))
-    file_handler.setFormatter(formatter)
-    file_handler.setLevel(log_level_file)
-    logger.addHandler(file_handler)
+    # create and add file logging handle: full log
+    file_handler_full = logging.FileHandler(filename=os.path.join('log', _log_file_full))
+    file_handler_full.setFormatter(formatter)
+    file_handler_full.setLevel(logging.DEBUG)
+    logger.addHandler(file_handler_full)
+
+    # create and add file logging handle: short log
+    file_handler_short = logging.FileHandler(filename=os.path.join('log', _log_file_short))
+    file_handler_short.setFormatter(formatter)
+    file_handler_short.setLevel(logging.INFO)
+    logger.addHandler(file_handler_short)
 
     # create and add system out logging handle
     sys_out_handler = logging.StreamHandler(sys.stdout)

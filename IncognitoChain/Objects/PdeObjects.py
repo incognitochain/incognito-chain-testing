@@ -392,7 +392,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         ERROR(f'Pair {l6(token1)}-{l6(token2)} DOES NOT EXIST')
 
     def sum_share_pool_of_pair(self, user=None, token1=None, token2=None):
-        INFO(f'Calculating sum share of pair...')
+        INFO(f'Calculating sum share of pair {l6(token1)}-{l6(token2)}')
         share_pool = self.get_pde_shares_amount(user, token1, token2)
         sum_pool = sum(share_pool) if type(share_pool) is list else share_pool
         INFO(f'Sum share = {sum_pool}')

@@ -4,12 +4,12 @@ from IncognitoChain.Configs.Constants import PRV_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO, INFO_HEADLINE, ERROR
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects.IncognitoTestCase import SUT, ACCOUNTS
-from IncognitoChain.TestCases.DEX import token_id_1, token_id_2
+from IncognitoChain.TestCases.DEX import token_id_1, token_id_2, token_owner
 
 
 @pytest.mark.parametrize('withdrawer, token1, token2, percent_of_share_amount_to_withdraw', [
-    # (token_owner, PRV_ID, token_id_1, 0.71),
-    # (token_owner, token_id_1, token_id_2, 0.21),
+    (token_owner, PRV_ID, token_id_1, 0.71),
+    (token_owner, token_id_1, token_id_2, 0.21),
     (ACCOUNTS[3], PRV_ID, token_id_1, 0.3),
     (ACCOUNTS[3], token_id_1, token_id_2, 0.81),
 ])
@@ -38,7 +38,7 @@ def test_withdraw_liquidity(withdrawer, token1, token2, percent_of_share_amount_
     bal_af = {}
     for token in [token1, token2]:
 
-        bal_af[token] = withdrawer.wait_for_balance_change(token, bal_b4[token], int(withdraw_share / 10))
+        bal_af[token] = withdrawer.wait_for_balance_change(token, bal_b4[token], int(withdraw_amounts[token] / 10))
         if token == PRV_ID:
             assert bal_b4[token] + withdraw_amounts[token] - withdraw_tx.get_fee() == bal_af[token]
         else:

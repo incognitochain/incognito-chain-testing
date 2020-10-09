@@ -7,7 +7,7 @@ import pytest
 
 from IncognitoChain.Configs.Constants import PRV_ID, coin
 from IncognitoChain.Helpers.Logging import STEP, INFO, DEBUG
-from IncognitoChain.Helpers.TestHelper import l6, calculate_actual_trade_received
+from IncognitoChain.Helpers.TestHelper import l6, calculate_actual_trade_received, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PdeObjects import PDEStateInfo
@@ -40,6 +40,7 @@ def test_trade_same_token(trader, token):
     trade_tx.expect_error()
     assert 'TokenIDToSellStr should be different from TokenIDToBuyStr' in trade_tx.get_error_trace().get_message()
 
+    ChainHelper.wait_till_next_epoch()
     STEP(3, 'Compare PDE state before and after test')
     pde_state_after = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     assert pde_state_b4 == pde_state_after
@@ -101,13 +102,16 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
         ["1 shard", PRV_ID, token_id_1],
         ["n shard", token_id_1, PRV_ID],
         ["n shard", PRV_ID, token_id_1],
-        ["1 shard", token_id_2, token_id_1],
-        ["n shard", token_id_2, token_id_1],
-        ["1 shard", token_id_1, token_id_2],
-        ["n shard", token_id_1, token_id_2],
+        # tests belows are hard to predict the min-acceptable value since they're cross pool trading
+        # just list it here to acknowledge their existence
+        # don't enable them since the test script cannot handle those cases just yet
+        # ["1 shard", token_id_2, token_id_1],
+        # ["n shard", token_id_2, token_id_1],
+        # ["1 shard", token_id_1, token_id_2],
+        # ["n shard", token_id_1, token_id_2],
 ))
 def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell, token_buy):
-    trade_amounts = [12345600] * 10
+    trade_amounts = [2234900] * 10
     trading_fees = [random.randrange(190000, 200000),
                     random.randrange(190000, 200000),
                     random.randrange(190000, 200000),
@@ -126,6 +130,7 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
         traders = acc_list_n_shard
 
     global SUMMARY, pde_state_b4
+    assert pde_state_b4.is_trading_pair_v2_is_possible(token_sell, token_buy)
     print(f"""
        Test bulk swap {test_mode}:
         - token {l6(token_sell)} vs {l6(token_buy)}
@@ -155,6 +160,7 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
     mid_order = (len(trade_order) // 2) - 1
     mid_order_index = trade_order.index(mid_order)
     min_acceptable = estimated_receive_amount_each_trade[mid_order_index]
+
     STEP(1.2, "Checking balance")
     bal_tok_sell_b4 = []
     bal_tok_buy_b4 = []
@@ -163,8 +169,6 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
     bal_tok_sell_af_ret = []
     bal_tok_buy_af_ret = []
     private_key_alias = []
-
-    pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
 
     for i in range(0, len(traders)):
         trader = traders[i]
@@ -184,15 +188,13 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
     INFO(f"Private key alias                : {str(private_key_alias)}")
     INFO(f"{l6(token_sell)} balance token sell before trade      : {str(bal_tok_sell_b4)}")
     INFO(f"{l6(token_buy)} balance token buy before trade         : {str(bal_tok_buy_b4)}")
-    rate_before = pde_state_b4.get_rate_between_token(token_sell, token_buy)
-    INFO(f"Rate {l6(token_sell)} vs {l6(token_buy)} - Before Trade : {str(rate_before)}")
+    INFO(f"Rate {l6(token_sell)} vs {l6(token_buy)} - Before Trade : {str(rate_b4)}")
 
     if token_buy != PRV_ID and token_sell != PRV_ID:
         rate_before_token_buy = pde_state_b4.get_rate_between_token(PRV_ID, token_buy)
         rate_before_token_sell = pde_state_b4.get_rate_between_token(token_sell, PRV_ID)
         INFO(f"Rate {l6(PRV_ID)} vs {l6(token_buy)} - Before Trade : {str(rate_before_token_buy)}")
         INFO(f"Rate {l6(token_sell)} vs {l6(PRV_ID)} - Before Trade : {str(rate_before_token_sell)}")
-
     STEP(2, f"trade {l6(token_sell)} at the same time: amount: {trade_amounts[0]}. Min acceptable: {min_acceptable}")
     tx_list = []
     trade_threads = []
@@ -274,13 +276,21 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
         bal_tok_buy_af_ret.append(threads_buy[trader].result())
 
     INFO(f"Private key alias                 : {str(private_key_alias)}")
-    INFO(f"{l6(token_sell)} balance token sell after trade return        : {bal_tok_sell_af_ret}")
-    INFO(f"{l6(token_buy)}  balance token buy after trade return       : {bal_tok_buy_af_ret}")
-
+    INFO(f"{l6(token_sell)} balance token sell before trade       : {str(bal_tok_sell_b4)}")
+    INFO(f"{l6(token_sell)} balance token sell after trade return : {bal_tok_sell_af_ret}")
+    INFO(f"{l6(token_buy)} balance token buy before trade       : {str(bal_tok_buy_b4)}")
+    INFO(f"{l6(token_buy)} balance token buy after trade return : {bal_tok_buy_af_ret}")
+    INFO(f'Min acceptable = {min_acceptable}')
+    INFO(f'Trading order  : {trade_order}')
+    INFO(f'Trading fee    : {trading_fees}')
+    INFO(f'Trade receive  : {estimated_receive_amount_each_trade}')
     # todo: verify algorithm later, for now there's seem a bug here that does not match with trading priority
     trade_pass_count = 0
-    for bal_b4, bal_af, trade_amount in zip(bal_tok_sell_b4, bal_tok_sell_af_ret, trade_amounts):
-        if bal_b4 - bal_af == trade_amount:
+    for bal_b4, bal_af, trade_amount, tx_fee, trading_fee in \
+            zip(bal_tok_sell_b4, bal_tok_sell_af_ret, trade_amounts, tx_fee_list, trading_fees):
+        cost = tx_fee + trading_fee if token_sell == PRV_ID else 0
+        if bal_b4 - trade_amount - cost == bal_af:
             trade_pass_count += 1
 
-    assert trade_pass_count == len(trade_amounts) // 2
+    assert trade_pass_count == len(trade_amounts) // 2, \
+        f"Expect half of the trades must be success while there's {trade_pass_count}"

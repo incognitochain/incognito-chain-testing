@@ -586,6 +586,15 @@ class Account:
         return self.__SUT.full_node.dex().withdraw_reward_v2(self.private_key, self.payment_key, token_id_1,
                                                              token_id_2, amount)
 
+    def pde_contribute_pair_v2(self, rate_dict: dict):
+        tokens = list(rate_dict.keys())
+        token1 = tokens[0]
+        token2 = tokens[1]
+        pair_id = f'pde_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
+        tx1 = self.pde_contribute_v2(token1, tokens[token1], pair_id).expect_no_error().subscribe_transaction()
+        tx2 = self.pde_contribute_v2(token2, tokens[token2], pair_id).expect_no_error().subscribe_transaction()
+        return tx1, tx2
+
     def send_token_to(self, receiver, token_id, amount_custom_token,
                       prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
         """
@@ -813,7 +822,7 @@ class Account:
         :return: new balance
         """
         INFO(f'Wait for token {l6(token_id)} of {l6(self.private_key)} '
-             f'balance to change at least: {least_change_amount}')
+             f'balance to change at least: {least_change_amount}. From {from_balance}')
         if from_balance is None:
             from_balance = self.get_token_balance(token_id)
             WAIT(check_interval)
@@ -923,8 +932,12 @@ class Account:
         """
         if psi is None:
             psi = self.__SUT.full_node.get_latest_portal_state_info()
-        INFO("Withdraw all collateral")
-        my_free_collateral = psi.get_custodian_info_in_pool(self).get_free_collateral()
+        INFO(f"Withdraw all collateral of {l6(self.payment_key)}")
+        my_custodian_info = psi.get_custodian_info_in_pool(self)
+        if my_custodian_info is None:
+            INFO("I'm not even a custodian")
+            return None
+        my_free_collateral = my_custodian_info.get_free_collateral()
         if my_free_collateral == 0:
             INFO('Current free collateral is 0, nothing to withdraw')
             return None
