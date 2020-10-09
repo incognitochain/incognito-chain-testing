@@ -3,15 +3,16 @@ import random
 import pytest
 
 from IncognitoChain.Configs.Constants import coin, PBNB_ID, Status, PRV_ID, PBTC_ID, ChainConfig
-from IncognitoChain.Helpers.Logging import STEP, INFO
+from IncognitoChain.Helpers.Logging import STEP, INFO, ERROR
 from IncognitoChain.Helpers.TestHelper import ChainHelper, l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
 from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER, PORTAL_FEEDER
 from IncognitoChain.Objects.PortalObjects import DepositTxInfo, PortingReqInfo
 from IncognitoChain.TestCases import Staking
-from IncognitoChain.TestCases.Sanity import account_0, account_1
+from IncognitoChain.TestCases.Sanity import account_0, account_1, account_11
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token
 
+COIN_MASTER.top_him_up_prv_to_amount_if(coin(3600), coin(3601), account_0)
 new_ptoken = 'e4ee6277935d280728de8724ab24e4aa227d36672ac1aed2153ec5a2c3297b41'
 brd_token_id = '0000000000000000000000000000000000000000000000000000000000000100'
 pde_rate = {new_ptoken: coin(1500),
@@ -23,20 +24,28 @@ tok_new_trade_amount = 62395
 
 
 def test_01_block_chain_info():
-    STEP(1, 'Check blockchain info: Bacon detail')
+    print('\n')
+    STEP(1, 'Check blockchain info: Beacon best state detail')
     beacon_bsd = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
     epoch = beacon_bsd.get_epoch()
     INFO(f'Current epoch in block chain info is {epoch}')
     assert epoch > 0, 'epoch must be > 0'
     shards_height = beacon_bsd.get_best_shard_height()
     for shard, height in shards_height.items():
-        INFO(f'Shard {shard}, height {height}')
+        INFO(f'\tShard {shard}, height {height}')
         assert height > 0
+
+    INFO(f"""\n\t\t*** Blockchain INFO ***
+         Current Random Number: {beacon_bsd.get_current_random_number()}
+         Min:Max Beacon Committee Size: {beacon_bsd.get_min_beacon_committee_size()}:{beacon_bsd.get_max_beacon_committee_size()}
+         Min:Max Shard Committee Size: {beacon_bsd.get_min_shard_committee_size()}:{beacon_bsd.get_max_shard_committee_size()}
+         Active Shard: {beacon_bsd.get_active_shard()}
+    """)
 
     STEP(2, 'Check blockchain info: Get block chain info')
     blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
     beacon_info = blk_chain_info.get_beacon_block()
-    INFO(f'Epoch in beacon block: {beacon_info.get_epoch()}')
+    INFO(f'\tEpoch in beacon block: {beacon_info.get_epoch()}')
     assert beacon_info.get_epoch() >= 1, 'epoch must >= 1'
     num_of_shard = blk_chain_info.get_num_of_shard()
     for shard in range(0, num_of_shard):
@@ -45,7 +54,7 @@ def test_01_block_chain_info():
 
 def test_02_transaction():
     STEP(1, "Transaction: send prv no privacy")
-    send_amount = 1000
+    send_amount = coin(3600)
     sender_bal_b4 = account_0.get_prv_balance()
     receiver_bal_b4 = account_1.get_prv_balance()
     send_tx = account_0.send_prv_to(account_1, send_amount, privacy=0)
@@ -53,19 +62,31 @@ def test_02_transaction():
     send_tx = send_tx.subscribe_transaction()
     sender_bal_af = account_0.wait_for_balance_change(from_balance=sender_bal_b4, least_change_amount=-send_amount)
     receiver_bal_af = account_1.wait_for_balance_change(from_balance=receiver_bal_b4, least_change_amount=send_amount)
-    assert sender_bal_b4 - send_tx.get_fee() - send_amount == sender_bal_af
-    assert receiver_bal_b4 + send_amount == receiver_bal_af
+    assert sender_bal_b4 - send_tx.get_fee() - send_amount == sender_bal_af and INFO(
+        'Sender account balance is correct'), ERROR('Sender account balance is wrong')
+    assert receiver_bal_b4 + send_amount == receiver_bal_af and INFO('Receiver account balance is correct'), ERROR(
+        'Receiver account balance is wrong')
 
     STEP(2, "Transaction: send prv with privacy")
+    send_amount = coin(1751)
     sender_bal_b4 = account_1.get_prv_balance()
-    receiver_bal_b4 = account_0.get_prv_balance()
-    send_tx = account_1.send_prv_to(account_0, send_amount, privacy=0)
+    receiver0_bal_b4 = account_0.get_prv_balance()
+    receiver11_bal_b4 = account_11.get_prv_balance()
+    send_tx = account_1.send_prv_to_multi_account({account_0: send_amount, account_11: send_amount}, fee=100, privacy=1)
     send_tx.expect_no_error()
     send_tx = send_tx.subscribe_transaction()
-    sender_bal_af = account_1.wait_for_balance_change(from_balance=sender_bal_b4, least_change_amount=-send_amount)
-    receiver_bal_af = account_0.wait_for_balance_change(from_balance=receiver_bal_b4, least_change_amount=send_amount)
-    assert sender_bal_b4 - send_tx.get_fee() - send_amount == sender_bal_af
-    assert receiver_bal_b4 + send_amount == receiver_bal_af
+    account_0.subscribe_cross_output_coin()
+
+    sender_bal_af = account_1.get_prv_balance()
+    receiver0_bal_af = account_0.get_prv_balance()
+    receiver11_bal_af = account_11.get_prv_balance()
+
+    assert sender_bal_b4 - send_tx.get_fee() - send_amount * 2 == sender_bal_af and INFO(
+        f'tx fee is: {send_tx.get_fee()}'), ERROR('Sender account balance INCORRECT')
+    assert receiver0_bal_b4 + send_amount == receiver0_bal_af and INFO(f'Receiver0 account balance is CORRECT'), ERROR(
+        'Receiver0 account balance INCORRECT')
+    assert receiver11_bal_b4 + send_amount == receiver11_bal_af and INFO(
+        f'Receiver11 account balance is CORRECT'), ERROR('Receiver11 account balance INCORRECT')
 
 
 def test_03_portal():
