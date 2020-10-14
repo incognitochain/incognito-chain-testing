@@ -14,7 +14,7 @@ from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, custod
 
 n = 2
 full_holding = 'full holding'
-any_ = 'redeem mount will be calculated for redeem N custodian'
+any_ = 'redeem amount will be calculated for redeem N custodian'
 auto_matching = 'auto matching'
 manual_matching = 'manual matching'
 valid = 'valid'
@@ -71,7 +71,7 @@ def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, c
         WAIT(1, 'm')
         PSI_before_test = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
         num_of_holding_custodians = len(PSI_before_test.find_custodian_hold_more_than_amount(token, 0))
-
+        INFO(f'Num of holding custodian in chain = {num_of_holding_custodians}')
     if num_of_custodian == n:
         redeem_amount = highest_holding_token_custodian_in_pool.get_holding_token_amount(token) + 1
     if redeem_amount == full_holding:

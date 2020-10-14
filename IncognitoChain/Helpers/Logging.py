@@ -49,7 +49,7 @@ def _log():
     # create and add file logging handle: short log
     file_handler_short = logging.FileHandler(filename=os.path.join('log', _log_file_short))
     file_handler_short.setFormatter(formatter)
-    file_handler_short.setLevel(logging.INFO)
+    file_handler_short.setLevel(STEP_LVL)
     logger.addHandler(file_handler_short)
 
     # create and add system out logging handle

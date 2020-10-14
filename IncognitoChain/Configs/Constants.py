@@ -12,8 +12,8 @@ class ChainConfig:
         COLLATERAL_PERCENT = 1.5
         COLLATERAL_LIQUIDATE_PERCENT = 1.2
         COLLATERAL_LIQUIDATE_TO_POOL_PERCENT = 1.05
-        REQ_TIME_OUT = 15  # minutes
-        # REQ_TIME_OUT = 60  # minutes, TestNet
+        # REQ_TIME_OUT = 15  # minutes
+        REQ_TIME_OUT = 60  # minutes, TestNet
 
     class Dex:
         MIN_PRV_IN_POOL_FOR_TOKEN_FEE = 10000000000000

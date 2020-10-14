@@ -1,6 +1,5 @@
 import copy
 import random
-import re
 
 import pytest
 
@@ -58,7 +57,8 @@ def test_init_ptoken():
     STEP(1, "Initial new token")
     step1_result = account_init.init_custom_token_self(custom_token_symbol, token_init_amount)
 
-    assert step1_result.get_error_msg() is None and INFO("Success to init new token"), "Failed to init new token"
+    step1_result.expect_no_error()
+
     global custom_token_id
     custom_token_id = step1_result.get_token_id()
     INFO(f"Token id: {custom_token_id}")
@@ -73,14 +73,14 @@ def test_init_ptoken():
     STEP(4, "contribute token & PRV")
     # Contribute TOKEN:
     contribute_token_result = account_init.pde_contribute_token(custom_token_id, token_contribute_amount, pair_id)
-    assert contribute_token_result.get_error_msg() is None
+    contribute_token_result.expect_no_error()
     INFO(f"Contribute {custom_token_id} Success, TxID: {contribute_token_result.get_tx_id()}")
     INFO("Subscribe contribution transaction")
     contribute_token_result.subscribe_transaction()
     # Contribute PRV:ken
     WAIT(10)
     contribute_prv_result = account_init.pde_contribute_prv(prv_contribute_amount, pair_id)
-    assert contribute_prv_result.get_error_msg() is None
+    contribute_prv_result.expect_no_error()
     global contribute_success
     contribute_success = True
 
@@ -96,7 +96,7 @@ def test_init_ptoken():
         if rate is not None:
             break
     INFO(f"rate prv vs token: {rate}")
-    assert rate == contribute_rate, "Contribution Failed"
+    assert rate == contribute_rate, "Contribution Failed, rate is not as expected"
     return custom_token_id
 
 
@@ -107,35 +107,43 @@ def test_init_ptoken():
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
     pytest.param(sender_account, receiver_account, -1, 'token', 0, 'prv',
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
-    (sender_account, receiver_account, token_fee, 'token', 1, 'prv'),
-    (sender_account, receiver_account, token_fee, 'token', 0, 'prv'),
-    (sender_account, receiver_account, -1, 'prv', 1, 'prv'),
-    (sender_account, receiver_account, -1, 'prv', 0, 'prv'),
-    (sender_account, receiver_account, 1, 'prv', 1, 'prv'),
-    (sender_account, receiver_account, 1, 'prv', 0, 'prv'),
-    (sender_account, receiver_account, token_fee, 'token', 1, 'token'),
-    (sender_account, receiver_account, token_fee, 'token', 0, 'token'),
-    (sender_account, receiver_account, -1, 'prv', 1, 'token'),
-    (sender_account, receiver_account, -1, 'prv', 0, 'token'),
-    (sender_account, receiver_account, 1, 'prv', 1, 'token'),
-    (sender_account, receiver_account, 1, 'prv', 0, 'token'),
+    pytest.param(sender_account, receiver_account, token_fee, 'token', 1, 'prv',
+                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_account, token_fee, 'token', 0, 'prv',
+                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_account, -1, 'prv', 1, 'prv'),
+    pytest.param(sender_account, receiver_account, -1, 'prv', 0, 'prv'),
+    pytest.param(sender_account, receiver_account, 1, 'prv', 1, 'prv'),
+    pytest.param(sender_account, receiver_account, 1, 'prv', 0, 'prv'),
+    pytest.param(sender_account, receiver_account, token_fee, 'token', 1, 'token',
+                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_account, token_fee, 'token', 0, 'token',
+                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_account, -1, 'prv', 1, 'token'),
+    pytest.param(sender_account, receiver_account, -1, 'prv', 0, 'token'),
+    pytest.param(sender_account, receiver_account, 1, 'prv', 1, 'token'),
+    pytest.param(sender_account, receiver_account, 1, 'prv', 0, 'token'),
     # cross shard
     pytest.param(sender_account, receiver_x_shard, -1, 'token', 1, 'prv',
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
     pytest.param(sender_account, receiver_account, -1, 'token', 0, 'prv',
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
-    (sender_account, receiver_x_shard, token_fee, 'token', 1, 'prv'),
-    (sender_account, receiver_x_shard, token_fee, 'token', 0, 'prv'),
-    (sender_account, receiver_x_shard, -1, 'prv', 1, 'prv'),
-    (sender_account, receiver_x_shard, -1, 'prv', 0, 'prv'),
-    (sender_account, receiver_x_shard, 1, 'prv', 1, 'prv'),
-    (sender_account, receiver_x_shard, 1, 'prv', 0, 'prv'),
-    (sender_account, receiver_x_shard, token_fee, 'token', 1, 'token'),
-    (sender_account, receiver_x_shard, token_fee, 'token', 0, 'token'),
-    (sender_account, receiver_x_shard, -1, 'prv', 1, 'token'),
-    (sender_account, receiver_x_shard, -1, 'prv', 0, 'token'),
-    (sender_account, receiver_x_shard, 1, 'prv', 1, 'token'),
-    (sender_account, receiver_x_shard, 1, 'prv', 0, 'token')
+    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 1, 'prv',
+                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 0, 'prv',
+                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_x_shard, -1, 'prv', 1, 'prv'),
+    pytest.param(sender_account, receiver_x_shard, -1, 'prv', 0, 'prv'),
+    pytest.param(sender_account, receiver_x_shard, 1, 'prv', 1, 'prv'),
+    pytest.param(sender_account, receiver_x_shard, 1, 'prv', 0, 'prv'),
+    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 1, 'token',
+                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 0, 'token',
+                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_x_shard, -1, 'prv', 1, 'token'),
+    pytest.param(sender_account, receiver_x_shard, -1, 'prv', 0, 'token'),
+    pytest.param(sender_account, receiver_x_shard, 1, 'prv', 1, 'token'),
+    pytest.param(sender_account, receiver_x_shard, 1, 'prv', 0, 'token')
 ])
 @pytest.mark.dependency(depends=["test_init_ptoken"])
 def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
@@ -277,7 +285,7 @@ def test_send_token_insufficient_fund(sender, receiver):
     step2_result = sender.send_token_to(receiver, custom_token_id, sender_token_bal + 10, prv_fee=-1)
     assert step2_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
 
-    assert re.search(r'Not enough coin', step2_result.get_error_trace().get_message())
+    assert 'Not enough coin' in step2_result.get_error_trace().get_message()
 
     STEP(3, "From sender send token to receiver - Wrong input transaction")
     # send current balance (lacking of fee)
