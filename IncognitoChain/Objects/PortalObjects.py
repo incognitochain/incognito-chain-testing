@@ -3,7 +3,7 @@ import random
 from typing import List
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PBTC_ID, PRV_ID, Status, ChainConfig
-from IncognitoChain.Helpers.Logging import INFO, DEBUG, INFO_HEADLINE
+from IncognitoChain.Helpers.Logging import INFO, DEBUG, INFO_HEADLINE, ERROR
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper, extract_incognito_addr
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects import BlockChainInfoBaseClass
@@ -273,8 +273,12 @@ class PortalStateInfo(_PortalInfoBase):
             return self
 
         def get_total_collateral(self):
-            ret = self.data['TotalCollateral']
-            return int(ret)
+            try:
+                ret = self.data['TotalCollateral']
+                return int(ret)
+            except TypeError as e:
+                ERROR(f'{e}')
+                return 0
 
         def get_free_collateral(self):
             return int(self.data['FreeCollateral'])

@@ -10,17 +10,23 @@ from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER, PORTAL_FE
 from IncognitoChain.Objects.PortalObjects import DepositTxInfo, PortingReqInfo
 from IncognitoChain.TestCases import Staking
 from IncognitoChain.TestCases.Sanity import account_0, account_1, account_11
-from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token
 
 COIN_MASTER.top_him_up_prv_to_amount_if(coin(3600), coin(3601), account_0)
-new_ptoken = 'e4ee6277935d280728de8724ab24e4aa227d36672ac1aed2153ec5a2c3297b41'
-brd_token_id = '0000000000000000000000000000000000000000000000000000000000000100'
-pde_rate = {new_ptoken: coin(1500),
-            brd_token_id: coin(1000)}
+P___TOKEN = 'e4ee6277935d280728de8724ab24e4aa227d36672ac1aed2153ec5a2c3297b41'
+BRD_TOKEN = '0000000000000000000000000000000000000000000000000000000000000100'
+PDE_RATE_V1 = {P___TOKEN: coin(10000),
+               BRD_TOKEN: coin(3000)}
 
-prv_trade_amount = 15323
-tok_brd_trade_amount = 23363
-tok_new_trade_amount = 62395
+PDE_RATE_V2_RPV_TOK = {P___TOKEN: coin(10000),
+                       PRV_ID: coin(20000)}
+
+PDE_RATE_V2_BRD_TOK = {P___TOKEN: coin(10000),
+                       BRD_TOKEN: coin(20000)}
+
+PRV_TRADE_AMOUNT = 15323
+TOK_BRD_TRADE_AMOUNT = 23363
+TOK_P___TRADE_AMOUNT = 62395
+DEX_V1_TRADE_AMOUNT = 1098765432
 
 
 def test_01_block_chain_info():
@@ -57,36 +63,38 @@ def test_02_transaction():
     send_amount = coin(3600)
     sender_bal_b4 = account_0.get_prv_balance()
     receiver_bal_b4 = account_1.get_prv_balance()
-    send_tx = account_0.send_prv_to(account_1, send_amount, privacy=0)
-    send_tx.expect_no_error()
-    send_tx = send_tx.subscribe_transaction()
+    tx_send_no_privacy = \
+        account_0.send_prv_to(account_1, send_amount, privacy=0).expect_no_error().subscribe_transaction()
     sender_bal_af = account_0.wait_for_balance_change(from_balance=sender_bal_b4, least_change_amount=-send_amount)
     receiver_bal_af = account_1.wait_for_balance_change(from_balance=receiver_bal_b4, least_change_amount=send_amount)
-    assert sender_bal_b4 - send_tx.get_fee() - send_amount == sender_bal_af and INFO(
+    assert sender_bal_b4 - tx_send_no_privacy.get_fee() - send_amount == sender_bal_af and INFO(
         'Sender account balance is correct'), ERROR('Sender account balance is wrong')
     assert receiver_bal_b4 + send_amount == receiver_bal_af and INFO('Receiver account balance is correct'), ERROR(
         'Receiver account balance is wrong')
+    tx_send_no_privacy.verify_prv_privacy(False)
 
     STEP(2, "Transaction: send prv with privacy")
     send_amount = coin(1751)
     sender_bal_b4 = account_1.get_prv_balance()
     receiver0_bal_b4 = account_0.get_prv_balance()
     receiver11_bal_b4 = account_11.get_prv_balance()
-    send_tx = account_1.send_prv_to_multi_account({account_0: send_amount, account_11: send_amount}, fee=100, privacy=1)
-    send_tx.expect_no_error()
-    send_tx = send_tx.subscribe_transaction()
-    account_0.subscribe_cross_output_coin()
+    tx_send_privacy = account_1.send_prv_to_multi_account({account_0: send_amount, account_11: send_amount}, fee=100,
+                                                          privacy=1). \
+        expect_no_error(). \
+        subscribe_transaction()
 
+    account_0.subscribe_cross_output_coin()
     sender_bal_af = account_1.get_prv_balance()
     receiver0_bal_af = account_0.get_prv_balance()
     receiver11_bal_af = account_11.get_prv_balance()
 
-    assert sender_bal_b4 - send_tx.get_fee() - send_amount * 2 == sender_bal_af and INFO(
-        f'tx fee is: {send_tx.get_fee()}'), ERROR('Sender account balance INCORRECT')
+    assert sender_bal_b4 - tx_send_privacy.get_fee() - send_amount * 2 == sender_bal_af and INFO(
+        f'tx fee is: {tx_send_privacy.get_fee()}'), ERROR('Sender account balance INCORRECT')
     assert receiver0_bal_b4 + send_amount == receiver0_bal_af and INFO(f'Receiver0 account balance is CORRECT'), ERROR(
         'Receiver0 account balance INCORRECT')
     assert receiver11_bal_b4 + send_amount == receiver11_bal_af and INFO(
         f'Receiver11 account balance is CORRECT'), ERROR('Receiver11 account balance INCORRECT')
+    tx_send_privacy.verify_prv_privacy()
 
 
 def test_03_portal():
@@ -107,7 +115,7 @@ def test_03_portal():
     custodian_info_b4 = psi_b4.get_custodian_info_in_pool(account_0)
     custodian_info_af = psi_af.get_custodian_info_in_pool(account_0)
 
-    total_collateral_b4 = 0 if custodian_info_b4 is None else custodian_info_b4.get_total_collateral()
+    total_collateral_b4 = custodian_info_b4.get_total_collateral()
     assert total_collateral_b4 + deposit_amount == custodian_info_af.get_total_collateral()
 
     STEP(2, 'Portal: create rate')
@@ -142,56 +150,7 @@ def test_03_portal():
     custodian_info_b4 = psi_b4.get_custodian_info_in_pool(custodian)
     custodian_info_af = psi_af.get_custodian_info_in_pool(custodian)
     assert custodian_info_b4.get_locked_collateral(porting_token) + estimated_collateral \
-           == custodian_info_af.get_locked_collateral(porting_token)
-
-
-def test_04_dex_v1_init_n_contribute_p_token():
-    global new_ptoken
-    test_TRX008_init_contribute_send_custom_token.account_init = COIN_MASTER
-    test_TRX008_init_contribute_send_custom_token.setup_module()
-    new_ptoken = test_TRX008_init_contribute_send_custom_token.test_init_ptoken()
-
-
-def test_04_init_bridge_token_n_send():
-    amount = coin(random.randrange(1000, 10000))
-    STEP(1, 'Init bridge token')
-    prv_bal_b4 = COIN_MASTER.get_prv_balance()
-    tok_bal_b4 = COIN_MASTER.get_token_balance(brd_token_id)
-    issue_tx = COIN_MASTER.issue_centralize_token(brd_token_id, 'BRD Sanity Test', amount)
-    issue_tx.expect_no_error()
-    issue_tx = issue_tx.subscribe_transaction()
-
-    STEP(2, 'Check balance')
-    tok_bal_af = COIN_MASTER.wait_for_balance_change(brd_token_id)
-    prv_bal_af = COIN_MASTER.get_prv_balance()
-    assert tok_bal_af == amount + tok_bal_b4
-    assert prv_bal_b4 - issue_tx.get_fee() == prv_bal_af
-
-    STEP(3, 'Send bridge token')
-    sender_tok_bal_b4 = tok_bal_af
-    sender_prv_bal_b4 = prv_bal_af
-    account_0.get_token_balance(brd_token_id)
-    account_1.get_token_balance(brd_token_id)
-
-    receivers = {
-        account_0: random.randrange(1000, 10000),
-        account_1: random.randrange(1000, 10000)
-    }
-    sum_send_amount = sum([amount for amount in receivers.values()])
-    send_tx = COIN_MASTER.send_token_multi_output(receivers, brd_token_id, prv_fee=-1). \
-        expect_no_error().subscribe_transaction()
-
-    STEP(4, 'Check sender token and prv balance')
-    sender_tok_bal_af = COIN_MASTER.get_token_balance(brd_token_id)
-    sender_prv_bal_af = COIN_MASTER.get_prv_balance()
-    assert sender_tok_bal_b4 - sum_send_amount == sender_tok_bal_af
-    assert sender_prv_bal_b4 - send_tx.get_fee() == sender_prv_bal_af
-
-    STEP(5, 'Verify receiver balance')
-    for account, amount in receivers.items():
-        tok_bal_b4 = account.get_token_balance_cache(brd_token_id)
-        tok_bal_af = account.wait_for_balance_change(brd_token_id, tok_bal_b4)
-        assert tok_bal_b4 + amount == tok_bal_af
+           == custodian_info_af.get_locked_collateral(porting_token), "real vs estimate collateral are not matched"
 
 
 @pytest.mark.parametrize('stake_funder,the_staked,auto_stake', [
@@ -199,7 +158,7 @@ def test_04_init_bridge_token_n_send():
     (account_0, account_1, True),
 ])
 @pytest.mark.dependency()
-def test_05_staking(stake_funder, the_staked, auto_stake):
+def test_04_staking(stake_funder, the_staked, auto_stake):
     Staking.setup_module()
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), stake_funder)
     STEP(0, 'check if the staked is already a committee')
@@ -242,89 +201,200 @@ def test_05_staking(stake_funder, the_staked, auto_stake):
     INFO(f'AVG prv reward = {avg_prv_reward}')
 
 
-def test_06_dex_v2():
-    global pde_rate
-    pde_rate = {new_ptoken: coin(1500),
-                brd_token_id: coin(1000)}
-    bal_brd_b4 = COIN_MASTER.get_token_balance(brd_token_id)
-    bal_ptk_b4 = COIN_MASTER.get_token_balance(new_ptoken)
-    bal_prv_b4 = COIN_MASTER.get_prv_balance()
+def test_05_init_token_privacy_n_bridge():
+    global P___TOKEN
 
-    STEP(1, f'Contribute dex v2 token {l6(brd_token_id)}_{l6(new_ptoken)}')
-    pair_id = f'{l6(brd_token_id)}-{l6(new_ptoken)}'
-    contribute_tx_1 = COIN_MASTER.pde_contribute_v2(brd_token_id, pde_rate[brd_token_id], pair_id). \
+    STEP(1.1, "Initial new token")
+    custom_token_symbol = ''
+    token_init_amount = coin(20000)
+    bal_prv_b4 = COIN_MASTER.get_prv_balance()
+    tx_init = COIN_MASTER.init_custom_token_self(custom_token_symbol, token_init_amount).expect_no_error()
+    P___TOKEN = tx_init.get_token_id()
+    INFO(f"Token id: {P___TOKEN}")
+    tx_init = tx_init.subscribe_transaction()
+
+    STEP(1.2, "Check prv and custom token balance")
+    bal_tok_af_init = COIN_MASTER.get_token_balance(P___TOKEN)
+    bal_prv_af_init = COIN_MASTER.get_prv_balance()
+    assert bal_tok_af_init == token_init_amount, f'init amount vs balance not match'
+    assert bal_prv_b4 - tx_init.get_fee() == bal_prv_af_init, f'PRV balance must subtract init fee'
+
+    STEP(2, f'Send ptoken')
+    receivers = {account_0: random.randrange(1500000000, 2000000000),  # 1.5 to 2 coin
+                 account_1: random.randrange(1500000000, 2000000000)}
+    bal_tok_b4_0 = account_0.get_token_balance(P___TOKEN)
+    bal_tok_b4_1 = account_1.get_token_balance(P___TOKEN)
+    tx_send = COIN_MASTER.send_token_multi_output(receivers, P___TOKEN, prv_fee=-1, prv_privacy=1).expect_no_error(). \
+        subscribe_transaction()
+
+    tx_send.verify_prv_privacy()
+
+    bal_tok_af_0 = account_0.wait_for_balance_change(P___TOKEN, bal_tok_b4_0)
+    bal_tok_af_1 = account_1.wait_for_balance_change(P___TOKEN, bal_tok_b4_1)
+    assert bal_tok_af_init - sum(receivers.values()) == COIN_MASTER.get_token_balance(P___TOKEN)
+    assert bal_tok_b4_0 + receivers[account_0] == bal_tok_af_0
+    assert bal_tok_b4_1 + receivers[account_1] == bal_tok_af_1
+
+    STEP(3, 'Init bridge token')
+    amount = coin(random.randrange(5000, 10000))
+    prv_bal_b4 = COIN_MASTER.get_prv_balance()
+    tok_bal_b4 = COIN_MASTER.get_token_balance(BRD_TOKEN)
+    issue_tx = COIN_MASTER.issue_centralize_token(BRD_TOKEN, 'BRD Sanity Test', amount)
+    issue_tx.expect_no_error()
+    issue_tx = issue_tx.subscribe_transaction()
+
+    STEP(3.1, 'Check balance')
+    tok_bal_af = COIN_MASTER.wait_for_balance_change(BRD_TOKEN)
+    prv_bal_af = COIN_MASTER.get_prv_balance()
+    assert tok_bal_af == amount + tok_bal_b4
+    assert prv_bal_b4 - issue_tx.get_fee() == prv_bal_af
+
+    STEP(4.1, 'Send bridge token')
+    sender_tok_bal_b4 = tok_bal_af
+    sender_prv_bal_b4 = prv_bal_af
+    account_0.get_token_balance(BRD_TOKEN)
+    account_1.get_token_balance(BRD_TOKEN)
+
+    receivers = {
+        account_0: random.randrange(1000, 10000),
+        account_1: random.randrange(1000, 10000)
+    }
+    sum_send_amount = sum([amount for amount in receivers.values()])
+    send_tx = COIN_MASTER.send_token_multi_output(receivers, BRD_TOKEN, prv_fee=-1). \
+        expect_no_error().subscribe_transaction()
+
+    STEP(4.2, 'Check sender token and prv balance')
+    sender_tok_bal_af = COIN_MASTER.get_token_balance(BRD_TOKEN)
+    sender_prv_bal_af = COIN_MASTER.get_prv_balance()
+    assert sender_tok_bal_b4 - sum_send_amount == sender_tok_bal_af
+    assert sender_prv_bal_b4 - send_tx.get_fee() == sender_prv_bal_af
+
+    STEP(4.3, 'Verify receiver balance')
+    for account, amount in receivers.items():
+        tok_bal_b4 = account.get_token_balance_cache(BRD_TOKEN)
+        tok_bal_af = account.wait_for_balance_change(BRD_TOKEN, tok_bal_b4)
+        assert tok_bal_b4 + amount == tok_bal_af
+
+
+def test_06_dex_v1():
+    STEP(0, 'Get pde state before')
+    pde_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+
+    STEP(1, 'Contribue ptoken')
+    pair_id = f'{l6(P___TOKEN)}-{l6(BRD_TOKEN)}-{get_current_date_time()}'
+    tx1 = COIN_MASTER.pde_contribute(P___TOKEN, PDE_RATE_V1[P___TOKEN], pair_id).expect_no_error(). \
+        subscribe_transaction()
+
+    STEP(2, 'Contribute bridge token')
+    tx2 = COIN_MASTER.pde_contribute(BRD_TOKEN, PDE_RATE_V1[BRD_TOKEN], pair_id).expect_no_error(). \
+        subscribe_transaction()
+
+    STEP(3, 'Verify rate')
+    WAIT(40)
+    pde_af_contribute = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    rate_b4 = pde_b4.get_rate_between_token(P___TOKEN, BRD_TOKEN)
+    rate_af = pde_af_contribute.get_rate_between_token(P___TOKEN, BRD_TOKEN)
+    assert rate_b4[0] + PDE_RATE_V1[P___TOKEN] == rate_af[0]
+    assert rate_b4[1] + PDE_RATE_V1[BRD_TOKEN] == rate_af[1]
+
+    STEP(4, 'Trade')
+    bal_brd_b4 = account_0.get_token_balance(BRD_TOKEN)
+    bal_p___b4 = account_0.get_prv_balance(P___TOKEN)
+    trade_tx = account_0.pde_trade(BRD_TOKEN, DEX_V1_TRADE_AMOUNT, P___TOKEN, 1).expect_no_error(). \
+        subscribe_transaction()
+    est_receive = pde_af_contribute.cal_trade_receive_v1(BRD_TOKEN, P___TOKEN, DEX_V1_TRADE_AMOUNT)
+    bal_p___af = account_0.wait_for_balance_change(P___TOKEN, bal_p___b4)
+    bal_brd_af = account_0.wait_for_balance_change(BRD_TOKEN, bal_brd_b4)
+    assert bal_brd_b4 - DEX_V1_TRADE_AMOUNT == bal_brd_af, "balance of selling token is wrong"
+    assert bal_p___b4 + est_receive == bal_p___af, "balance of buying token is wrong"
+
+
+def test_07_dex_v2():
+    STEP(1.1, f'Contribute dex v2 token {l6(PRV_ID)}_{l6(P___TOKEN)}, expect success')
+    pde_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pair_id = f'{l6(PRV_ID)}-{l6(P___TOKEN)}-{get_current_date_time()}'
+    contribute_tx_1 = COIN_MASTER.pde_contribute_v2(PRV_ID, PDE_RATE_V2_RPV_TOK[PRV_ID], pair_id). \
         expect_no_error().subscribe_transaction()
     WAIT(30)
     INFO(f'Check pde state, make sure the token is in waiting contribution list')
     pde_state_1 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
-    assert pde_state_1.find_waiting_contribution_of_user(COIN_MASTER, pair_id, brd_token_id) != []
-    INFO(f'Contribute token {l6(new_ptoken)}')
-    contribute_tx_2 = COIN_MASTER.pde_contribute_v2(new_ptoken, pde_rate[new_ptoken], pair_id). \
+    assert pde_state_1.find_waiting_contribution_of_user(COIN_MASTER, pair_id, BRD_TOKEN) != []
+
+    contribute_tx_2 = COIN_MASTER.pde_contribute_v2(P___TOKEN, PDE_RATE_V2_RPV_TOK[P___TOKEN], pair_id). \
         expect_no_error().subscribe_transaction()
     WAIT(30)
     INFO(f'Check pde state, pair id must be out of waiting list')
     pde_state_2 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     assert pde_state_2.find_waiting_contribution_of_user(COIN_MASTER, pair_id=pair_id) == []
 
-    STEP(2, f'Check balance')
-    bal_brd_af = COIN_MASTER.wait_for_balance_change(brd_token_id)
-    bal_ptk_af = COIN_MASTER.wait_for_balance_change(new_ptoken)
+    STEP(1.2, f'Check pde pool pair')
+    real_contrib_prv, real_contrib_tok, refund_prv, refund_tok = pde_b4.cal_contribution(PDE_RATE_V2_RPV_TOK)
+    pde_af = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    rate_af = pde_af.get_rate_between_token(PRV_ID, P___TOKEN)
+    rate_b4 = pde_b4.get_rate_between_token(PRV_ID, P___TOKEN)
+    INFO(f'Rate b4 and after: {rate_b4} - {rate_af}')
+    assert abs(rate_b4[0] + real_contrib_prv - rate_af[0] <= 1), f'prv in pool after contribution is not as estimated'
+    assert abs(rate_b4[1] + real_contrib_tok - rate_af[1] <= 1), f'token in pool after contribution is not as estimated'
+
+    # --------------------------------------
+    bal_brd_b4 = COIN_MASTER.get_token_balance(BRD_TOKEN)
+    bal_ptk_b4 = COIN_MASTER.get_token_balance(P___TOKEN)
+    bal_prv_b4 = COIN_MASTER.get_prv_balance()
+
+    STEP(2.1, f'Contribute dex v2 token {l6(BRD_TOKEN)}_{l6(P___TOKEN)}, '
+              f'expect refund, dex v2 not support token-token pool')
+    pair_id = f'{l6(BRD_TOKEN)}-{l6(P___TOKEN)}-{get_current_date_time()}'
+    contribute_tx_1 = COIN_MASTER.pde_contribute_v2(BRD_TOKEN, PDE_RATE_V2_BRD_TOK[BRD_TOKEN], pair_id). \
+        expect_no_error().subscribe_transaction()
+    WAIT(30)
+    INFO(f'Check pde state, make sure the token is in waiting contribution list')
+    pde_state_1 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    assert pde_state_1.find_waiting_contribution_of_user(COIN_MASTER, pair_id, BRD_TOKEN) != []
+    INFO(f'Contribute token {l6(P___TOKEN)}')
+    contribute_tx_2 = COIN_MASTER.pde_contribute_v2(P___TOKEN, PDE_RATE_V2_BRD_TOK[P___TOKEN], pair_id). \
+        expect_no_error().subscribe_transaction()
+    WAIT(30)
+    INFO(f'Check pde state, pair id must be out of waiting list')
+    pde_state_2 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    assert pde_state_2.find_waiting_contribution_of_user(COIN_MASTER, pair_id=pair_id) == []
+
+    STEP(2.2, f'Check balance')
+    bal_brd_af = COIN_MASTER.wait_for_balance_change(BRD_TOKEN)
+    bal_ptk_af = COIN_MASTER.wait_for_balance_change(P___TOKEN)
     bal_prv_af = COIN_MASTER.get_prv_balance()
     assert bal_brd_b4 == bal_brd_af
     assert bal_ptk_b4 == bal_ptk_af
     assert bal_prv_b4 - contribute_tx_1.get_fee() - contribute_tx_2.get_fee() == bal_prv_af
 
-    STEP(3, 'Check pool pair')
-    assert not pde_state_2.is_pair_existed(brd_token_id, new_ptoken)
+    STEP(2.3, 'Check pool pair')
+    assert not pde_state_2.is_pair_existed(BRD_TOKEN, P___TOKEN)
 
-    STEP(4, f'Trade v2 prv with token {l6(new_ptoken)}')
+    # -------------------------------------- trade
+    STEP(3, f'Trade v2 prv with token {l6(P___TOKEN)}, expect success')
     pde_b4_trade = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
     bal_prv_b4_trade = COIN_MASTER.get_prv_balance()
-    bal_tok_b4_trade = COIN_MASTER.get_token_balance(new_ptoken)
+    bal_tok_b4_trade = COIN_MASTER.get_token_balance(P___TOKEN)
     trading_fee = random.randrange(1000, 10000)
-    trade_tx = COIN_MASTER.pde_trade_v2(PRV_ID, prv_trade_amount, new_ptoken, trading_fee). \
+    trade_tx = COIN_MASTER.pde_trade_v2(PRV_ID, PRV_TRADE_AMOUNT, P___TOKEN, trading_fee). \
         expect_no_error().subscribe_transaction()
     bal_prv_af_trade = COIN_MASTER.get_prv_balance()
-    bal_tok_af_trade = COIN_MASTER.wait_for_balance_change(new_ptoken, bal_tok_b4_trade)
-    assert bal_prv_b4_trade - prv_trade_amount - trade_tx.get_fee() - trading_fee == bal_prv_af_trade
-    assert bal_tok_b4_trade + pde_b4_trade.cal_trade_receive_v1(PRV_ID, new_ptoken, prv_trade_amount) \
+    bal_tok_af_trade = COIN_MASTER.wait_for_balance_change(P___TOKEN, bal_tok_b4_trade)
+    assert bal_prv_b4_trade - PRV_TRADE_AMOUNT - trade_tx.get_fee() - trading_fee == bal_prv_af_trade
+    assert bal_tok_b4_trade + pde_b4_trade.cal_trade_receive_v1(PRV_ID, P___TOKEN, PRV_TRADE_AMOUNT) \
            == bal_tok_af_trade
-    STEP(5.1, f'Contribute brd token vs prv if needed')
-    pde = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
-    if not pde.is_pair_existed(brd_token_id, PRV_ID):
-        pair_id = f'brd_prv_{get_current_date_time()}'
-        COIN_MASTER.pde_contribute_v2(PRV_ID, coin(15000), pair_id).expect_no_error().subscribe_transaction()
-        COIN_MASTER.pde_contribute_v2(brd_token_id, coin(20000), pair_id).expect_no_error().subscribe_transaction()
-        WAIT(40)
-    else:
-        INFO('NO NEED')
 
-    STEP(5.2, f'Trade v2 token {l6(new_ptoken)}-{l6(brd_token_id)}')
-    pde_b4_trade = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
-    bal_tok_b4_trade = COIN_MASTER.get_token_balance(new_ptoken)
-    bal_brd_b4_trade = COIN_MASTER.get_token_balance(brd_token_id)
-    random_fee = random.randrange(10000, 100000)
-    trade_tx = COIN_MASTER.pde_trade_v2(new_ptoken, tok_new_trade_amount, brd_token_id, random_fee). \
-        expect_no_error().subscribe_transaction()
-
-    bal_tok_af_trade = COIN_MASTER.wait_for_balance_change(new_ptoken, bal_tok_b4_trade)
-    bal_brd_af_trade = COIN_MASTER.wait_for_balance_change(brd_token_id, bal_brd_b4_trade)
-    assert bal_tok_b4_trade - tok_new_trade_amount == bal_tok_af_trade
-    assert abs(bal_brd_b4_trade + pde_b4_trade.cal_trade_receive_v2(new_ptoken, brd_token_id, tok_new_trade_amount)
-               - bal_brd_af_trade) <= 1
-
-    STEP(6.1, "init new token")
+    STEP(5.1, "init new token")
     tok_symbol = f'tok_sym_{get_current_date_time()}'
     init_tx = COIN_MASTER.init_custom_token_self(tok_symbol, coin(20000)).expect_no_error().subscribe_transaction()
     custom_token_id = init_tx.get_token_id()
     INFO(f"Token id: {custom_token_id}")
 
-    STEP(6.2, f'Trade v2 token {l6(custom_token_id)}-{l6(brd_token_id)}, '
+    STEP(5.2, f'Trade v2 token {l6(custom_token_id)}-{l6(BRD_TOKEN)}, '
               f'which is not possible since the pair {l6(custom_token_id)}-PRV is not existed in DEX')
     bal_tok_b4_trade = COIN_MASTER.get_token_balance(custom_token_id)
-    bal_brd_b4_trade = COIN_MASTER.get_token_balance(brd_token_id)
-    trade_tx = COIN_MASTER.pde_trade_v2(custom_token_id, tok_new_trade_amount, brd_token_id, 0).expect_no_error()
-    bal_brd_af_trade = COIN_MASTER.wait_for_balance_change(brd_token_id, bal_brd_b4_trade)
+    bal_brd_b4_trade = COIN_MASTER.get_token_balance(BRD_TOKEN)
+    trade_tx = COIN_MASTER.pde_trade_v2(custom_token_id, TOK_P___TRADE_AMOUNT, BRD_TOKEN, 0).expect_no_error()
+    bal_brd_af_trade = COIN_MASTER.wait_for_balance_change(BRD_TOKEN, bal_brd_b4_trade)
     bal_tok_af_trade = COIN_MASTER.get_token_balance(custom_token_id)
     assert bal_brd_b4_trade == bal_brd_af_trade
     assert bal_tok_b4_trade == bal_tok_af_trade
@@ -333,16 +403,16 @@ def test_06_dex_v2():
 @pytest.mark.parametrize('token, privacy', [
     ('new_ptoken', 0),
     ('new_ptoken', 1),
-    (brd_token_id, 0),
-    (brd_token_id, 1),
+    (BRD_TOKEN, 0),
+    (BRD_TOKEN, 1),
 ])
-def test_07_transaction_ptoken(token, privacy):
+def test_08_transaction_ptoken(token, privacy):
     # pytest passes test parameter at load time instead of at execution time
     # this cause the new_ptoken value which has been update at test_04_init_n_contribute_p_token will not be passed into
     # this test but the original value which was declared at the top instead, while tester's desire is to use the
     # newly created ptoken at test_04_init_n_contribute_p_token
     # following line of code is to handle pytest limitation mention above
-    token = new_ptoken if token == 'new_ptoken' else token
+    token = P___TOKEN if token == 'new_ptoken' else token
     # __________________________________________________
 
     pde = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
@@ -373,31 +443,31 @@ def test_07_transaction_ptoken(token, privacy):
         assert bal_b4 + amount == bal_af
 
 
-def test_08_pdex_withdraw_contribution():
-    STEP(1, f'Withdraw all contribution of {l6(brd_token_id)}-{l6(new_ptoken)}')
-    bal_brd_b4 = COIN_MASTER.get_token_balance(brd_token_id)
-    bal_ptk_b4 = COIN_MASTER.get_token_balance(new_ptoken)
+def test_07_pdex_withdraw_contribution():
+    STEP(1, f'Withdraw all contribution of {l6(BRD_TOKEN)}-{l6(P___TOKEN)}')
+    bal_brd_b4 = COIN_MASTER.get_token_balance(BRD_TOKEN)
+    bal_ptk_b4 = COIN_MASTER.get_token_balance(P___TOKEN)
     bal_prv_b4 = COIN_MASTER.get_prv_balance()
     pde_state = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
-    pde_pool = pde_state.get_rate_between_token(brd_token_id, new_ptoken)
-    pde_share = pde_state.get_pde_shares_amount(COIN_MASTER, brd_token_id, new_ptoken)
+    pde_pool = pde_state.get_rate_between_token(BRD_TOKEN, P___TOKEN)
+    pde_share = pde_state.get_pde_shares_amount(COIN_MASTER, BRD_TOKEN, P___TOKEN)
     withdraw_tx = COIN_MASTER.pde_withdraw_contribution(
-        brd_token_id, new_ptoken, coin(99999999999999)).expect_no_error().subscribe_transaction()
+        BRD_TOKEN, P___TOKEN, coin(99999999999999)).expect_no_error().subscribe_transaction()
 
     WAIT(30)
-    bal_brd_af = COIN_MASTER.wait_for_balance_change(brd_token_id, bal_brd_b4)
-    bal_ptk_af = COIN_MASTER.wait_for_balance_change(new_ptoken, bal_ptk_b4)
+    bal_brd_af = COIN_MASTER.wait_for_balance_change(BRD_TOKEN, bal_brd_b4)
+    bal_ptk_af = COIN_MASTER.wait_for_balance_change(P___TOKEN, bal_ptk_b4)
     bal_prv_af = COIN_MASTER.wait_for_balance_change(from_balance=bal_prv_b4)
     assert bal_brd_b4 + pde_pool[0] == bal_brd_af
     assert bal_ptk_b4 + pde_pool[1] == bal_ptk_af
     assert bal_prv_b4 - withdraw_tx.get_fee() == bal_prv_af
 
-    STEP(2, f'Withdraw reward {l6(PRV_ID)}-{l6(new_ptoken)}')
+    STEP(2, f'Withdraw reward {l6(PRV_ID)}-{l6(P___TOKEN)}')
     WAIT(30)
     bal_prv_b4 = COIN_MASTER.get_prv_balance()
     pde_state = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
-    reward_amount = pde_state.get_contributor_reward(COIN_MASTER, PRV_ID, new_ptoken)
-    withdraw_tx = COIN_MASTER.pde_withdraw_reward_v2(PRV_ID, new_ptoken, reward_amount). \
+    reward_amount = pde_state.get_contributor_reward(COIN_MASTER, PRV_ID, P___TOKEN)
+    withdraw_tx = COIN_MASTER.pde_withdraw_reward_v2(PRV_ID, P___TOKEN, reward_amount). \
         expect_no_error().subscribe_transaction()
     bal_prv_af = COIN_MASTER.wait_for_balance_change(from_balance=bal_prv_b4)
 
@@ -424,8 +494,8 @@ def test_09_stop_staking(stake_funder, the_staked):
 
 
 @pytest.mark.parametrize('committee, reward_token', [
-    (account_1, new_ptoken),
-    (account_1, brd_token_id),
+    (account_1, P___TOKEN),
+    (account_1, BRD_TOKEN),
 ])
 def test_10_withdraw_reward(committee, reward_token):
     STEP(1, 'Withdraw PRV reward and verify balance')

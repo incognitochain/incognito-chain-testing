@@ -2,6 +2,7 @@ import copy
 from re import search
 
 from IncognitoChain.Configs.Constants import PRV_ID, ChainConfig
+from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG, ERROR
 from IncognitoChain.Helpers.TestHelper import extract_incognito_addr, l6
 from IncognitoChain.Helpers.Time import WAIT
@@ -390,6 +391,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 if pair.get_token1_id() == token2:
                     return [pair.get_token2_pool_value(), pair.get_token1_pool_value()]
         ERROR(f'Pair {l6(token1)}-{l6(token2)} DOES NOT EXIST')
+        return [0, 0]
 
     def sum_share_pool_of_pair(self, user=None, token1=None, token2=None):
         INFO(f'Calculating sum share of pair {l6(token1)}-{l6(token2)}')
@@ -486,6 +488,20 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         else:
             INFO(f'PRV of pair is {prv_in_pool}, which is fine')
         return prv_is_more_than_min
+
+    def cal_contribution(self, contributed_amount_dict: dict):
+        """
+
+        @param contributed_amount_dict: {token1: amount1, token2:amount2}
+        @return: (real_contrib1, real_contrib2, refund1, refund2 )
+        """
+        tokens = list(contributed_amount_dict.keys())
+        token1 = tokens[0]
+        token2 = tokens[1]
+        amount1 = contributed_amount_dict[token1]
+        amount2 = contributed_amount_dict[token2]
+        rate = self.get_rate_between_token(token1, token2)
+        return TestHelper.calculate_contribution(amount1, amount2, rate)
 
 
 class PDEContributeInfo(BlockChainInfoBaseClass):
