@@ -20,7 +20,8 @@ from IncognitoChain.Configs.Constants import coin, ChainConfig
 from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.TestHelper import ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
+from IncognitoChain.Objects.AccountObject import COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Staking import stake_account, token_holder_shard_1, \
     amount_token_send, amount_token_fee, token_holder_shard_0, staked_account, token_id
 

@@ -1,8 +1,7 @@
 import re
 
 from IncognitoChain.Helpers.Logging import *
-from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
-from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER
+from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, COIN_MASTER
 
 sender = receiver = send_amount = max_fee = max_send_amount = None
 

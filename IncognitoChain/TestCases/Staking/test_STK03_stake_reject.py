@@ -6,7 +6,8 @@ from IncognitoChain.Configs import Constants
 from IncognitoChain.Configs.Constants import coin
 from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER, SUT
+from IncognitoChain.Objects.AccountObject import COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Staking import stake_account, amount_stake_under_1750, \
     amount_stake_over_1750
 

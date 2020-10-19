@@ -7,8 +7,8 @@ from IncognitoChain.Configs import Constants
 from IncognitoChain.Configs.Constants import coin
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Helpers.Time import get_current_date_time, WAIT
-from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
-from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
+from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 
 token_init_amount = coin(1000000)
 # contribute rate 1:2
@@ -21,6 +21,7 @@ contribute_success = False
 token_amount_to_send = random.randrange(1000, 2000)
 
 custom_token_id = None
+
 # custom_token_id = '6564ca30b24901c90b446b297e347f6811d8322dfbcd7df9286716aa2116ec16'
 account_init = get_accounts_in_shard(5)[0]
 sender_account = account_init

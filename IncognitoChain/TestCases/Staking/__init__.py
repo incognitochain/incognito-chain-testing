@@ -9,8 +9,8 @@ import pytest
 
 from IncognitoChain.Configs.Constants import coin
 from IncognitoChain.Helpers.Logging import INFO, STEP
-from IncognitoChain.Objects.AccountObject import Account
-from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
+from IncognitoChain.Objects.AccountObject import Account, COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 beacon_list = [

@@ -1,8 +1,8 @@
 from IncognitoChain.Configs.Constants import coin, ChainConfig
 from IncognitoChain.Helpers.Logging import INFO, ERROR
 from IncognitoChain.Helpers.TestHelper import l6
-from IncognitoChain.Objects.AccountObject import Account
-from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER, SUT
+from IncognitoChain.Objects.AccountObject import Account, COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 
 stake_account = Account(
     "112t8sw4ZAc1wwbKog9NhE6VqpEiPii4reg8Zc5AVGu7BkxtPYv95dXRJtzP9CkepgzfUwTseNzgHXRovo9oDb8XrEpb5EgFhKdZhwjzHTbd")

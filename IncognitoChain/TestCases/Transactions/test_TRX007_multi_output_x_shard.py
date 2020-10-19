@@ -2,8 +2,8 @@ import copy
 import random
 
 from IncognitoChain.Helpers.Logging import *
-from IncognitoChain.Objects.AccountObject import Account
-from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, COIN_MASTER
+from IncognitoChain.Objects.AccountObject import Account, COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
 
 sender_account = Account()
 is_sent = receiver_account_list_before = None

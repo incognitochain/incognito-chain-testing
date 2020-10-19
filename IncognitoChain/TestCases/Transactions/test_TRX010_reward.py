@@ -9,7 +9,8 @@ import pytest
 
 from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE, STEP
-from IncognitoChain.Objects.IncognitoTestCase import COMMITTEE_ACCOUNTS, BEACON_ACCOUNTS, SUT, COIN_MASTER
+from IncognitoChain.Objects.AccountObject import COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import COMMITTEE_ACCOUNTS, BEACON_ACCOUNTS, SUT
 
 beacon_init_reward = 11512801260920
 shard_init_reward = [5916960630818, 5372514525094]

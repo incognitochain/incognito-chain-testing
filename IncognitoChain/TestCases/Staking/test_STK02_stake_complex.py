@@ -7,7 +7,7 @@
 11. run all step of case1 (skip step1) with account U
 """
 from IncognitoChain.Configs.Constants import coin
-from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER
+from IncognitoChain.Objects.AccountObject import COIN_MASTER
 from IncognitoChain.TestCases.Staking import account_u, account_a, account_t
 from IncognitoChain.TestCases.Staking.test_STK01 import \
     test_staking as do_stake_test
