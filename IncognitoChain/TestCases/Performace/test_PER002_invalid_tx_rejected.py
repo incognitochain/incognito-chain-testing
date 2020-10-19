@@ -2,10 +2,9 @@ import concurrent
 import math
 from concurrent.futures.thread import ThreadPoolExecutor
 
-from IncognitoChain.Configs.Constants import DAO_private_key, DAO_payment_key
 from IncognitoChain.Drivers.Response import Response
 from IncognitoChain.Helpers.Logging import *
-from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, Account
+from IncognitoChain.Objects.AccountObject import get_accounts_in_shard
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Performace import account_list
 
@@ -14,7 +13,6 @@ dict_tx_save_shard = dict()
 # sender_account_payment_address_list = []
 sender_account_list = get_accounts_in_shard(0, account_list)
 receiver_account = get_accounts_in_shard(1, account_list)[0]
-master_account = Account(DAO_private_key, DAO_payment_key)
 
 
 def setup_function():

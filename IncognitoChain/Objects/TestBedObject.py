@@ -23,12 +23,18 @@ def load_test_bed(name):
 class TestBed:
     REQUEST_HANDLER = Node()
 
-    def __init__(self, test_bed):
-        tb = load_test_bed(test_bed)
-        self.full_node: Node = tb.full_node
-        self.beacons: Beacon = tb.beacon
-        self.shards: List[Shard] = tb.shard_list
-        TestBed.REQUEST_HANDLER = self.full_node
+    def __init__(self, test_bed=None):
+        if test_bed is not None:
+            tb = load_test_bed(test_bed)
+            self.full_node: Node = tb.full_node
+            self.beacons: Beacon = tb.beacon
+            self.shards: List[Shard] = tb.shard_list
+            TestBed.REQUEST_HANDLER = self.full_node
+        else:
+            self.full_node = Node()
+            self.beacons = Beacon()
+            self.shards: List[Shard] = []
+            TestBed.REQUEST_HANDLER = self.full_node
 
     def precondition_check(self):
         Log.INFO(f'Checking test bed')
@@ -46,6 +52,9 @@ class TestBed:
     def get_beacon_accounts(self):
         acc_list = [node.account for node in self.beacons._node_list]
         return acc_list
+
+    def is_default(self):
+        return self.full_node.is_local_host()
 
 
 class Shard:

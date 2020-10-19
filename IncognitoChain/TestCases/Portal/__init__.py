@@ -2,8 +2,8 @@ from IncognitoChain.Configs.Constants import coin, PBNB_ID, PRV_ID, PBTC_ID
 from IncognitoChain.Drivers.NeighborChainCli import BnbCli
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import PortalHelper
-from IncognitoChain.Objects.AccountObject import Account, AccountGroup
-from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, COIN_MASTER, SUT, PORTAL_FEEDER
+from IncognitoChain.Objects.AccountObject import Account, AccountGroup, PORTAL_FEEDER, COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 
 # ---- import BNB key for testing
 cli_pass_phrase = '123123Az'

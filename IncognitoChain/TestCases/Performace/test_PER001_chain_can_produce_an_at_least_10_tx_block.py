@@ -8,7 +8,8 @@ from IncognitoChain.Configs.Constants import PRV_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER, SUT
+from IncognitoChain.Objects.AccountObject import COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Performace import *
 
 

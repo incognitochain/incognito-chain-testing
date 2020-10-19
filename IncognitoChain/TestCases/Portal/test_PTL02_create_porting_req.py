@@ -4,7 +4,8 @@ from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Sta
 from IncognitoChain.Helpers.Logging import STEP, INFO, WARNING, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER, PORTAL_FEEDER
+from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER, COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import PortingReqInfo, PTokenReqInfo
 from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, \
     TEST_SETTING_PORTING_AMOUNT, custodian_remote_addr, big_collateral, fat_custodian_prv, big_rate, \

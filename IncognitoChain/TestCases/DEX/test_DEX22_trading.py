@@ -8,7 +8,8 @@ from IncognitoChain.Configs.Constants import PRV_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO, DEBUG, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
+from IncognitoChain.Objects.AccountObject import COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_owner, token_id_2, \
     calculate_trade_order, verify_trading_prv_token, verify_sum_fee_prv_token, verify_contributor_reward_prv_token
 

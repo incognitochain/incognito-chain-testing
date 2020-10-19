@@ -4,8 +4,7 @@ from IncognitoChain.Configs.Constants import coin, PRV_ID
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import calculate_actual_trade_received, l6
 from IncognitoChain.Helpers.Time import get_current_date_time
-from IncognitoChain.Objects.AccountObject import Account
-from IncognitoChain.Objects.IncognitoTestCase import COIN_MASTER
+from IncognitoChain.Objects.AccountObject import Account, COIN_MASTER
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 # contributor = ACCOUNTS[0]
@@ -18,10 +17,10 @@ token_owner = Account(
 # token_id = "a4442a68070fc615abee5e8c665808ebc1c670e5fd16f49ca8e992bf7c126739"
 # token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
 # token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
-# token_id_1 = "2cc0e24508a105a305e6d3cf0a742a94450ccf513e9f31f3d3f5ac5565daac4b"  # local
-# token_id_2 = "31a7452fd0666bfc6a41ea3abff93f719a5d8fb7824ef62fe24751d93c503486"  # local
-token_id_1 = None
-token_id_2 = None
+token_id_1 = "f021fde5f24244a61a82acf0dadd0aeeb8300d2294803b068e1ed928db14bc99"  # local
+token_id_2 = "6c75c7aaec965163f0f0a083bb663f72dd7793da71e419b2fe9fc14f6b6fc295"  # local
+# token_id_1 = None
+# token_id_2 = None
 token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff"  # token not yet added to PDE
 
 need_withdraw_contribution_1 = False

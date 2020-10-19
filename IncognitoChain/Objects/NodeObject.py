@@ -46,6 +46,26 @@ class Node:
         self._rpc_connection = RpcConnection(self._get_rpc_url())
         self.account: Account = account
 
+    def parse_url(self, url):
+        import re
+        regex = re.compile(
+            r'^(?:http|ftp)s?://'  # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+            r'localhost|'  # localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+            r'(?::\d+)?'  # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+        if re.match(regex, "http://www.example.com") is None:
+            raise SyntaxError('Url is not in correct format')
+
+        self._address = url.split(':')[1].lstrip('//')
+        self._rpc_port = int(url.split(':')[2])
+        return self
+
+    def set_web_socket_port(self, port):
+        self._ws_port = port
+        return self
+
     def ssh_connect(self):
         if self._password is not None:
             Log.INFO(f'SSH logging in with password. User: {self._username}')
@@ -353,3 +373,6 @@ class Node:
         shard_state_raw = self.system_rpc().get_shard_best_state(shard_num).get_result()
         shard_state_obj = ShardBestStateInfo(shard_state_raw)
         return shard_state_obj
+
+    def is_local_host(self):
+        return self._address == Node.default_address

@@ -4,7 +4,8 @@ from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, PBTC_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.TestHelper import PortalHelper, l6
 from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.IncognitoTestCase import SUT, PORTAL_FEEDER
+from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import PortalStateInfo
 from IncognitoChain.TestCases.Portal import test_PTL02_create_porting_req as porting_step, portal_user
 

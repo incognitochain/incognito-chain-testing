@@ -6,8 +6,8 @@ from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Sta
 from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
 from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.AccountObject import Account
-from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT, PORTAL_FEEDER
+from IncognitoChain.Objects.AccountObject import Account, PORTAL_FEEDER
+from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 from IncognitoChain.Objects.PortalObjects import CustodianWithdrawTxInfo
 from IncognitoChain.TestCases.Portal import TEST_SETTING_DEPOSIT_AMOUNT, self_pick_custodian, \
     portal_user, custodian_remote_addr, another_btc_addr, another_bnb_addr

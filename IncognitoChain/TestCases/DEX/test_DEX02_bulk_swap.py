@@ -9,7 +9,8 @@ from IncognitoChain.Configs.Constants import PRV_ID, coin
 from IncognitoChain.Helpers.Logging import STEP, INFO, DEBUG, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import calculate_actual_trade_received, l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
-from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER
+from IncognitoChain.Objects.AccountObject import COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_owner, token_id_2
 
 trade_amount = random.randrange(9900000, 10000000)

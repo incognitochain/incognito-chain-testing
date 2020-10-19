@@ -6,10 +6,9 @@ from IncognitoChain.Configs.Constants import coin, PBNB_ID, Status, PRV_ID, PBTC
 from IncognitoChain.Helpers.Logging import STEP, INFO, ERROR
 from IncognitoChain.Helpers.TestHelper import ChainHelper, l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
-from IncognitoChain.Objects.IncognitoTestCase import SUT, COIN_MASTER, PORTAL_FEEDER
+from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER, COIN_MASTER
 from IncognitoChain.Objects.PortalObjects import DepositTxInfo, PortingReqInfo
-from IncognitoChain.TestCases import Staking
-from IncognitoChain.TestCases.Sanity import account_0, account_1, account_11
+from IncognitoChain.TestCases.Sanity import account_0, account_1, account_11, fixed_validators, auto_stake_list, SUT
 
 COIN_MASTER.top_him_up_prv_to_amount_if(coin(3600), coin(3601), account_0)
 P___TOKEN = 'e4ee6277935d280728de8724ab24e4aa227d36672ac1aed2153ec5a2c3297b41'
@@ -159,7 +158,46 @@ def test_03_portal():
 ])
 @pytest.mark.dependency()
 def test_04_staking(stake_funder, the_staked, auto_stake):
-    Staking.setup_module()
+    STEP(0.1, 'Check current fixed validators to make sure that this test wont be running on testnet')
+    beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    all_shard_committee = beacon_state.get_shard_committees()
+    list_fixed_validator_public_k = []
+    for shard, committees in fixed_validators.items():
+        for committee in committees:
+            list_fixed_validator_public_k.append(committee.public_key)
+
+    count_fixed_validator_in_beacon_state = 0
+    for shard, committees in all_shard_committee.items():
+        for committee in committees:
+            if committee.get_inc_public_key() in list_fixed_validator_public_k:
+                count_fixed_validator_in_beacon_state += 1
+
+    if count_fixed_validator_in_beacon_state < len(list_fixed_validator_public_k):
+        msg = 'Suspect that this chain is TestNet. Skip staking tests to prevent catastrophic disaster'
+        INFO(msg)
+        pytest.skip(msg)
+
+    STEP(0.2, 'Top up committees')
+    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), auto_stake_list + [stake_funder, the_staked])
+
+    STEP(0.3, 'Stake and wait till becoming committee')
+    beacon_bsd = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    for committee in auto_stake_list:
+        if beacon_bsd.is_he_a_committee(committee) is False:
+            committee.stake_and_reward_me()
+
+    for committee in auto_stake_list:
+        committee.stk_wait_till_i_am_committee()
+
+    # epoch = SUT.full_node.system_rpc().help_get_current_epoch()
+    # SUT.full_node.system_rpc().help_wait_till_epoch(epoch + 2)
+
+    STEP(0.4, "Verify environment, 6 node per shard")
+    number_committee_shard_0 = SUT.full_node.help_count_committee_in_shard(0, refresh_cache=True)
+    number_committee_shard_1 = SUT.full_node.help_count_committee_in_shard(1, refresh_cache=False)
+    assert number_committee_shard_0 == 6, f"shard 0: {number_committee_shard_0} committee"
+    assert number_committee_shard_1 == 6, f"shard 1: {number_committee_shard_1} committee"
+
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), stake_funder)
     STEP(0, 'check if the staked is already a committee')
     beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
@@ -201,11 +239,12 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
     INFO(f'AVG prv reward = {avg_prv_reward}')
 
 
+@pytest.mark.dependency()
 def test_05_init_token_privacy_n_bridge():
     global P___TOKEN
 
     STEP(1.1, "Initial new token")
-    custom_token_symbol = ''
+    custom_token_symbol = f'token_symbol_{random.randrange(1, 10000)}'
     token_init_amount = coin(20000)
     bal_prv_b4 = COIN_MASTER.get_prv_balance()
     tx_init = COIN_MASTER.init_custom_token_self(custom_token_symbol, token_init_amount).expect_no_error()
@@ -276,6 +315,7 @@ def test_05_init_token_privacy_n_bridge():
         assert tok_bal_b4 + amount == tok_bal_af
 
 
+@pytest.mark.dependency(depends=test_05_init_token_privacy_n_bridge)
 def test_06_dex_v1():
     STEP(0, 'Get pde state before')
     pde_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
@@ -318,7 +358,8 @@ def test_07_dex_v2():
     WAIT(30)
     INFO(f'Check pde state, make sure the token is in waiting contribution list')
     pde_state_1 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
-    assert pde_state_1.find_waiting_contribution_of_user(COIN_MASTER, pair_id, BRD_TOKEN) != []
+    assert pde_state_1.find_waiting_contribution_of_user(COIN_MASTER, pair_id, BRD_TOKEN) != [], \
+        "not found in waiting contribution list"
 
     contribute_tx_2 = COIN_MASTER.pde_contribute_v2(P___TOKEN, PDE_RATE_V2_RPV_TOK[P___TOKEN], pair_id). \
         expect_no_error().subscribe_transaction()

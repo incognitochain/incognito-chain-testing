@@ -18,6 +18,10 @@ class Response:
         return f'\n{json.dumps(self.data(), indent=3)}'
 
     def expect_no_error(self, additional_msg_if_fail=''):
+        """
+        @param additional_msg_if_fail: the name says it all
+        @return:
+        """
         assert self.get_error_msg() is None, f'{self.get_error_trace().get_message()}\n{additional_msg_if_fail}'
         return self
 

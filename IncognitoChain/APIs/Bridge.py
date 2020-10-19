@@ -29,7 +29,7 @@ class BridgeRpc:
     def issue_centralized_bridge_token(self, receiver, token_id, token_name, amount):
         return self.rpc_connection. \
             with_method("createandsendissuingrequest"). \
-            with_params([Constants.DAO_private_key,
+            with_params([Constants.DAO_PRIVATE_K,
                          None, 100, -1,
                          {
                              "ReceiveAddress": receiver,

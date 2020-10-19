@@ -175,25 +175,42 @@ class ChainHelper:
 
 
 def calculate_contribution(token_1_contribute_amount, token_2_contribute_amount, current_rate: list):
+    """
+
+    @param token_1_contribute_amount:
+    @param token_2_contribute_amount:
+    @param current_rate: [token1_pool, token2_pool]
+    @return: (actual_contrib_amount1,  actual_contrib_amount2, refund_amount1, refund_amount2)
+    """
     pool_token_1 = current_rate[0]
     pool_token_2 = current_rate[1]
-    actual_contribution_token1 = min(token_1_contribute_amount,
-                                     int(token_2_contribute_amount * pool_token_1 / pool_token_2))
-    print(f"actual_contribution_token1 in min: {actual_contribution_token1}")
+    if current_rate != [0, 0]:
+        actual_contribution_token1 = min(token_1_contribute_amount,
+                                         int(token_2_contribute_amount * pool_token_1 / pool_token_2))
+        print(f"actual_contribution_token1 in min: {actual_contribution_token1}")
 
-    actual_contribution_token2 = int(actual_contribution_token1 * pool_token_2 / pool_token_1)
-    print(f"actual_contribution_token2 in mul: {actual_contribution_token2}")
+        actual_contribution_token2 = int(actual_contribution_token1 * pool_token_2 / pool_token_1)
+        print(f"actual_contribution_token2 in mul: {actual_contribution_token2}")
 
-    if actual_contribution_token1 == token_1_contribute_amount:
-        actual_contribution_token1 = int(actual_contribution_token2 * pool_token_1 / pool_token_2)
-        print(f"actual_contribution_token1 in iff: {actual_contribution_token1}")
+        if actual_contribution_token1 == token_1_contribute_amount:
+            actual_contribution_token1 = int(actual_contribution_token2 * pool_token_1 / pool_token_2)
+            print(f"actual_contribution_token1 in iff: {actual_contribution_token1}")
 
-    refund_token1 = token_1_contribute_amount - actual_contribution_token1
-    refund_token2 = token_2_contribute_amount - actual_contribution_token2
-    return actual_contribution_token1, actual_contribution_token2, refund_token1, refund_token2
+        refund_token1 = token_1_contribute_amount - actual_contribution_token1
+        refund_token2 = token_2_contribute_amount - actual_contribution_token2
+        return actual_contribution_token1, actual_contribution_token2, refund_token1, refund_token2
+    else:
+        print('Current rate is [0:0], first time contribute, take all, return none of it')
+        return token_1_contribute_amount, token_2_contribute_amount, 0, 0
 
 
 def calculate_actual_trade_received(trade_amount, pool_token_sell, pool_token_buy):
+    """
+    @param trade_amount:
+    @param pool_token_sell:
+    @param pool_token_buy:
+    @return:
+    """
     print(f'amount, pool sell-buy: {trade_amount}, {pool_token_sell} - {pool_token_buy}')
     remain = (pool_token_buy * pool_token_sell) / (trade_amount + pool_token_sell)
     print("-remain before mod: " + str(remain))
@@ -377,8 +394,7 @@ class PortalHelper:
     @staticmethod
     def cal_token_amount_from_collateral(collateral, token_rate, prv_rate):
         prv_equivalent = collateral // ChainConfig.Portal.COLLATERAL_PERCENT
-        return int(
-            PortalHelper.cal_portal_exchange_prv_to_tok(prv_equivalent, prv_rate, token_rate))
+        return int(PortalHelper.cal_portal_exchange_prv_to_tok(prv_equivalent, prv_rate, token_rate))
 
 
 def get_beacon_best_state_detail(number_of_beacon_height_to_get=100, wait=5, timeout=50):
