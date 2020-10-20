@@ -76,7 +76,7 @@ class Account:
         }
         return json.dumps(key_dict, indent=3) if pretty else json.dumps(key_dict)
 
-    def __init__(self, private_key, payment_k=None, **kwargs):
+    def __init__(self, private_key=None, payment_k=None, **kwargs):
         if private_key is not None:
             private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
             bridge_public_k, mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(private_key)

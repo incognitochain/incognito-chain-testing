@@ -8,12 +8,10 @@ wsPort=39334
 
 if [ -n "$1" ]; then
   url=$1
-  echo here
 fi
 
 if [ -n "$2" ]; then
   wsPort=$2
-  echo here
 fi
 
 set -x

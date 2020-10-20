@@ -2,8 +2,8 @@ import sys
 from ctypes import ArgumentError
 
 from IncognitoChain.Objects.AccountObject import Account, AccountGroup
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.NodeObject import Node
-from IncognitoChain.Objects.TestBedObject import TestBed
 
 try:
     # noinspection PyProtectedMember
@@ -13,21 +13,19 @@ try:
     if not full_node_url:
         raise ArgumentError('Must specify a full node url to run the test')
 
-    SUT = TestBed()
     SUT.full_node = Node().parse_url(full_node_url)
     SUT.full_node.set_web_socket_port(ws_port)
     SUT.REQUEST_HANDLER = SUT.full_node
-    Account.SYSTEM = SUT
 except:
     pass
 
-account_0 = Account(
-    '112t8rnXVMJJZzfF1naXvfE9nkTKwUwFWFeh8cfEyViG1vpA8A9khJk3mhyB1hDuJ4RbreDTsZpgJK4YcSxdEpXJKMEd8Vmp5UqKWwBcYzxv'). \
+account_0 = Account(  # must in SHARD 0
+    '112t8rnbNst56EFVhefVgQcJVqASQPevVGmkb2Mdnhm61uyktU5ZuWbZ1KGAp7w7U4fUyz4XZxBVmaUifsjsLxYbkhtkff5YwQptNxELRVcX'). \
     set_remote_addr('tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss')
-account_1 = Account(
-    '112t8rnZ9qPE7C6RbrK6Ygat1H94kEkYGSd84fAGiU396yQHu8CBHmV1DDHE947d7orfHnDtKA9WCffDk7NS5zUu5CMCUHK8nkRtrv4nw6uu')
-account_11 = Account(
-    '112t8rnaK4C17Chu8rEAPXHUaPYNeGz8VsjV7BzdeLA9VBc8oiYwQXNrc6XEABb4uNEfG9LFgvVfi4KQmVpQrwMWph4E1YoVS1m37HwrFDsE')
+account_1 = Account(  # must in SHARD 1
+    '112t8rnbqC92JnAE3bqthKUezcaG9oESKoNxawJZJii7q3JUZWVwWHyaKPoWqUmA8QRGiNpY5zg7XpYgQxmBz8LkLQutPh57HqLFQGFKgi7W')
+account_11 = Account(  # must in SHARD 1
+    '112t8rneoGyBMorQEefPyb24e9dJrxcLPBiHcVe93c5MxhXDfL3ztocqM9r6gwJ5Ko3jJmC3EAsubBxEG5g6DjJ4S1tjVKKDrNAq4sJ5LRfq')
 ACCOUNTS = AccountGroup(account_0, account_1, account_11)
 
 fixed_validators = {

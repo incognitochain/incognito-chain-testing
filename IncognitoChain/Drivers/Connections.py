@@ -140,8 +140,8 @@ class WebSocket(RpcConnection):
         data = {"request": {"jsonrpc": self._json_rpc, "method": self._method, "params": self._params,
                             "id": self._id},
                 "subcription": self.__subscription, "type": self.__type}
-        self.open()
         Log.DEBUG(f'exec WS: {self._base_url} \n{json.dumps(data, indent=3)}')
+        self.open()
         self._ws_conn.send(json.dumps(data))
         Log.DEBUG(f'Receiving response')
         result = self._ws_conn.recv()
