@@ -12,7 +12,7 @@ from IncognitoChain.TestCases.DEX import token_id_1, token_owner
 
 @pytest.mark.parametrize('token1,token2', (
         [PRV_ID, token_id_1],
-        [token_id_1, PRV_ID]
+        [token_id_1, PRV_ID],
 ))
 def test_contribute_prv(token1, token2):
     pair_id = f'{l6(token1)}_{l6(token2)}_{get_current_date_time()}'

@@ -17,8 +17,8 @@ token_owner = Account(
 # token_id = "a4442a68070fc615abee5e8c665808ebc1c670e5fd16f49ca8e992bf7c126739"
 # token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
 # token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
-token_id_1 = "f021fde5f24244a61a82acf0dadd0aeeb8300d2294803b068e1ed928db14bc99"  # local
-token_id_2 = "6c75c7aaec965163f0f0a083bb663f72dd7793da71e419b2fe9fc14f6b6fc295"  # local
+token_id_1 = "7c3efca9be41bf5e98e08a221b12385105816b0e64d0ccf2957254f53050d14c"  # local
+token_id_2 = "8b90daa97fd86bf1605d9b0fffb11430ff1f2032bcebaf587e323b507d1bc568"  # local
 # token_id_1 = None
 # token_id_2 = None
 token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff"  # token not yet added to PDE
@@ -30,15 +30,13 @@ COIN_MASTER.top_him_up_prv_to_amount_if(coin(10000), coin(100000), token_owner)
 
 if token_id_1 is None:
     trx008.account_init = token_owner
-    trx008.test_init_ptoken()
-    token_id_1 = trx008.custom_token_id
+    token_id_1 = trx008.test_init_ptoken()
     need_withdraw_contribution_1 = True
 
 if token_id_2 is None:
     trx008.custom_token_symbol = get_current_date_time()
     trx008.account_init = token_owner
-    trx008.test_init_ptoken()
-    token_id_2 = trx008.custom_token_id
+    token_id_2 = trx008.test_init_ptoken()
     need_withdraw_contribution_2 = True
 
 acc_list_1_shard = [

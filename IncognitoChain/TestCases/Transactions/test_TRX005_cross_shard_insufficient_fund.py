@@ -47,21 +47,15 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
     # send current balance (auto fee)
     step4_result = sender.send_prv_to(receiver, sender_bal, privacy=privacy)
     assert step4_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
-    assert re.search(r'Wrong input transaction',
-                     step4_result.get_error_trace().get_message()), "something went so wrong"
+    step4_result.expect_error()
     assert sender_bal == sender.get_prv_balance()
-    estimated_fee = step4_result.get_error_trace().get_estimated_fee()
-    INFO("Estimated fee: " + estimated_fee)
+    estimated_fee = sender.get_estimate_tx_fee(receiver, sender_bal)
+    INFO(f"Estimated fee: {estimated_fee}")
 
     STEP(5, "send PRV - success")
     # send current balance - fee
-    step5_result = sender.send_prv_to(receiver, sender_bal - int(estimated_fee), privacy=privacy)
-    if step5_result.get_error_msg() is None:  # if tx success, then nothing happens
-        INFO("TxID 1 : " + step5_result.get_tx_id())
-    else:  # if tx failure, send again with new estimates fee
-        estimated_fee = step5_result.get_error_trace().get_estimated_fee()
-        INFO("NEW estimated fee: " + estimated_fee)
-        step5_result = sender.send_prv_to(receiver, sender_bal - int(estimated_fee), privacy=privacy)
+    step5_result = sender.send_prv_to(receiver, sender_bal - int(estimated_fee), fee=estimated_fee, privacy=privacy). \
+        expect_no_error()
 
     STEP(6, "Subcribe transaction")
     send_transaction = step5_result.subscribe_transaction()

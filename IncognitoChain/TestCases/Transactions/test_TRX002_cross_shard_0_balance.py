@@ -60,10 +60,10 @@ def test_send_prv_cross_shard_0_balance_with_privacy_is(fee, privacy):
     STEP(3, "send PRV -- amount =0")
     step3_result = sender.send_prv_to(receiver, 0, fee=fee, privacy=privacy)
     assert step3_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
-    assert 're.search(r''input value less than output value' in step3_result.get_error_trace().get_message()
+    step3_result.expect_error()
 
     # sent with amount < 0
     STEP(4, "Send PRV -- amount < 0")
     step4_result = sender.send_prv_to(receiver, -1, fee=fee, privacy=privacy)
     assert step4_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
-    assert 'not enough output coin' in step4_result.get_error_trace().get_message()
+    step3_result.expect_error()

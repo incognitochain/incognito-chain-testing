@@ -127,7 +127,7 @@ def test_contribute(token1, token2):
     INFO(f"{l6(token1)} balance after contribution (after refund): {bal_tok1_aft_refund}")
     INFO(f"{l6(token2)} balance after contribution (after refund): {bal_tok2_aft_refund}")
 
-    if rate is not None:
+    if rate != [0, 0]:
         calculated_owner_share_amount_after = round((api_contrib_tok2 * sum(all_share_amount)) / rate[0]) + \
                                               owner_share_amount
         assert INFO(f"Contribution shares amount is correct") \

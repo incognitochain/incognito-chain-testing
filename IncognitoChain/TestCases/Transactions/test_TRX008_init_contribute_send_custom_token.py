@@ -94,7 +94,7 @@ def test_init_ptoken():
     for _ in range(0, 10):
         WAIT(10)
         rate = SUT.REQUEST_HANDLER.get_latest_pde_state_info().get_rate_between_token(Constants.PRV_ID, custom_token_id)
-        if rate is not None:
+        if rate != [0, 0]:
             break
     INFO(f"rate prv vs token: {rate}")
     assert rate == contribute_rate, "Contribution Failed, rate is not as expected"
@@ -255,9 +255,9 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
             if fee_type == 'token':
                 INFO("Check transaction prv_privacy")
                 transaction_tx.verify_prv_privacy(False)
-            else:
-                INFO("Check transaction prv_privacy")
-                transaction_tx.verify_prv_privacy(False)
+            # else:
+            #     INFO("Check transaction prv_privacy")
+            #     transaction_tx.verify_prv_privacy(False)
 
 
 @pytest.mark.dependency(depends=["test_init_ptoken"])
