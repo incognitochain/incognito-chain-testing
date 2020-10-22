@@ -16,7 +16,6 @@ from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, DEBUG, WARNING
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock, BeaconBestStateInfo
 from IncognitoChain.Objects.BlockChainObjects import BlockChainCore
 from IncognitoChain.Objects.PdeObjects import PDEStateInfo
@@ -32,7 +31,7 @@ class Node:
     default_ws_port = 19334
 
     def __init__(self, address=default_address, username=default_user, password=default_password,
-                 rpc_port=default_rpc_port, ws_port=default_ws_port, account: Account = None, sshkey=None,
+                 rpc_port=default_rpc_port, ws_port=default_ws_port, account=None, sshkey=None,
                  node_name=None):
         self._address = address
         self._username = username
@@ -44,7 +43,7 @@ class Node:
         self._spawn = pxssh.pxssh()
         self._web_socket = None
         self._rpc_connection = RpcConnection(self._get_rpc_url())
-        self.account: Account = account
+        self.account = account
 
     def parse_url(self, url):
         import re

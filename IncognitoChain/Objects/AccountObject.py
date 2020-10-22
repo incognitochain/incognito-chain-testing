@@ -4,7 +4,6 @@ import json
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
-from aptdaemon.utils import deprecated
 from websocket import WebSocketTimeoutException
 
 from IncognitoChain.Configs import Constants
@@ -12,6 +11,7 @@ from IncognitoChain.Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Sta
     ChainConfig
 from IncognitoChain.Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from IncognitoChain.Drivers.NeighborChainCli import NeighborChainCli
+from IncognitoChain.Drivers.Response import Response
 from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6
@@ -207,6 +207,10 @@ class Account:
         self.public_key = tx.get_result('PublicKeyInBase58Check')
         return self.public_key
 
+    def get_estimate_tx_fee(self, receiver, amount):
+        r = Account.SYSTEM.REQUEST_HANDLER.transaction().estimate_tx_fee(self.private_key, receiver.payment_key, amount)
+        return int(r.get_result('EstimateFee'))
+
     def get_token_balance(self, token_id, shard_id=None):
         """
         get balance by token_id
@@ -217,13 +221,13 @@ class Account:
         """
 
         if shard_id is None:
-            where_to_ask = Account.SYSTEM.full_node.transaction()
+            where_to_ask = Account.SYSTEM.REQUEST_HANDLER.transaction()
         elif shard_id == -1:
             where_to_ask = Account.SYSTEM.shards[self.shard].get_representative_node().transaction()
         else:
             where_to_ask = Account.SYSTEM.shards[shard_id].get_representative_node().transaction()
 
-        result = where_to_ask.get_custom_token_balance(self.private_key, token_id).get_result()
+        result = where_to_ask.get_custom_token_balance(self.private_key, token_id).expect_no_error().get_result()
         balance = result if result is not None else 0
 
         self.cache[f'{Account._cache_bal_tok}_{token_id}'] = balance
@@ -382,14 +386,13 @@ class Account:
         :return:
         """
         if shard_id is None:
-            balance = Account.SYSTEM.full_node.transaction().get_balance(self.private_key).get_result()
+            where_to_ask = Account.SYSTEM.REQUEST_HANDLER.transaction()
+        elif shard_id == -1:
+            where_to_ask = Account.SYSTEM.shards[self.shard].get_representative_node().transaction()
         else:
-            if shard_id == -1:
-                shard_to_ask = self.shard
-            else:
-                shard_to_ask = shard_id
-            balance = Account.SYSTEM.shards[shard_to_ask].get_representative_node().transaction().get_balance(
-                self.private_key).get_result()
+            where_to_ask = Account.SYSTEM.shards[shard_id].get_representative_node().transaction()
+
+        balance = where_to_ask.get_balance(self.private_key).expect_no_error().get_result()
         INFO(f"Private k = {l6(self.private_key)}, prv bal = {coin(balance, False)}")
         self.cache['balance_prv'] = balance
         return balance
@@ -419,7 +422,7 @@ class Account:
         cli = NeighborChainCli.new(token_id)
         return cli.send_to_multi(self.get_remote_addr(token_id), receiver_amount_dict, password, memo)
 
-    def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1, shard_handle=None):
+    def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1, shard_handle=None) -> Response:
         """
         send amount_prv of prv to to_account. by default fee=-1 and privacy=1
 
@@ -1189,7 +1192,6 @@ class AccountGroup:
         return accounts_in_shard
 
 
-@deprecated
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:
     """ @deprecated
     iterate through accounts in account_list, check if they're in the same shard_number
@@ -1210,65 +1212,16 @@ def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]
     return accounts_in_shard
 
 
-@deprecated
-def find_0_balance_accounts(token_id=None, account_list=None) -> List[Account]:
-    """
-    find all account in account_list which prv balance = 0
-
-    :param token_id:
-    :param account_list: Default is TestData
-    :return:  Account list
-    """
-    if account_list is None:
-        from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
-        account_list = ACCOUNTS
-
-    zero_balance_list: List[Account] = []
-    INFO(f'Find all account which balance = 0, Token id = {token_id}')
-    for account in account_list:
-        if token_id is None:
-            balance = account.get_prv_balance()
-        else:
-            balance = account.get_token_balance(token_id).get_result()
-
-        if balance == 0:
-            zero_balance_list.append(account)
-
-    return zero_balance_list
-
-
-@deprecated
-def find_same_shard_accounts_with(account: Account, account_list=None):
-    """
-    find all accounts which is in the same shard with param:account bellow
-
-    :param account:
-    :param account_list:
-    :return: Account list
-    """
-    if account_list is None:
-        from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
-        account_list = ACCOUNTS
-
-    same_shard_list: List[Account] = []
-    INFO(f"Find all accounts which is in the same shard with input account: {account}")
-    for account_in_list in account_list:
-        if account_in_list is not account:
-            if account_in_list.shard == account.shard:
-                same_shard_list.append(account_in_list)
-    return same_shard_list
-
-
 PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K)
 COIN_MASTER = Account(DAO_PRIVATE_K)
 
-if not Account.SYSTEM.is_default():
-    INFO("CONVERT to COIN V2")
-    convert_tx = COIN_MASTER.convert_prv_to_v2()
-    if convert_tx.get_error_msg() == "Method not found":
-        ChainConfig.PRIVACY_VERSION = 1
-    elif convert_tx.get_error_msg() == "Can not create tx":
-        ChainConfig.PRIVACY_VERSION = 2
-    else:
-        ChainConfig.PRIVACY_VERSION = 2
-        convert_tx.subscribe_transaction()
+# if not Account.SYSTEM.is_default():
+#     INFO("CONVERT to COIN V2")
+#     convert_tx = COIN_MASTER.convert_prv_to_v2()
+#     if convert_tx.get_error_msg() == "Method not found":
+#         ChainConfig.PRIVACY_VERSION = 1
+#     elif convert_tx.get_error_msg() == "Can not create tx":
+#         ChainConfig.PRIVACY_VERSION = 2
+#     else:
+#         ChainConfig.PRIVACY_VERSION = 2
+#         convert_tx.subscribe_transaction()

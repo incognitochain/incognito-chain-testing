@@ -7,8 +7,9 @@ from IncognitoChain.Helpers.Logging import STEP, INFO, ERROR
 from IncognitoChain.Helpers.TestHelper import ChainHelper, l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
 from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER, COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import DepositTxInfo, PortingReqInfo
-from IncognitoChain.TestCases.Sanity import account_0, account_1, account_11, fixed_validators, auto_stake_list, SUT
+from IncognitoChain.TestCases.Sanity import account_0, account_1, account_11, fixed_validators, auto_stake_list
 
 COIN_MASTER.top_him_up_prv_to_amount_if(coin(3600), coin(3601), account_0)
 P___TOKEN = 'e4ee6277935d280728de8724ab24e4aa227d36672ac1aed2153ec5a2c3297b41'
@@ -182,8 +183,8 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
     for committee in auto_stake_list:
         committee.stk_wait_till_i_am_committee()
 
-    # epoch = SUT.full_node.system_rpc().help_get_current_epoch()
-    # SUT.full_node.system_rpc().help_wait_till_epoch(epoch + 2)
+    epoch = SUT.full_node.system_rpc().help_get_current_epoch()
+    SUT.full_node.system_rpc().help_wait_till_epoch(epoch + 2)
 
     STEP(0.4, "Verify environment, 6 node per shard")
     number_committee_shard_0 = SUT.full_node.help_count_committee_in_shard(0, refresh_cache=True)

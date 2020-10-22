@@ -327,3 +327,9 @@ class TransactionRpc:
             with_method('gettransactionhashbyreceiver'). \
             with_params([payment_k]). \
             execute()
+
+    def estimate_tx_fee(self, sender_private_k, receiver_payment_k, send_amount):
+        return self.rpc_connection. \
+            with_method('estimatefee'). \
+            with_params([sender_private_k, {receiver_payment_k: send_amount}, -1, 1]). \
+            execute()

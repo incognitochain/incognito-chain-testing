@@ -1,23 +1,4 @@
-import sys
-from ctypes import ArgumentError
-
 from IncognitoChain.Objects.AccountObject import Account, AccountGroup
-from IncognitoChain.Objects.IncognitoTestCase import SUT
-from IncognitoChain.Objects.NodeObject import Node
-
-try:
-    # noinspection PyProtectedMember
-    full_node_url = sys._xoptions.get('fullNodeUrl')
-    # noinspection PyProtectedMember
-    ws_port = int(sys._xoptions.get('wsPort'))
-    if not full_node_url:
-        raise ArgumentError('Must specify a full node url to run the test')
-
-    SUT.full_node = Node().parse_url(full_node_url)
-    SUT.full_node.set_web_socket_port(ws_port)
-    SUT.REQUEST_HANDLER = SUT.full_node
-except:
-    pass
 
 account_0 = Account(  # must in SHARD 0
     '112t8rnbNst56EFVhefVgQcJVqASQPevVGmkb2Mdnhm61uyktU5ZuWbZ1KGAp7w7U4fUyz4XZxBVmaUifsjsLxYbkhtkff5YwQptNxELRVcX'). \

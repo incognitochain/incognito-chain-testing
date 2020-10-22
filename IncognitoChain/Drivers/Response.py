@@ -27,13 +27,13 @@ class Response:
 
     def expect_error(self, expecting_error='any error'):
         if expecting_error == 'any error':
-            assert INFO(
-                f'{self.get_error_trace().get_message()}') and self.get_error_msg() is not None, \
+            INFO(self.get_error_trace().get_message())
+            assert self.get_error_msg() is not None, \
                 f'Found no error while expecting {expecting_error}'
         else:
             trace_msg = self.get_error_trace().get_message()
-            assert INFO(f'{trace_msg}') and (
-                    expecting_error in self.get_error_msg() or expecting_error in trace_msg), \
+            INFO(trace_msg)
+            assert (expecting_error in self.get_error_msg() or expecting_error in trace_msg), \
                 f'Found no error while expecting {expecting_error}'
         return self
 
