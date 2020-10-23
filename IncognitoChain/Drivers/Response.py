@@ -183,6 +183,13 @@ class Response:
             tx_id_list.append(entry['TxID'])
         return tx_id_list
 
+    def get_created_proof(self):
+        """
+        get proof created by RPC "createtransaction"
+        @return:
+        """
+        return self.get_result("Base58CheckData")
+
     class StackTrace:
         def __init__(self, stack_string):
             self.stack_string = stack_string

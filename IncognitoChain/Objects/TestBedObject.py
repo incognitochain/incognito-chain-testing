@@ -21,7 +21,7 @@ def load_test_bed(name):
 
 
 class TestBed:
-    REQUEST_HANDLER = Node()
+    REQUEST_HANDLER: Node = Node()
 
     def __init__(self, test_bed=None):
         if test_bed is not None:

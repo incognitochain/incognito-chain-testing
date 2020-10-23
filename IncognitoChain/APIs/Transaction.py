@@ -333,3 +333,16 @@ class TransactionRpc:
             with_method('estimatefee'). \
             with_params([sender_private_k, {receiver_payment_k: send_amount}, -1, 1]). \
             execute()
+
+    def create_tx(self, sender_private_k, receiver_payment_k, amount, fee=-1, privacy=1):
+        return self.rpc_connection. \
+            with_method('createtransaction'). \
+            with_params([sender_private_k,
+                         {receiver_payment_k: amount}, fee, privacy]). \
+            execute()
+
+    def send_tx(self, proof):
+        return self.rpc_connection. \
+            with_method('sendtransaction'). \
+            with_params([proof]). \
+            execute()

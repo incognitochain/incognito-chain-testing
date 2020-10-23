@@ -2,6 +2,7 @@ import sys
 from distutils.util import strtobool
 
 from IncognitoChain.Configs import config
+from IncognitoChain.Helpers.Logging import WARNING, ERROR
 from IncognitoChain.Objects.TestBedObject import *
 
 # get command args
@@ -34,15 +35,21 @@ if not skip_load:
     TEST_DATA = load_test_data(__account_file)
     try:
         ACCOUNTS = TEST_DATA.account_list
-    except:
+    except Exception as e:
+        ERROR(e)
+        WARNING("Not found accounts list in test data, create an  empty list now")
         ACCOUNTS = []
     try:
         BEACON_ACCOUNTS = TEST_DATA.beacons
-    except:
+    except Exception as e:
+        ERROR(e)
+        WARNING("Not found beacon accounts list in test data, create an  empty list now")
         BEACON_ACCOUNTS = []
     try:
         COMMITTEE_ACCOUNTS = TEST_DATA.committees
-    except:
+    except Exception as e:
+        ERROR(e)
+        WARNING("Not found committee accounts list in test data, create an  empty list now")
         COMMITTEE_ACCOUNTS = []
 
     # -----------------------------------------------

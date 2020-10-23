@@ -413,7 +413,7 @@ def verify_expire_porting(user, porting_id, token, num_of_custodian, psi_b4, prv
         state_after_expire = PSI_after_expired.get_custodian_info_in_pool(custodian)
         INFO(f'Custodian info before: \n{state_before_test}')
         INFO(f'Custodian info after : \n{state_after_expire}')
-        assert state_before_test.get_locked_collateral() == state_after_expire.get_locked_collateral()
+        assert state_before_test.get_locked_collateral(token) == state_after_expire.get_locked_collateral(token)
         assert state_before_test.get_free_collateral() == state_after_expire.get_free_collateral()
         assert state_before_test.get_total_collateral() == state_after_expire.get_total_collateral()
         assert state_before_test.get_holding_token_amount(token) == state_after_expire.get_holding_token_amount(

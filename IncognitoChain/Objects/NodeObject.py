@@ -375,3 +375,6 @@ class Node:
 
     def is_local_host(self):
         return self._address == Node.default_address
+
+    def send_proof(self, proof):
+        return self.transaction().send_tx(proof)

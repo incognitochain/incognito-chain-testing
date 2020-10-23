@@ -77,21 +77,28 @@ class Account:
         return json.dumps(key_dict, indent=3) if pretty else json.dumps(key_dict)
 
     def __init__(self, private_key=None, payment_k=None, **kwargs):
-        if private_key is not None:
-            private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
-            bridge_public_k, mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(private_key)
+        self.remote_addr = Account.RemoteAddress()
 
-            self.remote_addr = Account.RemoteAddress()
-            self.private_key = private_k
-            self.validator_key = validator_k
-            self.payment_key = self.incognito_addr = payment_k
-            self.public_key = public_k
-            self.read_only_key = read_only_k
-            self.bls_public_k = bls_public_k
-            self.bridge_public_k = bridge_public_k
-            self.mining_public_k = mining_public_k
-            self.committee_public_k = committee_public_k
-            self.shard = int(shard_id)
+        if private_key is not None:
+            if payment_k is not None:
+                self.private_key = private_key
+                self.payment_key = self.incognito_addr = payment_k
+                self.validator_key = self.public_key = self.read_only_key = self.bls_public_k = self.bridge_public_k = \
+                    self.mining_public_k = self.committee_public_k = self.shard = None
+            else:
+                private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
+                bridge_public_k, mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(private_key)
+
+                self.private_key = private_k
+                self.validator_key = validator_k
+                self.payment_key = self.incognito_addr = payment_k
+                self.public_key = public_k
+                self.read_only_key = read_only_k
+                self.bls_public_k = bls_public_k
+                self.bridge_public_k = bridge_public_k
+                self.mining_public_k = mining_public_k
+                self.committee_public_k = committee_public_k
+                self.shard = int(shard_id)
         else:
             self.private_key = None
 
@@ -152,6 +159,11 @@ class Account:
     def __hash__(self):
         # for using Account object as 'key' in dictionary
         return int(str(self.private_key).encode('utf8').hex(), 16)
+
+    def create_tx_proof(self, receiver, amount, fee=-1, privacy=1):
+        resp = Account.SYSTEM.REQUEST_HANDLER.transaction().create_tx(self.private_key, receiver.payment_key, amount,
+                                                                      fee, privacy)
+        return resp.get_created_proof()
 
     def calculate_shard_id(self):
         if self.payment_key is None:
@@ -1138,9 +1150,17 @@ class Account:
                     receiver[acc] = top_up_amount
         if len(receiver) == 0:
             return None
-        send_tx = self.send_prv_to_multi_account(receiver)
-        send_tx.expect_no_error()
-        send_tx.subscribe_transaction()
+
+        # there's a max number of output in "createandsendtransaction" rpc, so must split into small batch of output
+        each, length, start = 20, len(receiver), 0
+        mid = each
+        while start < length:
+            start = mid
+            mid += each
+            send_tx = self.send_prv_to_multi_account(receiver)
+            send_tx.expect_no_error()
+            send_tx.subscribe_transaction()
+
         # thread_pool = []
         for acc, amount in receiver.items():
             acc.wait_for_balance_change(from_balance=acc.get_prv_balance_cache())

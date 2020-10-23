@@ -297,14 +297,16 @@ class PortalStateInfo(_PortalInfoBase):
             """
 
             :param token_id:
-            :return: amount of locked collateral. If LockedAmountCollateral of token is not exist in data
-                    and none_equal_zero is true, then return 0, else return None
+            :return: amount of locked collateral of a token if token_id is specified. If token id is not specified,
+                return a dictionary of {token_id: locked amount}
             """
             if token_id is None:
-                ret = self.data['LockedAmountCollateral']
+                all_collateral = self.data['LockedAmountCollateral']
+                ret = {} if all_collateral is None else all_collateral
             else:
                 try:
-                    ret = int(self.data['LockedAmountCollateral'][token_id])
+                    token_collateral = int(self.data['LockedAmountCollateral'][token_id])
+                    ret = 0 if token_collateral is None else token_collateral
                 except (KeyError, TypeError):
                     DEBUG('Not found LockedAmountCollateral in data, locked collateral not exist')
                     ret = 0
