@@ -98,19 +98,20 @@ def test_tx_machine_gun(proof_list):
 
     concurrent.futures.wait(send_thread_list)
 
-    INFO_HEADLINE('Wait 40 for txs to be confirmed')
-    WAIT(40)
+    INFO_HEADLINE('Wait 60 for txs to be confirmed')
+    WAIT(60)
 
     INFO_HEADLINE(f'Subscribe to txs to get block height')
     block_list = {}
-    with ThreadPoolExecutor(max_workers=len(send_thread_list)) as executor:
+    with ThreadPoolExecutor(max_workers=len(send_thread_list) * 2) as executor:
         for result in send_thread_list:
             response = result.result()
             tx_hash = response.get_tx_id()
-            thread = executor.submit(response.subscribe_transaction, )
+            thread = executor.submit(response.get_transaction_by_hash, )
             block_list[tx_hash] = thread
+        concurrent.futures.wait(block_list.values(), timeout=200)
+
     INFO(f'Wait for subscription complete')
-    concurrent.futures.wait(block_list.values(), timeout=200)
     INFO(f'Waiting done')
     summary = {}
     for tx_hash, result in block_list.items():
