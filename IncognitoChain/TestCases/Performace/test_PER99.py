@@ -85,30 +85,33 @@ def num_of_proofs():
 ])
 def test_tx_machine_gun(proof_list):
     INFO_HEADLINE(f'Firing {len(proof_list)} txs at full node, {TX_PER_LOOP} round at a time')
-    thread_list = []
+    send_thread_list = []
     proof_list_len = len(proof_list)
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=TX_PER_LOOP) as executor:
         for i in range(proof_list_len):
             proof = proof_list[i]
             thread = executor.submit(SUT.REQUEST_HANDLER.send_proof, proof)
-            thread_list.append(thread)
+            send_thread_list.append(thread)
             if (i + 1) % TX_PER_LOOP == 0:
                 INFO(f"Sleep {GAP_BETWEEN_LOOP}s")
                 time.sleep(GAP_BETWEEN_LOOP)
 
-    concurrent.futures.wait(thread_list)
+    concurrent.futures.wait(send_thread_list)
 
     INFO_HEADLINE('Wait 40 for txs to be confirmed')
     WAIT(40)
 
     INFO_HEADLINE(f'Subscribe to txs to get block height')
     block_list = {}
-    with ThreadPoolExecutor() as executor:
-        for response in thread_list:
-            tx_hash = response.result().get_tx_id()
-            thread = executor.submit(response.result().subscribe_transaction)
+    with ThreadPoolExecutor(max_workers=len(send_thread_list)) as executor:
+        for result in send_thread_list:
+            response = result.result()
+            tx_hash = response.get_tx_id()
+            thread = executor.submit(response.subscribe_transaction, )
             block_list[tx_hash] = thread
-
+    INFO(f'Wait for subscription complete')
+    concurrent.futures.wait(block_list.values(), timeout=200)
+    INFO(f'Waiting done')
     summary = {}
     for tx_hash, result in block_list.items():
         try:
