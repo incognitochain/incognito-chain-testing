@@ -21,12 +21,12 @@ SEND_AMOUNT = random.randrange(1000, 100000)
 def create_proofs(senders, receivers, tx_fee, tx_privacy):
     proof_list = []
     thread_list = []
-    for sender, receiver in zip(senders, receivers):
-        sender: Account
-        with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor() as executor:
+        for sender, receiver in zip(senders, receivers):
+            sender: Account
             thread = executor.submit(sender.create_tx_proof, receiver, SEND_AMOUNT, tx_fee, tx_privacy)
             thread_list.append(thread)
-    concurrent.futures.wait(thread_list, timeout=180)
+            concurrent.futures.wait(thread_list, timeout=180)
     for thread in thread_list:
         proof_list.append(thread.result())
     return proof_list
@@ -87,13 +87,14 @@ def test_tx_machine_gun(proof_list):
     INFO_HEADLINE(f'Firing {len(proof_list)} txs at full node, {TX_PER_LOOP} round at a time')
     thread_list = []
     proof_list_len = len(proof_list)
-    for i in range(proof_list_len):
-        proof = proof_list[i]
-        with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor() as executor:
+        for i in range(proof_list_len):
+            proof = proof_list[i]
             thread = executor.submit(SUT.REQUEST_HANDLER.send_proof, proof)
             thread_list.append(thread)
-        if (i + 1) % TX_PER_LOOP == 0:
-            time.sleep(GAP_BETWEEN_LOOP)
+            if (i + 1) % TX_PER_LOOP == 0:
+                INFO(f"Sleep {GAP_BETWEEN_LOOP}s")
+                time.sleep(GAP_BETWEEN_LOOP)
 
     concurrent.futures.wait(thread_list)
 
@@ -102,15 +103,18 @@ def test_tx_machine_gun(proof_list):
 
     INFO_HEADLINE(f'Subscribe to txs to get block height')
     block_list = {}
-    for response in thread_list:
-        tx_hash = response.result().get_tx_id()
-        with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor() as executor:
+        for response in thread_list:
+            tx_hash = response.result().get_tx_id()
             thread = executor.submit(response.result().subscribe_transaction)
-        block_list[tx_hash] = thread
+            block_list[tx_hash] = thread
 
     summary = {}
     for tx_hash, result in block_list.items():
-        block_height = result.result().get_block_height()
+        try:
+            block_height = result.result().get_block_height()
+        except Exception as e:
+            block_height = 0
         INFO(f'{tx_hash} : {block_height}')
         try:
             summary[block_height] += 1
