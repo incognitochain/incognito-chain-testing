@@ -1154,12 +1154,15 @@ class Account:
         # there's a max number of output in "createandsendtransaction" rpc, so must split into small batch of output
         each, length, start = 20, len(receiver), 0
         mid = each
+        keys = list(receiver.keys())
         while start < length:
-            start = mid
-            mid += each
-            send_tx = self.send_prv_to_multi_account(receiver)
+            sub_keys = keys[start:mid]
+            sub_receivers = {k: receiver[k] for k in sub_keys}
+            send_tx = self.send_prv_to_multi_account(sub_receivers)
             send_tx.expect_no_error()
             send_tx.subscribe_transaction()
+            start = mid
+            mid += each
 
         # thread_pool = []
         for acc, amount in receiver.items():

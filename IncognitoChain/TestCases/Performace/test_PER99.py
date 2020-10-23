@@ -14,9 +14,7 @@ from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 
 LOOP = 4
 TX_PER_LOOP = 40
-TX_FEE = -1
-TX_PRIVACY = 1
-CROSS_SHARD_TX = False
+GAP_BETWEEN_LOOP = 1
 SEND_AMOUNT = random.randrange(1000, 100000)
 
 
@@ -49,16 +47,31 @@ def prepare_proof_1_shard_in_1_shard(fee, privacy):
     return create_proofs(senders__, receivers, fee, privacy)
 
 
+def prepare_proof_x_shard_from_1_shard(fee, privacy):
+    # send____shard = random.randrange(len(ACCOUNTS))
+    # receive_shard = random.randrange(len(ACCOUNTS))
+    send____shard = 6
+    receive_shard = 7
+
+    num_of_acc_send = len(ACCOUNTS[send____shard])
+    num_of_acc_rece = len(ACCOUNTS[receive_shard])
+    num_o_proof = num_of_proofs()
+    if (num_o_proof > num_of_acc_send) or (num_o_proof > num_of_acc_rece) or (num_of_acc_rece != num_of_acc_send):
+        raise IndexError(f"Need {num_o_proof} Account send and receive to create tx, "
+                         f"but there's only {num_of_acc_send} Account send and {num_of_acc_rece} Account receive")
+    senders__ = ACCOUNTS[send____shard][:num_of_proofs()]
+    receivers = ACCOUNTS[receive_shard][:num_of_proofs()]
+    COIN_MASTER.top_him_up_prv_to_amount_if(coin(3), coin(5), senders__)
+    INFO_HEADLINE(f' PREPARE TEST DATA, X SHARD TX, from SHARD {send____shard} -> {receive_shard}')
+    return create_proofs(senders__, receivers, fee, privacy)
+
+
 def prepare_proof_1_shard_in_n_shard(fee, privacy):
     pass
 
 
-def prepare_proof_x_shard_from_1_shard(fee, privacy):
-    send____shard = random.randrange(len(ACCOUNTS))
-    receive_shard = random.randrange(len(ACCOUNTS))
-    senders__ = ACCOUNTS[send____shard][:num_of_proofs()]
-    receivers = ACCOUNTS[receive_shard][:num_of_proofs()]
-    return create_proofs(senders__, receivers, fee, privacy)
+def prepare_proof_x_shard_in_n_shard(fee, privacy):
+    pass
 
 
 def num_of_proofs():
@@ -66,7 +79,8 @@ def num_of_proofs():
 
 
 @pytest.mark.parametrize("proof_list", [
-    prepare_proof_1_shard_in_1_shard(-1, 1),
+    # prepare_proof_1_shard_in_1_shard(-1, 1),
+    prepare_proof_x_shard_from_1_shard(-1, 1),
     # prepare_proof_1_shard_in_1_shard(-1, 0),
 ])
 def test_tx_machine_gun(proof_list):
@@ -79,7 +93,7 @@ def test_tx_machine_gun(proof_list):
             thread = executor.submit(SUT.REQUEST_HANDLER.send_proof, proof)
             thread_list.append(thread)
         if (i + 1) % TX_PER_LOOP == 0:
-            time.sleep(1)
+            time.sleep(GAP_BETWEEN_LOOP)
 
     concurrent.futures.wait(thread_list)
 
@@ -103,6 +117,8 @@ def test_tx_machine_gun(proof_list):
         except KeyError:
             summary[block_height] = 1
 
-    INFO(f""" SUMMARY
-            {json.dumps(summary, indent=3)}
+    INFO(f""" SUMMARY==================================================
+Block height : num of block in height
+{json.dumps(summary, indent=3)}
+===========================================================================
         """)
