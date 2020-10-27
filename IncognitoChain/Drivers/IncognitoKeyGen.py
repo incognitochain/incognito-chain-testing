@@ -54,4 +54,3 @@ def __get_key_from_output(output, k_name):
             key = match.group(1)
             # print(f"\t{k_name}: {key}")
             return key
-

@@ -358,7 +358,7 @@ class Node:
         else:
             return self.get_block_chain_info().get_shard_block(shard_num).get_height()
 
-    def get_shard_best_state_detail_info(self, shard_num=None):
+    def get_shard_best_state_detail_info(self, shard_num):
         shard_state_detail_raw = self.system_rpc().get_shard_best_state_detail(shard_num).get_result()
         shard_state_detail_obj = ShardBestStateDetailInfo(shard_state_detail_raw)
         return shard_state_detail_obj

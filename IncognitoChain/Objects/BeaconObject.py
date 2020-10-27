@@ -236,6 +236,7 @@ class BeaconBestStateDetailInfo(BlockChainInfoBaseClass):
         committees_auto_staking = self.get_auto_staking_committees()
         for committee in committees_auto_staking:
             if committee.get_inc_public_key() == public_key:
+                INFO(f'{public_key} : {committee.is_auto_staking()}')
                 return committee.is_auto_staking()
         return
 

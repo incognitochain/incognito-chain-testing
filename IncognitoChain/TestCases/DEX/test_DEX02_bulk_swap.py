@@ -1,4 +1,3 @@
-import concurrent
 import copy
 import random
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -93,7 +92,6 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
             trader = traders[i]
             future = executor.submit(trader.pde_trade, token_sell, trade_amount, token_buy, 1, trading_fee[i])
             threads.append(future)
-    concurrent.futures.wait(threads)
     INFO(f"Transaction id list")
     for thread in threads:
         tx = thread.result()

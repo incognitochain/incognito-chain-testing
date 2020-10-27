@@ -1,4 +1,3 @@
-import concurrent
 import random
 from concurrent.futures.thread import ThreadPoolExecutor
 
@@ -27,14 +26,14 @@ def setup_function():
 
 
 @pytest.mark.parametrize('test_mode,token_sell,token_buy', (
-    ["1 shard", token_id_1, PRV_ID],
-    ["1 shard", PRV_ID, token_id_1],
-    ["n shard", token_id_1, PRV_ID],
-    ["n shard", PRV_ID, token_id_1],
-    ["1 shard", token_id_2, token_id_1],
-    ["n shard", token_id_2, token_id_1],
-    ["1 shard", token_id_1, token_id_2],
-    ["n shard", token_id_1, token_id_2],
+        ["1 shard", token_id_1, PRV_ID],
+        ["1 shard", PRV_ID, token_id_1],
+        ["n shard", token_id_1, PRV_ID],
+        ["n shard", PRV_ID, token_id_1],
+        ["1 shard", token_id_2, token_id_1],
+        ["n shard", token_id_2, token_id_1],
+        ["1 shard", token_id_1, token_id_2],
+        ["n shard", token_id_1, token_id_2],
 ))
 def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
@@ -108,7 +107,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
             trader = traders[i]
             future = executor.submit(trader.pde_trade_v2, token_sell, trade_amounts[i], token_buy, trading_fees[i])
             threads.append(future)
-    concurrent.futures.wait(threads)
+
     INFO(f"Transaction id list")
     for thread in threads:
         tx = thread.result()
@@ -142,8 +141,6 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
             future_sell = executor.submit(trader.wait_for_balance_change, token_sell, balance_tok_sell_before[i], -100)
             threads_buy[trader] = future_buy
             threads_sell[trader] = future_sell
-    concurrent.futures.wait(threads_buy.values())
-    concurrent.futures.wait(threads_sell.values())
 
     for i in range(0, len(traders)):
         trader = traders[i]

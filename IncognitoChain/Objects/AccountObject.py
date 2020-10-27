@@ -1,4 +1,3 @@
-import concurrent
 import copy
 import json
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -21,8 +20,6 @@ from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 
 
 class Account:
-    SYSTEM = None
-
     class RemoteAddress:
         def __init__(self, data=None):
             data = {} if data is None else data
@@ -103,9 +100,8 @@ class Account:
             self.private_key = None
 
         self.cache = {}
-        if Account.SYSTEM is None:
-            from IncognitoChain.Objects.IncognitoTestCase import SUT
-            Account.SYSTEM = SUT
+        from IncognitoChain.Objects import IncognitoTestCase
+        self.REQ_HANDLER = IncognitoTestCase.SUT.REQUEST_HANDLER
 
     def is_empty(self):
         if self.private_key is None:
@@ -161,8 +157,8 @@ class Account:
         return int(str(self.private_key).encode('utf8').hex(), 16)
 
     def create_tx_proof(self, receiver, amount, fee=-1, privacy=1):
-        resp = Account.SYSTEM.REQUEST_HANDLER.transaction().create_tx(self.private_key, receiver.payment_key, amount,
-                                                                      fee, privacy)
+        resp = self.REQ_HANDLER.transaction().create_tx(self.private_key, receiver.payment_key, amount,
+                                                        fee, privacy)
         return resp.get_created_proof()
 
     def calculate_shard_id(self):
@@ -170,7 +166,7 @@ class Account:
             self.find_payment_key()
         if self.public_key is None:
             self.find_public_key()
-        response = Account.SYSTEM.full_node.transaction().get_public_key_by_payment_key(self.payment_key)
+        response = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
         last_byte = response.get_result("PublicKeyInBytes")[-1]
         self.shard = last_byte % 8
         return self.shard
@@ -202,7 +198,7 @@ class Account:
             if self.payment_key is not None:
                 return self.payment_key
 
-        tx = Account.SYSTEM.full_node.transaction().list_custom_token_balance(self.private_key)
+        tx = self.REQ_HANDLER.transaction().list_custom_token_balance(self.private_key)
         self.payment_key = tx.get_result('PaymentAddress')
         return self.payment_key
 
@@ -215,31 +211,24 @@ class Account:
             if self.public_key is not None:
                 return self.public_key
 
-        tx = Account.SYSTEM.full_node.transaction().get_public_key_by_payment_key(self.payment_key)
+        tx = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
         self.public_key = tx.get_result('PublicKeyInBase58Check')
         return self.public_key
 
     def get_estimate_tx_fee(self, receiver, amount):
-        r = Account.SYSTEM.REQUEST_HANDLER.transaction().estimate_tx_fee(self.private_key, receiver.payment_key, amount)
+        r = self.REQ_HANDLER.transaction().estimate_tx_fee(self.private_key, receiver.payment_key, amount)
         return int(r.get_result('EstimateFee'))
 
-    def get_token_balance(self, token_id, shard_id=None):
+    def get_token_balance(self, token_id):
         """
         get balance by token_id
 
         :param token_id:
-        :param shard_id: when = None, will ask full_node. When = -1, ask on its own shard, or else will ask on shard_id
         :return:
         """
 
-        if shard_id is None:
-            where_to_ask = Account.SYSTEM.REQUEST_HANDLER.transaction()
-        elif shard_id == -1:
-            where_to_ask = Account.SYSTEM.shards[self.shard].get_representative_node().transaction()
-        else:
-            where_to_ask = Account.SYSTEM.shards[shard_id].get_representative_node().transaction()
-
-        result = where_to_ask.get_custom_token_balance(self.private_key, token_id).expect_no_error().get_result()
+        result = self.REQ_HANDLER.transaction().get_custom_token_balance(self.private_key, token_id). \
+            expect_no_error().get_result()
         balance = result if result is not None else 0
 
         self.cache[f'{Account._cache_bal_tok}_{token_id}'] = balance
@@ -262,11 +251,11 @@ class Account:
             }
         ]
         """
-        return Account.SYSTEM.full_node.transaction().list_custom_token_balance(self.private_key). \
+        return self.REQ_HANDLER.transaction().list_custom_token_balance(self.private_key). \
             get_result('ListCustomTokenBalance')
 
     def list_unspent_coin(self):
-        raw_response = Account.SYSTEM.full_node.transaction().list_unspent_output_coins(self.private_key)
+        raw_response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key)
         raw_coins = raw_response.get_result('Outputs')[self.private_key]
         obj_coins = []
         for raw_coin in raw_coins:
@@ -278,7 +267,7 @@ class Account:
         obj_coins = []
         for bal in custom_token_bal_raw:
             tok_id = bal['TokenID']
-            raw_response = Account.SYSTEM.full_node.transaction(). \
+            raw_response = self.REQ_HANDLER.transaction(). \
                 list_unspent_output_tokens(self.private_key, tok_id).expect_no_error()
             raw_coins = raw_response.get_result('Outputs')[self.private_key]
             for raw_coin in raw_coins:
@@ -298,7 +287,7 @@ class Account:
         if self.validator_key is None:
             raise Exception("Validator key is not specified")
 
-        return Account.SYSTEM.full_node.transaction(). \
+        return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, self.payment_key, self.validator_key,
                                                 self.payment_key, stake_amount, auto_re_stake)
 
@@ -308,7 +297,7 @@ class Account:
         :return:
         """
         INFO(f'Stake {someone.validator_key} but reward me')
-        return Account.SYSTEM.full_node.transaction(). \
+        return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
                                                 self.payment_key, stake_amount)
 
@@ -318,32 +307,32 @@ class Account:
         :return:
         """
         INFO(f'Stake and reward other: f{someone.validator_key}')
-        return Account.SYSTEM.full_node.transaction(). \
+        return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
                                                 someone.payment_key, stake_amount, auto_re_stake)
 
     def stk_un_stake_me(self):
         INFO('Un-stake me')
-        return Account.SYSTEM.full_node.transaction(). \
+        return self.REQ_HANDLER.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, self.payment_key, self.validator_key)
 
     def stk_un_stake_him(self, him):
         INFO(f"Un-stake other: {him.validator_key}")
-        return Account.SYSTEM.full_node.transaction(). \
+        return self.REQ_HANDLER.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, him.payment_key, him.validator_key)
 
     def stk_wait_till_i_am_committee(self, check_cycle=120, timeout=1000):
         t = timeout
         INFO(f"Wait until {self.validator_key} become a committee, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
-            beacon_bsd = Account.SYSTEM.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             staked_shard = beacon_bsd.is_he_a_committee(self)
             if staked_shard is False:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
-                e2 = Account.SYSTEM.full_node.help_get_current_epoch()
-                h = Account.SYSTEM.full_node.help_get_beacon_height_in_best_state_detail(refresh_cache=False)
+                e2 = self.REQ_HANDLER.help_get_current_epoch()
+                h = self.REQ_HANDLER.help_get_beacon_height_in_best_state_detail(refresh_cache=False)
                 INFO(f"Promoted to committee at epoch {e2}, block height {h}")
                 return e2
         INFO(f"Waited {t}s but still not yet become committee")
@@ -353,13 +342,13 @@ class Account:
         t = timeout
         INFO(f"Wait until {self.validator_key} no longer a committee, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
-            beacon_bsd = Account.SYSTEM.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             if not (beacon_bsd.is_he_a_committee(self) is False):  # is_he_a_committee returns False or shard number
                 # (number which is not False) so must use this comparision to cover the cases
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
-                e2 = Account.SYSTEM.full_node.help_get_current_epoch()
+                e2 = self.REQ_HANDLER.help_get_current_epoch()
                 INFO(f"Swapped out of committee at epoch {e2}")
                 return e2
         INFO(f"Waited {t}s but still a committee")
@@ -376,7 +365,7 @@ class Account:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
-                e2 = Account.SYSTEM.full_node.help_get_current_epoch()
+                e2 = self.REQ_HANDLER.help_get_current_epoch()
                 INFO(f"Rewarded {reward} : {token_id} at epoch {e2}")
                 return reward
         INFO(f"Waited {t}s but still has no reward")
@@ -388,23 +377,17 @@ class Account:
         except KeyError:
             return None
 
-    def get_prv_balance(self, shard_id=None):
+    def get_prv_balance(self):
         """
         get account's prv balance, by default it will ask the full node.
         when the shard_id is specify, then it will on that shard
         if shard if = -1, it will ask for the balance on it own shard
 
-        :param shard_id:
         :return:
         """
-        if shard_id is None:
-            where_to_ask = Account.SYSTEM.REQUEST_HANDLER.transaction()
-        elif shard_id == -1:
-            where_to_ask = Account.SYSTEM.shards[self.shard].get_representative_node().transaction()
-        else:
-            where_to_ask = Account.SYSTEM.shards[shard_id].get_representative_node().transaction()
 
-        balance = where_to_ask.get_balance(self.private_key).expect_no_error().get_result()
+        balance = self.REQ_HANDLER.transaction().get_balance(self.private_key). \
+            expect_no_error().get_result()
         INFO(f"Private k = {l6(self.private_key)}, prv bal = {coin(balance, False)}")
         self.cache['balance_prv'] = balance
         return balance
@@ -434,11 +417,10 @@ class Account:
         cli = NeighborChainCli.new(token_id)
         return cli.send_to_multi(self.get_remote_addr(token_id), receiver_amount_dict, password, memo)
 
-    def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1, shard_handle=None) -> Response:
+    def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1) -> Response:
         """
         send amount_prv of prv to to_account. by default fee=-1 and privacy=1
 
-        :param shard_handle: shard id to send request to. If None, send to full node
         :param receiver_account:
         :param amount:
         :param fee: default = auto
@@ -446,12 +428,8 @@ class Account:
         :return: Response object
         """
         INFO(f'From: {l6(self.private_key)}. Send {amount} prv to: {l6(receiver_account.payment_key)}')
-        if shard_handle is None:
-            node = Account.SYSTEM.REQUEST_HANDLER
-        else:
-            node = Account.SYSTEM.shards[shard_handle].get_representative_node()
 
-        return node.transaction(). \
+        return self.REQ_HANDLER.transaction(). \
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
 
     def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1):
@@ -469,7 +447,7 @@ class Account:
             send_param[account.payment_key] = amount
         INFO("---------------------------------------------------------------------------------- ")
 
-        return Account.SYSTEM.full_node.transaction(). \
+        return self.REQ_HANDLER.transaction(). \
             send_transaction(self.private_key, send_param, fee, privacy)
 
     def send_all_prv_to(self, to_account, privacy=0):
@@ -499,7 +477,7 @@ class Account:
         """
         INFO('Count unspent coin')
 
-        response = Account.SYSTEM.full_node.transaction().list_unspent_output_coins(self.private_key).get_result(
+        response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key).get_result(
             "Outputs")
         return len(response[self.private_key])
 
@@ -513,18 +491,19 @@ class Account:
         INFO('Defrag account')
 
         if self.count_unspent_output_coins() > 1:
-            return Account.SYSTEM.full_node.transaction().de_fragment_prv(self.private_key)
+            return self.REQ_HANDLER.transaction().de_fragment_prv(self.private_key)
         INFO('No need to defrag!')
         return None
 
     def subscribe_cross_output_coin(self, timeout=120):
         INFO(f'{l6(self.private_key)} Subscribe cross output coin')
-        return Account.SYSTEM.full_node.subscription().subscribe_cross_output_coin_by_private_key(self.private_key,
-                                                                                                  timeout)
+        return self.REQ_HANDLER.subscription().subscribe_cross_output_coin_by_private_key(
+            self.private_key,
+            timeout)
 
     def subscribe_cross_output_token(self, timeout=120):
         INFO(f'{l6(self.private_key)} Subscribe cross output token')
-        return Account.SYSTEM.full_node.subscription().subscribe_cross_custom_token_privacy_by_private_key(
+        return self.REQ_HANDLER.subscription().subscribe_cross_custom_token_privacy_by_private_key(
             self.private_key,
             timeout)
 
@@ -538,9 +517,9 @@ class Account:
         """
         INFO(f'Init custom token to self: {self.payment_key}')
 
-        return Account.SYSTEM.full_node.transaction().init_custom_token(self.private_key, self.payment_key,
-                                                                        token_symbol,
-                                                                        amount)
+        return self.REQ_HANDLER.transaction().init_custom_token(self.private_key, self.payment_key,
+                                                                token_symbol,
+                                                                amount)
 
     def init_custom_token_to(self, account, symbol, amount):
         """
@@ -553,8 +532,9 @@ class Account:
         """
         INFO(f'Init custom token to: {account.payment_key}')
 
-        return Account.SYSTEM.full_node.transaction().init_custom_token(self.private_key, account.payment_key, symbol,
-                                                                        amount)
+        return self.REQ_HANDLER.transaction().init_custom_token(self.private_key, account.payment_key,
+                                                                symbol,
+                                                                amount)
 
     def pde_contribute(self, token_id, amount, pair_id):
         if token_id == PRV_ID:
@@ -572,43 +552,46 @@ class Account:
         INFO(f'{l6(self.private_key)} Contribute token: {l6(contribute_token_id)}, amount = {amount}, '
              f'pair id = {contribution_pair_id}')
 
-        return Account.SYSTEM.full_node.dex().contribute_token(self.private_key, self.payment_key, contribute_token_id,
-                                                               amount, contribution_pair_id)
+        return self.REQ_HANDLER.dex().contribute_token(self.private_key, self.payment_key,
+                                                       contribute_token_id,
+                                                       amount, contribution_pair_id)
 
     def pde_contribute_token_v2(self, contribute_token_id, amount, contribution_pair_id):
         INFO(f'{l6(self.private_key)} Contribute token V2: {l6(contribute_token_id)}, amount = {amount}, '
              f'pair id = {contribution_pair_id}')
 
-        return Account.SYSTEM.full_node.dex().contribute_token_v2(self.private_key, self.payment_key,
-                                                                  contribute_token_id,
-                                                                  amount, contribution_pair_id)
+        return self.REQ_HANDLER.dex().contribute_token_v2(self.private_key, self.payment_key,
+                                                          contribute_token_id,
+                                                          amount, contribution_pair_id)
 
     def pde_contribute_prv(self, amount, contribution_pair_id):
         INFO(f'{l6(self.private_key)} Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
 
-        return Account.SYSTEM.full_node.dex().contribute_prv(self.private_key, self.payment_key, amount,
-                                                             contribution_pair_id)
+        return self.REQ_HANDLER.dex().contribute_prv(self.private_key, self.payment_key, amount,
+                                                     contribution_pair_id)
 
     def pde_contribute_prv_v2(self, amount, contribution_pair_id):
         INFO(f'{l6(self.private_key)} Contribute PRV V2, amount: {amount}, pair id = {contribution_pair_id}')
 
-        return Account.SYSTEM.full_node.dex().contribute_prv_v2(self.private_key, self.payment_key, amount,
-                                                                contribution_pair_id)
+        return self.REQ_HANDLER.dex().contribute_prv_v2(self.private_key, self.payment_key, amount,
+                                                        contribution_pair_id)
 
     def pde_withdraw_contribution(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw PDE contribution {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
-        return Account.SYSTEM.full_node.dex().withdrawal_contribution(self.private_key, self.payment_key, token_id_1,
-                                                                      token_id_2, amount)
+        return self.REQ_HANDLER.dex().withdrawal_contribution(self.private_key, self.payment_key,
+                                                              token_id_1,
+                                                              token_id_2, amount)
 
     def pde_withdraw_contribution_v2(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw PDE contribution v2 {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
-        return Account.SYSTEM.full_node.dex().withdrawal_contribution_v2(self.private_key, self.payment_key, token_id_1,
-                                                                         token_id_2, amount)
+        return self.REQ_HANDLER.dex().withdrawal_contribution_v2(self.private_key, self.payment_key,
+                                                                 token_id_1,
+                                                                 token_id_2, amount)
 
     def pde_withdraw_reward_v2(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw PDE reward v2 {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
-        return Account.SYSTEM.full_node.dex().withdraw_reward_v2(self.private_key, self.payment_key, token_id_1,
-                                                                 token_id_2, amount)
+        return self.REQ_HANDLER.dex().withdraw_reward_v2(self.private_key, self.payment_key, token_id_1,
+                                                         token_id_2, amount)
 
     def pde_contribute_pair_v2(self, rate_dict: dict):
         tokens = list(rate_dict.keys())
@@ -636,12 +619,13 @@ class Account:
         """
         INFO(f'Sending {amount_custom_token} token {l6(token_id)} to {l6(receiver.payment_key)}')
 
-        return Account.SYSTEM.full_node.transaction().send_custom_token_transaction(self.private_key,
-                                                                                    receiver.payment_key,
-                                                                                    token_id, amount_custom_token,
-                                                                                    prv_fee,
-                                                                                    token_fee, prv_amount, prv_privacy,
-                                                                                    token_privacy)
+        return self.REQ_HANDLER.transaction().send_custom_token_transaction(self.private_key,
+                                                                            receiver.payment_key,
+                                                                            token_id, amount_custom_token,
+                                                                            prv_fee,
+                                                                            token_fee, prv_amount,
+                                                                            prv_privacy,
+                                                                            token_privacy)
 
     def send_token_multi_output(self, receiver_token_amount_dict, token_id, prv_fee=0, token_fee=0, prv_privacy=0,
                                 token_privacy=0):
@@ -649,10 +633,11 @@ class Account:
         payment_key_amount_dict = {}
         for acc in receiver_token_amount_dict.keys():
             payment_key_amount_dict[acc.payment_key] = receiver_token_amount_dict[acc]
-        return Account.SYSTEM.full_node.transaction().send_custom_token_multi_output(self.private_key,
-                                                                                     payment_key_amount_dict, token_id,
-                                                                                     prv_fee, token_fee,
-                                                                                     prv_privacy, token_privacy)
+        return self.REQ_HANDLER.transaction().send_custom_token_multi_output(self.private_key,
+                                                                             payment_key_amount_dict,
+                                                                             token_id,
+                                                                             prv_fee, token_fee,
+                                                                             prv_privacy, token_privacy)
 
     def burn_token(self, token_id, amount_custom_token):
         """
@@ -663,11 +648,14 @@ class Account:
         :return: Response object
         """
         INFO(f'Send custom token transaction to burning address')
-        return Account.SYSTEM.full_node.transaction().send_custom_token_transaction(self.private_key,
-                                                                                    Constants.BURNING_ADDR, token_id,
-                                                                                    amount_custom_token, prv_fee=-1,
-                                                                                    token_fee=0, prv_amount=0,
-                                                                                    prv_privacy=0, token_privacy=0)
+        return self.REQ_HANDLER.transaction().send_custom_token_transaction(self.private_key,
+                                                                            Constants.BURNING_ADDR,
+                                                                            token_id,
+                                                                            amount_custom_token,
+                                                                            prv_fee=-1,
+                                                                            token_fee=0, prv_amount=0,
+                                                                            prv_privacy=0,
+                                                                            token_privacy=0)
 
     ########
     # BRIDGE
@@ -679,14 +667,14 @@ class Account:
             :return: Response Object
 
         """
-        return Account.SYSTEM.REQUEST_HANDLER.bridge().issue_centralized_bridge_token(self.payment_key, token_id,
-                                                                                      token_name, amount)
+        return self.REQ_HANDLER.bridge().issue_centralized_bridge_token(self.payment_key, token_id,
+                                                                        token_name, amount)
 
     def withdraw_centralize_token(self, token_id, amount_custom_token):
         """
         Withdraw token (this mean send token to burning address, but receive your token on ETH network)
         INFO(f'Send custom token transaction')
-        return Account.SYSTEM.full_node.transaction().send_custom_token_transaction(self.private_key,
+        return Account.SYSTEM.transaction().send_custom_token_transaction(self.private_key,
                                                                                 Constants.burning_address,
                                                                                 token_id, amount_custom_token,
                                                                                 prv_fee=-1,
@@ -699,8 +687,8 @@ class Account:
         :return: Response object
         """
         INFO(f'Withdraw centralize token')
-        return Account.SYSTEM.full_node.transaction().withdraw_centralize_token(self.private_key, token_id,
-                                                                                amount_custom_token)
+        return self.REQ_HANDLER.transaction().withdraw_centralize_token(self.private_key, token_id,
+                                                                        amount_custom_token)
 
     ########
     # Stake
@@ -711,7 +699,7 @@ class Account:
         when @token_id is None, return PRV reward amount
         :return:
         """
-        result = Account.SYSTEM.full_node.transaction().get_reward_amount(self.payment_key)
+        result = self.REQ_HANDLER.transaction().get_reward_amount(self.payment_key)
         try:
             if token_id is None:
                 reward = result.get_result("PRV")
@@ -728,14 +716,15 @@ class Account:
         :return:
         """
         try:
-            return Account.SYSTEM.full_node.transaction().get_reward_amount(self.payment_key).get_result()
+            return self.REQ_HANDLER.transaction().get_reward_amount(self.payment_key).get_result()
         except KeyError:
             return None
 
     def stk_withdraw_reward_to(self, reward_receiver, token_id=None):
         INFO(f"Withdraw token reward {token_id} to {l6(reward_receiver.payment_key)}")
-        return Account.SYSTEM.full_node.transaction().withdraw_reward(self.private_key, reward_receiver.payment_key,
-                                                                      token_id)
+        return self.REQ_HANDLER.transaction().withdraw_reward(self.private_key,
+                                                              reward_receiver.payment_key,
+                                                              token_id)
 
     def stk_withdraw_reward_to_me(self, token_id=None):
         return self.stk_withdraw_reward_to(self, token_id)
@@ -744,14 +733,14 @@ class Account:
     # DEX
     #######
     def pde_clean_all_waiting_contribution(self, pde_state=None):
-        pde_state = Account.SYSTEM.REQUEST_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
+        pde_state = self.REQ_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
         waiting_contributions = pde_state.get_waiting_contributions()
         for contribution in waiting_contributions:
             self.pde_contribute(contribution.get_token_id(), 100,
                                 contribution.get_pair_id()).subscribe_transaction()
 
     def pde_clean_my_waiting_contribution(self, pde_state=None):
-        pde_state = Account.SYSTEM.REQUEST_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
+        pde_state = self.REQ_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
         my_waiting_contributions = pde_state.find_waiting_contribution_of_user(self)
         thread_pool = []
         with ThreadPoolExecutor() as executor:
@@ -759,18 +748,16 @@ class Account:
                 future = executor.submit(self.pde_contribute, contribution.get_token_id(), contribution.get_amount(),
                                          contribution.get_pair_id())
                 thread_pool.append(future)
-        concurrent.futures.wait(thread_pool)
 
         tx_thread = []
         with ThreadPoolExecutor() as executor:
             for thread in thread_pool:
                 future = executor.submit(thread.result().subscribe_transaction)
                 tx_thread.append(future)
-        concurrent.futures.wait(tx_thread)
 
     def pde_wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         INFO(f"Wait until token {l6(token_id)} is in waiting for contribution")
-        my_waiting = Account.SYSTEM.REQUEST_HANDLER.get_latest_pde_state_info(). \
+        my_waiting = self.REQ_HANDLER.get_latest_pde_state_info(). \
             find_waiting_contribution_of_user(self, pair_id, token_id)
         while timeout >= 0:
             if my_waiting:  # not empty
@@ -778,14 +765,14 @@ class Account:
                 return True
             timeout -= 10
             WAIT(10)
-            my_waiting = Account.SYSTEM.REQUEST_HANDLER.get_latest_pde_state_info(). \
+            my_waiting = self.REQ_HANDLER.get_latest_pde_state_info(). \
                 find_waiting_contribution_of_user(self, pair_id, token_id)
         INFO(f'Token {l6(token_id)} is NOT found in contribution waiting list')
         return False
 
     def pde_wait_till_my_token_out_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         INFO(f"Wait until token {l6(token_id)} is OUT of waiting for contribution")
-        my_waiting = Account.SYSTEM.REQUEST_HANDLER.get_latest_pde_state_info(). \
+        my_waiting = self.REQ_HANDLER.get_latest_pde_state_info(). \
             find_waiting_contribution_of_user(self, pair_id, token_id)
         while timeout >= 0:
             if not my_waiting:
@@ -793,7 +780,7 @@ class Account:
                 return True
             timeout -= 10
             WAIT(10)
-            my_waiting = Account.SYSTEM.REQUEST_HANDLER.get_latest_pde_state_info(). \
+            my_waiting = self.REQ_HANDLER.get_latest_pde_state_info(). \
                 find_waiting_contribution_of_user(self, pair_id, token_id)
         INFO(f'Token {l6(token_id)} is found in contribution waiting list')
         return False
@@ -802,16 +789,16 @@ class Account:
         INFO(f'User {l6(self.payment_key)}: '
              f'Trade {sell_amount} of token {token_id_to_sell[-6:]} for {token_id_to_buy[-6:]} '
              f'trading fee={trading_fee}')
-        return Account.SYSTEM.full_node.dex().trade_token(self.private_key, self.payment_key, token_id_to_sell,
-                                                          sell_amount,
-                                                          token_id_to_buy, min_amount_to_buy, trading_fee)
+        return self.REQ_HANDLER.dex().trade_token(self.private_key, self.payment_key, token_id_to_sell,
+                                                  sell_amount,
+                                                  token_id_to_buy, min_amount_to_buy, trading_fee)
 
     def pde_trade_prv(self, amount_to_sell, token_id_to_buy, min_amount_to_buy, trading_fee=0):
         INFO(f'User {l6(self.payment_key)}: '
              f'Trade {amount_to_sell} of PRV for {token_id_to_buy[-6:]}')
-        return Account.SYSTEM.full_node.dex().trade_prv(self.private_key, self.payment_key, amount_to_sell,
-                                                        token_id_to_buy,
-                                                        min_amount_to_buy, trading_fee)
+        return self.REQ_HANDLER.dex().trade_prv(self.private_key, self.payment_key, amount_to_sell,
+                                                token_id_to_buy,
+                                                min_amount_to_buy, trading_fee)
 
     def pde_trade(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
         if token_id_to_sell == PRV_ID:
@@ -822,15 +809,15 @@ class Account:
     def pde_trade_prv_v2(self, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         INFO(f'User {l6(self.payment_key)}: '
              f'Trade {amount_to_sell} of PRV for {l6(token_to_buy)} trading fee={trading_fee}')
-        return Account.SYSTEM.full_node.dex().trade_prv_v2(self.private_key, self.payment_key, amount_to_sell,
-                                                           token_to_buy, trading_fee, min_amount_to_buy)
+        return self.REQ_HANDLER.dex().trade_prv_v2(self.private_key, self.payment_key, amount_to_sell,
+                                                   token_to_buy, trading_fee, min_amount_to_buy)
 
     def pde_trade_token_v2(self, token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         INFO(f'User {l6(self.payment_key)}: '
              f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]} trading fee={trading_fee}')
-        return Account.SYSTEM.full_node.dex().trade_token_v2(self.private_key, self.payment_key, token_to_sell,
-                                                             amount_to_sell,
-                                                             token_to_buy, trading_fee, min_amount_to_buy)
+        return self.REQ_HANDLER.dex().trade_token_v2(self.private_key, self.payment_key, token_to_sell,
+                                                     amount_to_sell,
+                                                     token_to_buy, trading_fee, min_amount_to_buy)
 
     def pde_trade_v2(self, token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         if token_to_sell == PRV_ID:
@@ -884,22 +871,22 @@ class Account:
         INFO(f'Portal | User {l6(self.payment_key)} | create rate')
         for key, value in rate_dict.items():  # convert dict value to string
             rate_dict[key] = str(value)
-        return Account.SYSTEM.full_node.portal(). \
+        return self.REQ_HANDLER.portal(). \
             create_n_send_portal_exchange_rates(self.private_key, self.payment_key, rate_dict)
 
     def portal_create_porting_request(self, token_id, amount, porting_fee=None, register_id=None):
         INFO()
         INFO(f'Portal | User {l6(self.payment_key)} | create porting req | amount {coin(amount, False)}')
         if porting_fee is None:
-            beacon_height = Account.SYSTEM.full_node.help_get_beacon_height()
-            porting_fee = Account.SYSTEM.full_node.portal().get_porting_req_fees(
+            beacon_height = self.REQ_HANDLER.help_get_beacon_height()
+            porting_fee = self.REQ_HANDLER.portal().get_porting_req_fees(
                 token_id, amount, beacon_height).get_result(token_id)
             porting_fee = 1 if porting_fee == 0 else porting_fee
         if register_id is None:
             now = get_current_date_time("%d%m%y_%H%M%S")
             register_id = f"{l6(token_id)}_{now}"
 
-        return Account.SYSTEM.full_node.portal(). \
+        return self.REQ_HANDLER.portal(). \
             create_n_send_reg_porting_public_tokens(
             self.private_key, self.payment_key, token_id, amount, burn_fee=porting_fee, port_fee=porting_fee,
             register_id=register_id)
@@ -909,7 +896,7 @@ class Account:
         INFO(f'Portal | Custodian {l6(self.payment_key)} | '
              f'Add collateral to become custodian: {coin(collateral, False)}')
         remote_addr = self.get_remote_addr(ptoken) if remote_addr is None else remote_addr
-        return Account.SYSTEM.full_node.portal().create_n_send_tx_with_custodian_deposit(
+        return self.REQ_HANDLER.portal().create_n_send_tx_with_custodian_deposit(
             self.private_key, self.payment_key, collateral, ptoken, remote_addr)
 
     def portal_make_me_custodian(self, collateral, ptoken, remote_addr=None):
@@ -921,9 +908,9 @@ class Account:
 
     def portal_let_me_take_care_this_redeem(self, redeem_id, do_assert=True):
         INFO(f"{l6(self.payment_key)} will take this redeem: {redeem_id}")
-        req_tx = Account.SYSTEM.full_node.portal().create_n_send_tx_with_req_matching_redeem(self.private_key,
-                                                                                             self.payment_key,
-                                                                                             redeem_id)
+        req_tx = self.REQ_HANDLER.portal().create_n_send_tx_with_req_matching_redeem(self.private_key,
+                                                                                     self.payment_key,
+                                                                                     redeem_id)
         req_tx.subscribe_transaction()
         info = RedeemReqInfo()
         info.get_req_matching_redeem_status(req_tx.get_tx_id())
@@ -939,20 +926,21 @@ class Account:
         INFO(f'Portal | Custodian {l6(self.payment_key)} | req redeem token |'
              f' ID: {redeem_id} | Amount: {redeem_amount} | token: {l6(token_id)}')
 
-        beacon_height = Account.SYSTEM.full_node.help_get_beacon_height()
+        beacon_height = self.REQ_HANDLER.help_get_beacon_height()
 
         if redeem_fee is None:
-            redeem_fee = Account.SYSTEM.full_node.portal().get_porting_req_fees(token_id, redeem_amount,
-                                                                                beacon_height).get_result(token_id)
-        return Account.SYSTEM.full_node.portal(). \
+            redeem_fee = self.REQ_HANDLER.portal().get_porting_req_fees(token_id, redeem_amount,
+                                                                        beacon_height).get_result(
+                token_id)
+        return self.REQ_HANDLER.portal(). \
             create_n_send_tx_with_redeem_req(self.private_key, self.payment_key, self.get_remote_addr(token_id),
                                              token_id, redeem_amount, redeem_fee, redeem_id, privacy)
 
     def portal_withdraw_my_collateral(self, amount):
         INFO(f'Portal | Custodian {l6(self.payment_key)} | Withdraw collateral: {amount}')
-        return Account.SYSTEM.full_node.portal().create_n_send_custodian_withdraw_req(self.private_key,
-                                                                                      self.payment_key,
-                                                                                      amount)
+        return self.REQ_HANDLER.portal().create_n_send_custodian_withdraw_req(self.private_key,
+                                                                              self.payment_key,
+                                                                              amount)
 
     def portal_withdraw_my_all_free_collateral(self, psi=None):
         """
@@ -961,7 +949,7 @@ class Account:
         :return: Response if current total collateral > 0, None if = 0
         """
         if psi is None:
-            psi = Account.SYSTEM.full_node.get_latest_portal_state_info()
+            psi = self.REQ_HANDLER.get_latest_portal_state_info()
         INFO(f"Withdraw all collateral of {l6(self.payment_key)}")
         my_custodian_info = psi.get_custodian_info_in_pool(self)
         if my_custodian_info is None:
@@ -984,8 +972,10 @@ class Account:
         """
         INFO()
         INFO(f'Portal | User {l6(self.payment_key)} | req for ported token')
-        return Account.SYSTEM.full_node.portal().create_n_send_tx_with_req_ptoken(self.private_key, self.payment_key,
-                                                                                  porting_id, token_id, amount, proof)
+        return self.REQ_HANDLER.portal().create_n_send_tx_with_req_ptoken(self.private_key,
+                                                                          self.payment_key,
+                                                                          porting_id, token_id, amount,
+                                                                          proof)
 
     def portal_get_my_custodian_info(self, psi: PortalStateInfo = None):
         """
@@ -994,7 +984,7 @@ class Account:
         :return CustodianInfo or None:
         """
         if psi is None:
-            psi = Account.SYSTEM.full_node.get_latest_portal_state_info()
+            psi = self.REQ_HANDLER.get_latest_portal_state_info()
         return psi.get_custodian_info_in_pool(self)
 
     def portal_get_my_custodian_info_cache(self):
@@ -1026,7 +1016,7 @@ class Account:
 
     def portal_sum_my_waiting_porting_req_locked_collateral(self, token_id, portal_state_info=None):
         if portal_state_info is None:
-            portal_state_info = Account.SYSTEM.REQUEST_HANDLER.get_latest_portal_state_info()
+            portal_state_info = self.REQ_HANDLER.get_latest_portal_state_info()
 
         sum_amount = portal_state_info.sum_collateral_porting_waiting(token_id, self)
         INFO(f'{l6(self.payment_key)} sum all waiting porting req collateral of token {l6(token_id)}: {sum_amount}')
@@ -1034,7 +1024,7 @@ class Account:
 
     def portal_sum_my_matched_redeem_req_holding_token(self, token_id, portal_state_info=None):
         if portal_state_info is None:
-            portal_state_info = Account.SYSTEM.REQUEST_HANDLER.get_latest_portal_state_info()
+            portal_state_info = self.REQ_HANDLER.get_latest_portal_state_info()
 
         sum_amount = portal_state_info.sum_holding_token_matched_redeem_req(token_id, self)
         INFO(f'{l6(self.payment_key)} sum all waiting redeem holding token of {l6(token_id)}: {sum_amount}')
@@ -1042,20 +1032,20 @@ class Account:
 
     def portal_req_unlock_collateral(self, token_id, amount_redeem, redeem_id, proof):
         INFO(f'{l6(self.payment_key)} request unlock collateral: {l6(token_id)} {amount_redeem} {redeem_id}')
-        return Account.SYSTEM.full_node.portal(). \
+        return self.REQ_HANDLER.portal(). \
             create_n_send_tx_with_req_unlock_collateral(self.private_key, self.payment_key, token_id, amount_redeem,
                                                         redeem_id, proof)
 
     def portal_withdraw_reward(self, token_id=PRV_ID):
-        return Account.SYSTEM.full_node.portal(). \
+        return self.REQ_HANDLER.portal(). \
             create_n_send_tx_with_req_withdraw_reward_portal(self.private_key, self.payment_key, token_id)
 
     def portal_get_prv_from_liquidation_pool(self, token_id, token_amount):
-        return Account.SYSTEM.full_node.portal().create_n_send_redeem_liquidation_exchange_rates(
+        return self.REQ_HANDLER.portal().create_n_send_redeem_liquidation_exchange_rates(
             self.private_key, self.payment_key, token_amount, token_id)
 
     def portal_get_my_reward(self, token=None):
-        result = Account.SYSTEM.full_node.portal().get_portal_reward(self.incognito_addr)
+        result = self.REQ_HANDLER.portal().get_portal_reward(self.incognito_addr)
         if token is None:
             rewards = result.get_result()
             rewards = {} if rewards is None else rewards
@@ -1068,11 +1058,12 @@ class Account:
             return 0
 
     def convert_prv_to_v2(self):
-        return Account.SYSTEM.full_node.transaction().create_convert_coin_ver1_to_ver2_transaction(self.private_key)
+        return self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_transaction(
+            self.private_key)
 
     def convert_token_to_v2(self, token_id):
-        return Account.SYSTEM.full_node.transaction().create_convert_coin_ver1_to_ver2_tx_token(self.private_key,
-                                                                                                token_id)
+        return self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_tx_token(self.private_key,
+                                                                                        token_id)
 
     def top_him_up_token_to_amount_if(self, token_id, if_lower_than, top_up_to_amount, accounts_list):
         """
@@ -1093,7 +1084,7 @@ class Account:
             for acc in accounts_list:
                 thread = exc.submit(acc.get_token_balance, token_id)
                 threads[acc] = thread
-        concurrent.futures.wait(threads.values())
+
         for acc, thread in threads.items():
             bal = thread.result()
             if bal <= if_lower_than:
@@ -1119,8 +1110,6 @@ class Account:
             for acc in receiver.keys():
                 threads.append(executor.submit(sub_if_dif_shard, acc, self))
 
-        concurrent.futures.wait(threads)
-
         return send_tx
 
     def top_him_up_prv_to_amount_if(self, if_lower_than, top_up_to_amount, accounts_list):
@@ -1141,7 +1130,7 @@ class Account:
             for acc in accounts_list:
                 thread = exc.submit(acc.get_prv_balance)
                 threads[acc] = thread
-        concurrent.futures.wait(threads.values())
+
         for acc, thread in threads.items():
             bal = thread.result()
             if bal <= if_lower_than:
@@ -1176,6 +1165,20 @@ class AccountGroup:
             if type(acc) is not Account:
                 raise TypeError(f"List member must be an Account object, got {type(acc)} instead ")
         self.account_list: List[Account] = list(accounts)
+        self.__current_index = 0
+
+    def __iter__(self):
+        return iter(self.account_list)
+
+    def __next__(self):
+        if self.__current_index >= len(self.account_list):
+            raise StopIteration
+        else:
+            self.__current_index += 1
+            return self[self.__current_index]
+
+    def __getitem__(self, item):
+        return self.account_list[item]
 
     def get_remote_addr(self, token, custodian_acc=None):
         if custodian_acc is not None:
@@ -1198,12 +1201,11 @@ class AccountGroup:
                 if acc.payment_key == inc_addr:
                     return acc
 
-    def get_accounts_in_shard(self, shard_number: int) -> List[Account]:
+    def get_accounts_in_shard(self, shard_number: int):
         """
         iterate through accounts in account_list, check if they're in the same shard_number
 
         :param shard_number: shard id to check
-        :param account_list: account list to check, by default it's TestData
         :return: list of Account which is in the same shard_number
         """
         INFO(f'Find all accounts in shard {shard_number}')
@@ -1212,7 +1214,22 @@ class AccountGroup:
             if account.shard == shard_number:
                 accounts_in_shard.append(account)
 
-        return accounts_in_shard
+        return AccountGroup(*accounts_in_shard)
+
+    def find_account_by_public_k(self, key):
+        for acc in self.account_list:
+            if acc.public_key == key:
+                return acc
+
+    def get(self, index):
+        return self.account_list[index]
+
+    def __add__(self, other):
+        return AccountGroup(*(self.account_list + other.account_list))
+
+    def change_req_handler(self, HANDLER):
+        for acc in self.account_list:
+            acc.REQ_HANDLER = HANDLER
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:
@@ -1237,14 +1254,3 @@ def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]
 
 PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K)
 COIN_MASTER = Account(DAO_PRIVATE_K)
-
-# if not Account.SYSTEM.is_default():
-#     INFO("CONVERT to COIN V2")
-#     convert_tx = COIN_MASTER.convert_prv_to_v2()
-#     if convert_tx.get_error_msg() == "Method not found":
-#         ChainConfig.PRIVACY_VERSION = 1
-#     elif convert_tx.get_error_msg() == "Can not create tx":
-#         ChainConfig.PRIVACY_VERSION = 2
-#     else:
-#         ChainConfig.PRIVACY_VERSION = 2
-#         convert_tx.subscribe_transaction()

@@ -1,6 +1,5 @@
-import concurrent
-
 from concurrent.futures.thread import ThreadPoolExecutor
+
 from IncognitoChain.Helpers.Logging import STEP
 from IncognitoChain.Helpers.TestHelper import get_beacon_best_state, get_shard_best_state
 from IncognitoChain.TestCases.Staking_Dynamic_Committee_Size import stake_account, \
@@ -28,7 +27,6 @@ def test_self_stake_and_check_committee_public_key_in_beacon_and_shard_best_stat
     stake_at_beacon_height = thread_stake.result()[3]
 
     STEP(2, 'Wait until all threads completed')
-    concurrent.futures.wait(thread_pool)
 
     STEP(3, 'Find committee public key in beacon best state')
     find_committee_public_key_in_beacon_best_state(stake_account, balance_after_staking, thread_beacon.result(),

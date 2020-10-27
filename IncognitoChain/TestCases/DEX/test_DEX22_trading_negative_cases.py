@@ -1,4 +1,3 @@
-import concurrent
 import copy
 import random
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -204,7 +203,7 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
             future = executor.submit(trader.pde_trade_v2, token_sell, trade_amounts[i], token_buy, trading_fees[i],
                                      min_acceptable)
             trade_threads.append(future)
-    concurrent.futures.wait(trade_threads)
+
     INFO(f"Transaction id list")
     for thread in trade_threads:
         tx = thread.result()
@@ -239,9 +238,6 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
             threads_buy[trader] = future_buy
             threads_sell[trader] = future_sell
 
-    concurrent.futures.wait(threads_buy.values())
-    concurrent.futures.wait(threads_sell.values())
-
     STEP(4.2, "Balance summary after trade tx accept")
 
     for i in range(0, len(traders)):
@@ -264,9 +260,6 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
             future_sell = executor.submit(trader.wait_for_balance_change, token_sell, bal_tok_sell_b4[i], -100)
             threads_buy[trader] = future_buy
             threads_sell[trader] = future_sell
-
-    concurrent.futures.wait(threads_buy.values())
-    concurrent.futures.wait(threads_sell.values())
 
     STEP(4.4, "Balance summary after trade returned")
 

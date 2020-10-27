@@ -1,4 +1,3 @@
-import concurrent
 import random
 from concurrent.futures.thread import ThreadPoolExecutor
 
@@ -22,7 +21,6 @@ def setup_function():
             t = executor.submit(user.de_fragment_prv)
             thread_list.append(t)
 
-    concurrent.futures.wait(thread_list)
     WAIT(40)
 
 
@@ -37,7 +35,6 @@ def test_max_tx_in_same_block():
             thread = executor.submit(accounts_send[index].send_prv_to, accounts_receive[index], 234)
             full_node_send_thread.append(thread)
 
-    concurrent.futures.wait(full_node_send_thread)
     # subscribe transaction to make sure all transactions are handled
     for index in range(data_length - 1, -1, -1):
         thread = full_node_send_thread[index]
@@ -104,7 +101,7 @@ def test_x_shard_prv_ptoken_send_with_mix_privacy():
             token_send_threads.append(thread)
 
     STEP(3, 'Wait all sending transaction to complete')
-    concurrent.futures.wait(token_send_threads + prv_send_threads)
+
     send_token_tx = []
     send_prv_tx = []
     with ThreadPoolExecutor() as executor:
@@ -114,7 +111,6 @@ def test_x_shard_prv_ptoken_send_with_mix_privacy():
         for thread in token_send_threads:
             thread = executor.submit(thread.result().subscribe_transaction)
             send_token_tx.append(thread)
-    concurrent.futures.wait(send_token_tx + send_prv_tx)
 
     STEP(4, 'Check if all 20 transactions are in the same block or the next block only')
     block_height = send_prv_tx[0].result().get_block_height()

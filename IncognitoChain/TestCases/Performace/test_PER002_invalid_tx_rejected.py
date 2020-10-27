@@ -1,4 +1,3 @@
-import concurrent
 import math
 from concurrent.futures.thread import ThreadPoolExecutor
 
@@ -47,9 +46,6 @@ def test_max_tx_in_same_block_with_some_fail():
 
             thread = executor.submit(sender_account.send_prv_to, receiver_account, send_amount, )
             dict_tx_save_fullnode[sender_account] = thread
-
-    concurrent.futures.wait(dict_tx_save_fullnode.values())
-    concurrent.futures.wait(dict_tx_save_shard.values())
 
     STEP(3, 'find stuck and success transactions')
     INFO(f'transactions_save_shard: ')

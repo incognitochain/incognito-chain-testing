@@ -227,11 +227,11 @@ class DexRpc:
             with_params([private_k,
                          {BURNING_ADDR: '0'}, -1, 0,
                          {
-                                            "WithdrawerAddressStr": payment_k,
-                                            "WithdrawalToken1IDStr": token1,
-                                            "WithdrawalToken2IDStr": token2,
-                                            "WithdrawalShareAmt": str(amount)
-                                        }]). \
+                             "WithdrawerAddressStr": payment_k,
+                             "WithdrawalToken1IDStr": token1,
+                             "WithdrawalToken2IDStr": token2,
+                             "WithdrawalShareAmt": str(amount)
+                         }]). \
             execute()
 
     def withdraw_reward_v2(self, private_k, payment_k, token1, token2, amount):

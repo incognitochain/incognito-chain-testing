@@ -25,7 +25,7 @@ def test_withdraw_liquidity(withdrawer, token1, token2, percent_of_share_amount_
 
     withdraw_share = int(my_pde_share_b4 * percent_of_share_amount_to_withdraw)
     withdraw_share_actual = min(withdraw_share, my_pde_share_b4)
-    sum_share_of_pair = pde_state_b4_test.sum_share_pool_of_pair(None,token1, token2)
+    sum_share_of_pair = pde_state_b4_test.sum_share_pool_of_pair(None, token1, token2)
     withdraw_amounts = {
         token1: int(withdraw_share_actual * rate_b4[0] / sum_share_of_pair),
         token2: int(withdraw_share_actual * rate_b4[1] / sum_share_of_pair)

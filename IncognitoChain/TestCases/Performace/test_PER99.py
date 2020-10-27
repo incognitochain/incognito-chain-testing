@@ -1,4 +1,3 @@
-import concurrent
 import json
 import random
 import time
@@ -26,7 +25,7 @@ def create_proofs(senders, receivers, tx_fee, tx_privacy):
             sender: Account
             thread = executor.submit(sender.create_tx_proof, receiver, SEND_AMOUNT, tx_fee, tx_privacy)
             thread_list.append(thread)
-            concurrent.futures.wait(thread_list, timeout=180)
+
     for thread in thread_list:
         proof_list.append(thread.result())
     return proof_list
@@ -96,8 +95,6 @@ def test_tx_machine_gun(proof_list):
                 INFO(f"Sleep {GAP_BETWEEN_LOOP}s")
                 time.sleep(GAP_BETWEEN_LOOP)
 
-    concurrent.futures.wait(send_thread_list)
-
     INFO_HEADLINE('Wait 60 for txs to be confirmed')
     WAIT(60)
 
@@ -109,7 +106,6 @@ def test_tx_machine_gun(proof_list):
             tx_hash = response.get_tx_id()
             thread = executor.submit(response.get_transaction_by_hash, )
             block_list[tx_hash] = thread
-        concurrent.futures.wait(block_list.values(), timeout=200)
 
     INFO(f'Wait for subscription complete')
     INFO(f'Waiting done')
