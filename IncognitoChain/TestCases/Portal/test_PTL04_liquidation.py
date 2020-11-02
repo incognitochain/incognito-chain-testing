@@ -19,7 +19,7 @@ def setup_function():
         porting_step.setup_module()
         porting_step.test_create_porting_req_1_1(PBNB_ID, 100, portal_user, None, 1, 'valid')
         global PSI_before_test
-        PSI_before_test = SUT.full_node.get_latest_portal_state_info()
+        PSI_before_test = SUT().get_latest_portal_state_info()
 
 
 @pytest.mark.parametrize("token, percent, waiting_redeem, expected", [
@@ -66,10 +66,10 @@ def test_liquidate(token, percent, waiting_redeem, expected):
     rate_feed_tx = PORTAL_FEEDER.portal_create_exchange_rate({PRV_ID: str(prv_liquidate_rate)})
     rate_feed_tx.subscribe_transaction()
     assert rate_feed_tx.get_error_msg() is None, "Fail to create rate"
-    SUT.full_node.help_wait_till_next_epoch()
+    SUT().help_wait_till_next_epoch()
 
     STEP(2, "Check liquidation pool")
-    PSI_after_test = SUT.full_node.get_latest_portal_state_info()
+    PSI_after_test = SUT().get_latest_portal_state_info()
 
     INFO(f'Rate before')
     PSI_before_test.print_rate()

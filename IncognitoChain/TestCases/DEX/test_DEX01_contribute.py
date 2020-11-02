@@ -19,7 +19,7 @@ def test_contribute(token1, token2):
     pair_id = f'{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
     tok1_contrib_amount = coin(1234)
     tok2_contrib_amount = coin(2134)
-    pde_state_b4_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_b4_test = SUT().get_latest_pde_state_info()
     INFO(f"""
             test_DEX01_contribute:
             - contribute a pair of token {l6(token1)} vs {l6(token2)}
@@ -78,7 +78,7 @@ def test_contribute(token1, token2):
         assert bal_tok2_be4_contrib == bal_tok2_aft_contrib + tok2_contrib_amount
 
     STEP(5, f'Check rate {l6(token1)} vs {l6(token2)}')
-    pde_state_af_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_af_test = SUT().get_latest_pde_state_info()
     rate_after = pde_state_af_test.get_rate_between_token(token1, token2)
     INFO(f'rate {l6(token1)} vs {l6(token2)} = {rate_after}')
     owner_share_amount_after = pde_state_af_test.get_pde_shares_amount(token_owner, token2, token1)

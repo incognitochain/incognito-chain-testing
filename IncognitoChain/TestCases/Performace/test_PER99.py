@@ -89,7 +89,7 @@ def test_tx_machine_gun(proof_list):
     with ThreadPoolExecutor(max_workers=TX_PER_LOOP) as executor:
         for i in range(proof_list_len):
             proof = proof_list[i]
-            thread = executor.submit(SUT.REQUEST_HANDLER.send_proof, proof)
+            thread = executor.submit(SUT().send_proof, proof)
             send_thread_list.append(thread)
             if (i + 1) % TX_PER_LOOP == 0:
                 INFO(f"Sleep {GAP_BETWEEN_LOOP}s")

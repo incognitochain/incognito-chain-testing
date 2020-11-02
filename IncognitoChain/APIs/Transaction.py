@@ -269,7 +269,7 @@ class TransactionRpc:
     def create_and_send_staking_transaction(self, candidate_private_key, candidate_payment_key, candidate_validator_key,
                                             reward_receiver_payment_key, stake_amount=None, auto_re_stake=True):
         if stake_amount is None:
-            stake_amount = 1750000000000
+            stake_amount = ChainConfig.STK_AMOUNT
         return self.rpc_connection. \
             with_method("createandsendstakingtransaction"). \
             with_params([candidate_private_key,

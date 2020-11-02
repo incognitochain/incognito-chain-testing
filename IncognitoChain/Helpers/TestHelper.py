@@ -62,7 +62,7 @@ def extract_incognito_addr(obj):
 class ChainHelper:
     @staticmethod
     def cal_epoch_from_height(height):
-        return height / ChainConfig.BLOCK_PER_EPOCH + 1
+        return height // ChainConfig.BLOCK_PER_EPOCH + 1
 
     @staticmethod
     def cal_first_height_of_epoch(epoch):
@@ -83,7 +83,7 @@ class ChainHelper:
         """
         INFO(f'Waiting till beacon height {beacon_height}')
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        current_beacon_h = SUT.full_node.help_get_beacon_height()
+        current_beacon_h = SUT().help_get_beacon_height()
         if beacon_height <= current_beacon_h:
             INFO(f'Beacon height {beacon_height} is passed already')
             return current_beacon_h
@@ -91,7 +91,7 @@ class ChainHelper:
         while beacon_height > current_beacon_h:
             WAIT(wait)
             timeout -= wait
-            current_beacon_h = SUT.full_node.help_get_beacon_height()
+            current_beacon_h = SUT().help_get_beacon_height()
             if timeout <= 0:
                 INFO(f'Time out and current beacon height is {current_beacon_h}')
                 return current_beacon_h
@@ -109,7 +109,7 @@ class ChainHelper:
         :return:
         """
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        current_beacon_h = SUT.full_node.help_get_beacon_height()
+        current_beacon_h = SUT().help_get_beacon_height()
 
         return ChainHelper.wait_till_beacon_height(current_beacon_h + num_of_beacon_height_to_wait, wait, timeout)
 
@@ -124,7 +124,7 @@ class ChainHelper:
         :return:
         """
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        current_shard_h = SUT.full_node.help_get_shard_height(shard_id)
+        current_shard_h = SUT().help_get_shard_height(shard_id)
         shard_height = current_shard_h + num_of_shard_height_to_wait
         INFO(f'Waiting till shard {shard_id} height {shard_height}')
 
@@ -135,7 +135,7 @@ class ChainHelper:
         while shard_height > current_shard_h:
             WAIT(wait)
             timeout -= wait
-            current_shard_h = SUT.full_node.help_get_shard_height(shard_id)
+            current_shard_h = SUT().help_get_shard_height(shard_id)
             if timeout <= 0:
                 INFO(f'Time out and current shard {shard_id} height is {current_shard_h}')
                 return current_shard_h
@@ -155,7 +155,7 @@ class ChainHelper:
         from IncognitoChain.Objects.IncognitoTestCase import SUT
 
         INFO(f'Wait until epoch {epoch_wait}, check every {check_interval}s, timeout {timeout}s')
-        blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
+        blk_chain_info = SUT().get_block_chain_info()
         current_epoch = blk_chain_info.get_beacon_block().get_epoch()
         epoch_wait = current_epoch + 1 if epoch_wait is None else epoch_wait
         if current_epoch >= epoch_wait:
@@ -163,7 +163,7 @@ class ChainHelper:
         time_start = time.perf_counter()
         while current_epoch < epoch_wait:
             WAIT(check_interval)
-            blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
+            blk_chain_info = SUT().get_block_chain_info()
             current_epoch = blk_chain_info.get_beacon_block().get_epoch()
             if current_epoch == epoch_wait:
                 INFO(f"Now epoch = {current_epoch}")
@@ -408,10 +408,10 @@ def get_beacon_best_state_detail(number_of_beacon_height_to_get=100, wait=5, tim
     from IncognitoChain.Objects.IncognitoTestCase import SUT
     list_beacon_best_state_detail_objs = []
     for i in range(1, number_of_beacon_height_to_get + 1):
-        list_beacon_best_state_detail_objs.append(SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info())
+        list_beacon_best_state_detail_objs.append(SUT().get_beacon_best_state_detail_info())
         # Waiting till beacon height increase
         ChainHelper.wait_till_next_beacon_height(num_of_beacon_height_to_wait=1, wait=wait, timeout=timeout)
-        list_beacon_best_state_detail_objs.append(SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info())
+        list_beacon_best_state_detail_objs.append(SUT().get_beacon_best_state_detail_info())
     return list_beacon_best_state_detail_objs
 
 
@@ -427,11 +427,11 @@ def get_shard_best_state_detail(shard_id, number_of_shard_height_to_get=100, wai
     from IncognitoChain.Objects.IncognitoTestCase import SUT
     list_shard_best_state_detail_objs = []
     for i in range(1, number_of_shard_height_to_get + 1):
-        list_shard_best_state_detail_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_detail_info(shard_id))
+        list_shard_best_state_detail_objs.append(SUT().get_shard_best_state_detail_info(shard_id))
         # Waiting till shard height increase
         ChainHelper.wait_till_next_shard_height(shard_id=shard_id, num_of_shard_height_to_wait=1, wait=wait,
                                                 timeout=timeout)
-        list_shard_best_state_detail_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_detail_info(shard_id))
+        list_shard_best_state_detail_objs.append(SUT().get_shard_best_state_detail_info(shard_id))
     return list_shard_best_state_detail_objs
 
 
@@ -446,10 +446,10 @@ def get_beacon_best_state(number_of_beacon_height_to_get=100, wait=5, timeout=50
     from IncognitoChain.Objects.IncognitoTestCase import SUT
     list_beacon_best_state_objs = []
     for i in range(1, number_of_beacon_height_to_get + 1):
-        list_beacon_best_state_objs.append(SUT.REQUEST_HANDLER.get_beacon_best_state_info())
+        list_beacon_best_state_objs.append(SUT().get_beacon_best_state_info())
         # Waiting till beacon height increase
         ChainHelper.wait_till_next_beacon_height(num_of_beacon_height_to_wait=1, wait=wait, timeout=timeout)
-        list_beacon_best_state_objs.append(SUT.REQUEST_HANDLER.get_beacon_best_state_info())
+        list_beacon_best_state_objs.append(SUT().get_beacon_best_state_info())
     return list_beacon_best_state_objs
 
 
@@ -465,9 +465,9 @@ def get_shard_best_state(shard_id, number_of_shard_height_to_get=100, wait=5, ti
     from IncognitoChain.Objects.IncognitoTestCase import SUT
     list_shard_best_state_objs = []
     for i in range(1, number_of_shard_height_to_get + 1):
-        list_shard_best_state_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_info(shard_id))
+        list_shard_best_state_objs.append(SUT().get_shard_best_state_info(shard_id))
         # Waiting till shard height increase
         ChainHelper.wait_till_next_shard_height(shard_id=shard_id, num_of_shard_height_to_wait=1, wait=wait,
                                                 timeout=timeout)
-        list_shard_best_state_objs.append(SUT.REQUEST_HANDLER.get_shard_best_state_info(shard_id))
+        list_shard_best_state_objs.append(SUT().get_shard_best_state_info(shard_id))
     return list_shard_best_state_objs

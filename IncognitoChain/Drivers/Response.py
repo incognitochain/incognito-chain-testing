@@ -55,11 +55,6 @@ class Response:
             return None
         return self.response.elapsed.total_seconds()  # response from rpc
 
-    def is_success(self):
-        if self.data()['Error'] is None:
-            return True
-        return False
-
     def get_error_trace(self):
         if self.data()['Error'] is None:
             return ''
@@ -159,7 +154,7 @@ class Response:
         INFO(f'Subscribe to transaction tx_id = {tx_id}')
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         from IncognitoChain.Objects.TransactionObjects import TransactionDetail
-        tx = SUT.full_node.subscription().subscribe_pending_transaction(tx_id)
+        tx = SUT().subscription().subscribe_pending_transaction(tx_id)
         return TransactionDetail(tx.get_result('Result'))
 
     def is_transaction_v2_error_appears(self):

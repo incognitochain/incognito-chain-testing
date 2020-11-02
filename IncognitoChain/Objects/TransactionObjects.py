@@ -281,7 +281,7 @@ class TransactionDetail(BlockChainInfoBaseClass):
         if tx_hash is None:
             tx_hash = self.get_tx_id()
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.REQUEST_HANDLER.transaction().get_tx_by_hash(tx_hash).get_result()
+        self.data = SUT().transaction().get_tx_by_hash(tx_hash).get_result()
         return self
 
     def __verify_privacy(self, privacy_flag, detail_proof, expected_privacy=True):

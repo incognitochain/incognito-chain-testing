@@ -49,16 +49,16 @@ class PortingReqInfo(_PortalInfoBase):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         INFO()
         INFO(f'Get porting req info, tx_id = {tx_id}')
-        response = SUT.full_node.portal().get_portal_porting_req_by_key(tx_id)
+        response = SUT().portal().get_portal_porting_req_by_key(tx_id)
         if self.is_none() and retry:
             WAIT(40)
-            response = SUT.full_node.portal().get_portal_porting_req_by_key(tx_id)
+            response = SUT().portal().get_portal_porting_req_by_key(tx_id)
         self.data = response.get_result('PortingRequest')
         return self
 
     def get_porting_req_by_porting_id(self, porting_id):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_portal_porting_req_by_porting_id(porting_id).get_result(
+        self.data = SUT().portal().get_portal_porting_req_by_porting_id(porting_id).get_result(
             'PortingRequest')
         return self
 
@@ -126,18 +126,18 @@ class RedeemReqInfo(_PortalInfoBase):
 
     def get_redeem_status_by_redeem_id(self, redeem_id, retry=True):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_portal_redeem_status(redeem_id).get_result()
+        self.data = SUT().portal().get_portal_redeem_status(redeem_id).get_result()
         if self.is_none() and retry:
             WAIT(40)
-            self.data = SUT.full_node.portal().get_portal_redeem_status(redeem_id).get_result()
+            self.data = SUT().portal().get_portal_redeem_status(redeem_id).get_result()
         return self
 
     def get_req_matching_redeem_status(self, tx_id, retry=True):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_req_matching_redeem_status(tx_id).get_result()
+        self.data = SUT().portal().get_req_matching_redeem_status(tx_id).get_result()
         if self.is_none() and retry:
             WAIT(40)
-            self.data = SUT.full_node.portal().get_req_matching_redeem_status(tx_id).get_result()
+            self.data = SUT().portal().get_req_matching_redeem_status(tx_id).get_result()
         return self
 
     def get_redeem_matching_custodians(self):
@@ -193,7 +193,7 @@ class RedeemMatchingInfo(_PortalInfoBase):
 
     def get_matching_info_by_tx(self, tx_id):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        response = SUT.REQUEST_HANDLER.portal().get_req_matching_redeem_status(tx_id)
+        response = SUT().portal().get_req_matching_redeem_status(tx_id)
         self.data = response.get_result()
         return self
 
@@ -202,7 +202,7 @@ class PTokenReqInfo(_PortalInfoBase):
 
     def get_ptoken_req_by_tx_id(self, tx_id):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_portal_req_ptoken_status(tx_id).get_result()
+        self.data = SUT().portal().get_portal_req_ptoken_status(tx_id).get_result()
         return self
 
 
@@ -327,7 +327,7 @@ class PortalStateInfo(_PortalInfoBase):
 
         def wait_my_lock_collateral_to_change(self, token_id, from_amount=None, check_rate=30, timeout=180):
             from IncognitoChain.Objects.IncognitoTestCase import SUT
-            portal_state_info = SUT.full_node.get_latest_portal_state_info()
+            portal_state_info = SUT().get_latest_portal_state_info()
             my_new_status = portal_state_info.get_custodian_info_in_pool(self)
 
             if my_new_status is None:
@@ -340,7 +340,7 @@ class PortalStateInfo(_PortalInfoBase):
             current_collateral = collateral_before
             time = 0
             while current_collateral == collateral_before:
-                portal_state_info = SUT.full_node.get_latest_portal_state_info()
+                portal_state_info = SUT().get_latest_portal_state_info()
                 my_new_status = portal_state_info.get_custodian_info_in_pool(self)
                 if time >= timeout:
                     INFO(f'Lock collateral does not change in the last {time}s')
@@ -1004,10 +1004,10 @@ class PortalStateInfo(_PortalInfoBase):
 class UnlockCollateralReqInfo(_PortalInfoBase):
     def get_unlock_collateral_req_stat(self, tx_id, retry=True):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_portal_req_unlock_collateral_status(tx_id).get_result()
+        self.data = SUT().portal().get_portal_req_unlock_collateral_status(tx_id).get_result()
         if self.is_none() and retry:
             WAIT(40)
-            self.data = SUT.full_node.portal().get_portal_req_unlock_collateral_status(tx_id).get_result()
+            self.data = SUT().portal().get_portal_req_unlock_collateral_status(tx_id).get_result()
         return self
 
     def get_unlock_amount(self):
@@ -1019,10 +1019,10 @@ class DepositTxInfo(_PortalInfoBase):
 
     def get_deposit_info(self, tx_id, retry=True):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_portal_custodian_deposit_status(tx_id).get_result()
+        self.data = SUT().portal().get_portal_custodian_deposit_status(tx_id).get_result()
         if self.is_none() and retry:
             WAIT(40)
-            self.data = SUT.full_node.portal().get_portal_custodian_deposit_status(tx_id).get_result()
+            self.data = SUT().portal().get_portal_custodian_deposit_status(tx_id).get_result()
         return self
 
     def get_deposited_amount(self):
@@ -1036,10 +1036,10 @@ class CustodianWithdrawTxInfo(_PortalInfoBase):
 
     def get_custodian_withdraw_info_by_tx(self, tx_id, retry=True):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        response = SUT.full_node.portal().get_custodian_withdraw_by_tx_id(tx_id)
+        response = SUT().portal().get_custodian_withdraw_by_tx_id(tx_id)
         if response.get_error_msg() is not None and retry:
             WAIT(40)
-            response = SUT.full_node.portal().get_custodian_withdraw_by_tx_id(tx_id)
+            response = SUT().portal().get_custodian_withdraw_by_tx_id(tx_id)
         self.data = response.get_result()[CustodianWithdrawTxInfo._info]
         return self
 
@@ -1057,10 +1057,10 @@ class RewardWithdrawTxInfo(_PortalInfoBase):
 
     def get_reward_info_by_tx_id(self, tx_id, retry=True):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT.full_node.portal().get_request_withdraw_portal_reward_status(tx_id).get_result()
+        self.data = SUT().portal().get_request_withdraw_portal_reward_status(tx_id).get_result()
         if self.is_none() and retry:
             WAIT(40)
-            self.data = SUT.full_node.portal().get_request_withdraw_portal_reward_status(tx_id).get_result()
+            self.data = SUT().portal().get_request_withdraw_portal_reward_status(tx_id).get_result()
         return self
 
     def get_custodian_addr_str(self):

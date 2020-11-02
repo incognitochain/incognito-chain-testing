@@ -18,7 +18,7 @@ def test_contribute_prv(token1, token2):
     pair_id = f'{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
     tok1_contrib_amount = coin(1234)
     tok2_contrib_amount = coin(2134)
-    pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_b4 = SUT().get_latest_pde_state_info()
     INFO(f"""
             test_DEX01_contribute:
             - contribute a pair of token {l6(token1)} vs {l6(token2)}
@@ -73,7 +73,7 @@ def test_contribute_prv(token1, token2):
 
     STEP(5, f'Check rate {l6(token1)} vs {l6(token2)}')
     ChainHelper.wait_till_next_beacon_height(2)
-    pde_state_af = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_af = SUT().get_latest_pde_state_info()
     rate_after = pde_state_af.get_rate_between_token(token2, token1)
     INFO(f'rate {l6(token1)} vs {l6(token2)} = {rate_after}')
     owner_share_amount_after = pde_state_af.get_pde_shares_amount(token_owner, token2, token1)
@@ -100,7 +100,7 @@ def test_contribute_prv(token1, token2):
     api_return_tok1 = contribution_status.get_return_amount_2()
     api_return_tok2 = contribution_status.get_return_amount_1()
 
-    # contribution_status = SUT.full_node.dex().get_contribution_status(pair_id)
+    # contribution_status = SUT().dex().get_contribution_status(pair_id)
     # api_contrib_tok1 = contribution_status.get_contributed_2_amount()
     # api_contrib_tok2 = contribution_status.get_contributed_1_amount()
     # api_return_tok1 = contribution_status.get_returned_2_amount()

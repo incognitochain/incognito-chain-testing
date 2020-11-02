@@ -36,6 +36,9 @@ class TestBed:
             self.shards: List[Shard] = []
             TestBed.REQUEST_HANDLER = self.full_node
 
+    def __call__(self, *args, **kwargs):
+        return TestBed.REQUEST_HANDLER
+
     def precondition_check(self):
         Log.INFO(f'Checking test bed')
         return self

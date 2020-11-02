@@ -36,7 +36,7 @@ def setup_function():
         ["n shard", token_id_1, token_id_2],
 ))
 def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
-    pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_b4 = SUT().get_latest_pde_state_info()
     if not pde_state_b4.is_trading_pair_v2_is_possible(token_buy, token_sell):
         pytest.skip('Pool pair missing, can not trade')
 
@@ -179,7 +179,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     assert estimate_bal_buy_after_list == balance_tok_buy_after
 
     STEP(6, f"Verify rate {l6(token_sell)} vs {l6(token_buy)}")
-    pde_state_af = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_af = SUT().get_latest_pde_state_info()
     rate_after = pde_state_af.get_rate_between_token(token_sell, token_buy)
     INFO(f"rate {l6(token_sell)} vs {l6(token_buy)} - After Trade  : {rate_after}")
     if token_buy == PRV_ID or token_sell == PRV_ID:

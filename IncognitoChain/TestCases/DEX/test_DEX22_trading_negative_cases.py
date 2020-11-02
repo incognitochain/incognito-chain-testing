@@ -19,7 +19,7 @@ pde_state_b4 = PDEStateInfo()
 def setup_function():
     global pde_state_b4
     STEP(0, "Get pde state b4 test")
-    pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_b4 = SUT().get_latest_pde_state_info()
 
 
 @pytest.mark.parametrize('trader,token', [
@@ -41,7 +41,7 @@ def test_trade_same_token(trader, token):
 
     ChainHelper.wait_till_next_epoch()
     STEP(3, 'Compare PDE state before and after test')
-    pde_state_after = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_after = SUT().get_latest_pde_state_info()
     assert pde_state_b4 == pde_state_after
 
 
@@ -56,7 +56,7 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
     trading_fee = max(1, trade_amount // 100)
 
     STEP(0, 'Check balance before trade and token pair is not existed in pool')
-    pde = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde = SUT().get_latest_pde_state_info()
     if pde.is_trading_pair_v2_is_possible(token_sell, token_buy):
         pytest.skip(f"trade possible due to prv-token pair is exist")
     bal_tok_sell_b4 = trader.get_token_balance(token_sell)
@@ -92,7 +92,7 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
         assert bal_tok_sell_returned == bal_tok_sell_b4
 
     STEP(6, "Verify PDEstate will not change")
-    pde_state_af = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_af = SUT().get_latest_pde_state_info()
     assert pde_state_b4 == pde_state_af
 
 

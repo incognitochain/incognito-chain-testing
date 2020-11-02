@@ -25,7 +25,7 @@ P_TOKEN_INIT_AMOUNT = coin(40000)
 def test_01_block_chain_info():
     print('\n')
     STEP(1, 'Check blockchain info: Beacon best state detail')
-    beacon_bsd = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    beacon_bsd = SUT().get_beacon_best_state_detail_info()
     epoch = beacon_bsd.get_epoch()
     INFO(f'Current epoch in block chain info is {epoch}')
     assert epoch > 0, 'epoch must be > 0'
@@ -42,7 +42,7 @@ def test_01_block_chain_info():
     """)
 
     STEP(2, 'Check blockchain info: Get block chain info')
-    blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
+    blk_chain_info = SUT().get_block_chain_info()
     beacon_info = blk_chain_info.get_beacon_block()
     INFO(f'\tEpoch in beacon block: {beacon_info.get_epoch()}')
     assert beacon_info.get_epoch() >= 1, 'epoch must >= 1'
@@ -96,7 +96,7 @@ def est_03_portal():
     STEP(1, 'Portal: deposit collateral')
     deposit_amount = coin(1)
     bal_b4 = account_0.get_prv_balance()
-    psi_b4 = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    psi_b4 = SUT().get_latest_portal_state_info()
     deposit_tx = account_0.portal_make_me_custodian(deposit_amount, PBNB_ID). \
         expect_no_error().subscribe_transaction()
     deposit_info = DepositTxInfo().get_deposit_info(deposit_tx.get_tx_id())
@@ -104,7 +104,7 @@ def est_03_portal():
     INFO(f'Deposit status is: {deposit_info.get_status()}')
     assert deposit_info.get_status() == Status.Portal.DepositStatus.ACCEPT
     assert bal_b4 - deposit_amount - deposit_tx.get_fee() == bal_af
-    psi_af = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    psi_af = SUT().get_latest_portal_state_info()
     custodian_info_b4 = psi_b4.get_custodian_info_in_pool(account_0)
     custodian_info_af = psi_af.get_custodian_info_in_pool(account_0)
 
@@ -120,14 +120,14 @@ def est_03_portal():
 
     rate_tx = PORTAL_FEEDER.portal_create_exchange_rate(portal_rate_to_change).expect_no_error()
     ChainHelper.wait_till_next_beacon_height(num_of_beacon_height_to_wait=2)
-    psi_new_rate = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    psi_new_rate = SUT().get_latest_portal_state_info()
     for token, rate in portal_rate_to_change.items():
         new_rate = psi_new_rate.get_portal_rate(token)
         INFO(f'New rate of {l6(token)} = {new_rate}')
         assert int(rate) == new_rate
 
     STEP(3, 'Portal: Register a porting')
-    psi_b4 = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    psi_b4 = SUT().get_latest_portal_state_info()
     porting_amount = 100
     porting_token = PBNB_ID
     estimated_collateral = psi_b4.estimate_collateral(porting_amount, porting_token)
@@ -138,7 +138,7 @@ def est_03_portal():
     porting_info = PortingReqInfo().get_porting_req_by_tx_id(porting_tx.get_hash())
     bal_af = account_1.get_prv_balance()
     assert bal_b4 - porting_tx.get_fee() - porting_info.get_porting_fee() == bal_af
-    psi_af = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    psi_af = SUT().get_latest_portal_state_info()
     custodian = porting_info.get_custodians()[0]  # assume there's only one matched custodian since the amount is small
     custodian_info_b4 = psi_b4.get_custodian_info_in_pool(custodian)
     custodian_info_af = psi_af.get_custodian_info_in_pool(custodian)
@@ -153,7 +153,7 @@ def est_03_portal():
 @pytest.mark.dependency()
 def test_04_staking(stake_funder, the_staked, auto_stake):
     STEP(0.1, 'Check current fixed validators to make sure that this test wont be running on testnet')
-    beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    beacon_state = SUT().get_beacon_best_state_detail_info()
     all_shard_committee = beacon_state.get_shard_committees()
     list_fixed_validator_public_k = []
     for shard, committees in fixed_validators.items():
@@ -175,7 +175,7 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), auto_stake_list + [stake_funder, the_staked])
 
     STEP(0.3, 'Stake and wait till becoming committee')
-    beacon_bsd = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    beacon_bsd = SUT().get_beacon_best_state_detail_info()
     for committee in auto_stake_list:
         if beacon_bsd.is_he_a_committee(committee) is False:
             committee.stake_and_reward_me()
@@ -183,23 +183,23 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
     for committee in auto_stake_list:
         committee.stk_wait_till_i_am_committee()
 
-    epoch = SUT.full_node.system_rpc().help_get_current_epoch()
-    SUT.full_node.system_rpc().help_wait_till_epoch(epoch + 2)
+    epoch = SUT().system_rpc().help_get_current_epoch()
+    SUT().system_rpc().help_wait_till_epoch(epoch + 2)
 
     STEP(0.4, "Verify environment, 6 node per shard")
-    number_committee_shard_0 = SUT.full_node.help_count_committee_in_shard(0, refresh_cache=True)
-    number_committee_shard_1 = SUT.full_node.help_count_committee_in_shard(1, refresh_cache=False)
+    number_committee_shard_0 = SUT().help_count_committee_in_shard(0, refresh_cache=True)
+    number_committee_shard_1 = SUT().help_count_committee_in_shard(1, refresh_cache=False)
     assert number_committee_shard_0 == 6, f"shard 0: {number_committee_shard_0} committee"
     assert number_committee_shard_1 == 6, f"shard 1: {number_committee_shard_1} committee"
 
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), stake_funder)
     STEP(0, 'check if the staked is already a committee')
-    beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    beacon_state = SUT().get_beacon_best_state_detail_info()
     if beacon_state.is_he_a_committee(the_staked):
         pytest.skip("User is already a committee, skip the test")
 
     STEP(1, 'Get epoch number')
-    blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
+    blk_chain_info = SUT().get_block_chain_info()
     beacon_height = blk_chain_info.get_beacon_block().get_height()
     epoch_number = blk_chain_info.get_beacon_block().get_epoch()
 
@@ -207,7 +207,7 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
         # -1 just to be sure that staking will be successful
         INFO(f'block height % block per epoch = {beacon_height % ChainConfig.BLOCK_PER_EPOCH}')
         WAIT((ChainConfig.BLOCK_PER_EPOCH - (beacon_height % ChainConfig.BLOCK_PER_EPOCH)) * 10)
-        blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
+        blk_chain_info = SUT().get_block_chain_info()
         beacon_height = blk_chain_info.get_beacon_block().get_height()
         epoch_number = blk_chain_info.get_beacon_block().get_epoch()
 
@@ -222,7 +222,7 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
 
     STEP(3, f'Wait until epoch {epoch_number} + n and Check if the stake become a committee')
     epoch_plus_n = the_staked.stk_wait_till_i_am_committee()
-    beacon_bsd = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    beacon_bsd = SUT().get_beacon_best_state_detail_info()
     staked_shard = beacon_bsd.is_he_a_committee(the_staked)
     assert staked_shard is not False
 

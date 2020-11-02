@@ -32,7 +32,7 @@ def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
     prv_bal_be4 = portal_user.get_prv_balance()
     tok_bal_be4 = portal_user.get_token_balance(token)
     test_redeem_amount = TEST_SETTING_REDEEM_AMOUNT
-    PSI_before_test = SUT.full_node.get_latest_portal_state_info()
+    PSI_before_test = SUT().get_latest_portal_state_info()
     highest_holding_custodian = PSI_before_test.help_get_highest_holding_token_custodian(token)
 
     STEP(1.1, 'Create redeem req')
@@ -59,7 +59,7 @@ def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
 
     if expected == 'valid':
         assert redeem_info.get_status() == Status.Portal.RedeemStatus.WAITING
-        SUT.full_node.get_latest_portal_state_info()
+        SUT().get_latest_portal_state_info()
     else:
         assert redeem_info.data is None
 
@@ -82,7 +82,7 @@ def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
         redeem_info_b4_re_match = redeem_info.get_redeem_status_by_redeem_id(redeem_id)
         custodian_b4_re_match = redeem_info_b4_re_match.get_redeem_matching_custodians()[
             0].get_incognito_addr()
-        PSI_after_match = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+        PSI_after_match = SUT().get_latest_portal_state_info()
         matched_redeem_reqs = PSI_after_match.get_redeem_matched_req(token)
         assert redeem_id in [matched_redeem_req.get_redeem_id() for matched_redeem_req in matched_redeem_reqs], \
             f'Not found redeem id {redeem_id} in matched list'
@@ -103,7 +103,7 @@ def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
         assert custodian_af_re_match == custodian_b4_re_match
 
         STEP(4, 'Custodian send BNB to user')
-        SUT.full_node.get_latest_portal_state_info()
+        SUT().get_latest_portal_state_info()
         redeem_info.get_redeem_status_by_redeem_id(redeem_id)
         custodian_incognito_addr = redeem_info.get_redeem_matching_custodians()[0].get_incognito_addr()
         memo = (redeem_id, redeem_info.get_redeem_matching_custodians()[0].get_incognito_addr())
@@ -169,7 +169,7 @@ def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
 def test_create_redeem_req_1_n(token):
     STEP(0, "before test")
 
-    PSI_before_test = SUT.full_node.get_latest_portal_state_info()
+    PSI_before_test = SUT().get_latest_portal_state_info()
     highest_holding_token_custodian_in_pool = PSI_before_test.help_get_highest_holding_token_custodian(token)
     pbnb_rate = PSI_before_test.get_portal_rate(token)
     prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
@@ -194,7 +194,7 @@ def test_create_redeem_req_1_n(token):
     tx_fee = tx_block.get_fee()
     tx_size = tx_block.get_tx_size()
     redeem_id = redeem_req_tx.params().get_portal_redeem_req_id()
-    PSI_after_porting_req = SUT.full_node.get_latest_portal_state_info()
+    PSI_after_porting_req = SUT().get_latest_portal_state_info()
     STEP(1.2, 'Check tx fee and redeem fee')
     assert prv_bal_be4_test - redeem_fee - tx_fee == portal_user.get_prv_balance()
 

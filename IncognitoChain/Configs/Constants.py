@@ -1,6 +1,6 @@
 class ChainConfig:
-    BLOCK_PER_EPOCH = 10
-    RANDOM_TIME = 5
+    BLOCK_PER_EPOCH = 20
+    RANDOM_TIME = 10
     BLOCK_TIME = 10
     BASIC_REWARD_PER_BLOCK = 400000000
     DAO_REWARD_PERCENT = 0.1
@@ -8,6 +8,7 @@ class ChainConfig:
     FIX_BLOCK_VALIDATOR = 4
     SHARD_COMMITTEE_SIZE = 6
     PRIVACY_VERSION = 1
+    STK_AMOUNT = 1750000000000
 
     class Portal:
         COLLATERAL_PERCENT = 1.5
@@ -19,6 +20,10 @@ class ChainConfig:
 
     class Dex:
         MIN_PRV_IN_POOL_FOR_TOKEN_FEE = 10000000000000
+
+    @staticmethod
+    def is_first_height_of_epoch(height):
+        return height % ChainConfig.BLOCK_PER_EPOCH == 1
 
 
 BURNING_ADDR = \

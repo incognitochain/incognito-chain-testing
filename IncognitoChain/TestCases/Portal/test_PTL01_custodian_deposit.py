@@ -196,7 +196,7 @@ def test_update_remote_address(custodian, token, total_collateral_precondition, 
 ])
 def test_with_draw_collateral(custodian):
     STEP(0, "Get collateral")
-    PSI = SUT.full_node.get_latest_portal_state_info()
+    PSI = SUT().get_latest_portal_state_info()
     custodian_info = PSI.get_custodian_info_in_pool(custodian)
     my_free_collateral = custodian_info.get_free_collateral()
     my_total_collateral = custodian_info.get_total_collateral()
@@ -244,7 +244,7 @@ def test_creating_rate(account, expected_pass):
         PRV_ID: 100
     }
     STEP(0, 'Get portal state before test')
-    portal_state_info_before = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    portal_state_info_before = SUT().get_latest_portal_state_info()
 
     STEP(1, "Create rate")
     create_rate_tx = account.portal_create_exchange_rate(test_rate)
@@ -253,7 +253,7 @@ def test_creating_rate(account, expected_pass):
         create_rate_tx.subscribe_transaction()
         INFO("Wait 60s for new rate to apply")
         WAIT(60)
-        portal_state_info = SUT.full_node.get_latest_portal_state_info()
+        portal_state_info = SUT().get_latest_portal_state_info()
         INFO('Checking new rate')
         for token, value in test_rate.items():
             new_rate = portal_state_info.get_portal_rate(token)
@@ -264,7 +264,7 @@ def test_creating_rate(account, expected_pass):
     else:
         create_rate_tx.expect_error()
         INFO(f"error: {create_rate_tx.get_error_trace().get_message()}")
-        portal_state_info = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+        portal_state_info = SUT().get_latest_portal_state_info()
         assert portal_state_info_before.get_portal_rate() == portal_state_info.get_portal_rate()
 
 
@@ -274,15 +274,15 @@ def test_creating_rate(account, expected_pass):
 ])
 def test_calculating_porting_fee(token):
     test_amount = random.randrange(1, 1000000000)
-    beacon_height = SUT.REQUEST_HANDLER.help_get_beacon_height()
+    beacon_height = SUT().help_get_beacon_height()
 
     STEP(0, 'Get portal state before test')
-    portal_state_info_before = SUT.REQUEST_HANDLER.get_latest_portal_state_info(beacon_height)
+    portal_state_info_before = SUT().get_latest_portal_state_info(beacon_height)
     bnb_rate = portal_state_info_before.get_portal_rate(token)
     prv_rate = portal_state_info_before.get_portal_rate(PRV_ID)
 
     STEP(1, f"Get portal fee with amount = {test_amount}")
-    portal_fee_from_chain = SUT.full_node.portal().get_porting_req_fees(token, test_amount, beacon_height). \
+    portal_fee_from_chain = SUT().portal().get_porting_req_fees(token, test_amount, beacon_height). \
         get_result(token)
     portal_fee_estimate = PortalHelper.cal_portal_portal_fee(test_amount, bnb_rate, prv_rate)
 

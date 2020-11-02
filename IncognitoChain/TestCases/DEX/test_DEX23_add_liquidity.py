@@ -20,7 +20,7 @@ def setup_function():
                  marks=pytest.mark.xfail(reason="there's no token-token in dex v2")),
 ])
 def test_add_liquidity_v2(contributors, contribute_percent_of_bal_tok2, token1, token2):
-    pde_state_b4_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_b4_test = SUT().get_latest_pde_state_info()
     rate_b4_test = pde_state_b4_test.get_rate_between_token(token1, token2)
     INFO_HEADLINE(f'Test tokens: {l6(token1)}:{l6(token2)}. Rate {rate_b4_test}')
     contributor_balance_tok1_b4 = {}
@@ -59,7 +59,7 @@ def test_add_liquidity_v2(contributors, contribute_percent_of_bal_tok2, token1, 
 
     STEP(2, f'Wait 40s then verify contribution {l6(token1)} is in waiting list')
     WAIT(40)
-    pde_state_after_contribute = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_after_contribute = SUT().get_latest_pde_state_info()
     for acc in contributors:
         pair_id = pair_ids[acc]
         assert pde_state_after_contribute.find_waiting_contribution_of_user(acc, pair_id, token1) != []
@@ -74,7 +74,7 @@ def test_add_liquidity_v2(contributors, contribute_percent_of_bal_tok2, token1, 
 
     STEP(4, f'Wait 50s then verify {l6(token1)} is no longer in waiting list')
     WAIT(50)
-    pde_state_after_test = SUT.full_node.get_latest_pde_state_info()
+    pde_state_after_test = SUT().get_latest_pde_state_info()
     for acc in contributors:
         pair_id = pair_ids[acc]
         assert pde_state_after_test.find_waiting_contribution_of_user(acc, pair_id, token1) == []

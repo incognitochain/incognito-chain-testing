@@ -60,14 +60,14 @@ def setup_module():
                                             custodian_remote_addr.get_accounts())
     COIN_MASTER.top_him_up_prv_to_amount_if(100, coin(1), PORTAL_FEEDER)
     INFO("Check rate")
-    PSI_current = SUT.full_node.get_latest_portal_state_info()
+    PSI_current = SUT().get_latest_portal_state_info()
     for k, v in init_portal_rate.items():
         if PSI_current.get_portal_rate(k) != int(v):
             INFO("Create portal rate")
             create_rate_tx = PORTAL_FEEDER.portal_create_exchange_rate(init_portal_rate)
             create_rate_tx.expect_no_error()
             create_rate_tx.subscribe_transaction()
-            SUT.full_node.help_wait_till_next_epoch()
+            SUT().help_wait_till_next_epoch()
             break
 
     global fat_custodian, big_collateral, fat_custodian_prv
@@ -85,7 +85,7 @@ def setup_module():
 
 def noteardown_module():
     INFO_HEADLINE(f'TEST MODULE TEAR DOWN: Withdraw all free collateral')
-    PSI = SUT.full_node.get_latest_portal_state_info()
+    PSI = SUT().get_latest_portal_state_info()
     for cus in custodian_remote_addr.get_accounts():
         cus_stat = PSI.get_custodian_info_in_pool(cus)
         if cus_stat is not None:
@@ -101,4 +101,4 @@ def noteardown_module():
 
 def setup_function():
     INFO_HEADLINE('Portal Info before test')
-    SUT.full_node.get_latest_portal_state_info().print_state()
+    SUT().get_latest_portal_state_info().print_state()

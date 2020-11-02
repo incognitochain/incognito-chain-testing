@@ -34,7 +34,7 @@ def test_staking(the_stake, the_staked, auto_re_stake):
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), the_stake)
     INFO(f'Run test with token: {token_id}')
     STEP(1, 'Get epoch number')
-    blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
+    blk_chain_info = SUT().get_block_chain_info()
     beacon_height = blk_chain_info.get_beacon_block().get_height()
     epoch_number = blk_chain_info.get_beacon_block().get_epoch()
 
@@ -42,7 +42,7 @@ def test_staking(the_stake, the_staked, auto_re_stake):
         # -1 just to be sure that staking will be successful
         INFO(f'block height % block per epoch = {beacon_height % ChainConfig.BLOCK_PER_EPOCH}')
         WAIT((ChainConfig.BLOCK_PER_EPOCH - (beacon_height % ChainConfig.BLOCK_PER_EPOCH)) * 10)
-        blk_chain_info = SUT.REQUEST_HANDLER.get_block_chain_info()
+        blk_chain_info = SUT().get_block_chain_info()
         beacon_height = blk_chain_info.get_beacon_block().get_height()
         epoch_number = blk_chain_info.get_beacon_block().get_epoch()
 
@@ -57,7 +57,7 @@ def test_staking(the_stake, the_staked, auto_re_stake):
 
     STEP(3, f'Wait until epoch {epoch_number} + n and Check if the stake become a committee')
     epoch_plus_n = the_staked.stk_wait_till_i_am_committee()
-    beacon_bsd = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    beacon_bsd = SUT().get_beacon_best_state_detail_info()
     staked_shard = beacon_bsd.is_he_a_committee(the_staked)
     assert staked_shard is not False
 

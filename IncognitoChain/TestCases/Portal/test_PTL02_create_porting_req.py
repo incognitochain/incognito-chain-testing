@@ -16,7 +16,7 @@ n = 'n'
 
 def setup_module():
     INFO("Check if custodian need to add more collateral")
-    PSI = SUT.full_node.get_latest_portal_state_info()
+    PSI = SUT().get_latest_portal_state_info()
     deposit_amount = 0
     COIN_MASTER.top_him_up_prv_to_amount_if(deposit_amount * 2, deposit_amount * 2 + 1,
                                             custodian_remote_addr.get_accounts())
@@ -47,7 +47,7 @@ def setup_module():
 
     if deposit_amount > 0:
         INFO_HEADLINE("WAIT FOR THE DEPOSIT TO TAKE EFFECT")
-        SUT.full_node.help_wait_till_next_epoch()
+        SUT().help_wait_till_next_epoch()
 
 
 @pytest.mark.parametrize("token, porting_amount, user, porting_fee, num_of_custodian, desired_status",
@@ -83,14 +83,14 @@ def setup_module():
 def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of_custodian, desired_status):
     STEP(0, "Preparation before test")
     remote_receiver_dict = {}
-    PSI_before_test = SUT.full_node.get_latest_portal_state_info()
+    PSI_before_test = SUT().get_latest_portal_state_info()
     prv_bal_be4_test = user.get_prv_balance()
     tok_bal_be4_test = user.get_token_balance(token)
     tok_rate = PSI_before_test.get_portal_rate(token)
     prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
     estimated_porting_fee = PortalHelper.cal_portal_portal_fee(porting_amount, tok_rate, prv_rate)
     if num_of_custodian == n:
-        ps = SUT.full_node.get_latest_portal_state_info()
+        ps = SUT().get_latest_portal_state_info()
         highest_free_collateral_in_pool = ps.help_get_highest_free_collateral_custodian().get_free_collateral()
         tok_rate = ps.get_portal_rate(token)
         prv_rate = ps.get_portal_rate(PRV_ID)
@@ -103,11 +103,11 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         create_rate_tx = PORTAL_FEEDER.portal_create_exchange_rate(big_rate)
         create_rate_tx.expect_no_error()
         # wait for new rate to take effect
-        SUT.full_node.help_wait_till_next_epoch()
+        SUT().help_wait_till_next_epoch()
         # re-estimate porting fee
         estimated_porting_fee = PortalHelper.cal_portal_portal_fee(big_porting_amount, big_rate[token],
                                                                    init_portal_rate[PRV_ID])
-        PSI_before_test = SUT.full_node.get_latest_portal_state_info()
+        PSI_before_test = SUT().get_latest_portal_state_info()
         tok_rate = PSI_before_test.get_portal_rate(token)
         prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
 
@@ -152,7 +152,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         assert porting_req_info.get_status() == Status.Portal.PortingStatusByPortingId.WAITING
     else:
         pass
-    PSI_after_req = SUT.full_node.get_latest_portal_state_info()
+    PSI_after_req = SUT().get_latest_portal_state_info()
     if desired_status == 'liquidate':
         STEP(3.1, "Change rate to make the req liquidated, then wait for the rate to apply")
         one_of_custodians = porting_req_info.get_custodians()[0]
@@ -164,7 +164,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
             future_holding_token, future_lock_collateral, tok_rate, prv_rate, 'prv', 1.1)
         liquidate_rate = {PRV_ID: new_prv_rate}
         PORTAL_FEEDER.portal_create_exchange_rate(liquidate_rate)
-        SUT.full_node.help_wait_till_next_epoch()
+        SUT().help_wait_till_next_epoch()
 
     if desired_status == 'invalid':
         STEP(4, "Porting req fail, wait 60s to return porting fee (only take tx fee), verify user balance")
@@ -216,7 +216,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         STEP(8, f'Verify lock collateral amount')
         sum_liquidate_collateral = 0
         sum_liquidate_token = 0
-        PSI_porting_completed = SUT.full_node.get_latest_portal_state_info()
+        PSI_porting_completed = SUT().get_latest_portal_state_info()
 
         for custodian in porting_req_info.get_custodians():
             # get lock collateral of custodian before test
@@ -298,7 +298,7 @@ def est_porting_req_expired(num_of_custodian):
     might delete this test in the future
     """
     STEP(0, "before test")
-    portal_state_info_before_test = SUT.full_node.get_latest_portal_state_info()
+    portal_state_info_before_test = SUT().get_latest_portal_state_info()
     pbnb_rate = portal_state_info_before_test.get_portal_rate(PBNB_ID)
     prv_rate = portal_state_info_before_test.get_portal_rate(PRV_ID)
 
@@ -359,7 +359,7 @@ def est_porting_req_expired(num_of_custodian):
     else:
         assert len(custodians_info) > 1
 
-    portal_state_info_after_expired = SUT.full_node.get_latest_portal_state_info()
+    portal_state_info_after_expired = SUT().get_latest_portal_state_info()
     for custodian in custodians_info:
         state_before_test = portal_state_info_before_test.get_custodian_info_in_pool(custodian)
         state_after_expire = portal_state_info_after_expired.get_custodian_info_in_pool(custodian)
@@ -389,7 +389,7 @@ def prepare_fat_custodian():
     deposit_tx.expect_no_error()
     deposit_tx.subscribe_transaction()
 
-    SUT.full_node.help_wait_till_next_epoch()
+    SUT().help_wait_till_next_epoch()
 
 
 def verify_expire_porting(user, porting_id, token, num_of_custodian, psi_b4, prv_bal_b4, tx_fee, porting_fee):
@@ -407,7 +407,7 @@ def verify_expire_porting(user, porting_id, token, num_of_custodian, psi_b4, prv
     else:
         assert len(custodians_info) > 1
 
-    PSI_after_expired = SUT.full_node.get_latest_portal_state_info()
+    PSI_after_expired = SUT().get_latest_portal_state_info()
     for custodian in custodians_info:
         state_before_test = psi_b4.get_custodian_info_in_pool(custodian)
         state_after_expire = PSI_after_expired.get_custodian_info_in_pool(custodian)

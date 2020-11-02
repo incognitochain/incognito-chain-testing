@@ -19,7 +19,7 @@ from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2
 
 ])
 def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_share_amount_to_withdraw):
-    pde_state_b4_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_b4_test = SUT().get_latest_pde_state_info()
     rate_b4 = pde_state_b4_test.get_rate_between_token(token1, token2)
     my_pde_share_b4 = pde_state_b4_test.get_pde_shares_amount(withdrawer, token1, token2)
     withdraw_share = int(my_pde_share_b4 * percent_of_share_amount_to_withdraw)
@@ -45,7 +45,7 @@ def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_share_amou
         bal_af[token] = withdrawer.wait_for_balance_change(token, bal_b4[token], int(withdraw_amounts[token] / 10))
 
     INFO_HEADLINE('Summary')
-    pde_state_af_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_af_test = SUT().get_latest_pde_state_info()
     rate_af = pde_state_af_test.get_rate_between_token(token1, token2)
     my_pde_share_af = pde_state_af_test.get_pde_shares_amount(withdrawer, token1, token2)
     INFO(f"""                                                                                

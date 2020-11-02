@@ -42,14 +42,14 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
         - highest trading fee get better price
        """)
     STEP(0, 'Contribute if pair is not yet existed')
-    pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_b4 = SUT().get_latest_pde_state_info()
 
     if not pde_state_b4.is_pair_existed(token_buy, token_sell):
         pair_id = f'pde_{l6(token_sell)}_{l6(token_buy)}_{get_current_date_time()}'
         token_owner.pde_contribute(token_sell, coin(15000), pair_id).expect_no_error().subscribe_transaction()
         token_owner.pde_contribute(token_buy, coin(21000), pair_id).expect_no_error().subscribe_transaction()
         WAIT(40)
-        pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+        pde_state_b4 = SUT().get_latest_pde_state_info()
 
     else:
         INFO('Pair is already existed')
@@ -130,7 +130,7 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     INFO(f"{token_buy[-6:]}    balance after trade        : {balance_tok2_after}")
 
     STEP(5, f"Check rate {token_sell[-6:]}  vs {token_buy[-6:]}")
-    pde_state_af = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_af = SUT().get_latest_pde_state_info()
     rate_after = pde_state_af.get_rate_between_token(token_sell, token_buy)
     INFO(f"rate {token_sell[-6:]} vs {token_buy[-6:]} - After Trade  : {rate_after}")
 

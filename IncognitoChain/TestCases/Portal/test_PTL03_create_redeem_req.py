@@ -60,7 +60,7 @@ expire_one_send = 'expire because only one custodian send public token'
 
 ])
 def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, custodian_matching, expected):
-    PSI_before_test = SUT.full_node.get_latest_portal_state_info()
+    PSI_before_test = SUT().get_latest_portal_state_info()
     highest_holding_token_custodian_in_pool = PSI_before_test.help_get_highest_holding_token_custodian(token)
     # check if there are enough custodian holding token for the test to run
     # if not, porting more token
@@ -69,7 +69,7 @@ def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, c
         test_PTL02_create_porting_req.test_create_porting_req_1_1(token, TEST_SETTING_PORTING_AMOUNT, portal_user, None,
                                                                   1, 'valid')
         WAIT(1, 'm')
-        PSI_before_test = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+        PSI_before_test = SUT().get_latest_portal_state_info()
         num_of_holding_custodians = len(PSI_before_test.find_custodian_hold_more_than_amount(token, 0))
         INFO(f'Num of holding custodian in chain = {num_of_holding_custodians}')
     if num_of_custodian == n:
@@ -133,7 +133,7 @@ def verify_valid_redeem(psi_b4, redeem_id, redeem_amount, token, matching):
     STEP(3.3, 'Verify that the request move on to Matched redeem list')
     WAIT(40)
     redeem_info_b4_re_match = redeem_info.get_redeem_status_by_redeem_id(redeem_id)
-    PSI_after_match = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    PSI_after_match = SUT().get_latest_portal_state_info()
     matched_redeem_reqs = PSI_after_match.get_redeem_matched_req(token)
     assert redeem_id in [matched_redeem_req.get_redeem_id() for matched_redeem_req in matched_redeem_reqs], \
         f'Not found redeem id {redeem_id} in matched list'
@@ -158,7 +158,7 @@ def verify_valid_redeem(psi_b4, redeem_id, redeem_amount, token, matching):
     STEP(5, 'Submit proof to request unlock collateral')
     sum_estimated_unlock_collateral = 0
     unlock_collateral_txs = []
-    PSI_after_req = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    PSI_after_req = SUT().get_latest_portal_state_info()
     for custodian_acc, tx in send_public_token_tx_list.items():
         proof = tx.build_proof()
         INFO(f'=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n'
@@ -196,7 +196,7 @@ def verify_valid_redeem(psi_b4, redeem_id, redeem_amount, token, matching):
     WAIT(60)
     sum_actual_unlock_collateral = 0
     sum_delta_holding_token = 0
-    PSI_after_submit_proof = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    PSI_after_submit_proof = SUT().get_latest_portal_state_info()
     for custodian_info in custodians_of_this_req:
         custodian_status_af_req = PSI_after_submit_proof.get_custodian_info_in_pool(custodian_info)
         locked_collateral_after = custodian_status_af_req.get_locked_collateral(token)
@@ -231,7 +231,7 @@ def verify_expired_redeem_0_custodian_sent(redeem_id, tok_bal_b4, prv_bal_b4, tx
 
     STEP(5.2, "Must return 105% of 150% locked collateral to user, the rest 45%: unlock custodian collateral.\
      No return any fee (tx and portal fee)")
-    psi_after = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    psi_after = SUT().get_latest_portal_state_info()
     prv_bal_af = portal_user.wait_for_balance_change(from_balance=prv_bal_b4, timeout=1800, check_interval=60)
     prv_return_amount = psi_b4.verify_unlock_collateral_custodian_redeem_expire(psi_after, redeem_info)
     assert prv_bal_b4 - tx_fee - redeem_fee + prv_return_amount == prv_bal_af
@@ -255,11 +255,11 @@ def verify_expired_redeem_1_custodian_sent(token, redeem_id, tok_bal_b4, prv_bal
                                               memo)
 
     STEP(4.2, 'Request unlock collateral for this custodian and verify')
-    psi_b4_expire = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    psi_b4_expire = SUT().get_latest_portal_state_info()
     proof = send_tx.build_proof()
     custodian_acc.portal_req_unlock_collateral(token, one_custodian_of_req.get_amount(), redeem_id, proof)
     WAIT(40)  # wait for collateral to be unlock
-    psi_af_unlock = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    psi_af_unlock = SUT().get_latest_portal_state_info()
 
     # calculate unlock amount base on current custodian locked collateral and holding amount
     estimated_unlock_amount = psi_b4.estimate_custodian_collateral_unlock(one_custodian_of_req,
@@ -272,7 +272,7 @@ def verify_expired_redeem_1_custodian_sent(token, redeem_id, tok_bal_b4, prv_bal
 
     STEP(5.1, "Must return 105% of 150% locked collateral to user, the rest 45%: unlock custodian collateral.\
          No return any fee (tx and portal fee)")
-    psi_after = SUT.REQUEST_HANDLER.get_latest_portal_state_info()
+    psi_after = SUT().get_latest_portal_state_info()
     prv_bal_af = portal_user.wait_for_balance_change(from_balance=prv_bal_b4, timeout=1800, check_interval=60)
     prv_return_amount = psi_b4.verify_unlock_collateral_custodian_redeem_expire(psi_after, redeem_info,
                                                                                 runaway_custodians)

@@ -1,6 +1,6 @@
-from IncognitoChain.Objects.AccountObject import Account
+from IncognitoChain.Objects.AccountObject import Account, AccountGroup
 
-ACCOUNTS = [
+account_list = AccountGroup(
     ##### Shard 0 **** "),
 
     Account(
@@ -1624,4 +1624,4 @@ ACCOUNTS = [
         "112t8rrbEmn512jYNYKS9tRvp72bb8CC8dukFmDrPzSd26seBXDEDwxbBDHPJPEDtdcZXysP5ZugnoqJgjUXCj5GYDCE4aHJvrmNziNfG7tL"),
     Account(
         "112t8rrk2dVcr1a2KY5PvjiGkYdzqknJfkDLu46TMzZ5bre25QEVKifWRqqzyZnSeYefD6BsBuRJqKEQ7wBp8HPkpuVDJ1xgBT6jbM8QYFuj"),
-]
+)

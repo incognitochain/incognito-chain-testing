@@ -14,7 +14,7 @@ from IncognitoChain.Configs.Constants import ChainConfig, PRV_ID
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
 from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, DEBUG, WARNING
-from IncognitoChain.Helpers.TestHelper import l6
+from IncognitoChain.Helpers.TestHelper import l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock, BeaconBestStateInfo
 from IncognitoChain.Objects.BlockChainObjects import BlockChainCore
@@ -152,7 +152,34 @@ class Node:
         response = self.system_rpc().retrieve_beacon_block_by_height(beacon_height)
         return BeaconBlock(response.get_result()[0])
 
-    def get_first_beacon_block_of_epoch(self, epoch):
+    def get_first_beacon_block_of_epoch(self, epoch=None):
+        """
+
+        @param epoch: epoch number
+        @return: BeaconBlock obj of the first epoch of epoch.
+        If epoch is specify, get first beacon block of that epoch
+        If epoch is None,  get first beacon block of current epoch.
+        If epoch = -1 then wait for the next epoch and get first beacon block of epoch
+        """
+        if epoch == -1:
+            current_height = self.get_block_chain_info().get_beacon_block().get_height()
+            current_epoch = ChainHelper.cal_epoch_from_height(current_height)
+            if not ChainConfig.is_first_height_of_epoch(current_height):
+                next_first_height = ChainHelper.cal_first_height_of_epoch(current_epoch + 1)
+                wait_height = next_first_height + 1 - current_height
+                time_till_next_epoch_first_block = ChainConfig.BLOCK_TIME * wait_height
+                INFO(f'Current epoch {current_epoch} Current height {current_height}, '
+                     f'wait for {wait_height} height till height {current_height + wait_height}')
+                # +1 just to make sure that the first block of epoch is already confirmed
+                WAIT(time_till_next_epoch_first_block)
+            else:
+                INFO(f'Current epoch {current_epoch} Current height {current_height}, no need to wait')
+            epoch = current_epoch + 1
+        elif epoch is None:
+            epoch = self.help_get_current_epoch()
+        else:
+            pass
+
         beacon_height = TestHelper.ChainHelper.cal_first_height_of_epoch(epoch)
         return self.get_latest_beacon_block(beacon_height)
 

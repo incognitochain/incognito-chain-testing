@@ -58,7 +58,7 @@ def test_max_tx_in_same_block():
                (block_height == tx_block_height or block_height + 1 == tx_block_height)
     STEP(4, 'Verify that block contains at least 10 tx')
     tx_in_block_count = 0
-    tx_hashes = SUT.full_node.system_rpc().retrieve_block_by_height(block_height, shard).get_tx_hashes()
+    tx_hashes = SUT().system_rpc().retrieve_block_by_height(block_height, shard).get_tx_hashes()
     INFO(f""" Tx Hashes
             {tx_hashes}""")
     for transaction in full_node_send_thread:
@@ -80,7 +80,7 @@ def test_x_shard_prv_ptoken_send_with_mix_privacy():
     token_send_threads = []
 
     STEP(0, f'Check if token can be use to pay fee')
-    if not SUT.REQUEST_HANDLER.get_latest_pde_state_info().is_pair_existed(PRV_ID, ptoken_id):
+    if not SUT().get_latest_pde_state_info().is_pair_existed(PRV_ID, ptoken_id):
         msg = f'pair {l6(PRV_ID)}-{l6(ptoken_id)} is not existed in DEX, cannot use toke to pay fee'
         INFO(msg)
         pytest.skip(msg)
@@ -131,7 +131,7 @@ def test_x_shard_prv_ptoken_send_with_mix_privacy():
 
     STEP(5, f'Double check, must has at least 10 tx in block {block_height}')
     tx_in_block_count = 0
-    tx_hashes = SUT.full_node.system_rpc().retrieve_block_by_height(block_height, shard).get_tx_hashes()
+    tx_hashes = SUT().system_rpc().retrieve_block_by_height(block_height, shard).get_tx_hashes()
     INFO('List hashes to check : ')
     for tx in tx_hashes:
         INFO(tx)

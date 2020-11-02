@@ -1,6 +1,8 @@
 """
 This test cannot run independently as an automation test case
 this test is only a support tool to help tester do the manual test faster and easier
+REMEMBER: test data file must contains accounts of Beacons, Committee. In case DAO account is changes, must update
+    IncognitoChain.Configs.Constants::DAO_PRIVATE_K accordingly
 """
 import copy
 import json
@@ -17,21 +19,27 @@ shard_init_reward = [5916960630818, 5372514525094]
 
 
 @pytest.mark.parametrize('from_epoch, num_of_epoch_to_test, shard_tx_fee_list ', [
-    (3114, 3, [0, 0]),
+    # if from_epoch == 0: from_epoch = latest_epoch - num_of_epoch_to_test - 1
+    (0, 10, [0, 0]),
 ])
 def test_verify_reward_instruction(from_epoch, num_of_epoch_to_test, shard_tx_fee_list):
     sum_beacon_rw_accumulated = beacon_init_reward
     sum_shards_rw_accumulated = copy.deepcopy(shard_init_reward)
+    current_epoch = SUT().help_get_current_epoch()
+    if from_epoch == 0:
+        from_epoch = max(1, current_epoch - num_of_epoch_to_test - 1)
+    num_of_epoch_to_test = min(current_epoch - from_epoch, num_of_epoch_to_test)
+
     while num_of_epoch_to_test > 0:
         INFO_HEADLINE(f' verify reward for epoch {from_epoch}')
 
-        current_epoch = SUT.REQUEST_HANDLER.get_latest_beacon_block().get_epoch()
+        current_epoch = SUT().get_latest_beacon_block().get_epoch()
         if current_epoch <= from_epoch:  # if epoch is not yet to come, wait til it comes
-            SUT.REQUEST_HANDLER.help_wait_till_epoch(from_epoch + 1)
+            SUT().help_wait_till_epoch(from_epoch + 1)
 
-        calculated_reward = SUT.REQUEST_HANDLER. \
+        calculated_reward = SUT(). \
             cal_transaction_reward_from_beacon_block_info(from_epoch, shard_txs_fee_list=shard_tx_fee_list)
-        instruction_reward = SUT.REQUEST_HANDLER.get_first_beacon_block_of_epoch(
+        instruction_reward = SUT().get_first_beacon_block_of_epoch(
             from_epoch + 1).get_transaction_reward_from_instruction()
 
         INFO(f"Calculated       : {calculated_reward}")
@@ -60,15 +68,15 @@ def test_verify_reward_received():
     # so this test will take instruction reward of this epoch to compare with real received reward of the future epoch
     # BEST USE WITH account_sample
     STEP(0, ' prepare')
-    beacon_detail = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    BBD_b4 = SUT().get_beacon_best_state_detail_info()
 
     STEP(1, "Get current epoch")
-    current_bb = SUT.REQUEST_HANDLER.get_latest_beacon_block()
+    current_bb = SUT().get_latest_beacon_block()
     current_epoch = current_bb.get_epoch()
     INFO(f'Current epoch = {current_epoch}')
 
     STEP(2, "Wait till next epoch")
-    next_epoch = SUT.REQUEST_HANDLER.help_wait_till_epoch(current_epoch + 1)
+    next_epoch = SUT().help_wait_till_epoch(current_epoch + 1)
 
     STEP(3.1, "Get Beacons earned reward before test")
     sum_beacons_earned_reward_b4 = 0
@@ -76,21 +84,21 @@ def test_verify_reward_received():
         sum_beacons_earned_reward_b4 += acc.stk_get_reward_amount()
 
     STEP(3.2, "Get Committees earned reward before test")
-    committees_earned_reward_b4 = [0] * SUT.REQUEST_HANDLER.get_block_chain_info().get_num_of_shard()
+    committees_earned_reward_b4 = [0] * SUT().get_block_chain_info().get_num_of_shard()
     for acc in COMMITTEE_ACCOUNTS:
-        validator_in_shard = beacon_detail.is_he_a_committee(acc)
-        committees_earned_reward_b4[validator_in_shard] += acc.stk_get_reward_amount()
+        shard = BBD_b4.is_he_a_committee(acc)
+        committees_earned_reward_b4[shard] += acc.stk_get_reward_amount()
 
     STEP(3.3, "Get DAO earned reward before test")
     DAO_earned_reward_b4 = COIN_MASTER.stk_get_reward_amount()
 
     STEP(4.1, 'Get reward instruction from beacon')
     instruction_beacon_height = TestHelper.ChainHelper.cal_first_height_of_epoch(next_epoch)
-    instruction_BB = SUT.REQUEST_HANDLER.get_latest_beacon_block(instruction_beacon_height)
+    instruction_BB = SUT().get_latest_beacon_block(instruction_beacon_height)
     BB_reward_instruction = instruction_BB.get_transaction_reward_from_instruction()
 
     STEP(4.2, 'Wait for 1 more epoch')
-    SUT.REQUEST_HANDLER.help_wait_till_epoch(current_epoch + 2)
+    SUT().help_wait_till_epoch(current_epoch + 2)
     STEP(5.1, "Get Beacons earned reward after 1 epoch")
     sum_beacons_earned_reward_af = 0
     for acc in BEACON_ACCOUNTS:
@@ -99,8 +107,9 @@ def test_verify_reward_received():
     STEP(5.2, "Get Committees earned reward after 1 epoch")
     committees_earned_reward_af = [0] * len(committees_earned_reward_b4)
     for acc in COMMITTEE_ACCOUNTS:
-        validator_in_shard = beacon_detail.is_he_a_committee(acc)
-        committees_earned_reward_af[validator_in_shard] += acc.stk_get_reward_amount()
+        shard = BBD_b4.is_he_a_committee(acc)
+        if shard is not False:
+            committees_earned_reward_af[shard] += acc.stk_get_reward_amount()
 
     STEP(5.3, "Get DAO earned reward after 1 epoch")
     DAO_earned_reward_af = COIN_MASTER.stk_get_reward_amount()
@@ -109,13 +118,11 @@ def test_verify_reward_received():
     real_dao_received = DAO_earned_reward_af - DAO_earned_reward_b4
     real_beacon_received = sum_beacons_earned_reward_af - sum_beacons_earned_reward_b4
     INFO(f"""
-        DAO reward after - before         : {DAO_earned_reward_af} - {DAO_earned_reward_b4} = {real_dao_received}
-        Sum beacons reward after - before : {sum_beacons_earned_reward_af} - {sum_beacons_earned_reward_b4} = {real_beacon_received}
-        Sum shards reward after - before  :
-            {committees_earned_reward_af}
-            {committees_earned_reward_b4}
-        From instruction:
-            {json.dumps(BB_reward_instruction)} """)
+        DAO reward after - before              : {DAO_earned_reward_af} - {DAO_earned_reward_b4} = {real_dao_received}
+        Sum beacons reward after - before      : {sum_beacons_earned_reward_af} - {sum_beacons_earned_reward_b4} = {real_beacon_received}
+        Sum shards reward after  [shard 0 , 1] : {committees_earned_reward_af}
+        Sum shards reward before [shard 0 , 1] : {committees_earned_reward_b4}
+        From instruction                       : {json.dumps(BB_reward_instruction)} """)
 
     # breakpoint()
     assert BB_reward_instruction['DAO'] == real_dao_received

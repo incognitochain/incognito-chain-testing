@@ -20,7 +20,7 @@ def test_contribute_prv(token1, token2):
     pair_id = f'auto_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
     tok1_contrib_amount = coin(1234)
     tok2_contrib_amount = coin(2134)
-    pde_state_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_b4 = SUT().get_latest_pde_state_info()
     contr_info = PDEContributeInfo()
 
     INFO(f"""
@@ -120,7 +120,7 @@ def test_contribute_prv(token1, token2):
     INFO(f"Account balance is verified for {l6(token1)} and {l6(token2)}")
 
     STEP(6, f'Check rate {l6(token1)} vs {l6(token2)} after contribution')
-    pde_state_af = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_af = SUT().get_latest_pde_state_info()
     rate_after = pde_state_af.get_rate_between_token(token2, token1)
     INFO(f'rate {l6(token1)} vs {l6(token2)} = {rate_after}')
     owner_share_amount_after = pde_state_af.get_pde_shares_amount(token_owner, token2, token1)

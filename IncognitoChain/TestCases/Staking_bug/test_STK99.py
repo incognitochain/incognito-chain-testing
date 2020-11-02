@@ -1,10 +1,12 @@
+from concurrent.futures.thread import ThreadPoolExecutor
+
 import pytest
 
-from IncognitoChain.Configs.Constants import ChainConfig
+from IncognitoChain.Configs.Constants import ChainConfig, coin
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.TestHelper import ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.AccountObject import Account, AccountGroup
+from IncognitoChain.Objects.AccountObject import Account, AccountGroup, COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 
 validators = AccountGroup(
@@ -44,10 +46,6 @@ validators = AccountGroup(
         "112t8sw7CFBzQb33w2uZ9s3aEeKVWYx2LEWQNGDLc6aTNEVoWP2dBihDWYs2gcWfKWUVoeVCKKm6WFz1u5V2VqoXrpSZsqguCN3jSG4nAqTR"),
 )
 
-# COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1755), validators)
-# for validator in validators:
-#     validator.stake_and_reward_me().subscribe_transaction()
-
 ChainConfig.BLOCK_PER_EPOCH = 20
 ChainConfig.BLOCK_TIME = 10
 SHARD0 = 0
@@ -56,25 +54,52 @@ NUM_OF_SHARD = 2
 NUM_OF_COMMITTEE_SWAP_OUT = 2
 
 
-# todo: setup, stake if not yet staked, for now, must stake the validators above manually
+def setup_module():
+    # preparation, if validators not yet stake, stake them
+    bbi = SUT().get_beacon_best_state_info()
+    not_yet_stake_list = []
+    for validator in validators:
+        if bbi.is_he_a_committee(validator) is False \
+                and bbi.is_in_shard_pending_list(validator) is False \
+                and bbi.get_auto_staking_committees(validator) is None:
+            not_yet_stake_list.append(validator)
 
-def test_stop_auto_staking_not_work():
+    if not not_yet_stake_list:
+        return
+
+    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1755), not_yet_stake_list)
+
+    def staking_action(account):
+        return account.stake_and_reward_me().expect_no_error()
+
+    with ThreadPoolExecutor() as executor:
+        for acc in not_yet_stake_list:
+            executor.submit(staking_action, acc)
+
+    ChainHelper.wait_till_next_epoch()
+
+
+@pytest.mark.parametrize("shard_committee,shard_origin", [
+    (SHARD0, SHARD1),
+    # (SHARD1, SHARD0),
+])
+def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_origin):
     """
     stake account must be from shard 1 and is a committee of shard 0
     @return:
     """
     INFO()
-    INFO(f'Get all account originate from shard {SHARD1}')
+    INFO(f'Get all account originate from shard {shard_origin}')
     accounts_from_shard1 = AccountGroup()
-    for i in range(SHARD1, 8, NUM_OF_SHARD):
+    for i in range(shard_origin, 8, NUM_OF_SHARD):
         # account belong to the shard , not account of committee of the shard
         accounts_from_shard1 += validators.get_accounts_in_shard(i)
 
-    INFO(f'Change request handler to shard {SHARD0}')
-    SUT.REQUEST_HANDLER = SUT.shards[SHARD0].get_representative_node()
+    INFO(f'Change request handler to shard {shard_committee}, which user is a committee')
+    SUT.REQUEST_HANDLER = SUT.shards[shard_committee].get_representative_node()
 
     INFO(f'Get shard best state detail, get epoch, beacon height')
-    shard0_state_detail = SUT.REQUEST_HANDLER.get_shard_best_state_detail_info(SHARD0)
+    shard0_state_detail = SUT().get_shard_best_state_detail_info(shard_committee)
     epoch = shard0_state_detail.get_epoch()
     current_height = shard0_state_detail.get_beacon_height()
     last_height = ChainHelper.cal_last_height_of_epoch(epoch) - 1
@@ -91,19 +116,40 @@ def test_stop_auto_staking_not_work():
     if acc_stop_stake is None:
         pytest.skip(f' expect committee is from shard 1 and is a committee of shard 0, but cannot find one like that')
 
-    INFO(f'Wait till last beacon height then send stop auto staking to shard {SHARD1}')
-    # breakpoint()
+    INFO(f'Wait till last beacon height then send stop auto staking to shard {shard_origin}, '
+         f'from which user originates')
     WAIT(second_till_last_height)
-    shard0_state_detail = SUT.REQUEST_HANDLER.get_shard_best_state_detail_info(SHARD0)
+    shard0_state_detail = SUT().get_shard_best_state_detail_info(shard_committee)
     current_height = shard0_state_detail.get_beacon_height()
     INFO(f"Current beacon height {current_height}")
     if last_height != current_height:
         pytest.skip(f"Current beacon height {current_height} is not the last height of epoch, skip the test")
-    acc_stop_stake.REQ_HANDLER = SUT.shards[SHARD1].get_representative_node()
-    acc_stop_stake.stk_un_stake_me()
-    acc_stop_stake.stk_wait_till_i_am_swapped_out_of_committee()
-    SUT.REQUEST_HANDLER = SUT.full_node
+    bal_b4_un_stake = acc_stop_stake.get_prv_balance()
 
-    BBD = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
-    BBD.is_he_a_committee(acc_stop_stake)
-    BBD.is_this_committee_auto_stake(acc_stop_stake)
+    INFO(f'Send stop auto staking to user originated shard')
+    acc_stop_stake.REQ_HANDLER = SUT.shards[shard_origin].get_representative_node()
+    un_stake_tx = acc_stop_stake.stk_un_stake_me().expect_no_error().subscribe_transaction()
+    assert un_stake_tx.get_block_height() > 0
+    acc_stop_stake.stk_wait_till_i_am_swapped_out_of_committee()
+
+    INFO(f'Get beacon best state from full node')
+    SUT.REQUEST_HANDLER = SUT.full_node
+    BBI = SUT().get_beacon_best_state_info()
+
+    auto_stake_status = BBI.get_auto_staking_committees(acc_stop_stake)
+    # if shard_committee == SHARD0:
+    #   # committee of shard 0 will be swapped out and refund staking amount right in next epoch
+    # assert auto_stake_status is None, f'Expect auto staking status to be removed, got {auto_stake_status} instead'
+    # else:
+    # other shard, committee must complete another round
+    # before get completely remote of committee list and refund staking amount
+    assert auto_stake_status is False, f'Expect auto staking status to be False, got {auto_stake_status} instead'
+    acc_stop_stake.stk_wait_till_i_am_committee()
+    acc_stop_stake.stk_wait_till_i_am_swapped_out_of_committee()
+    BBI = SUT().get_beacon_best_state_info()
+    auto_stake_status = BBI.get_auto_staking_committees(acc_stop_stake)
+    assert auto_stake_status is None, f'Expect auto staking status to be removed, got {auto_stake_status} instead'
+
+    bal_af_un_stake = acc_stop_stake.get_prv_balance()
+    INFO(f"Bal before - after unstake: {bal_b4_un_stake} - {bal_af_un_stake}")
+    assert bal_af_un_stake == bal_b4_un_stake + ChainConfig.STK_AMOUNT - un_stake_tx.get_fee()

@@ -17,7 +17,7 @@ from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2
                  marks=pytest.mark.xfail(reason="there's no token-token reward")),
 ])
 def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_reward_amount_to_withdraw):
-    pde_state_b4_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_b4_test = SUT().get_latest_pde_state_info()
     rate_b4 = pde_state_b4_test.get_rate_between_token(token1, token2)
 
     my_pde_reward_b4 = pde_state_b4_test.get_contributor_reward(withdrawer, token1, token2)
@@ -44,7 +44,7 @@ def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_reward_amo
         token2: withdrawer.get_token_balance(token2)}
 
     INFO_HEADLINE('Summary')
-    pde_state_af_test = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_af_test = SUT().get_latest_pde_state_info()
     rate_af = pde_state_af_test.get_rate_between_token(token1, token2)
     my_pde_reward_af = pde_state_af_test.get_contributor_reward(withdrawer, token1, token2)
     assert rate_b4 == rate_af  # make sure rate not change

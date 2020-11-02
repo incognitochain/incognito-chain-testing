@@ -91,7 +91,7 @@ tear_down_trx008 = False
 def setup_module():
     INFO("SETUP MODULE")
     STEP(0.1, 'Check current fixed validators to make sure that this test wont be running on testnet')
-    beacon_state = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    beacon_state = SUT().get_beacon_best_state_detail_info()
     all_shard_committee = beacon_state.get_shard_committees()
     list_fixed_validator_public_k = []
     for shard, committees in fixed_validators.items():
@@ -113,7 +113,7 @@ def setup_module():
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), auto_stake_list + [stake_account, staked_account])
 
     STEP(0.3, 'Stake and wait till becoming committee')
-    beacon_bsd = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    beacon_bsd = SUT().get_beacon_best_state_detail_info()
     for committee in auto_stake_list:
         if beacon_bsd.is_he_a_committee(committee) is False:
             committee.stake_and_reward_me()
@@ -121,12 +121,12 @@ def setup_module():
     for committee in auto_stake_list:
         committee.stk_wait_till_i_am_committee()
 
-    # epoch = SUT.full_node.system_rpc().help_get_current_epoch()
-    # SUT.full_node.system_rpc().help_wait_till_epoch(epoch + 2)
+    # epoch = SUT().system_rpc().help_get_current_epoch()
+    # SUT().system_rpc().help_wait_till_epoch(epoch + 2)
 
     STEP(0.4, "Verify environment, 6 node per shard")
-    number_committee_shard_0 = SUT.full_node.help_count_committee_in_shard(0, refresh_cache=True)
-    number_committee_shard_1 = SUT.full_node.help_count_committee_in_shard(1, refresh_cache=False)
+    number_committee_shard_0 = SUT().help_count_committee_in_shard(0, refresh_cache=True)
+    number_committee_shard_1 = SUT().help_count_committee_in_shard(1, refresh_cache=False)
     assert number_committee_shard_0 == 6, f"shard 0: {number_committee_shard_0} committee"
     assert number_committee_shard_1 == 6, f"shard 1: {number_committee_shard_1} committee"
 

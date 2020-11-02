@@ -93,7 +93,7 @@ def test_init_ptoken():
     rate = []
     for _ in range(0, 10):
         WAIT(10)
-        rate = SUT.REQUEST_HANDLER.get_latest_pde_state_info().get_rate_between_token(Constants.PRV_ID, custom_token_id)
+        rate = SUT().get_latest_pde_state_info().get_rate_between_token(Constants.PRV_ID, custom_token_id)
         if rate != [0, 0]:
             break
     INFO(f"rate prv vs token: {rate}")
@@ -425,5 +425,5 @@ def est_crash_fullnode_when_token_receiver_null():
                  "TokenFee": token_fee
              },
              "", token_privacy]
-    SUT.full_node.rpc_connection().with_method('createandsendprivacycustomtokentransaction'). \
+    SUT().rpc_connection().with_method('createandsendprivacycustomtokentransaction'). \
         with_params(param)

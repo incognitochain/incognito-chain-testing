@@ -64,7 +64,7 @@ def test_init_centralize_token():
         f"receiver balance: {receiver_balance_after}"), "receiver balance is not correct"
 
     STEP(4, "check new token in getallbridgetokens")
-    bridge_token_list = SUT.full_node.bridge().get_bridge_token_list().get_result()
+    bridge_token_list = SUT().bridge().get_bridge_token_list().get_result()
     found_token_id = False
     for token in bridge_token_list:
         if token['tokenId'] == token_id:
@@ -78,7 +78,7 @@ def test_init_centralize_token():
     assert found_token_id, f"tokenId {token_id} not found in getallbridgetokens"
 
     STEP(5, "check new token in listprivacycustomtoken")
-    all_token_list = SUT.full_node.bridge().get_all_token_list().get_result()
+    all_token_list = SUT().bridge().get_all_token_list().get_result()
     found_token_id = False
     for token in all_token_list['ListCustomToken']:
         if token['ID'] == token_id:
@@ -98,7 +98,7 @@ def test_burn_centralize_token():
     assert user_balance_before != 0, "user balance = 0, nothing to burn"
 
     STEP(2, "check total token amount before burn")
-    bridge_token_list = SUT.full_node.bridge().get_bridge_token_list().get_result()
+    bridge_token_list = SUT().bridge().get_bridge_token_list().get_result()
     total_token_amount = 0
     for token in bridge_token_list:
         if token['tokenId'] == token_id:
@@ -116,7 +116,7 @@ def test_burn_centralize_token():
     assert user_balance_before - user_balance_after == burning_amount, "user balance after burn is NOT correct"
 
     STEP(5, "check total token amount in getallbridgetokens")
-    bridge_token_list = SUT.full_node.bridge().get_bridge_token_list().get_result()
+    bridge_token_list = SUT().bridge().get_bridge_token_list().get_result()
     total_token_amount_after_burn = 0
     for token in bridge_token_list:
         if token['tokenId'] == token_id:
@@ -127,7 +127,7 @@ def test_burn_centralize_token():
                                                                             f"correct"
 
     STEP(6, "check token in listprivacycustomtoken")
-    all_token_list = SUT.full_node.bridge().get_all_token_list().get_result()
+    all_token_list = SUT().bridge().get_all_token_list().get_result()
     found_token_id = False
     for token in all_token_list['ListCustomToken']:
         if token['ID'] == token_id:
@@ -151,7 +151,7 @@ def test_withdraw_centralize_token():
     assert user_balance_before != 0, "user balance = 0, nothing to withdraw"
 
     STEP(2, "check total token amount before withdraw")
-    bridge_token_list = SUT.full_node.bridge().get_bridge_token_list().get_result()
+    bridge_token_list = SUT().bridge().get_bridge_token_list().get_result()
     total_token_amount_before = 0
     for token in bridge_token_list:
         if token['tokenId'] == token_id:
@@ -169,7 +169,7 @@ def test_withdraw_centralize_token():
     assert user_balance_before - user_balance_after == withdraw_amount, "user balance after withdraw is NOT correct"
 
     STEP(5, "check total token amount in getallbridgetokens")
-    bridge_token_list = SUT.full_node.bridge().get_bridge_token_list().get_result()
+    bridge_token_list = SUT().bridge().get_bridge_token_list().get_result()
     total_token_amount_after_withdraw = 0
     for token in bridge_token_list:
         if token['tokenId'] == token_id:
@@ -181,7 +181,7 @@ def test_withdraw_centralize_token():
                                                                                 f"correct"
 
     STEP(6, "check token in listprivacycustomtoken")
-    all_token_list = SUT.full_node.bridge().get_all_token_list().get_result()
+    all_token_list = SUT().bridge().get_all_token_list().get_result()
     found_token_id = False
     for token in all_token_list['ListCustomToken']:
         if token['ID'] == token_id:
