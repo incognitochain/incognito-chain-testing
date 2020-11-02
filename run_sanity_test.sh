@@ -16,5 +16,5 @@ fi
 
 set -x
 $python -XskipLoad -XprepareCoin -XfullNodeUrl="$url" -XwsPort="$wsPort" \
-  -m pytest -m testnet --show-capture=no -s -v --html="$html_report" --self-contained-html \
+  -m pytest --show-capture=no -s -v --html="$html_report" --self-contained-html \
   IncognitoChain/TestCases/Sanity/

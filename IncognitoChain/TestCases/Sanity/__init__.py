@@ -7,7 +7,7 @@ account_1 = Account(  # must in SHARD 1
     '112t8rnbqC92JnAE3bqthKUezcaG9oESKoNxawJZJii7q3JUZWVwWHyaKPoWqUmA8QRGiNpY5zg7XpYgQxmBz8LkLQutPh57HqLFQGFKgi7W')
 account_11 = Account(  # must in SHARD 1
     '112t8rneoGyBMorQEefPyb24e9dJrxcLPBiHcVe93c5MxhXDfL3ztocqM9r6gwJ5Ko3jJmC3EAsubBxEG5g6DjJ4S1tjVKKDrNAq4sJ5LRfq')
-ACCOUNTS = AccountGroup(account_0, account_1, account_11)
+ACCOUNTS = AccountGroup(account_0, account_1, account_11)  # must include all accounts aboves
 
 fixed_validators = {
     "0": [

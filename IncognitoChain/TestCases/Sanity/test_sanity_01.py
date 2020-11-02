@@ -22,6 +22,7 @@ DEX_V1_TRADE_AMOUNT = 1098765432
 P_TOKEN_INIT_AMOUNT = coin(40000)
 
 
+@pytest.mark.testnet
 def test_01_block_chain_info():
     print('\n')
     STEP(1, 'Check blockchain info: Beacon best state detail')
@@ -51,6 +52,7 @@ def test_01_block_chain_info():
         assert blk_chain_info.get_shard_block(shard).get_height() > 0
 
 
+@pytest.mark.testnet
 def test_02_transaction():
     STEP(1, "Transaction: send prv no privacy")
     send_amount = coin(3600)
@@ -90,7 +92,8 @@ def test_02_transaction():
     tx_send_privacy.verify_prv_privacy()
 
 
-def est_03_portal():
+@pytest.mark.testnet
+def test_03_portal():
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1), coin(1.5), PORTAL_FEEDER)
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(10), coin(20), account_0)
     STEP(1, 'Portal: deposit collateral')
@@ -234,6 +237,7 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
 
 
 @pytest.mark.dependency()
+@pytest.mark.testnet
 def test_05_init_token_privacy_n_bridge():
     global P___TOKEN
 
@@ -309,6 +313,7 @@ def test_05_init_token_privacy_n_bridge():
 
 
 @pytest.mark.dependency(depends=['test_05_init_token_privacy_n_bridge'])
+@pytest.mark.testnet
 def test_06_dex_v1():
     PDE_RATE_V1 = {P___TOKEN: coin(10000),
                    BRD_TOKEN: coin(3000)}
@@ -346,6 +351,7 @@ def test_06_dex_v1():
     assert bal_p___b4 + est_receive == bal_p___af, "balance of buying token is wrong"
 
 
+@pytest.mark.testnet
 def test_07_dex_v2():
     PDE_RATE_V2_RPV_TOK = {PRV_ID: coin(20000),
                            P___TOKEN: coin(10000), }
@@ -452,6 +458,7 @@ def test_07_dex_v2():
     (BRD_TOKEN, 0),
     (BRD_TOKEN, 1),
 ])
+@pytest.mark.testnet
 def test_08_transaction_ptoken(token, privacy):
     # pytest passes test parameter at load time instead of at execution time
     # this cause the new_ptoken value which has been update at test_04_init_n_contribute_p_token will not be passed into
@@ -489,6 +496,7 @@ def test_08_transaction_ptoken(token, privacy):
         assert bal_b4 + amount == bal_af
 
 
+@pytest.mark.testnet
 def test_07_pdex_withdraw_contribution():
     STEP(1, f'Withdraw all contribution of {l6(BRD_TOKEN)}-{l6(P___TOKEN)}')
     bal_brd_b4 = COIN_MASTER.get_token_balance(BRD_TOKEN)

@@ -2,7 +2,7 @@ import sys
 
 from IncognitoChain.Configs.Constants import coin, ChainConfig
 from IncognitoChain.Helpers.Logging import INFO_HEADLINE, INFO
-from IncognitoChain.Objects.AccountObject import COIN_MASTER
+from IncognitoChain.Objects.AccountObject import COIN_MASTER, PORTAL_FEEDER
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 from IncognitoChain.Objects.NodeObject import Node
 from IncognitoChain.Objects.TestBedObject import TestBed
@@ -19,12 +19,16 @@ try:
     TestBed.REQUEST_HANDLER = SUT.full_node
 except:
     pass
+
+# update SUT
+PORTAL_FEEDER.req_to(SUT())
+COIN_MASTER.req_to(SUT())
 # -----------------------------------------
 
 INFO_HEADLINE("Setup from Testcase init")
 
 INFO("CONVERT to COIN V2")
-convert_tx = COIN_MASTER.req_to(SUT.full_node).convert_prv_to_v2()
+convert_tx = COIN_MASTER.convert_prv_to_v2()
 if convert_tx.get_error_msg() == "Method not found":
     ChainConfig.PRIVACY_VERSION = 1
 elif convert_tx.get_error_msg() == "Can not create tx":
