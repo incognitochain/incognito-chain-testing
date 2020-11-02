@@ -1,11 +1,11 @@
 import sys
-from ctypes import ArgumentError
 
 from IncognitoChain.Configs.Constants import coin, ChainConfig
 from IncognitoChain.Helpers.Logging import INFO_HEADLINE, INFO
 from IncognitoChain.Objects.AccountObject import COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 from IncognitoChain.Objects.NodeObject import Node
+from IncognitoChain.Objects.TestBedObject import TestBed
 
 # -----------------------------------------
 # this block of codes is for bypassing the testbed loading procedure in IncognitoTestCase for Sanity test module
@@ -14,12 +14,9 @@ try:
     full_node_url = sys._xoptions.get('fullNodeUrl')
     # noinspection PyProtectedMember
     ws_port = int(sys._xoptions.get('wsPort'))
-    if not full_node_url:
-        raise ArgumentError('Must specify a full node url to run the test')
-
     SUT.full_node = Node().parse_url(full_node_url)
     SUT.full_node.set_web_socket_port(ws_port)
-    SUT.REQUEST_HANDLER = SUT.full_node
+    TestBed.REQUEST_HANDLER = SUT.full_node
 except:
     pass
 # -----------------------------------------
@@ -27,7 +24,7 @@ except:
 INFO_HEADLINE("Setup from Testcase init")
 
 INFO("CONVERT to COIN V2")
-convert_tx = COIN_MASTER.convert_prv_to_v2()
+convert_tx = COIN_MASTER.req_to(SUT.full_node).convert_prv_to_v2()
 if convert_tx.get_error_msg() == "Method not found":
     ChainConfig.PRIVACY_VERSION = 1
 elif convert_tx.get_error_msg() == "Can not create tx":

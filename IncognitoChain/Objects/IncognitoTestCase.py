@@ -3,6 +3,7 @@ from distutils.util import strtobool
 
 from IncognitoChain.Configs import config
 from IncognitoChain.Helpers.Logging import WARNING, ERROR
+from IncognitoChain.Objects.AccountObject import AccountGroup
 from IncognitoChain.Objects.TestBedObject import *
 
 # get command args
@@ -14,9 +15,9 @@ prepare_coin = config.prepare_coin_precondition if xpc is None else strtobool(st
 # option to skip loading testbed and test data from both config file and command arg
 skip_load = PARAMS.get("skipLoad")
 SUT = TestBed()
-ACCOUNTS = []
-BEACON_ACCOUNTS = []
-COMMITTEE_ACCOUNTS = []
+ACCOUNTS = AccountGroup()
+BEACON_ACCOUNTS = AccountGroup()
+COMMITTEE_ACCOUNTS = AccountGroup()
 
 if not skip_load:
     # load test bed
@@ -34,21 +35,27 @@ if not skip_load:
 
     TEST_DATA = load_test_data(__account_file)
     try:
-        ACCOUNTS = TEST_DATA.account_list
-    except Exception as e:
-        ERROR(e)
+        if type(TEST_DATA.account_list) is dict:
+            ACCOUNTS = TEST_DATA.account_list
+        elif type(TEST_DATA.account_list) is AccountGroup:
+            ACCOUNTS = TEST_DATA.account_list
+        else:
+            ACCOUNTS = AccountGroup(*TEST_DATA.account_list)
+    except AttributeError as e:
+        ERROR(f'{type(e)}: {e}')
         WARNING("Not found accounts list in test data, create an  empty list now")
-        ACCOUNTS = []
+
     try:
-        BEACON_ACCOUNTS = TEST_DATA.beacons
-    except Exception as e:
-        ERROR(e)
+        BEACON_ACCOUNTS = AccountGroup(*TEST_DATA.beacons)
+    except AttributeError as e:
+        ERROR(f'{type(e)}: {e}')
         WARNING("Not found beacon accounts list in test data, create an  empty list now")
         BEACON_ACCOUNTS = []
+
     try:
-        COMMITTEE_ACCOUNTS = TEST_DATA.committees
-    except Exception as e:
-        ERROR(e)
+        COMMITTEE_ACCOUNTS = AccountGroup(*TEST_DATA.committees)
+    except AttributeError as e:
+        ERROR(f'{type(e)}: {e}')
         WARNING("Not found committee accounts list in test data, create an  empty list now")
         COMMITTEE_ACCOUNTS = []
 

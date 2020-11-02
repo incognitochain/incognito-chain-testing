@@ -47,21 +47,6 @@ class Account:
         except KeyError:
             return None
 
-    def _generate_keys(self):
-        private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
-        bridge_public_k, mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(self.private_key)
-
-        self.private_key = private_k
-        self.validator_key = validator_k
-        self.payment_key = self.incognito_addr = payment_k
-        self.public_key = public_k
-        self.read_only_key = read_only_k
-        self.bls_public_k = bls_public_k
-        self.bridge_public_k = bridge_public_k
-        self.mining_public_k = mining_public_k
-        self.committee_public_k = committee_public_k
-        self.shard = int(shard_id)
-
     def _to_json(self, pretty=True):
         key_dict = {
             "PaymentAddress": self.payment_key,
@@ -101,12 +86,16 @@ class Account:
 
         self.cache = {}
         from IncognitoChain.Objects import IncognitoTestCase
-        self.REQ_HANDLER = IncognitoTestCase.SUT.REQUEST_HANDLER
+        self.REQ_HANDLER = IncognitoTestCase.SUT()
 
     def is_empty(self):
         if self.private_key is None:
             return True
         return False
+
+    def req_to(self, handler):
+        self.REQ_HANDLER = handler
+        return self
 
     def __copy__(self):
         copy_obj = Account()
@@ -1221,18 +1210,15 @@ class AccountGroup:
             if acc.public_key == key:
                 return acc
 
-    def get(self, index):
-        return self.account_list[index]
-
     def __add__(self, other):
         return AccountGroup(*(self.account_list + other.account_list))
 
     def change_req_handler(self, HANDLER):
-        for acc in self.account_list:
-            acc.REQ_HANDLER = HANDLER
+        for acc in self:
+            acc.req_to(HANDLER)
 
 
-def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]:
+def get_accounts_in_shard(shard_number: int, account_list=None):
     """ @deprecated
     iterate through accounts in account_list, check if they're in the same shard_number
 
@@ -1243,13 +1229,10 @@ def get_accounts_in_shard(shard_number: int, account_list=None) -> List[Account]
     if account_list is None:
         from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
         account_list = ACCOUNTS
-    INFO(f'Find all accounts in shard {shard_number}')
-    accounts_in_shard: List[Account] = []
-    for account in account_list:
-        if account.shard == shard_number:
-            accounts_in_shard.append(account)
-
-    return accounts_in_shard
+    if type(account_list) is AccountGroup:
+        return account_list.get_accounts_in_shard(shard_number)
+    else:
+        return AccountGroup(*account_list).get_accounts_in_shard(shard_number)
 
 
 PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K)
