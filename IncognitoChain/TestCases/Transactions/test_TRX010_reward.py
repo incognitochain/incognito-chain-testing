@@ -11,6 +11,7 @@ import pytest
 
 from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE, STEP
+from IncognitoChain.Helpers.TestHelper import ChainHelper
 from IncognitoChain.Objects.AccountObject import COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import COMMITTEE_ACCOUNTS, BEACON_ACCOUNTS, SUT
 
@@ -35,7 +36,7 @@ def test_verify_reward_instruction(from_epoch, num_of_epoch_to_test, shard_tx_fe
 
         current_epoch = SUT().get_latest_beacon_block().get_epoch()
         if current_epoch <= from_epoch:  # if epoch is not yet to come, wait til it comes
-            SUT().help_wait_till_epoch(from_epoch + 1)
+            ChainHelper.wait_till_next_epoch(from_epoch + 1)
 
         calculated_reward = SUT(). \
             cal_transaction_reward_from_beacon_block_info(from_epoch, shard_txs_fee_list=shard_tx_fee_list)
@@ -76,7 +77,7 @@ def test_verify_reward_received():
     INFO(f'Current epoch = {current_epoch}')
 
     STEP(2, "Wait till next epoch")
-    next_epoch = SUT().help_wait_till_epoch(current_epoch + 1)
+    next_epoch = ChainHelper.wait_till_next_epoch(current_epoch + 1)
 
     STEP(3.1, "Get Beacons earned reward before test")
     sum_beacons_earned_reward_b4 = 0
@@ -98,7 +99,7 @@ def test_verify_reward_received():
     BB_reward_instruction = instruction_BB.get_transaction_reward_from_instruction()
 
     STEP(4.2, 'Wait for 1 more epoch')
-    SUT().help_wait_till_epoch(current_epoch + 2)
+    ChainHelper.wait_till_next_epoch(current_epoch + 2)
     STEP(5.1, "Get Beacons earned reward after 1 epoch")
     sum_beacons_earned_reward_af = 0
     for acc in BEACON_ACCOUNTS:

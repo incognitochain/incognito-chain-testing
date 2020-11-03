@@ -121,9 +121,6 @@ def setup_module():
     for committee in auto_stake_list:
         committee.stk_wait_till_i_am_committee()
 
-    # epoch = SUT().system_rpc().help_get_current_epoch()
-    # SUT().system_rpc().help_wait_till_epoch(epoch + 2)
-
     STEP(0.4, "Verify environment, 6 node per shard")
     number_committee_shard_0 = SUT().help_count_committee_in_shard(0, refresh_cache=True)
     number_committee_shard_1 = SUT().help_count_committee_in_shard(1, refresh_cache=False)

@@ -93,7 +93,7 @@ def test_max_tx_in_same_block_with_some_fail():
         ERROR(e)
 
     STEP(4, 'Check mem pool, count fail tx in full node and shard')
-    transactions_in_mem_pool = SUT().system_rpc().get_mem_pool().get_mem_pool_transactions_id_list()
+    transactions_in_mem_pool = SUT().get_mem_pool_txs()
     stuck_tx_count_fullnode = 0
     stuck_tx_count_shard = 0
     if transactions_in_mem_pool is None:
@@ -164,7 +164,7 @@ def test_max_tx_in_same_block_with_some_fail():
     STEP(5.2, "Verify block tx hashes > 10")
     count_tx_in_block = 0
     INFO(f'block {block_height_0}')
-    tx_hashes_in_block = SUT().system_rpc().retrieve_block_by_height(block_height_0, 0).get_tx_hashes()
+    tx_hashes_in_block = SUT().get_shard_block_by_height(0, block_height_0).get_tx_hashes()
     output = "\n\t\t".join(tx_hashes_in_block)
     INFO(f'hashes:\n\t{output}')
     for account, thread in dict_tx_save_fullnode.items():

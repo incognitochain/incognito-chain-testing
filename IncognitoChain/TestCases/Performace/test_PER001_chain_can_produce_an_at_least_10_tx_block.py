@@ -58,7 +58,7 @@ def test_max_tx_in_same_block():
                (block_height == tx_block_height or block_height + 1 == tx_block_height)
     STEP(4, 'Verify that block contains at least 10 tx')
     tx_in_block_count = 0
-    tx_hashes = SUT().system_rpc().retrieve_block_by_height(block_height, shard).get_tx_hashes()
+    tx_hashes = SUT().get_shard_block_by_height(shard, block_height).get_tx_hashes()
     INFO(f""" Tx Hashes
             {tx_hashes}""")
     for transaction in full_node_send_thread:
@@ -131,7 +131,7 @@ def test_x_shard_prv_ptoken_send_with_mix_privacy():
 
     STEP(5, f'Double check, must has at least 10 tx in block {block_height}')
     tx_in_block_count = 0
-    tx_hashes = SUT().system_rpc().retrieve_block_by_height(block_height, shard).get_tx_hashes()
+    tx_hashes = SUT().get_shard_block_by_height(shard, block_height).get_tx_hashes()
     INFO('List hashes to check : ')
     for tx in tx_hashes:
         INFO(tx)

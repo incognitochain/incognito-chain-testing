@@ -1,5 +1,3 @@
-import time
-
 from pexpect import pxssh
 
 import IncognitoChain.Helpers.Logging as Log
@@ -20,6 +18,7 @@ from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo, Beaco
 from IncognitoChain.Objects.BlockChainObjects import BlockChainCore
 from IncognitoChain.Objects.PdeObjects import PDEStateInfo
 from IncognitoChain.Objects.PortalObjects import PortalStateInfo
+from IncognitoChain.Objects.ShardBlock import ShardBlock
 from IncognitoChain.Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
 
 
@@ -238,27 +237,6 @@ class Node:
         DEBUG(f"Current epoch = {epoch}")
         return epoch
 
-    def help_wait_till_epoch(self, epoch_number, pool_time=30, timeout=180):  # todo: move to ChainHelper
-        INFO(f'Wait until epoch {epoch_number}, check every {pool_time}s, timeout {timeout}s')
-        epoch = self.help_get_current_epoch()
-        if epoch >= epoch_number:
-            return epoch
-        time_start = time.perf_counter()
-        while epoch < epoch_number:
-            WAIT(pool_time)
-            epoch = self.help_get_current_epoch()
-            if epoch == epoch_number:
-                INFO(f"Now epoch = {epoch}")
-                return epoch
-            time_current = time.perf_counter()
-            if time_current - time_start > timeout:
-                INFO('Timeout')
-                return None
-
-    def help_wait_till_next_epoch(self):  # todo: move to ChainHelper
-        current_epoch = self.help_get_current_epoch()
-        return self.help_wait_till_epoch(current_epoch + 1)
-
     def get_latest_portal_state_info(self, beacon_height=None):
         if beacon_height is None:
             beacon_height = self.help_get_beacon_height()
@@ -406,3 +384,11 @@ class Node:
     def send_proof(self, proof):
         INFO('Sending proof')
         return self.transaction().send_tx(proof)
+
+    def get_mem_pool_txs(self):
+        response = self.system_rpc().get_mem_pool()
+        return response.get_mem_pool_transactions_id_list()
+
+    def get_shard_block_by_height(self, shard_id, height):
+        response = self.system_rpc().retrieve_block_by_height(height, shard_id)
+        return ShardBlock(response.get_result())
