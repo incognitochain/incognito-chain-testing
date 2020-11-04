@@ -23,7 +23,27 @@ class ChainConfig:
 
     @staticmethod
     def is_first_height_of_epoch(height):
+        """
+        @param height:
+        @return: True if {height} is first height of epoch, else False
+        """
         return height % ChainConfig.BLOCK_PER_EPOCH == 1
+
+    @staticmethod
+    def get_epoch_time(num_of_epoch=1):
+        """
+        @param num_of_epoch: default = 1
+        @return: time (second) for {num_of_epoch} epoch to complete
+        """
+        return ChainConfig.BLOCK_PER_EPOCH * ChainConfig.BLOCK_TIME * num_of_epoch
+
+    @staticmethod
+    def get_block_time(num_of_block=1):
+        """
+        @param num_of_block: default =1
+        @return: time (second) for num_of_block to be recorded
+        """
+        return num_of_block * ChainConfig.BLOCK_TIME
 
 
 BURNING_ADDR = \

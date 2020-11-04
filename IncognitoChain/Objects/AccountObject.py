@@ -322,7 +322,7 @@ class Account:
             else:
                 e2 = self.REQ_HANDLER.help_get_current_epoch()
                 h = self.REQ_HANDLER.help_get_beacon_height_in_best_state_detail(refresh_cache=False)
-                INFO(f"Promoted to committee at epoch {e2}, block height {h}")
+                INFO(f"Already a committee at epoch {e2}, block height {h}")
                 return e2
         INFO(f"Waited {t}s but still not yet become committee")
         return None
@@ -1154,9 +1154,12 @@ class AccountGroup:
             if type(acc) is not Account:
                 raise TypeError(f"List member must be an Account object, got {type(acc)} instead ")
         self.account_list: List[Account] = list(accounts)
-        self.__current_index = 0
+
+    def __len__(self):
+        return len(self.account_list)
 
     def __iter__(self):
+        self.__current_index = 0
         return iter(self.account_list)
 
     def __next__(self):

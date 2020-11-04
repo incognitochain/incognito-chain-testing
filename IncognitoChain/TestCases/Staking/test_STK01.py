@@ -23,7 +23,7 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Staking import stake_account, token_holder_shard_1, \
-    amount_token_send, amount_token_fee, token_holder_shard_0, staked_account, token_id
+    amount_token_send, amount_token_fee, token_holder_shard_0, staked_account
 
 
 @pytest.mark.parametrize("the_stake,the_staked,auto_re_stake", [
@@ -32,6 +32,7 @@ from IncognitoChain.TestCases.Staking import stake_account, token_holder_shard_1
 ])
 def test_staking(the_stake, the_staked, auto_re_stake):
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), the_stake)
+    from IncognitoChain.TestCases.Staking import token_id
     INFO(f'Run test with token: {token_id}')
     STEP(1, 'Get epoch number')
     blk_chain_info = SUT().get_block_chain_info()

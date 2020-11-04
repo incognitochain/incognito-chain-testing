@@ -144,7 +144,7 @@ class ChainHelper:
         return current_shard_h
 
     @staticmethod
-    def wait_till_next_epoch(epoch_wait=None, check_interval=40, timeout=180):
+    def wait_till_next_epoch(epoch_wait=None, check_interval=None, timeout=180):
         f"""
         Wait till {epoch_wait} to come, if {epoch_wait} is None, just wait till next epoch
         :param epoch_wait: 
@@ -153,11 +153,11 @@ class ChainHelper:
         :return: 
         """
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-
-        INFO(f'Wait until epoch {epoch_wait}, check every {check_interval}s, timeout {timeout}s')
+        check_interval = ChainConfig.get_epoch_time() if check_interval is None else check_interval
         blk_chain_info = SUT().get_block_chain_info()
         current_epoch = blk_chain_info.get_beacon_block().get_epoch()
         epoch_wait = current_epoch + 1 if epoch_wait is None else epoch_wait
+        INFO(f'Wait until epoch {epoch_wait}, check every {check_interval}s, timeout {timeout}s')
         if current_epoch >= epoch_wait:
             return current_epoch
         time_start = time.perf_counter()

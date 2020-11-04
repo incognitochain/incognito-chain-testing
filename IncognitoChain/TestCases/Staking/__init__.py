@@ -4,6 +4,7 @@ chain_committee_min = 4
 chain_committee_max = 6
 """
 import random
+from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
@@ -118,8 +119,9 @@ def setup_module():
         if beacon_bsd.is_he_a_committee(committee) is False:
             committee.stake_and_reward_me()
 
-    for committee in auto_stake_list:
-        committee.stk_wait_till_i_am_committee()
+    with ThreadPoolExecutor(max_workers=len(auto_stake_list)) as executor:
+        for committee in auto_stake_list:
+            executor.submit(committee.stk_wait_till_i_am_committee)
 
     STEP(0.4, "Verify environment, 6 node per shard")
     number_committee_shard_0 = SUT().help_count_committee_in_shard(0, refresh_cache=True)
@@ -135,13 +137,11 @@ def setup_module():
         trx008.token_contribute_amount = token_contribute_amount
         trx008.token_init_amount = token_init_amount
         trx008.setup_module()
-        trx008.test_init_ptoken()
-        token_id = trx008.custom_token_id
+        token_id = trx008.test_init_ptoken()
         INFO(f'Setup module: new token: {token_id}')
         token_holder_shard_0.send_token_to(token_holder_shard_1, token_id, token_contribute_amount / 2, prv_fee=-1,
                                            prv_privacy=0).expect_no_error().subscribe_transaction()
         tear_down_trx008 = True
-
     else:
         INFO(f'Setup module: use existing token: {token_id}')
 
