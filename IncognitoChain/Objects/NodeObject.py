@@ -1,6 +1,5 @@
-from pexpect import pxssh
+import re
 
-import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.APIs.Bridge import BridgeRpc
 from IncognitoChain.APIs.DEX import DexRpc
 from IncognitoChain.APIs.Explore import ExploreRpc
@@ -9,7 +8,7 @@ from IncognitoChain.APIs.Subscription import SubscriptionWs
 from IncognitoChain.APIs.System import SystemRpc
 from IncognitoChain.APIs.Transaction import TransactionRpc
 from IncognitoChain.Configs.Constants import ChainConfig, PRV_ID
-from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection
+from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection, SshSession
 from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, DEBUG, WARNING
 from IncognitoChain.Helpers.TestHelper import l6, ChainHelper
@@ -33,13 +32,10 @@ class Node:
                  rpc_port=default_rpc_port, ws_port=default_ws_port, account=None, sshkey=None,
                  node_name=None):
         self._address = address
-        self._username = username
-        self._password = password
-        self._sshkey = sshkey
+        self._ssh_session = Node.SshActions(address, username, password, sshkey)
         self._rpc_port = rpc_port
         self._ws_port = ws_port
         self._node_name = node_name
-        self._spawn = pxssh.pxssh()
         self._web_socket = None
         self._rpc_connection = RpcConnection(self._get_rpc_url())
         self.account = account
@@ -53,8 +49,8 @@ class Node:
             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
             r'(?::\d+)?'  # optional port
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
-        if re.match(regex, "http://www.example.com") is None:
-            raise SyntaxError('Url is not in correct format')
+        if re.match(regex, url) is None:
+            raise SyntaxError(f'Url {url} is not in correct format')
 
         self._address = url.split(':')[1].lstrip('//')
         self._rpc_port = int(url.split(':')[2])
@@ -63,27 +59,6 @@ class Node:
     def set_web_socket_port(self, port):
         self._ws_port = port
         return self
-
-    def ssh_connect(self):
-        if self._password is not None:
-            Log.INFO(f'SSH logging in with password. User: {self._username}')
-            self._spawn.login(self._address, self._username, password=self._password)
-            return self
-        if self._sshkey is not None:
-            Log.INFO(f'SSH logging in with ssh key. User: {self._username}')
-            self._spawn.login(self._username, ssh_key=self._sshkey)
-            return self
-
-    def logout(self):
-        self._spawn.logout()
-        Log.INFO(f'SSH logout of: {self._address}')
-
-    def send_cmd(self, command):
-        if not self._spawn.isalive():
-            self.ssh_connect()
-
-        self._spawn.sendline(command)
-        self._spawn.prompt()
 
     def _get_rpc_url(self):
         return f'http://{self._address}:{self._rpc_port}'
@@ -392,3 +367,48 @@ class Node:
     def get_shard_block_by_height(self, shard_id, height):
         response = self.system_rpc().retrieve_block_by_height(height, shard_id)
         return ShardBlock(response.get_result())
+
+    def ssh(self):
+        return self._ssh_session
+
+    def kill_me(self):
+        # todo: Hang
+        pass
+
+    def start(self):
+        # todo Hang
+        pass
+
+    class SshActions(SshSession):
+        def __pgrep_incognito(self):
+            cmd = 'prgep incognito -a'
+            pgrep_data = self.send_cmd(cmd)
+            return pgrep_data
+
+        def __find_line_by_rpc_port(self, rpc_port):
+            regex = re.compile(
+                r'--rpclisten (localhost|'
+                r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):'
+                f'{rpc_port}', re.IGNORECASE)
+            for line in self.__pgrep_incognito():
+                if re.findall(regex, line):
+                    self._cache['cmd'] = line
+                    return line
+
+        def find_run_command_by_rpc_port(self, rpc_port):
+            try:
+                return self._cache['cmd'][1:]
+            except KeyError:
+                self.__find_line_by_rpc_port(rpc_port)
+                return self._cache['cmd'][1:]
+
+        def find_pid_by_rpc_port(self, rpc_port):
+            """
+            get process id base on rpc port of the node
+            @return:
+            """
+            try:
+                return self._cache['cmd'][0]
+            except KeyError:
+                self.__find_line_by_rpc_port(rpc_port)
+                return self._cache['cmd'][0]
