@@ -175,11 +175,13 @@ class SshSession(pxssh.pxssh):
         Log.INFO(f'SSH logout of: {self._address}')
 
     def send_cmd(self, command):
-        if not self.isalive():
-            Log.INFO(f'Start ssh connection to {self._address}')
-            self.ssh_connect()
-
         Log.INFO(f'Send command via ssh: {command}')
         self.sendline(command)
         self.prompt()
-        return self.before.decode('utf-8')
+        response = self.before.decode('utf-8')
+        response_list = response.split('\n')
+        DEBUG(response)
+        return response_list
+
+    def goto_folder(self, folder):
+        return self.send_cmd(f'cd {folder}')

@@ -369,46 +369,98 @@ class Node:
         return ShardBlock(response.get_result())
 
     def ssh(self):
+        if self._ssh_session.closed:
+            INFO(f'Start ssh connection to {self._address}')
+            self._ssh_session.ssh_connect()
+            self._ssh_session.find_pid(self._rpc_port)
+
         return self._ssh_session
-
-    def kill_me(self):
-        # todo: Hang
-        pass
-
-    def start(self):
-        # todo Hang
-        pass
 
     class SshActions(SshSession):
         def __pgrep_incognito(self):
-            cmd = 'prgep incognito -a'
+            cmd = 'pgrep incognito -a'
             pgrep_data = self.send_cmd(cmd)
             return pgrep_data
 
-        def __find_line_by_rpc_port(self, rpc_port):
+        def __find_cmd_full_line(self, rpc_port=None):
+            try:
+                return self._cache['cmd']
+            except KeyError:
+                pass
+
             regex = re.compile(
                 r'--rpclisten (localhost|'
                 r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):'
                 f'{rpc_port}', re.IGNORECASE)
             for line in self.__pgrep_incognito():
                 if re.findall(regex, line):
-                    self._cache['cmd'] = line
-                    return line
+                    self._cache['cmd'] = line.split()
+                    return line.split()
+            INFO(f'Not found any Incognito process running with rpc port {rpc_port}')
 
-        def find_run_command_by_rpc_port(self, rpc_port):
+        def __find_run_command(self, rpc_port=None):
             try:
                 return self._cache['cmd'][1:]
             except KeyError:
-                self.__find_line_by_rpc_port(rpc_port)
-                return self._cache['cmd'][1:]
+                return self.__find_cmd_full_line(rpc_port)[1:]
 
-        def find_pid_by_rpc_port(self, rpc_port):
+        def __get_working_dir(self):
+            """
+            @return: Absolute path to working dir
+            """
+            try:
+                return self._cache['dir']
+            except KeyError:
+                raise ValueError('Not found working directory in cache, must run find_pid_by_rpc_port first')
+
+        def __get_data_dir(self):
+            """
+            @return: data dir, relative to working dir
+            """
+            full_cmd = self.__find_run_command()
+            for i in range(len(full_cmd)):
+                if full_cmd[i] == '--datadir':
+                    return full_cmd[i + 1]
+
+        def __goto_working_dir(self):
+            return self.goto_folder(self.__get_working_dir())
+
+        def __goto_data_dir(self):
+            return self.goto_folder(f'{self.__get_working_dir()}/{self.__get_data_dir()}')
+
+        def find_pid(self, rpc_port=None):
             """
             get process id base on rpc port of the node
             @return:
             """
             try:
-                return self._cache['cmd'][0]
+                pid = self._cache['cmd'][0]
             except KeyError:
-                self.__find_line_by_rpc_port(rpc_port)
-                return self._cache['cmd'][0]
+                pid = self.__find_cmd_full_line(rpc_port)[0]
+
+            # find working dir if not yet found
+            try:
+                self._cache['dir']
+            except KeyError:
+                cmd = f'pwdx {pid}'
+                result = self.send_cmd(cmd)
+                if result[1] != 'No such process':
+                    self._cache['dir'] = result[1].split()[1]
+
+            return pid
+
+        def start_node(self):
+            return self.send_cmd(f'{self.__find_run_command()} &')
+
+        def kill_node(self):
+            return self.send_cmd(f'kill {self.find_pid()}')
+
+        def is_node_alive(self):
+            cmd = f'[ -d "/proc/{self.find_pid()}" ] && echo 1 || echo 0'
+            return bool(int(self.send_cmd(cmd)[1][0]))
+
+        def clear_data(self):
+            if self.is_node_alive():
+                raise IOError(f'Cannot clear data when process is running')
+            self.__goto_data_dir()
+            return self.send_cmd(f'rm -Rf *')
