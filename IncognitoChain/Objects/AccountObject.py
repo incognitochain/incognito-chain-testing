@@ -3,8 +3,6 @@ import json
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
-from websocket import WebSocketTimeoutException
-
 from IncognitoChain.Configs import Constants
 from IncognitoChain.Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, \
     ChainConfig
@@ -1065,16 +1063,16 @@ class Account:
         """
         INFO_HEADLINE(f"TOP UP OTHERS' TOKEN {l6(token_id)} TO {top_up_to_amount}")
 
-        if type(accounts_list) is not list:
+        if type(accounts_list) is Account:
             accounts_list = [accounts_list]
         receiver = {}
-        threads = {}
+        threads_bal_b4 = {}
         with ThreadPoolExecutor() as exc:
             for acc in accounts_list:
                 thread = exc.submit(acc.get_token_balance, token_id)
-                threads[acc] = thread
+                threads_bal_b4[acc] = thread
 
-        for acc, thread in threads.items():
+        for acc, thread in threads_bal_b4.items():
             bal = thread.result()
             if bal <= if_lower_than:
                 top_up_amount = top_up_to_amount - bal
@@ -1087,17 +1085,9 @@ class Account:
         send_tx.expect_no_error()
         send_tx.subscribe_transaction()
 
-        def sub_if_dif_shard(_receiver, _sender):
-            if _receiver.shard != _sender.shard:
-                try:
-                    _receiver.subscribe_cross_output_token()
-                except WebSocketTimeoutException:
-                    pass
-
-        threads = []
         with ThreadPoolExecutor() as executor:
             for acc in receiver.keys():
-                threads.append(executor.submit(sub_if_dif_shard, acc, self))
+                executor.submit(acc.wait_for_balance_change, token_id, from_balance=threads_bal_b4[acc].result())
 
         return send_tx
 
@@ -1172,6 +1162,17 @@ class AccountGroup:
     def __getitem__(self, item):
         return self.account_list[item]
 
+    def __deepcopy__(self, memodict={}):
+        copy_acc_group = AccountGroup()
+        copy_acc_group.account_list = copy.deepcopy(self.account_list)
+        return copy_acc_group
+
+    def remove(self, obj):
+        self.account_list.remove(obj)
+
+    def append(self, acc_obj):
+        self.account_list.append(acc_obj)
+
     def get_remote_addr(self, token, custodian_acc=None):
         if custodian_acc is not None:
             for acc in self.account_list:
@@ -1214,7 +1215,10 @@ class AccountGroup:
                 return acc
 
     def __add__(self, other):
-        return AccountGroup(*(self.account_list + other.account_list))
+        if type(other) is AccountGroup:  # add 2 AccountGroup
+            return AccountGroup(*(self.account_list + other.account_list))
+        elif type(other) is list:  # add AccountGroup with list of accounts
+            return AccountGroup(*(self.account_list + other))
 
     def change_req_handler(self, HANDLER):
         for acc in self:
