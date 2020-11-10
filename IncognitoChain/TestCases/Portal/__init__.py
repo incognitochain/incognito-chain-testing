@@ -1,7 +1,7 @@
 from IncognitoChain.Configs.Constants import coin, PBNB_ID, PRV_ID, PBTC_ID
 from IncognitoChain.Drivers.NeighborChainCli import BnbCli
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
-from IncognitoChain.Helpers.TestHelper import PortalHelper
+from IncognitoChain.Helpers.TestHelper import PortalHelper, ChainHelper
 from IncognitoChain.Objects.AccountObject import Account, AccountGroup, PORTAL_FEEDER, COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 
@@ -67,7 +67,7 @@ def setup_module():
             create_rate_tx = PORTAL_FEEDER.portal_create_exchange_rate(init_portal_rate)
             create_rate_tx.expect_no_error()
             create_rate_tx.subscribe_transaction()
-            SUT().help_wait_till_next_epoch()
+            ChainHelper.wait_till_next_epoch()
             break
 
     global fat_custodian, big_collateral, fat_custodian_prv

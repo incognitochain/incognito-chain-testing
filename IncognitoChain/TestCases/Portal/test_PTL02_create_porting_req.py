@@ -47,7 +47,7 @@ def setup_module():
 
     if deposit_amount > 0:
         INFO_HEADLINE("WAIT FOR THE DEPOSIT TO TAKE EFFECT")
-        SUT().help_wait_till_next_epoch()
+        ChainHelper.wait_till_next_epoch()
 
 
 @pytest.mark.parametrize("token, porting_amount, user, porting_fee, num_of_custodian, desired_status",
@@ -103,7 +103,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         create_rate_tx = PORTAL_FEEDER.portal_create_exchange_rate(big_rate)
         create_rate_tx.expect_no_error()
         # wait for new rate to take effect
-        SUT().help_wait_till_next_epoch()
+        ChainHelper.wait_till_next_epoch()
         # re-estimate porting fee
         estimated_porting_fee = PortalHelper.cal_portal_portal_fee(big_porting_amount, big_rate[token],
                                                                    init_portal_rate[PRV_ID])
@@ -164,7 +164,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
             future_holding_token, future_lock_collateral, tok_rate, prv_rate, 'prv', 1.1)
         liquidate_rate = {PRV_ID: new_prv_rate}
         PORTAL_FEEDER.portal_create_exchange_rate(liquidate_rate)
-        SUT().help_wait_till_next_epoch()
+        ChainHelper.wait_till_next_epoch()
 
     if desired_status == 'invalid':
         STEP(4, "Porting req fail, wait 60s to return porting fee (only take tx fee), verify user balance")
@@ -389,7 +389,7 @@ def prepare_fat_custodian():
     deposit_tx.expect_no_error()
     deposit_tx.subscribe_transaction()
 
-    SUT().help_wait_till_next_epoch()
+    ChainHelper.wait_till_next_epoch()
 
 
 def verify_expire_porting(user, porting_id, token, num_of_custodian, psi_b4, prv_bal_b4, tx_fee, porting_fee):

@@ -66,7 +66,7 @@ def test_liquidate(token, percent, waiting_redeem, expected):
     rate_feed_tx = PORTAL_FEEDER.portal_create_exchange_rate({PRV_ID: str(prv_liquidate_rate)})
     rate_feed_tx.subscribe_transaction()
     assert rate_feed_tx.get_error_msg() is None, "Fail to create rate"
-    SUT().help_wait_till_next_epoch()
+    ChainHelper.wait_till_next_epoch()
 
     STEP(2, "Check liquidation pool")
     PSI_after_test = SUT().get_latest_portal_state_info()
