@@ -533,7 +533,8 @@ class PortalStateInfo(_PortalInfoBase):
             else:
                 return int(self.data['FinalExchangeRatesState']['Rates'][token_id]['Amount'])
         except TypeError:
-            return None
+            ERROR(f'Cannot find portal rate of token {token_id}, assume rate = 0')
+            return 0
 
     def print_rate(self):
         rate = self.get_portal_rate()

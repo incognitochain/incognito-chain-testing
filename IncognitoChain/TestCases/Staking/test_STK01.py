@@ -108,6 +108,7 @@ def test_staking(the_stake, the_staked, auto_re_stake):
     STEP(8.1, 'Withdraw PRV reward and verify balance')
     prv_bal_b4_withdraw_reward = the_staked.get_prv_balance()
     prv_reward_amount = the_staked.stk_get_reward_amount()
+    assert prv_reward_amount > 0, 'User has no PRV reward while execting some'
     the_staked.stk_withdraw_reward_to_me().subscribe_transaction()
     prv_bal_after_withdraw_reward = the_staked.wait_for_balance_change(from_balance=prv_bal_b4_withdraw_reward,
                                                                        timeout=180)
@@ -117,6 +118,7 @@ def test_staking(the_stake, the_staked, auto_re_stake):
     STEP(8.2, 'Withdraw token reward and verify balance')
     token_bal_b4_withdraw_reward = the_staked.get_token_balance(token_id)
     token_reward_amount = the_staked.stk_get_reward_amount(token_id)
+    assert token_reward_amount > 0, 'User has no token reward while expecting some'
     the_staked.stk_withdraw_reward_to_me(token_id).subscribe_transaction()
     token_bal_after_withdraw_reward = the_staked.wait_for_balance_change(token_id, timeout=180,
                                                                          from_balance=token_bal_b4_withdraw_reward)

@@ -308,7 +308,7 @@ class Account:
         return self.REQ_HANDLER.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, him.payment_key, him.validator_key)
 
-    def stk_wait_till_i_am_committee(self, check_cycle=120, timeout=1000):
+    def stk_wait_till_i_am_committee(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
         INFO(f"Wait until {self.validator_key} become a committee, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
@@ -325,7 +325,7 @@ class Account:
         INFO(f"Waited {t}s but still not yet become committee")
         return None
 
-    def stk_wait_till_i_am_swapped_out_of_committee(self, check_cycle=120, timeout=1000):
+    def stk_wait_till_i_am_swapped_out_of_committee(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
         INFO(f"Wait until {self.validator_key} no longer a committee, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
@@ -341,7 +341,7 @@ class Account:
         INFO(f"Waited {t}s but still a committee")
         return None
 
-    def stk_wait_till_i_have_reward(self, token_id=None, check_cycle=120, timeout=1000):
+    def stk_wait_till_i_have_reward(self, token_id=None, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
         if token_id is None:
             token_id = 'PRV'
@@ -616,7 +616,19 @@ class Account:
 
     def send_token_multi_output(self, receiver_token_amount_dict, token_id, prv_fee=0, token_fee=0, prv_privacy=0,
                                 token_privacy=0):
+        """
+        sending token multi output, default fee is PRV-auto (-1) and default privacy is PRV-true (1)
+        @param receiver_token_amount_dict:
+        @param token_id:
+        @param prv_fee:
+        @param token_fee:
+        @param prv_privacy:
+        @param token_privacy:
+        @return:
+        """
         INFO(f'Sending token {l6(token_id)} multi output')
+        prv_fee = -1 if prv_fee == 0 and token_fee == 0 else prv_fee
+        prv_privacy = 1 if prv_privacy == 0 and token_privacy == 0 else prv_privacy
         payment_key_amount_dict = {}
         for acc in receiver_token_amount_dict.keys():
             payment_key_amount_dict[acc.payment_key] = receiver_token_amount_dict[acc]

@@ -22,6 +22,8 @@ def setup_function():
     COIN_MASTER.top_him_up_prv_to_amount_if(top, 2 * top, acc_list_1_shard + acc_list_n_shard)
     token_owner.top_him_up_token_to_amount_if(token_id_1, top, 2 * top,
                                               acc_list_1_shard + acc_list_n_shard)
+    token_owner.top_him_up_token_to_amount_if(token_id_2, top, 2 * top,
+                                              acc_list_1_shard + acc_list_n_shard)
     INFO_HEADLINE("DONE SETUP DEX TRADING")
 
 

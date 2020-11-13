@@ -2,14 +2,14 @@ import pytest
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status, ChainConfig
 from IncognitoChain.Helpers.Logging import STEP, INFO, WARNING, INFO_HEADLINE
-from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
+from IncognitoChain.Helpers.TestHelper import l6, PortalHelper, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER, COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import PortingReqInfo, PTokenReqInfo
 from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, \
-    TEST_SETTING_PORTING_AMOUNT, custodian_remote_addr, big_collateral, fat_custodian_prv, big_rate, \
-    big_porting_amount, init_portal_rate, fat_custodian, TEST_SETTING_DEPOSIT_AMOUNT
+    TEST_SETTING_PORTING_AMOUNT, custodian_remote_addr, big_rate, \
+    big_porting_amount, init_portal_rate, TEST_SETTING_DEPOSIT_AMOUNT
 
 n = 'n'
 
@@ -377,15 +377,14 @@ def est_porting_req_expired(num_of_custodian):
 
 
 def prepare_fat_custodian():
-    COIN_MASTER.top_him_up_prv_to_amount_if(big_collateral * 2, fat_custodian_prv * 2, fat_custodian)
+    from IncognitoChain.TestCases.Portal import fat_custodian, big_collateral, fat_custodian_prv
+    COIN_MASTER.top_him_up_prv_to_amount_if(big_collateral, fat_custodian_prv, fat_custodian)
     # deposit big collateral
-    deposit_tx = fat_custodian.portal_make_me_custodian((big_collateral + 1), PBNB_ID,
-                                                        custodian_remote_addr.get_remote_addr(fat_custodian))
+    deposit_tx = fat_custodian.portal_make_me_custodian((big_collateral + 1), PBNB_ID)
     deposit_tx.expect_no_error()
     deposit_tx.subscribe_transaction()
 
-    deposit_tx = fat_custodian.portal_make_me_custodian((big_collateral + 1), PBTC_ID,
-                                                        custodian_remote_addr.get_remote_addr(fat_custodian))
+    deposit_tx = fat_custodian.portal_make_me_custodian((big_collateral + 1), PBTC_ID)
     deposit_tx.expect_no_error()
     deposit_tx.subscribe_transaction()
 

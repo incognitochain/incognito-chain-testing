@@ -2,7 +2,7 @@ import pytest
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, PBTC_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO
-from IncognitoChain.Helpers.TestHelper import PortalHelper, l6
+from IncognitoChain.Helpers.TestHelper import PortalHelper, l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
@@ -18,8 +18,9 @@ def setup_function():
         INFO('Setup liquidation test')
         porting_step.setup_module()
         porting_step.test_create_porting_req_1_1(PBNB_ID, 100, portal_user, None, 1, 'valid')
-        global PSI_before_test
-        PSI_before_test = SUT().get_latest_portal_state_info()
+
+    global PSI_before_test
+    PSI_before_test = SUT().get_latest_portal_state_info()
 
 
 @pytest.mark.parametrize("token, percent, waiting_redeem, expected", [
@@ -43,7 +44,6 @@ def test_liquidate(token, percent, waiting_redeem, expected):
     STEP(0, 'Get portal status before changing rate')
     tok_rate_before_test = PSI_before_test.get_portal_rate(token)
     prv_rate_before_test = PSI_before_test.get_portal_rate(PRV_ID)
-
     prv_liquidate_rate = PortalHelper.cal_liquidate_rate(percent, tok_rate_before_test, prv_rate_before_test)
     custodians_will_be_liquidate = PSI_before_test.find_custodians_will_be_liquidate_with_new_rate(
         token, tok_rate_before_test, prv_liquidate_rate)

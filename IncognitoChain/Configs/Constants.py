@@ -1,6 +1,6 @@
 class ChainConfig:
-    BLOCK_PER_EPOCH = 20
-    RANDOM_TIME = 10
+    BLOCK_PER_EPOCH = 10
+    RANDOM_TIME = 5
     BLOCK_TIME = 10
     BASIC_REWARD_PER_BLOCK = 400000000
     DAO_REWARD_PERCENT = 0.1
@@ -9,6 +9,7 @@ class ChainConfig:
     SHARD_COMMITTEE_SIZE = 6
     PRIVACY_VERSION = 1
     STK_AMOUNT = 1750000000000
+    STK_WAIT_TIME_OUT = 4000  # seconds
 
     class Portal:
         COLLATERAL_PERCENT = 1.5

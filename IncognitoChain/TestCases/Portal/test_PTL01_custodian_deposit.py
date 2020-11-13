@@ -91,7 +91,6 @@ def test_custodian_deposit(depositor, token, expected_pass):
     (ACCOUNTS[3], PBTC_ID, True),
     (ACCOUNTS[3], PRV_ID, False),
 ])
-@pytest.mark.dependency(depends=["test_custodian_deposit"])
 def test_add_more_collateral(depositor, token, expected_pass):
     deposit_amount = coin(1)
     STEP(1, "Check existing collateral of user")
@@ -152,10 +151,8 @@ def test_update_remote_address(custodian, token, total_collateral_precondition, 
         if withdraw_response is not None:
             withdraw_response.subscribe_transaction()
             WAIT(40)
-
-        custodian.get_prv_balance()
         custodian_info_b4 = custodian.portal_get_my_custodian_info()
-        bal_b4 = custodian.get_prv_balance()
+        bal_b4 = custodian.wait_for_balance_change(from_balance=bal_b4)
     else:
         STEP(1, "DO NOT Withdraw collateral")
 

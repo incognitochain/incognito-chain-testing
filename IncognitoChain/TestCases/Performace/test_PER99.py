@@ -1,5 +1,6 @@
 import json
 import random
+import signal
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 
@@ -15,6 +16,8 @@ LOOP = 4
 TX_PER_LOOP = 40
 GAP_BETWEEN_LOOP = 1
 SEND_AMOUNT = random.randrange(1000, 100000)
+
+SUMMARY = {}
 
 
 def create_proofs(senders, receivers, tx_fee, tx_privacy):
@@ -83,6 +86,7 @@ def num_of_proofs():
     # prepare_proof_1_shard_in_1_shard(-1, 0),
 ])
 def test_tx_machine_gun(proof_list):
+    global SUMMARY
     INFO_HEADLINE(f'Firing {len(proof_list)} txs at full node, {TX_PER_LOOP} round at a time')
     send_thread_list = []
     proof_list_len = len(proof_list)
@@ -109,7 +113,6 @@ def test_tx_machine_gun(proof_list):
 
     INFO(f'Wait for subscription complete')
     INFO(f'Waiting done')
-    summary = {}
     for tx_hash, result in block_list.items():
         try:
             block_height = result.result().get_block_height()
@@ -117,12 +120,18 @@ def test_tx_machine_gun(proof_list):
             block_height = 0
         INFO(f'{tx_hash} : {block_height}')
         try:
-            summary[block_height] += 1
+            SUMMARY[block_height] += 1
         except KeyError:
-            summary[block_height] = 1
+            SUMMARY[block_height] = 1
 
+
+def print_sum_when_interrupted(sig, frame):
     INFO(f""" SUMMARY==================================================
 Block height : num of block in height
-{json.dumps(summary, indent=3)}
+{json.dumps(SUMMARY, indent=3)}
 ===========================================================================
-        """)
+            """)
+    exit(0)
+
+
+signal.signal(signal.SIGINT, print_sum_when_interrupted)

@@ -25,7 +25,7 @@ def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_share_amou
     withdraw_share = int(my_pde_share_b4 * percent_of_share_amount_to_withdraw)
     withdraw_share_received = min(withdraw_share, my_pde_share_b4)
     sum_share_of_pair = pde_state_b4_test.sum_share_pool_of_pair(None, token1, token2)
-    assert my_pde_share_b4 != 0, pytest.skip(f'User {withdrawer.payment_key} has no share')
+    assert my_pde_share_b4 != 0, f'User {withdrawer.payment_key} has no share'
     withdraw_amounts = {
         token1: int(withdraw_share_received * rate_b4[0] / sum_share_of_pair),
         token2: int(withdraw_share_received * rate_b4[1] / sum_share_of_pair)

@@ -175,13 +175,20 @@ class SshSession(pxssh.pxssh):
         Log.INFO(f'SSH logout of: {self._address}')
 
     def send_cmd(self, command):
+        """
+        @param command:
+        @return: command output as a list of strings, with each item of the list is a line of command output
+        """
         Log.INFO(f'Send command via ssh: {command}')
         self.sendline(command)
         self.prompt()
         response = self.before.decode('utf-8')
         response_list = response.split('\n')
         DEBUG(response)
-        return response_list
+        if command[-1] == '&' and command[-2] != '&':
+            pass
+        else:
+            return response_list
 
     def goto_folder(self, folder):
         return self.send_cmd(f'cd {folder}')
