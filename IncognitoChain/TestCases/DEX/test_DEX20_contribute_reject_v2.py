@@ -94,10 +94,10 @@ def test_contribute_prv(token1, token2):
         INFO(f'{l6(token1)} after contribute: {bal_tok1_aft_contrib}')
         INFO(f'{l6(token2)} after contribute: {bal_tok2_aft_contrib}')
 
-    refund_tok1 = contr_info.get_return_amount_1()
-    commit_tok1 = contr_info.get_contribute_amount_token1()
-    refund_tok2 = contr_info.get_return_amount_2()
-    commit_tok2 = contr_info.get_contribute_amount_token2()
+    refund_tok1 = contr_info.get_return_amount_of_token(token1)
+    commit_tok1 = contr_info.get_contribute_amount_of_token(token1)
+    refund_tok2 = contr_info.get_return_amount_of_token(token2)
+    commit_tok2 = contr_info.get_contribute_amount_of_token(token2)
 
     # VERIFY: refund amount in API
     assert (refund_tok1 == 0 and commit_tok1 == 0) and INFO(

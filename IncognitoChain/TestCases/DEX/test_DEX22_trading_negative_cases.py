@@ -8,6 +8,7 @@ from IncognitoChain.Configs.Constants import PRV_ID, coin
 from IncognitoChain.Helpers.Logging import STEP, INFO, DEBUG
 from IncognitoChain.Helpers.TestHelper import l6, calculate_actual_trade_received, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
+from IncognitoChain.Objects.AccountObject import COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PdeObjects import PDEStateInfo
 from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2, token_id_0, acc_list_1_shard, \
@@ -111,6 +112,13 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
 ))
 def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell, token_buy):
     trade_amounts = [2234900] * 10
+    top = max(trade_amounts)
+    COIN_MASTER.top_him_up_prv_to_amount_if(1.5 * top, 2 * top, acc_list_1_shard + acc_list_n_shard)
+    token_owner.top_him_up_token_to_amount_if(token_id_1, 1.5 * top, 2 * top,
+                                              acc_list_1_shard + acc_list_n_shard)
+    token_owner.top_him_up_token_to_amount_if(token_id_2, 1.5 * top, 2 * top,
+                                              acc_list_1_shard + acc_list_n_shard)
+
     trading_fees = [random.randrange(190000, 200000),
                     random.randrange(190000, 200000),
                     random.randrange(190000, 200000),

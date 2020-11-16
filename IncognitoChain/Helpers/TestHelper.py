@@ -59,6 +59,49 @@ def extract_incognito_addr(obj):
     return addr
 
 
+class KeyExtractor:
+    @staticmethod
+    def incognito_addr(obj):
+        from IncognitoChain.Objects.AccountObject import Account
+        from IncognitoChain.Objects.PortalObjects import PortalStateInfo
+
+        if type(obj) is str:
+            addr = obj
+        elif type(obj) is Account:
+            addr = obj.incognito_addr
+        elif type(obj) is PortalStateInfo.CustodianInfo:
+            addr = obj.get_incognito_addr()
+        else:
+            raise TypeError("Input must be incognito address (string), CustodianInfo or Account object")
+        return addr
+
+    @staticmethod
+    def committee_public_k(obj):
+        from IncognitoChain.Objects.AccountObject import Account
+        if type(obj) is str:
+            addr = obj
+        elif type(obj) is Account:
+            addr = obj.committee_public_k
+        else:
+            raise TypeError("Input must be committee public key (string) or Account object")
+        return addr
+
+    @staticmethod
+    def inc_public_k(obj):
+        from IncognitoChain.Objects.AccountObject import Account
+        from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo
+        if type(obj) is str:
+            addr = obj
+        elif type(obj) is Account:
+            addr = obj.public_key
+        elif type(obj) is BeaconBestStateDetailInfo.Committee:
+            addr = obj.get_inc_public_key()
+        else:
+            raise TypeError("Input must be inc public key (string), "
+                            "BeaconBestStateDetailInfo.Committee or Account object")
+        return addr
+
+
 class ChainHelper:
     @staticmethod
     def cal_epoch_from_height(height):

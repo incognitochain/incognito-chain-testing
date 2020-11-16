@@ -1,5 +1,5 @@
 import copy
-from re import search
+import re
 
 from IncognitoChain.Configs.Constants import PRV_ID, ChainConfig
 from IncognitoChain.Helpers import TestHelper
@@ -541,29 +541,26 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
     def get_token2(self):
         return self.data["TokenID2Str"]
 
-    def get_contribute_amount_token1(self):
-        return self.data["Contributed1Amount"]
+    def __get_data_index_of_token(self, token_id):
+        """
+        find out if the input token id is 2 or 1 in contribute info
+        @param token_id:
+        @return:
+        """
+        for key, value in self.data.items():
+            if value == token_id:
+                regex = re.compile(r"TokenID(\d)Str")
+                return regex.match(key).group(1)
 
-    def get_contribute_amount_token2(self):
-        return self.data["Contributed2Amount"]
+    def get_contribute_amount_of_token(self, token_id):
+        index = self.__get_data_index_of_token(token_id)
+        key_contribute = f'Contributed{index}Amount'
+        return self.data[key_contribute]
 
-    def get_return_amount_1(self):
-        return self.data["Returned1Amount"]
-
-    def get_return_amount_2(self):
-        return self.data["Returned2Amount"]
-
-    def get_return_amount_of_token_id(self, token_id):
-        num = None
-        for k, v in self.data.items():
-            if v == token_id:
-                num = search('TokenID(\\d)Str', k).group(1)
-                break
-
-        if num == '1':
-            return self.get_return_amount_1()
-        elif num == '2':
-            return self.get_return_amount_2()
+    def get_return_amount_of_token(self, token_id):
+        index = self.__get_data_index_of_token(token_id)
+        key_contribute = f'Contributed{index}Amount'
+        return f'Returned{key_contribute}Amount'
 
     def wait_for_contribution_status(self, pair_id, expecting_status, check_interval=10, timeout=40):
         time = 0

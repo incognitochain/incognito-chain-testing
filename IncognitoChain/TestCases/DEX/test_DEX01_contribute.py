@@ -100,10 +100,10 @@ def test_contribute(token1, token2):
 
     contribution_status = PDEContributeInfo()
     contribution_status.get_contribute_status(pair_id)
-    api_contrib_tok1 = contribution_status.get_contribute_amount_token2()
-    api_contrib_tok2 = contribution_status.get_contribute_amount_token1()
-    api_return_tok1 = contribution_status.get_return_amount_2()
-    api_return_tok2 = contribution_status.get_return_amount_1()
+    api_contrib_tok1 = contribution_status.get_contribute_amount_of_token(token1)
+    api_contrib_tok2 = contribution_status.get_contribute_amount_of_token(token2)
+    api_return_tok1 = contribution_status.get_return_amount_of_token(token1)
+    api_return_tok2 = contribution_status.get_return_amount_of_token(token2)
 
     INFO(f"""
         Owner share amount before: {owner_share_amount}

@@ -92,6 +92,11 @@ class Account:
         return False
 
     def req_to(self, handler):
+        """
+        Change request handler
+        @param handler: Node object
+        @return:
+        """
         self.REQ_HANDLER = handler
         return self
 
