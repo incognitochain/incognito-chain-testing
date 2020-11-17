@@ -7,15 +7,17 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+
 	// "math/rand"
-	"time"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/incognitochain/bridge-eth/bridge/vault"
 	"github.com/incognitochain/bridge-eth/common/base58"
 	"github.com/incognitochain/bridge-eth/consensus/signatureschemes/bridgesig"
 	"github.com/stretchr/testify/suite"
+
 	// "golang.org/x/crypto/sha3"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -24,21 +26,25 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/params"
+
 	// "github.com/ethereum/go-ethereum/rlp"
 
 	"github.com/incognitochain/bridge-eth/erc20"
 	"github.com/incognitochain/bridge-eth/rpccaller"
 	"github.com/stretchr/testify/require"
 
-	"github.com/incognitochain/bridge-eth/bridge/uniswap"
 	"github.com/incognitochain/bridge-eth/bridge/kbntrade"
+	"github.com/incognitochain/bridge-eth/bridge/uniswap"
 )
+
 const (
 	ethWait     = 10
 	confirmWait = 320
 	incWait     = 300
-)
 
+	GasPrice = 100000000000
+	GasLimit = 2000000
+)
 
 type MnIssuingETHRes struct {
 	rpccaller.RPCBaseRes
@@ -62,9 +68,11 @@ type MnTxhashInC struct {
 // functionality from testify - including assertion methods.
 type MnTradingTestSuite struct {
 	suite.Suite
-	IncBurningAddrStr string
-	IncPrivKeyStr     string
-	IncPaymentAddrStr string
+	IncBurningAddrStr      string
+	IncPrivKeyStr          string
+	IncPaymentAddrStr      string
+	IncPrivaKeyReceiverStr string
+	IncPaymentReceiverStr  string
 
 	GeneratedPrivKeyForSC ecdsa.PrivateKey
 	GeneratedPubKeyForSC  ecdsa.PublicKey
@@ -141,36 +149,39 @@ func (tradingSuite *MnTradingTestSuite) SetupSuite() {
 
 	// 0x kovan env
 	tradingSuite.IncBurningAddrStr = "12RxahVABnAVCGP3LGwCn8jkQxgw7z1x14wztHzn455TTVpi1wBq9YGwkRMQg3J4e657AbAnCvYCJSdA9czBUNuCKwGSRQt55Xwz8WA"
-	tradingSuite.IncPrivKeyStr = "112t8rnX3VTd3MTWMpfbYP8HGY4ToAaLjrmUYzfjJBrAcb8iPLkNqvVDXWrLNiFV5yb2NBpR3FDZj3VW8GcLUwRdQ61hPMWP3YrREZAZ1UbH"
+	tradingSuite.IncPrivKeyStr = "112t8rnX3VTd3MTWMpfbYP8HGY4ToAaLjrmUYzfjJBrAcb8iPLkNqvVDXWrLNiFV5yb2NBpR3FDZj3VW8GcLUwRdQ61hPMWP3YrREZAZ1UbH" // shard 2
 	tradingSuite.IncPaymentAddrStr = "12S6R8HfTyL74bggg47LX88RSvBPaMPBMEMoo6yx9WQ4EgLiYERXXcE2Mv2HrCsFuKhBsTfrYMeH82Bus5MHQGt3xHwoxX4v2qM5jRE"
 
-	tradingSuite.IncEtherTokenIDStr = "ffd8d42dc40a8d166ea4848baf8b5f6e912ad79875f4373070b59392b1756c8f" //xxx
+	tradingSuite.IncPrivaKeyReceiverStr = "112t8rnsqDitXckbWMPo4wGbjwyPtYHywApPqfZVQNatrMzfDLERCmHTBPsHUZjhzFLxdVmQ6m6W5ppbK4PZCzWVjEBvi3a7SVrtVpd6GZSL" // shard 3
+	tradingSuite.IncPaymentReceiverStr = "12S3Xv2N9KvGZivRESKUQWv6obrghwykAUxqc85nTcZQ9AJMxnJe4Ct97BjAm5vFJ9bhhaHXDCmGfbXEqbS766DyeMLLeYksDM1FmSg"
+
+	tradingSuite.IncEtherTokenIDStr = "ffd8d42dc40a8d166ea4848baf8b5f6e912ad79875f4373070b59392b1756c8f"
 	tradingSuite.IncDAITokenIDStr = "c7545459764224a000a9b323850648acf271186238210ce474b505cd17cc93a0"
 	tradingSuite.IncSAITokenIDStr = "1d74e5e225e1f09ae38c496d3102aef464dcbd04ad3ac071e6e44077b8a740c9"
 	tradingSuite.IncBATTokenIDStr = "d1b4c73821edc76963fdeda2236fe89478249a1f7b952de2a7135c0bc0cbe6dc"
-	tradingSuite.IncKNCTokenIDStr = "2ea778c817e1fe8b2194fb6906dd0992c849dc807e784e46369f28c0d4b269ff"    //xxx
-	tradingSuite.IncCKNTokenIDStr = "2ea778c817e1fe8b2194fb6906dd0992c849dc807e784e46369f28c0d4b269ff" // xxx
+	tradingSuite.IncKNCTokenIDStr = "2ea778c817e1fe8b2194fb6906dd0992c849dc807e784e46369f28c0d4b269ff"
+	tradingSuite.IncCKNTokenIDStr = "2ea778c817e1fe8b2194fb6906dd0992c849dc807e784e46369f28c0d4b269ff"
 	tradingSuite.BATAddressStr = "0x9f8cfb61d3b2af62864408dd703f9c3beb55dff7" //BAT
-	tradingSuite.KNCAddressStr = "0xdd974d5c2e2928dea5f71b9825b8b646686bd200" // xxx
-	tradingSuite.CKNAddressStr = "0x1d59Ee76304338fAc3a0eA9AE06E618C760D6042" //CK
+	tradingSuite.KNCAddressStr = "0xdd974d5c2e2928dea5f71b9825b8b646686bd200"
+	tradingSuite.CKNAddressStr = "0x1d59Ee76304338fAc3a0eA9AE06E618C760D6042"
 	tradingSuite.EtherAddressStr = "0x0000000000000000000000000000000000000000"
 	tradingSuite.DAIAddressStr = "0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa" // DAI
 	tradingSuite.SAIAddressStr = "0xc4375b7de8af5a38a93548eb8453a498222c4ff2" //SAI
-	tradingSuite.ETHPrivKeyStr = "d455f2de1aa18787ea5820afce2ae95b7405d11b9eb19d340f6f2d821047d437" //xxx
-	tradingSuite.ETHOwnerAddrStr = "Db418c263Dc4744079D7331Ddcf0c7C0488b25d1"                       //xxx
+	tradingSuite.ETHPrivKeyStr = "d455f2de1aa18787ea5820afce2ae95b7405d11b9eb19d340f6f2d821047d437"
+	tradingSuite.ETHOwnerAddrStr = "Db418c263Dc4744079D7331Ddcf0c7C0488b25d1"
 
-	tradingSuite.ETHHost = "https://mainnet.infura.io/v3/93fe721349134964aa71071a713c5cef" // xxx
+	tradingSuite.ETHHost = "https://mainnet.infura.io/v3/93fe721349134964aa71071a713c5cef"
 
-	tradingSuite.IncBridgeHost = "http://51.83.237.20:9338" // xxx
-	tradingSuite.IncRPCHost = "http://51.83.237.20:9338"    // xxx
+	tradingSuite.IncBridgeHost = "http://51.83.237.20:9338"
+	tradingSuite.IncRPCHost = "http://51.83.237.20:9338"
 
 	// tradingSuite.IncBridgeHost = "http://51.83.36.184:20002" // host 2
 	// tradingSuite.IncRPCHost = "http://51.83.36.184:20002"    // host 2
 
-	tradingSuite.UniswapRouteContractAddr = common.HexToAddress("0xf164fC0Ec4E93095b804a4795bBe1e041497b92a")
-	tradingSuite.KyberContractAddr = common.HexToAddress("0x692f391bCc85cefCe8C237C01e1f636BbD70EA4D")
+	// tradingSuite.UniswapRouteContractAddr = common.HexToAddress("0xf164fC0Ec4E93095b804a4795bBe1e041497b92a")
+	// tradingSuite.KyberContractAddr = common.HexToAddress("0x692f391bCc85cefCe8C237C01e1f636BbD70EA4D")
 
-	tradingSuite.WETHAddressStr = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" //xxx
+	tradingSuite.WETHAddressStr = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 	tradingSuite.EtherAddressStrKyber = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
 	tradingSuite.IncPOLYTokenIDStr = "d0379b8ccc25e4940d5b94ace07dcfa3656a20814279ddf2674f6d7180f65440"
 	tradingSuite.IncOMGTokenIDStr = "27322fa7fce2c4d4d5a0022d595a0eec56d7735751a3ba8bc7f10b358ab938bc"
@@ -178,10 +189,10 @@ func (tradingSuite *MnTradingTestSuite) SetupSuite() {
 	tradingSuite.IncKBNTokenIDStr = "d6644f62d0ef0475335ae7bb6103f358979cbfcd2b85481e3bde2b82101a095c"
 	tradingSuite.IncSALTTokenIDStr = "06ce44eae35daf57b9b8158ab95c0cddda9bac208fc380236a318ef40f3ac2ef"
 	tradingSuite.IncSNTTokenIDStr = "414a6459526e827321cedb6e574d2ba2eb267c5735b0a65991602a405fb753b7"
-	tradingSuite.IncUSDCTokenIDStr = "1ff2da446abfebea3ba30385e2ca99b0f0bbeda5c6371f4c23c939672b429a42" // xxx
+	tradingSuite.IncUSDCTokenIDStr = "1ff2da446abfebea3ba30385e2ca99b0f0bbeda5c6371f4c23c939672b429a42"
 	tradingSuite.IncWBTCTokenIDStr = "4fb87c00dbe3933ae73c4dc37a37db0bca9aa9f55a2776dbd59cca2b02e72fc4"
 	tradingSuite.IncMRKTokenIDStr = "641e37731c151e8b93ed48f6044836edac1e21d518b11c491774ba10b89ca5e5"
-	tradingSuite.USDCAddressStr = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" //xxx
+	tradingSuite.USDCAddressStr = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 	tradingSuite.WBTCAddressStr = "0xA0A5aD2296b38Bd3e3Eb59AAEAF1589E8d9a29A9"
 	tradingSuite.MRKAddressStr = "0xef13C0c8abcaf5767160018d268f9697aE4f5375"
 	tradingSuite.ZILAddressStr = "0xAb74653cac23301066ABa8eba62b9Abd8a8c51d6"
@@ -191,12 +202,12 @@ func (tradingSuite *MnTradingTestSuite) SetupSuite() {
 	tradingSuite.SALTAddressStr = "0x6fEE5727EE4CdCBD91f3A873ef2966dF31713A04"
 	tradingSuite.SNTAddressStr = "0x4c99B04682fbF9020Fcb31677F8D8d66832d3322"
 
-	tradingSuite.VaultAddr = common.HexToAddress("0x97875355eF55Ae35613029df8B1C8Cf8f89c9066") // xxx
-	tradingSuite.UniswapTradeDeployedAddr = common.HexToAddress("0x3aa87e342d92FA9a0acA21538148b841FA1FB3A2") // xxx
-	tradingSuite.KyberTradeDeployedAddr = common.HexToAddress("0xFb3acE6d61A984E37eC65442370E82916CFA343f") // xxx
+	tradingSuite.VaultAddr = common.HexToAddress("0x97875355eF55Ae35613029df8B1C8Cf8f89c9066")
+	tradingSuite.UniswapTradeDeployedAddr = common.HexToAddress("0x3aa87e342d92FA9a0acA21538148b841FA1FB3A2")
+	tradingSuite.KyberTradeDeployedAddr = common.HexToAddress("0xFb3acE6d61A984E37eC65442370E82916CFA343f")
 
 	tradingSuite.DepositingEther = float64(0.001)
-	
+
 	// generate a new keys pair for SC
 	tradingSuite.genKeysPairForSC()
 
@@ -267,7 +278,7 @@ func (tradingSuite *MnTradingTestSuite) depositETH(
 	require.Equal(tradingSuite.T(), nil, err)
 
 	auth := bind.NewKeyedTransactor(tradingSuite.ETHPrivKey)
-	auth.GasPrice = big.NewInt(90000000000)
+	auth.GasPrice = big.NewInt(GasPrice)
 	// auth.Nonce = big.NewInt(0)
 	auth.Value = big.NewInt(int64(amt * params.Ether))
 	tx, err := c.Deposit(auth, incPaymentAddrStr)
@@ -293,14 +304,14 @@ func (tradingSuite *MnTradingTestSuite) depositERC20ToBridge(
 	require.Equal(tradingSuite.T(), nil, err)
 
 	erc20Token, _ := erc20.NewErc20(tokenAddr, tradingSuite.ETHClient)
-	auth.GasPrice = big.NewInt(100000000000)
-	// auth.GasLimit = 1000000
+	auth.GasPrice = big.NewInt(GasPrice)
+	// auth.GasLimit = GasLimit
 	tx2, apprErr := erc20Token.Approve(auth, tradingSuite.VaultAddr, amt)
 	tx2Hash := tx2.Hash()
 	fmt.Printf("Approve tx, txHash: %x\n", tx2Hash[:])
 	require.Equal(tradingSuite.T(), nil, apprErr)
 	time.Sleep(15 * time.Second)
-	auth.GasPrice = big.NewInt(100000000000)
+	auth.GasPrice = big.NewInt(GasPrice)
 	// auth.GasLimit = 1000000
 	fmt.Println("Starting deposit erc20 to vault contract")
 	tx, err := c.DepositERC20(auth, tokenAddr, amt, incPaymentAddrStr)
@@ -363,6 +374,7 @@ func (tradingSuite *MnTradingTestSuite) callBurningPToken(
 	amount *big.Int,
 	remoteAddrStr string,
 	burningMethod string,
+	IncPrivKeyStr string,
 ) (map[string]interface{}, error) {
 	rpcClient := rpccaller.NewRPCClient()
 	meta := map[string]interface{}{
@@ -380,7 +392,7 @@ func (tradingSuite *MnTradingTestSuite) callBurningPToken(
 		"TokenFee":      0,
 	}
 	params := []interface{}{
-		tradingSuite.IncPrivKeyStr,
+		IncPrivKeyStr,
 		nil,
 		5,
 		-1,
@@ -422,8 +434,8 @@ func (tradingSuite *MnTradingTestSuite) submitBurnProofForDepositToSC(
 	// Burn
 	auth := bind.NewKeyedTransactor(tradingSuite.ETHPrivKey)
 	// auth.GasPrice = big.NewInt(1000000)
-	// auth.GasLimit = 2000000
-	auth.GasPrice = big.NewInt(100000000000)
+	// auth.GasLimit = GasLimit
+	auth.GasPrice = big.NewInt(GasPrice)
 	tx, err := SubmitBurnProof(c, auth, proof)
 	require.Equal(tradingSuite.T(), nil, err)
 
@@ -448,9 +460,8 @@ func (tradingSuite *MnTradingTestSuite) submitBurnProofForWithdrawal(
 
 	// Burn
 	auth := bind.NewKeyedTransactor(tradingSuite.ETHPrivKey)
-	// auth.GasPrice = big.NewInt(1000000)
-	// auth.GasLimit = 2000000
-	auth.GasPrice = big.NewInt(120000000000)
+	// auth.GasLimit = GasLimit
+	auth.GasPrice = big.NewInt(GasPrice)
 	// auth.Nonce = big.NewInt(13)
 	tx, err := Withdraw(c, auth, proof)
 	require.Equal(tradingSuite.T(), nil, err)
@@ -488,6 +499,7 @@ func (tradingSuite *MnTradingTestSuite) getDepositedBalance(
 func (tradingSuite *MnTradingTestSuite) requestWithdraw(
 	withdrawalETHTokenIDStr string,
 	amount *big.Int,
+	IncPaymentAddrStr string,
 ) common.Hash {
 	c, err := vault.NewVault(tradingSuite.VaultAddr, tradingSuite.ETHClient)
 	require.Equal(tradingSuite.T(), nil, err)
@@ -496,17 +508,17 @@ func (tradingSuite *MnTradingTestSuite) requestWithdraw(
 	token := common.HexToAddress(withdrawalETHTokenIDStr)
 	// amount := big.NewInt(0.1 * params.Ether)
 	timestamp := []byte(randomizeTimestamp())
-	tempData := append([]byte(tradingSuite.IncPaymentAddrStr), token[:]...)
+	tempData := append([]byte(IncPaymentAddrStr), token[:]...)
 	tempData1 := append(tempData, timestamp...)
 	tempData2 := append(tempData1, common.LeftPadBytes(amount.Bytes(), 32)...)
 	data := rawsha3(tempData2)
 	signBytes, _ := crypto.Sign(data, &tradingSuite.GeneratedPrivKeyForSC)
-	auth.GasPrice = big.NewInt(100000000000)
+	auth.GasPrice = big.NewInt(GasPrice)
 	// auth.Nonce = big.NewInt(3)
 	//auth.GasLimit = 10000000
 	// auth.GasLimit = 2000000
 
-	tx, err := c.RequestWithdraw(auth, tradingSuite.IncPaymentAddrStr, token, amount, signBytes, timestamp)
+	tx, err := c.RequestWithdraw(auth, IncPaymentAddrStr, token, amount, signBytes, timestamp)
 	require.Equal(tradingSuite.T(), nil, err)
 
 	txHash := tx.Hash()
@@ -516,6 +528,42 @@ func (tradingSuite *MnTradingTestSuite) requestWithdraw(
 	fmt.Printf("request withdrawal, txHash: %x\n", txHash[:])
 	require.Equal(tradingSuite.T(), tradingSuite.getStatusTxhash(txHash), uint64(1), "tx on ether network failed")
 	return txHash
+}
+
+func (tradingSuite *MnTradingTestSuite) sendPRV(
+	IncPrivKeyStr string,
+	amount *big.Int,
+	IncPaymentAddr string,
+) (map[string]interface{}, error) {
+	rpcClient := rpccaller.NewRPCClient()
+	meta := map[string]interface{}{
+		IncPaymentAddr: amount.Uint64(),
+	}
+	params := []interface{}{
+		IncPrivKeyStr,
+		meta,
+		1,
+		0,
+	}
+	var res IncTransaction
+	err := rpcClient.RPCCall(
+		"",
+		tradingSuite.IncRPCHost,
+		"",
+		"createandsendtransaction",
+		params,
+		&res,
+	)
+	if err != nil {
+		fmt.Println("send PRV err: ", err)
+		return nil, err
+	}
+	bb, _ := json.Marshal(res)
+	fmt.Println("tranfer PRV res: ", string(bb))
+	if res.RPCError != nil {
+		return nil, errors.New(res.RPCError.Message)
+	}
+	return res.Result.(map[string]interface{}), nil
 }
 
 func (tradingSuite *MnTradingTestSuite) getBalanceTokenIncAccount(
@@ -636,8 +684,8 @@ func (tradingSuite *MnTradingTestSuite) executeWithUniswap(
 	c, err := vault.NewVault(tradingSuite.VaultAddr, tradingSuite.ETHClient)
 	require.Equal(tradingSuite.T(), nil, err)
 	auth := bind.NewKeyedTransactor(tradingSuite.ETHPrivKey)
-	auth.GasPrice = big.NewInt(100000000000)
-	// auth.GasLimit = 2000000
+	auth.GasPrice = big.NewInt(GasPrice)
+	// auth.GasLimit = GasLimit
 	srcToken := common.HexToAddress(srcTokenIDStr)
 	destToken := common.HexToAddress(destTokenIDStr)
 	expectOutputAmount := tradingSuite.getExpectedAmount(srcTokenIDStr, destTokenIDStr, srcQty)
@@ -701,8 +749,8 @@ func (tradingSuite *MnTradingTestSuite) executeWithKyber(
 	c, err := vault.NewVault(tradingSuite.VaultAddr, tradingSuite.ETHClient)
 	require.Equal(tradingSuite.T(), nil, err)
 	auth := bind.NewKeyedTransactor(tradingSuite.ETHPrivKey)
-	auth.GasPrice = big.NewInt(50000000000)
-	// auth.GasLimit = 2000000
+	auth.GasPrice = big.NewInt(GasPrice)
+	// auth.GasLimit = GasLimit
 	srcToken := common.HexToAddress(srcTokenIDStr)
 	destToken := common.HexToAddress(destTokenIDStr)
 	//auth.GasPrice = big.NewInt(50000000000)
@@ -739,792 +787,1020 @@ func (tradingSuite *MnTradingTestSuite) executeWithKyber(
 }
 
 func (tradingSuite *MnTradingTestSuite) Test1DepositAndWithdrwaEther() {
-return
-		fmt.Println("============ TEST 1 DEPOSIT AND WITHDRAW ETHER ===========")
-		fmt.Println("------------ STEP 0: declaration & initialization --------------")
-		tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
-		burningPETH := big.NewInt(0).Div(tradeAmount, big.NewInt(1000000000))
-	
-		pubKeyToAddrStr := crypto.PubkeyToAddress(tradingSuite.GeneratedPubKeyForSC).Hex()
-		fmt.Println("GeneratedPubKeyForSC", pubKeyToAddrStr)
-	
-		// get info balance initialization
-		balPrvInit, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance initialization : ", balPrvInit)
-	
-		balpEthInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
-		fmt.Println("[INFO] pETH balance initialization : ", balpEthInit)
-	
-		balEthInit := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] ETH balance initialization : ", balEthInit)
-	
-		balEthScInit := tradingSuite.getDepositedBalance(
-			tradingSuite.EtherAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] ETH balance initialization on SC : ", balEthScInit)
-	
-		fmt.Println("------------ STEP 1: porting ETH to pETH --------------")
-	
-		fmt.Println("amount ETH deposit : ", (big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))))
-	
-		// Deposit to proof
-		txHash := tradingSuite.depositETH(
-			tradingSuite.DepositingEther,
-			tradingSuite.IncPaymentAddrStr,
-		)
-	
-		fmt.Println("gas Fee transaction :", tradingSuite.getGasFeeETHbyTxhash(txHash))
-		// get ETH remain after depsit
-		balEthAfDep := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] ETH balance remain after deposit : ", balEthAfDep)
-	
-		//	require.Equal(tradingSuite.T(), balEthAfDep, big.NewInt(0).Sub(big.NewInt(0).Sub(balEthInit, big.NewInt(int64(tradingSuite.DepositingEther*params.Ether))), tradingSuite.getGasFeeETHbyTxhash(txHash)), "balance ETH incorrect")
-	
-		// Proof
-		_, ethBlockHash, ethTxIdx, ethDepositProof, err := getETHDepositProof(tradingSuite.ETHHost, txHash)
-		require.Equal(tradingSuite.T(), nil, err)
-		fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
-	
-		fmt.Println("Waiting 90s for 15 blocks confirmation")
-		time.Sleep(confirmWait * time.Second)
-		_, err = tradingSuite.callIssuingETHReq(
-			tradingSuite.IncEtherTokenIDStr,
-			ethDepositProof,
-			ethBlockHash,
-			ethTxIdx,
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-	
-		time.Sleep(incWait * time.Second)
-		// check PRV and token balance after issuing
-		balPrvAfIssS1, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance after issuing step 1: ", balPrvAfIssS1)
-		//require.NotEqual(tradingSuite.T(), balPrvAfIssS1, (balPrvInit - tradingSuite.getFeePRVbyTxhashInC(issuuRes["TxID"].(string))), "Balance PRV remain incorrect after issuu step 1")
-	
-		balpEthAfIssS1, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
-		fmt.Println("[INFO] pETH balance after issuing step 1 : ", balpEthAfIssS1)
-		//require.Equal(tradingSuite.T(), big.NewInt(int64(balpEthAfIssS1-balpEthInit)), big.NewInt(0).Div(big.NewInt(int64(tradingSuite.DepositingEther*params.Ether)), big.NewInt(1000000000)), " balnce pToken issuu incorrect")
-	
-		fmt.Println("------------ STEP 2: burning pETH to deposit ETH to SC --------------")
-		// make a burn tx to incognito chain as a result of deposit to SC
-		burningRes, err := tradingSuite.callBurningPToken(
-			tradingSuite.IncEtherTokenIDStr,
-			burningPETH,
-			pubKeyToAddrStr[2:],
-			"createandsendburningfordeposittoscrequest",
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		burningTxID, found := burningRes["TxID"]
-		require.Equal(tradingSuite.T(), true, found)
-		time.Sleep(incWait * time.Second)
-	
-		// check PRV and token balance after burning
-		balPrvAfBurnS2, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance after burning step 2: ", balPrvAfBurnS2)
-		//require.NotEqual(tradingSuite.T(), balPrvAfBurnS2, (balPrvAfIssS1 - tradingSuite.getFeePRVbyTxhashInC(burningRes["TxID"].(string))), "Balance PRV remain incorrect after burn step 2")
-	
-		balpEthAfBurnS2, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
-		fmt.Println("[INFO] pETH balance after burning step 2 : ", balpEthAfBurnS2)
-		// TODO assert pETH balance issuing
-	
-		txHash2 := tradingSuite.submitBurnProofForDepositToSC(burningTxID.(string))
-		time.Sleep(ethWait * time.Second)
-	
-		fmt.Println("gas Fee transaction :", tradingSuite.getGasFeeETHbyTxhash(txHash2))
-		// get ETH remain
-		balEthAfDep2 := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] ETH balance remain  : ", balEthAfDep2)
-		// TODO : assert ETH balance
-		//require.Equal(tradingSuite.T(), balEthAfDep2, big.NewInt(0).Sub(balEthAfDep, tradingSuite.getGasFeeETHbyTxhash(txHash2)), "balance ETH incorrect")
-	
-		balEthScDepS2 := tradingSuite.getDepositedBalance(
-			tradingSuite.EtherAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] ETH balance after deposit on SC at step 2: ", balEthScDepS2)
-		// // TODO assert ETH balane on SC
-	
-		fmt.Println("------------ STEP 3: withdraw ETH to deposit pETH to Incognito  --------------")
-	
-		txHashByEmittingWithdrawalReq1 := tradingSuite.requestWithdraw(
-			tradingSuite.EtherAddressStr,
-			balEthScDepS2,
-		)
-		time.Sleep(ethWait * time.Second)
-		balDaiScDepS41 := tradingSuite.getDepositedBalance(
-			tradingSuite.EtherAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] ETH balance on SC after withdraw at step 3 : ", balDaiScDepS41)
-		// TODO assert DAI balane on SC
-	
-		_, ethBlockHash, ethTxIdx, ethDepositProof, err = getETHDepositProof(tradingSuite.ETHHost, txHashByEmittingWithdrawalReq1)
-		require.Equal(tradingSuite.T(), nil, err)
-		fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
-	
-		fmt.Println("Waiting 90s for 15 blocks confirmation")
-		time.Sleep(confirmWait * time.Second)
-	
-		_, err = tradingSuite.callIssuingETHReq(
-			tradingSuite.IncEtherTokenIDStr,
-			ethDepositProof,
-			ethBlockHash,
-			ethTxIdx,
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		time.Sleep(incWait * time.Second)
-	
-		balpDaiAfIssS41, _ := tradingSuite.getBalanceTokenIncAccount(
-			tradingSuite.IncPrivKeyStr,
-			tradingSuite.IncEtherTokenIDStr,
-		)
-		fmt.Println("[INFO] pETH balance after issuing step 3 : ", balpDaiAfIssS41)
-	
-		fmt.Println("------------ STEP 4: withdraw pETH to deposit ETH   --------------")
-	
-		withdrawingPETH := big.NewInt(0).Div(balEthScDepS2, big.NewInt(1000000000))
-	
-		burningRes, err = tradingSuite.callBurningPToken(
-			tradingSuite.IncEtherTokenIDStr,
-			withdrawingPETH,
-			tradingSuite.ETHOwnerAddrStr,
-			"createandsendburningrequest",
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		burningTxID, found = burningRes["TxID"]
-		require.Equal(tradingSuite.T(), true, found)
-		time.Sleep(incWait * time.Second)
-	
-		balpEthAfBurnS51, _ := tradingSuite.getBalanceTokenIncAccount(
-			tradingSuite.IncPrivKeyStr,
-			tradingSuite.IncEtherTokenIDStr,
-		)
-		fmt.Println("[INFO] pETH balance after burning step 4 : ", balpEthAfBurnS51)
-	
-		tradingSuite.submitBurnProofForWithdrawal(burningTxID.(string))
-	
-		time.Sleep(ethWait * time.Second)
-		balEthAfDep51 := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] ETH balance after withdraw  : ", balEthAfDep51)
-	
+	// return
+	fmt.Println("============ TEST 1 DEPOSIT AND WITHDRAW ETHER ===========")
+	fmt.Println("------------ STEP 0: declaration & initialization --------------")
+	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
+	burningPETH := big.NewInt(0).Div(tradeAmount, big.NewInt(1000000000))
+
+	pubKeyToAddrStr := crypto.PubkeyToAddress(tradingSuite.GeneratedPubKeyForSC).Hex()
+	fmt.Println("GeneratedPubKeyForSC", pubKeyToAddrStr)
+
+	// get info balance initialization
+	balPrvInit, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance initialization : ", balPrvInit)
+
+	balpEthInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance initialization : ", balpEthInit)
+
+	balEthInit := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance initialization : ", balEthInit)
+
+	balEthScInit := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] ETH balance initialization on SC : ", balEthScInit)
+
+	fmt.Println("------------ STEP 1: porting ETH to pETH --------------")
+
+	fmt.Println("amount ETH deposit : ", (big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))))
+
+	// Deposit to proof
+	txHash := tradingSuite.depositETH(
+		tradingSuite.DepositingEther,
+		tradingSuite.IncPaymentAddrStr,
+	)
+
+	fmt.Println("gas Fee transaction :", tradingSuite.getGasFeeETHbyTxhash(txHash))
+	// get ETH remain after depsit
+	balEthAfDep := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance remain after deposit : ", balEthAfDep)
+
+	//	require.Equal(tradingSuite.T(), balEthAfDep, big.NewInt(0).Sub(big.NewInt(0).Sub(balEthInit, big.NewInt(int64(tradingSuite.DepositingEther*params.Ether))), tradingSuite.getGasFeeETHbyTxhash(txHash)), "balance ETH incorrect")
+
+	// Proof
+	_, ethBlockHash, ethTxIdx, ethDepositProof, err := getETHDepositProof(tradingSuite.ETHHost, txHash)
+	require.Equal(tradingSuite.T(), nil, err)
+	fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
+
+	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	time.Sleep(confirmWait * time.Second)
+	_, err = tradingSuite.callIssuingETHReq(
+		tradingSuite.IncEtherTokenIDStr,
+		ethDepositProof,
+		ethBlockHash,
+		ethTxIdx,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+
+	time.Sleep(incWait * time.Second)
+	// check PRV and token balance after issuing
+	balPrvAfIssS1, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance after issuing step 1: ", balPrvAfIssS1)
+	//require.NotEqual(tradingSuite.T(), balPrvAfIssS1, (balPrvInit - tradingSuite.getFeePRVbyTxhashInC(issuuRes["TxID"].(string))), "Balance PRV remain incorrect after issuu step 1")
+
+	balpEthAfIssS1, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance after issuing step 1 : ", balpEthAfIssS1)
+	//require.Equal(tradingSuite.T(), big.NewInt(int64(balpEthAfIssS1-balpEthInit)), big.NewInt(0).Div(big.NewInt(int64(tradingSuite.DepositingEther*params.Ether)), big.NewInt(1000000000)), " balnce pToken issuu incorrect")
+
+	fmt.Println("------------ STEP 2: burning pETH to deposit ETH to SC --------------")
+	// make a burn tx to incognito chain as a result of deposit to SC
+	burningRes, err := tradingSuite.callBurningPToken(
+		tradingSuite.IncEtherTokenIDStr,
+		burningPETH,
+		pubKeyToAddrStr[2:],
+		"createandsendburningfordeposittoscrequest",
+		tradingSuite.IncPrivKeyStr,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	burningTxID, found := burningRes["TxID"]
+	require.Equal(tradingSuite.T(), true, found)
+	time.Sleep(incWait * time.Second)
+
+	// check PRV and token balance after burning
+	balPrvAfBurnS2, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance after burning step 2: ", balPrvAfBurnS2)
+	//require.NotEqual(tradingSuite.T(), balPrvAfBurnS2, (balPrvAfIssS1 - tradingSuite.getFeePRVbyTxhashInC(burningRes["TxID"].(string))), "Balance PRV remain incorrect after burn step 2")
+
+	balpEthAfBurnS2, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance after burning step 2 : ", balpEthAfBurnS2)
+	// TODO assert pETH balance issuing
+
+	txHash2 := tradingSuite.submitBurnProofForDepositToSC(burningTxID.(string))
+	time.Sleep(ethWait * time.Second)
+
+	fmt.Println("gas Fee transaction :", tradingSuite.getGasFeeETHbyTxhash(txHash2))
+	// get ETH remain
+	balEthAfDep2 := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance remain  : ", balEthAfDep2)
+	// TODO : assert ETH balance
+	//require.Equal(tradingSuite.T(), balEthAfDep2, big.NewInt(0).Sub(balEthAfDep, tradingSuite.getGasFeeETHbyTxhash(txHash2)), "balance ETH incorrect")
+
+	balEthScDepS2 := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] ETH balance after deposit on SC at step 2: ", balEthScDepS2)
+	// // TODO assert ETH balane on SC
+
+	fmt.Println("------------ STEP 3: withdraw ETH to deposit pETH to Incognito  --------------")
+
+	txHashByEmittingWithdrawalReq1 := tradingSuite.requestWithdraw(
+		tradingSuite.EtherAddressStr,
+		balEthScDepS2,
+		tradingSuite.IncPaymentAddrStr,
+	)
+	time.Sleep(ethWait * time.Second)
+	balDaiScDepS41 := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] ETH balance on SC after withdraw at step 3 : ", balDaiScDepS41)
+	// TODO assert DAI balane on SC
+
+	_, ethBlockHash, ethTxIdx, ethDepositProof, err = getETHDepositProof(tradingSuite.ETHHost, txHashByEmittingWithdrawalReq1)
+	require.Equal(tradingSuite.T(), nil, err)
+	fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
+
+	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	time.Sleep(confirmWait * time.Second)
+
+	_, err = tradingSuite.callIssuingETHReq(
+		tradingSuite.IncEtherTokenIDStr,
+		ethDepositProof,
+		ethBlockHash,
+		ethTxIdx,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	time.Sleep(incWait * time.Second)
+
+	balpDaiAfIssS41, _ := tradingSuite.getBalanceTokenIncAccount(
+		tradingSuite.IncPrivKeyStr,
+		tradingSuite.IncEtherTokenIDStr,
+	)
+	fmt.Println("[INFO] pETH balance after issuing step 3 : ", balpDaiAfIssS41)
+
+	fmt.Println("------------ STEP 4: withdraw pETH to deposit ETH   --------------")
+
+	withdrawingPETH := big.NewInt(0).Div(balEthScDepS2, big.NewInt(1000000000))
+
+	burningRes, err = tradingSuite.callBurningPToken(
+		tradingSuite.IncEtherTokenIDStr,
+		withdrawingPETH,
+		tradingSuite.ETHOwnerAddrStr,
+		"createandsendburningrequest",
+		tradingSuite.IncPrivKeyStr,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	burningTxID, found = burningRes["TxID"]
+	require.Equal(tradingSuite.T(), true, found)
+	time.Sleep(incWait * time.Second)
+
+	balpEthAfBurnS51, _ := tradingSuite.getBalanceTokenIncAccount(
+		tradingSuite.IncPrivKeyStr,
+		tradingSuite.IncEtherTokenIDStr,
+	)
+	fmt.Println("[INFO] pETH balance after burning step 4 : ", balpEthAfBurnS51)
+
+	tradingSuite.submitBurnProofForWithdrawal(burningTxID.(string))
+
+	time.Sleep(ethWait * time.Second)
+	balEthAfDep51 := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance after withdraw  : ", balEthAfDep51)
+
 }
 
-func (tradingSuite *MnTradingTestSuite) Test2TradeEthForUSDC() {
-return
-		fmt.Println("============ TEST 2 TRADE ETHER FOR USDC WITH Uniswap AGGREGATOR ===========")
-		fmt.Println("------------ STEP 0: declaration & initialization --------------")
-		tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
-		burningPETH := big.NewInt(0).Div(tradeAmount, big.NewInt(1000000000))
-	
-		pubKeyToAddrStr := crypto.PubkeyToAddress(tradingSuite.GeneratedPubKeyForSC).Hex()
-	
-		// get info balance initialization
-		balPrvInit, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance initialization : ", balPrvInit)
-	
-		balpEthInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
-		fmt.Println("[INFO] pETH balance initialization : ", balpEthInit)
-	
-		balpUSDCInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncUSDCTokenIDStr)
-		fmt.Println("[INFO] pUSDC balance initialization : ", balpUSDCInit)
-	
-		balEthInit := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] ETH balance initialization : ", balEthInit)
-	
-		balUSDCInit := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.USDCAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] USDC balance initialization : ", balUSDCInit)
-	
-		balEthScInit := tradingSuite.getDepositedBalance(
-			tradingSuite.EtherAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] ETH balance initialization on SC : ", balEthScInit)
-	
-		balUSDCScInit := tradingSuite.getDepositedBalance(
-			tradingSuite.USDCAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] USDC balance initialization on SC : ", balUSDCScInit)
-	
-		fmt.Println("------------ STEP 1: porting ETH to pETH --------------")
-		txHash := tradingSuite.depositETH(
-			tradingSuite.DepositingEther,
-			tradingSuite.IncPaymentAddrStr,
-		)
-		time.Sleep(ethWait * time.Second)
-		_, ethBlockHash, ethTxIdx, ethDepositProof, err := getETHDepositProof(tradingSuite.ETHHost, txHash)
-		require.Equal(tradingSuite.T(), nil, err)
-		fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
-	
-		// get ETH remain after depsit
-		balEthAfDep := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] ETH balance remain after deposit : ", balEthAfDep)
-		// TODO : assert ETH balance
-	
-		fmt.Println("Waiting 90s for 15 blocks confirmation")
-		time.Sleep(confirmWait * time.Second)
-		_, err = tradingSuite.callIssuingETHReq(
-			tradingSuite.IncEtherTokenIDStr,
-			ethDepositProof,
-			ethBlockHash,
-			ethTxIdx,
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		time.Sleep(incWait * time.Second)
-		// check PRV and token balance after issuing
-		balPrvAfIssS1, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance after issuing step 1: ", balPrvAfIssS1)
-		// TODO assert PRV balance remain
-		balpEthAfIssS1, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
-		fmt.Println("[INFO] pETH balance after issuing step 1 : ", balpEthAfIssS1)
-		// TODO assert pETH balance issuing
-	
-		fmt.Println("------------ STEP 2: burning pETH to deposit ETH to SC --------------")
-		// make a burn tx to incognito chain as a result of deposit to SC
-		burningRes, err := tradingSuite.callBurningPToken(
-			tradingSuite.IncEtherTokenIDStr,
-			burningPETH,
-			pubKeyToAddrStr[2:],
-			"createandsendburningfordeposittoscrequest",
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		burningTxID, found := burningRes["TxID"]
-		require.Equal(tradingSuite.T(), true, found)
-		time.Sleep(incWait * time.Second)
-	
-		// check PRV and token balance after burning
-		balPrvAfBurnS2, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance after burning step 2: ", balPrvAfBurnS2)
-		// TODO assert PRV balance remain
-		balpEthAfBurnS2, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
-		fmt.Println("[INFO] pETH balance after burning step 2 : ", balpEthAfBurnS2)
-		// TODO assert pETH balance issuing
-	
-		tradingSuite.submitBurnProofForDepositToSC(burningTxID.(string))
-	
-		time.Sleep(ethWait * time.Second)
-		balEthScDepS2 := tradingSuite.getDepositedBalance(
-			tradingSuite.EtherAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] ETH balance after deposit on SC at step 2: ", balEthScDepS2)
-		// TODO assert ETH balane on SC
-		balUSDCScS2 := tradingSuite.getDepositedBalance(
-			tradingSuite.USDCAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] USDC balance on SC at step 2 : ", balUSDCScS2)
-	
-		//require.Equal(tradingSuite.T(), big.NewInt(0).Mul(burningPETH, big.NewInt(1000000000)), deposited)
-		fmt.Println("------------ step 3: execute trade ETH for USDC through uniswap aggregator --------------")
-		tradingSuite.executeWithUniswap(
-			tradeAmount,
-			tradingSuite.EtherAddressStr,
-			tradingSuite.USDCAddressStr,
-		)
-		time.Sleep(ethWait * time.Second)
-		balEthScTradeS3 := tradingSuite.getDepositedBalance(
-			tradingSuite.EtherAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] ETH balance on SC after trade at step 3 : ", balEthScTradeS3)
-		// TODO assert ETH balane on SC
-		balUSDCScTradeS3 := tradingSuite.getDepositedBalance(
-			tradingSuite.USDCAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] USDC balance on SC after trade at step 3 : ", balUSDCScTradeS3)
-		// TODO assert USDC balane on SC
-	
-		fmt.Println("------------ STEP 4: withdraw USDC to deposit pUSDC to Incognito  --------------")
-	
-		txHashByEmittingWithdrawalReq1 := tradingSuite.requestWithdraw(
-			tradingSuite.USDCAddressStr,
-			balUSDCScTradeS3,
-		)
-		time.Sleep(ethWait * time.Second)
-		// txHashByEmittingWithdrawalReq1 := common.HexToHash("0xb299bf0c890cb8606b5f187014b63750bc94b12062fd3976e8c7f84fee58621a")
-		balUSDCScDepS41 := tradingSuite.getDepositedBalance(
-			tradingSuite.USDCAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] USDC balance on SC after withdraw at step 3 : ", balUSDCScDepS41)
-		// TODO assert USDC balane on SC
-	
-		_, ethBlockHash, ethTxIdx, ethDepositProof, err = getETHDepositProof(tradingSuite.ETHHost, txHashByEmittingWithdrawalReq1)
-		require.Equal(tradingSuite.T(), nil, err)
-		fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
-	
-		fmt.Println("Waiting 90s for 15 blocks confirmation")
-		time.Sleep(confirmWait * time.Second)
-	
-		_, err = tradingSuite.callIssuingETHReq(
-			tradingSuite.IncUSDCTokenIDStr,
-			ethDepositProof,
-			ethBlockHash,
-			ethTxIdx,
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		time.Sleep(incWait * time.Second)
-	
-		balpUSDCAfIssS41, _ := tradingSuite.getBalanceTokenIncAccount(
-			tradingSuite.IncPrivKeyStr,
-			tradingSuite.IncUSDCTokenIDStr,
-		)
-		fmt.Println("[INFO] pUSDC balance after issuing step 3 : ", balpUSDCAfIssS41)
-	
-		fmt.Println("------------ STEP 5: withdraw pUSDC to deposit USDC   --------------")
-	
-		withdrawingPUSDC := balUSDCScTradeS3
-		// withdrawingPUSDC := big.NewInt(int64(350770))
-		burningRes, err = tradingSuite.callBurningPToken(
-			tradingSuite.IncUSDCTokenIDStr,
-			withdrawingPUSDC,
-			tradingSuite.ETHOwnerAddrStr,
-			"createandsendburningrequest",
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		burningTxID, found = burningRes["TxID"]
-		require.Equal(tradingSuite.T(), true, found)
-		time.Sleep(incWait * time.Second)
-	
-		balpUSDCAfBurnS51, _ := tradingSuite.getBalanceTokenIncAccount(
-			tradingSuite.IncPrivKeyStr,
-			tradingSuite.IncUSDCTokenIDStr,
-		)
-		fmt.Println("[INFO] pUSDC balance after burning step 4 : ", balpUSDCAfBurnS51)
-	
-		tradingSuite.submitBurnProofForWithdrawal(burningTxID.(string))
-	
-		time.Sleep(ethWait * time.Second)
-		balUSDCAfDep51 := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.USDCAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] USDC balance after withdraw  : ", balUSDCAfDep51)
-	
+func (tradingSuite *MnTradingTestSuite) Test2DepositAndWithdrwaEtherwithCrossShard() {
+	// return
+	fmt.Println("============ TEST 2 DEPOSIT AND WITHDRAW ETHER Cross shard ===========")
+	fmt.Println("------------ STEP 0: declaration & initialization --------------")
+	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
+	burningPETH := big.NewInt(0).Div(tradeAmount, big.NewInt(1000000000))
+
+	tradingSuite.sendPRV(tradingSuite.IncPrivKeyStr, big.NewInt(10000), tradingSuite.IncPaymentReceiverStr)
+
+	pubKeyToAddrStr := crypto.PubkeyToAddress(tradingSuite.GeneratedPubKeyForSC).Hex()
+	fmt.Println("GeneratedPubKeyForSC", pubKeyToAddrStr)
+
+	// get info balance initialization
+	balPrvInit, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance submiter initialization : ", balPrvInit)
+
+	balpEthInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance submiter initialization : ", balpEthInit)
+
+	// balPrvInit0, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivaKeyReceiverStr)
+	// fmt.Println("[INFO] PRV balance Xshard initialization : ", balPrvInit0)
+
+	balpEthInit0, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivaKeyReceiverStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance Xshard initialization : ", balpEthInit0)
+
+	balEthInit := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance initialization : ", balEthInit)
+
+	balEthScInit := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] ETH balance initialization on SC : ", balEthScInit)
+
+	fmt.Println("------------ STEP 1: porting ETH to pETH --------------")
+
+	fmt.Println("amount ETH deposit : ", (big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))))
+
+	// Deposit to proof
+	txHash := tradingSuite.depositETH(
+		tradingSuite.DepositingEther,
+		tradingSuite.IncPaymentReceiverStr,
+	)
+
+	fmt.Println("gas Fee transaction :", tradingSuite.getGasFeeETHbyTxhash(txHash))
+	// get ETH remain after depsit
+	balEthAfDep := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance remain after deposit : ", balEthAfDep)
+
+	//	require.Equal(tradingSuite.T(), balEthAfDep, big.NewInt(0).Sub(big.NewInt(0).Sub(balEthInit, big.NewInt(int64(tradingSuite.DepositingEther*params.Ether))), tradingSuite.getGasFeeETHbyTxhash(txHash)), "balance ETH incorrect")
+
+	// Proof
+	_, ethBlockHash, ethTxIdx, ethDepositProof, err := getETHDepositProof(tradingSuite.ETHHost, txHash)
+	require.Equal(tradingSuite.T(), nil, err)
+	fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
+
+	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	time.Sleep(confirmWait * time.Second)
+	_, err = tradingSuite.callIssuingETHReq(
+		tradingSuite.IncEtherTokenIDStr,
+		ethDepositProof,
+		ethBlockHash,
+		ethTxIdx,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+
+	time.Sleep(incWait * time.Second)
+	// check PRV and token balance after issuing
+	balPrvAfIssS1, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivaKeyReceiverStr)
+	fmt.Println("[INFO] PRV balance Xshard after issuing step 1: ", balPrvAfIssS1)
+	//require.NotEqual(tradingSuite.T(), balPrvAfIssS1, (balPrvInit - tradingSuite.getFeePRVbyTxhashInC(issuuRes["TxID"].(string))), "Balance PRV remain incorrect after issuu step 1")
+
+	balpEthAfIssS1, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivaKeyReceiverStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance Xshard after issuing step 1 : ", balpEthAfIssS1)
+	//require.Equal(tradingSuite.T(), big.NewInt(int64(balpEthAfIssS1-balpEthInit)), big.NewInt(0).Div(big.NewInt(int64(tradingSuite.DepositingEther*params.Ether)), big.NewInt(1000000000)), " balnce pToken issuu incorrect")
+
+	balPrvAfIssS0, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance submiter after issuing step 1: ", balPrvAfIssS0)
+	balpEthAfIssS0, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance submiter after issuing step 1 : ", balpEthAfIssS0)
+
+	fmt.Println("------------ STEP 2: burning pETH to deposit ETH to SC --------------")
+	// make a burn tx to incognito chain as a result of deposit to SC
+	burningRes, err := tradingSuite.callBurningPToken(
+		tradingSuite.IncEtherTokenIDStr,
+		burningPETH,
+		pubKeyToAddrStr[2:],
+		"createandsendburningfordeposittoscrequest",
+		tradingSuite.IncPrivaKeyReceiverStr,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	burningTxID, found := burningRes["TxID"]
+	require.Equal(tradingSuite.T(), true, found)
+	time.Sleep(incWait * time.Second)
+
+	// check PRV and token balance after burning
+	balPrvAfBurnS2a, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivaKeyReceiverStr)
+	fmt.Println("[INFO] PRV balance Xshard after burning step 2: ", balPrvAfBurnS2a)
+
+	balpEthAfBurnS2a, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivaKeyReceiverStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance Xshard after burning step 2 : ", balpEthAfBurnS2a)
+
+	balPrvAfBurnS2, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance submiter after burning step 2: ", balPrvAfBurnS2)
+	//require.NotEqual(tradingSuite.T(), balPrvAfBurnS2, (balPrvAfIssS1 - tradingSuite.getFeePRVbyTxhashInC(burningRes["TxID"].(string))), "Balance PRV remain incorrect after burn step 2")
+
+	balpEthAfBurnS2, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance submiter after burning step 2 : ", balpEthAfBurnS2)
+	// TODO assert pETH balance issuing
+
+	txHash2 := tradingSuite.submitBurnProofForDepositToSC(burningTxID.(string))
+	// txHash2 := tradingSuite.submitBurnProofForDepositToSC("173279b5d9645a833bac9c55bc9199f2ab144a5a4f49673b2c1075402fb52e0c")
+	time.Sleep(ethWait * time.Second)
+
+	fmt.Println("gas Fee transaction :", tradingSuite.getGasFeeETHbyTxhash(txHash2))
+	// get ETH remain
+	balEthAfDep2 := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance remain  : ", balEthAfDep2)
+	// TODO : assert ETH balance
+	//require.Equal(tradingSuite.T(), balEthAfDep2, big.NewInt(0).Sub(balEthAfDep, tradingSuite.getGasFeeETHbyTxhash(txHash2)), "balance ETH incorrect")
+
+	balEthScDepS2 := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] ETH balance after deposit on SC at step 2: ", balEthScDepS2)
+	// // TODO assert ETH balane on SC
+
+	fmt.Println("------------ STEP 3: withdraw ETH to deposit pETH to Incognito  --------------")
+
+	txHashByEmittingWithdrawalReq1 := tradingSuite.requestWithdraw(
+		tradingSuite.EtherAddressStr,
+		balEthScDepS2,
+		tradingSuite.IncPaymentReceiverStr,
+	)
+	time.Sleep(ethWait * time.Second)
+	balDaiScDepS41 := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] ETH balance on SC after withdraw at step 3 : ", balDaiScDepS41)
+	// TODO assert DAI balane on SC
+
+	_, ethBlockHash, ethTxIdx, ethDepositProof, err = getETHDepositProof(tradingSuite.ETHHost, txHashByEmittingWithdrawalReq1)
+	require.Equal(tradingSuite.T(), nil, err)
+	fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
+
+	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	time.Sleep(confirmWait * time.Second)
+
+	_, err = tradingSuite.callIssuingETHReq(
+		tradingSuite.IncEtherTokenIDStr,
+		ethDepositProof,
+		ethBlockHash,
+		ethTxIdx,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	time.Sleep(incWait * time.Second)
+
+	balpDaiAfIssS41, _ := tradingSuite.getBalanceTokenIncAccount(
+		tradingSuite.IncPrivaKeyReceiverStr,
+		tradingSuite.IncEtherTokenIDStr,
+	)
+	fmt.Println("[INFO] pETH balance Xshard after issuing step 3 : ", balpDaiAfIssS41)
+
+	balpDaiAfIssS41a, _ := tradingSuite.getBalanceTokenIncAccount(
+		tradingSuite.IncPrivKeyStr,
+		tradingSuite.IncEtherTokenIDStr,
+	)
+	fmt.Println("[INFO] pETH balance submiter after issuing step 3 : ", balpDaiAfIssS41a)
+
+	fmt.Println("------------ STEP 4: withdraw pETH to deposit ETH   --------------")
+
+	withdrawingPETH := big.NewInt(0).Div(balEthScDepS2, big.NewInt(1000000000))
+
+	burningRes, err = tradingSuite.callBurningPToken(
+		tradingSuite.IncEtherTokenIDStr,
+		withdrawingPETH,
+		tradingSuite.ETHOwnerAddrStr,
+		"createandsendburningrequest",
+		tradingSuite.IncPrivaKeyReceiverStr,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	burningTxID, found = burningRes["TxID"]
+	require.Equal(tradingSuite.T(), true, found)
+	time.Sleep(incWait * time.Second)
+
+	balpEthAfBurnS51, _ := tradingSuite.getBalanceTokenIncAccount(
+		tradingSuite.IncPrivaKeyReceiverStr,
+		tradingSuite.IncEtherTokenIDStr,
+	)
+	fmt.Println("[INFO] pETH balance Xshard after burning step 4 : ", balpEthAfBurnS51)
+
+	balpEthAfBurnS51a, _ := tradingSuite.getBalanceTokenIncAccount(
+		tradingSuite.IncPrivKeyStr,
+		tradingSuite.IncEtherTokenIDStr,
+	)
+	fmt.Println("[INFO] pETH balance submiter after burning step 4 : ", balpEthAfBurnS51a)
+
+	tradingSuite.submitBurnProofForWithdrawal(burningTxID.(string))
+
+	time.Sleep(ethWait * time.Second)
+	balEthAfDep51 := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance after withdraw  : ", balEthAfDep51)
+
 }
-	
-func (tradingSuite *MnTradingTestSuite) Test3DepositAndWithdrwatokenUSDC() {
-return
-		fmt.Println("============ TEST 3 DEPOSIT AND WITHDRAW ERC20 TOKEN (USDC) ===========")
-		fmt.Println("------------ STEP 0: declaration & initialization --------------")
-	
-		pubKeyToAddrStr := crypto.PubkeyToAddress(tradingSuite.GeneratedPubKeyForSC).Hex()
-	
-		// get info balance initialization
-		balPrvInit, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance initialization : ", balPrvInit)
-	
-		balEthInit := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] ETH balance initialization : ", balEthInit)
-	
-		balpUSDCInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncUSDCTokenIDStr)
-		fmt.Println("[INFO] pUSDC balance initialization : ", balpUSDCInit)
-	
-		balUSDCInit := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.USDCAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] USDC balance initialization : ", balUSDCInit)
-	
-		balEthScInit := tradingSuite.getDepositedBalance(
-			tradingSuite.USDCAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] USDC balance initialization on SC : ", balEthScInit)
-	
-		fmt.Println("------------ STEP 1: porting USDC to pUSDC --------------")
-	
-		fmt.Println("amount USDC deposit input : ", (big.NewInt(int64(1000))))
-		deposit := big.NewInt(int64(1000))
-		burningPETH := deposit
-		// Deposit to proof
-		txHash := tradingSuite.depositERC20ToBridge(
-			deposit,
-			common.HexToAddress(tradingSuite.USDCAddressStr),
-			tradingSuite.IncPaymentAddrStr,
-		)
-	
-		balUSDCAfDep := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.USDCAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] USDC balance remain after deposit : ", balUSDCAfDep)
-	
-		fmt.Println("gas Fee transaction :", tradingSuite.getGasFeeETHbyTxhash(txHash))
-		// get ETH remain after depsit
-		balEthAfDep := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] ETH balance remain after deposit : ", balEthAfDep)
-	
-		//require.Equal(tradingSuite.T(), balEthAfDep, big.NewInt(0).Sub(big.NewInt(0).Sub(balEthInit, big.NewInt(int64(tradingSuite.DepositingEther*params.Ether))), tradingSuite.getGasFeeETHbyTxhash(txHash)), "balance ETH incorrect")
-	
-		// Proof
-		_, ethBlockHash, ethTxIdx, ethDepositProof, err := getETHDepositProof(tradingSuite.ETHHost, txHash)
-		require.Equal(tradingSuite.T(), nil, err)
-		fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
-	
-		fmt.Println("Waiting 90s for 15 blocks confirmation")
-		time.Sleep(confirmWait * time.Second)
-	
-		_, err = tradingSuite.callIssuingETHReq(
-			tradingSuite.IncUSDCTokenIDStr,
-			ethDepositProof,
-			ethBlockHash,
-			ethTxIdx,
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-	
-		time.Sleep(incWait * time.Second)
-	
-		balpUSDCAfIssS1, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncUSDCTokenIDStr)
-		fmt.Println("[INFO] pUSDC balance after issuing step 1 : ", balpUSDCAfIssS1)
-		// check PRV and token balance after issuing
-		balPrvAfIssS1, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance after issuing step 1: ", balPrvAfIssS1)
-	
-		fmt.Println("------------ STEP 2: burning pUSDC to deposit USDC to SC --------------")
-		// make a burn tx to incognito chain as a result of deposit to SC
-		burningRes, err := tradingSuite.callBurningPToken(
-			tradingSuite.IncUSDCTokenIDStr,
-			burningPETH,
-			pubKeyToAddrStr[2:],
-			"createandsendburningfordeposittoscrequest",
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		burningTxID, found := burningRes["TxID"]
-		require.Equal(tradingSuite.T(), true, found)
-		time.Sleep(incWait * time.Second)
-	
-		// check PRV and token balance after burning
-		balPrvAfBurnS2, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance after burning step 2: ", balPrvAfBurnS2)
-	
-		balpUSDCAfBurnS2, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncUSDCTokenIDStr)
-		fmt.Println("[INFO] pUSDC balance after burning step 2 : ", balpUSDCAfBurnS2)
-		// TODO assert pETH balance issuing
-	
-		txHash2 := tradingSuite.submitBurnProofForDepositToSC(burningTxID.(string))
-		time.Sleep(ethWait * time.Second)
-		fmt.Println("gas Fee transaction :", tradingSuite.getGasFeeETHbyTxhash(txHash2))
-		// get ETH remain
-		balEthAfDep2 := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] ETH balance remain  : ", balEthAfDep2)
-		// TODO : assert ETH balance
-		//require.Equal(tradingSuite.T(), balEthAfDep2, big.NewInt(0).Sub(balEthAfDep, tradingSuite.getGasFeeETHbyTxhash(txHash2)), "balance ETH incorrect")
-	
-		balUSDCScDepS2 := tradingSuite.getDepositedBalance(
-			tradingSuite.USDCAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] USDC balance after deposit on SC at step 2: ", balUSDCScDepS2)
-		// TODO assert ETH balane on SC
-	
-		fmt.Println("------------ STEP 3: withdraw USDC to deposit pUSDC to Incognito  --------------")
-	
-		txHashByEmittingWithdrawalReq1 := tradingSuite.requestWithdraw(
-			tradingSuite.USDCAddressStr,
-			balUSDCScDepS2,
-		)
-		time.Sleep(ethWait * time.Second)
-		balUSDCScDepS41 := tradingSuite.getDepositedBalance(
-			tradingSuite.USDCAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] USDC balance on SC after withdraw at step 3 : ", balUSDCScDepS41)
-		// TODO assert USDC balane on SC
-	
-		_, ethBlockHash, ethTxIdx, ethDepositProof, err = getETHDepositProof(tradingSuite.ETHHost, txHashByEmittingWithdrawalReq1)
-		require.Equal(tradingSuite.T(), nil, err)
-		fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
-	
-		fmt.Println("Waiting 90s for 15 blocks confirmation")
-		time.Sleep(confirmWait * time.Second)
-	
-		_, err = tradingSuite.callIssuingETHReq(
-			tradingSuite.IncUSDCTokenIDStr,
-			ethDepositProof,
-			ethBlockHash,
-			ethTxIdx,
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		time.Sleep(incWait * time.Second)
-	
-		balpUSDCAfIssS41, _ := tradingSuite.getBalanceTokenIncAccount(
-			tradingSuite.IncPrivKeyStr,
-			tradingSuite.IncUSDCTokenIDStr,
-		)
-		fmt.Println("[INFO] pUSDC balance after issuing step 3 : ", balpUSDCAfIssS41)
-	
-		fmt.Println("------------ STEP 4: withdraw pUSDC to deposit USDC   --------------")
-	
-		withdrawingPUSDC := big.NewInt(int64(balpUSDCAfIssS1))
-	
-		burningRes, err = tradingSuite.callBurningPToken(
-			tradingSuite.IncUSDCTokenIDStr,
-			withdrawingPUSDC,
-			tradingSuite.ETHOwnerAddrStr,
-			"createandsendburningrequest",
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		burningTxID, found = burningRes["TxID"]
-		require.Equal(tradingSuite.T(), true, found)
-		time.Sleep(incWait * time.Second)
-	
-		balpUSDCAfBurnS51, _ := tradingSuite.getBalanceTokenIncAccount(
-			tradingSuite.IncPrivKeyStr,
-			tradingSuite.IncUSDCTokenIDStr,
-		)
-		fmt.Println("[INFO] pUSDC balance after burning step 4 : ", balpUSDCAfBurnS51)
-	
-		tradingSuite.submitBurnProofForWithdrawal(burningTxID.(string))
-		time.Sleep(ethWait * time.Second)
-		balUSDCAfDep51 := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.USDCAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] USDC balance after withdraw  : ", balUSDCAfDep51)
-	
+
+func (tradingSuite *MnTradingTestSuite) Test3TradeEthForUSDC() {
+	// return
+	fmt.Println("============ TEST 3 TRADE ETHER FOR USDC WITH Uniswap AGGREGATOR ===========")
+	fmt.Println("------------ STEP 0: declaration & initialization --------------")
+	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
+	burningPETH := big.NewInt(0).Div(tradeAmount, big.NewInt(1000000000))
+
+	pubKeyToAddrStr := crypto.PubkeyToAddress(tradingSuite.GeneratedPubKeyForSC).Hex()
+
+	// get info balance initialization
+	balPrvInit, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance initialization : ", balPrvInit)
+
+	balpEthInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance initialization : ", balpEthInit)
+
+	balpUSDCInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncUSDCTokenIDStr)
+	fmt.Println("[INFO] pUSDC balance initialization : ", balpUSDCInit)
+
+	balEthInit := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance initialization : ", balEthInit)
+
+	balUSDCInit := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.USDCAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] USDC balance initialization : ", balUSDCInit)
+
+	balEthScInit := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] ETH balance initialization on SC : ", balEthScInit)
+
+	balUSDCScInit := tradingSuite.getDepositedBalance(
+		tradingSuite.USDCAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] USDC balance initialization on SC : ", balUSDCScInit)
+
+	fmt.Println("------------ STEP 1: porting ETH to pETH --------------")
+	txHash := tradingSuite.depositETH(
+		tradingSuite.DepositingEther,
+		tradingSuite.IncPaymentAddrStr,
+	)
+	time.Sleep(ethWait * time.Second)
+	_, ethBlockHash, ethTxIdx, ethDepositProof, err := getETHDepositProof(tradingSuite.ETHHost, txHash)
+	require.Equal(tradingSuite.T(), nil, err)
+	fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
+
+	// get ETH remain after depsit
+	balEthAfDep := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance remain after deposit : ", balEthAfDep)
+	// TODO : assert ETH balance
+
+	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	time.Sleep(confirmWait * time.Second)
+	_, err = tradingSuite.callIssuingETHReq(
+		tradingSuite.IncEtherTokenIDStr,
+		ethDepositProof,
+		ethBlockHash,
+		ethTxIdx,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	time.Sleep(incWait * time.Second)
+	// check PRV and token balance after issuing
+	balPrvAfIssS1, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance after issuing step 1: ", balPrvAfIssS1)
+	// TODO assert PRV balance remain
+	balpEthAfIssS1, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance after issuing step 1 : ", balpEthAfIssS1)
+	// TODO assert pETH balance issuing
+
+	fmt.Println("------------ STEP 2: burning pETH to deposit ETH to SC --------------")
+	// make a burn tx to incognito chain as a result of deposit to SC
+	burningRes, err := tradingSuite.callBurningPToken(
+		tradingSuite.IncEtherTokenIDStr,
+		burningPETH,
+		pubKeyToAddrStr[2:],
+		"createandsendburningfordeposittoscrequest",
+		tradingSuite.IncPrivKeyStr,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	burningTxID, found := burningRes["TxID"]
+	require.Equal(tradingSuite.T(), true, found)
+	time.Sleep(incWait * time.Second)
+
+	// check PRV and token balance after burning
+	balPrvAfBurnS2, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance after burning step 2: ", balPrvAfBurnS2)
+	// TODO assert PRV balance remain
+	balpEthAfBurnS2, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance after burning step 2 : ", balpEthAfBurnS2)
+	// TODO assert pETH balance issuing
+
+	tradingSuite.submitBurnProofForDepositToSC(burningTxID.(string))
+
+	time.Sleep(ethWait * time.Second)
+	balEthScDepS2 := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] ETH balance after deposit on SC at step 2: ", balEthScDepS2)
+	// TODO assert ETH balane on SC
+	balUSDCScS2 := tradingSuite.getDepositedBalance(
+		tradingSuite.USDCAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] USDC balance on SC at step 2 : ", balUSDCScS2)
+
+	//require.Equal(tradingSuite.T(), big.NewInt(0).Mul(burningPETH, big.NewInt(1000000000)), deposited)
+	fmt.Println("------------ step 3: execute trade ETH for USDC through uniswap aggregator --------------")
+	tradingSuite.executeWithUniswap(
+		tradeAmount,
+		tradingSuite.EtherAddressStr,
+		tradingSuite.USDCAddressStr,
+	)
+	time.Sleep(ethWait * time.Second)
+	balEthScTradeS3 := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] ETH balance on SC after trade at step 3 : ", balEthScTradeS3)
+	// TODO assert ETH balane on SC
+	balUSDCScTradeS3 := tradingSuite.getDepositedBalance(
+		tradingSuite.USDCAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] USDC balance on SC after trade at step 3 : ", balUSDCScTradeS3)
+	// TODO assert USDC balane on SC
+
+	fmt.Println("------------ STEP 4: withdraw USDC to deposit pUSDC to Incognito  --------------")
+
+	txHashByEmittingWithdrawalReq1 := tradingSuite.requestWithdraw(
+		tradingSuite.USDCAddressStr,
+		balUSDCScTradeS3,
+		tradingSuite.IncPaymentAddrStr,
+	)
+	time.Sleep(ethWait * time.Second)
+	// txHashByEmittingWithdrawalReq1 := common.HexToHash("0xb299bf0c890cb8606b5f187014b63750bc94b12062fd3976e8c7f84fee58621a")
+	balUSDCScDepS41 := tradingSuite.getDepositedBalance(
+		tradingSuite.USDCAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] USDC balance on SC after withdraw at step 3 : ", balUSDCScDepS41)
+	// TODO assert USDC balane on SC
+
+	_, ethBlockHash, ethTxIdx, ethDepositProof, err = getETHDepositProof(tradingSuite.ETHHost, txHashByEmittingWithdrawalReq1)
+	require.Equal(tradingSuite.T(), nil, err)
+	fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
+
+	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	time.Sleep(confirmWait * time.Second)
+
+	_, err = tradingSuite.callIssuingETHReq(
+		tradingSuite.IncUSDCTokenIDStr,
+		ethDepositProof,
+		ethBlockHash,
+		ethTxIdx,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	time.Sleep(incWait * time.Second)
+
+	balpUSDCAfIssS41, _ := tradingSuite.getBalanceTokenIncAccount(
+		tradingSuite.IncPrivKeyStr,
+		tradingSuite.IncUSDCTokenIDStr,
+	)
+	fmt.Println("[INFO] pUSDC balance after issuing step 3 : ", balpUSDCAfIssS41)
+
+	fmt.Println("------------ STEP 5: withdraw pUSDC to deposit USDC   --------------")
+
+	withdrawingPUSDC := balUSDCScTradeS3
+	// withdrawingPUSDC := big.NewInt(int64(350770))
+	burningRes, err = tradingSuite.callBurningPToken(
+		tradingSuite.IncUSDCTokenIDStr,
+		withdrawingPUSDC,
+		tradingSuite.ETHOwnerAddrStr,
+		"createandsendburningrequest",
+		tradingSuite.IncPrivKeyStr,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	burningTxID, found = burningRes["TxID"]
+	require.Equal(tradingSuite.T(), true, found)
+	time.Sleep(incWait * time.Second)
+
+	balpUSDCAfBurnS51, _ := tradingSuite.getBalanceTokenIncAccount(
+		tradingSuite.IncPrivKeyStr,
+		tradingSuite.IncUSDCTokenIDStr,
+	)
+	fmt.Println("[INFO] pUSDC balance after burning step 4 : ", balpUSDCAfBurnS51)
+
+	tradingSuite.submitBurnProofForWithdrawal(burningTxID.(string))
+
+	time.Sleep(ethWait * time.Second)
+	balUSDCAfDep51 := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.USDCAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] USDC balance after withdraw  : ", balUSDCAfDep51)
+
 }
-	
-func (tradingSuite *MnTradingTestSuite) Test4TradeEthForKNCWithKyber() {
-return
-		fmt.Println("============ TEST 4 TRADE ETHER FOR KNC WITH Kyber AGGREGATOR ===========")
-		fmt.Println("------------ STEP 0: declaration & initialization --------------")
-		tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
-		burningPETH := big.NewInt(0).Div(tradeAmount, big.NewInt(1000000000))
-	
-		pubKeyToAddrStr := crypto.PubkeyToAddress(tradingSuite.GeneratedPubKeyForSC).Hex()
-	
-		// get info balance initialization
-		balPrvInit, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance initialization : ", balPrvInit)
-	
-		balpEthInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
-		fmt.Println("[INFO] pETH balance initialization : ", balpEthInit)
-	
-		balpKNCInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncKNCTokenIDStr)
-		fmt.Println("[INFO] pKNC balance initialization : ", balpKNCInit)
-	
-		balEthInit := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] ETH balance initialization : ", balEthInit)
-	
-		balKNCInit := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.KNCAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] KNC balance initialization : ", balKNCInit)
-	
-		balEthScInit := tradingSuite.getDepositedBalance(
-			tradingSuite.EtherAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] ETH balance initialization on SC : ", balEthScInit)
-	
-		balKNCScInit := tradingSuite.getDepositedBalance(
-			tradingSuite.KNCAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] KNC balance initialization on SC : ", balKNCScInit)
-	
-		fmt.Println("------------ STEP 1: porting ETH to pETH --------------")
-		txHash := tradingSuite.depositETH(
-			tradingSuite.DepositingEther,
-			tradingSuite.IncPaymentAddrStr,
-		)
-		time.Sleep(ethWait * time.Second)
-	
-		_, ethBlockHash, ethTxIdx, ethDepositProof, err := getETHDepositProof(tradingSuite.ETHHost, txHash)
-		require.Equal(tradingSuite.T(), nil, err)
-		fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
-	
-		// get ETH remain after depsit
-		balEthAfDep := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("[INFO] ETH balance remain after deposit : ", balEthAfDep)
-		// TODO : assert ETH balance
-	
-		fmt.Println("Waiting 90s for 15 blocks confirmation")
-		time.Sleep(confirmWait * time.Second)
-		_, err = tradingSuite.callIssuingETHReq(
-			tradingSuite.IncEtherTokenIDStr,
-			ethDepositProof,
-			ethBlockHash,
-			ethTxIdx,
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		time.Sleep(incWait * time.Second)
-		// check PRV and token balance after issuing
-		balPrvAfIssS1, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance after issuing step 1: ", balPrvAfIssS1)
-		// TODO assert PRV balance remain
-		balpEthAfIssS1, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
-		fmt.Println("[INFO] pETH balance after issuing step 1 : ", balpEthAfIssS1)
-		// TODO assert pETH balance issuing
-	
-		fmt.Println("------------ STEP 2: burning pETH to deposit ETH to SC --------------")
-		// make a burn tx to incognito chain as a result of deposit to SC
-		burningRes, err := tradingSuite.callBurningPToken(
-			tradingSuite.IncEtherTokenIDStr,
-			burningPETH,
-			pubKeyToAddrStr[2:],
-			"createandsendburningfordeposittoscrequest",
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		burningTxID, found := burningRes["TxID"]
-		require.Equal(tradingSuite.T(), true, found)
-		time.Sleep(incWait * time.Second)
-	
-		// check PRV and token balance after burning
-		balPrvAfBurnS2, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance after burning step 2: ", balPrvAfBurnS2)
-		// TODO assert PRV balance remain
-		balpEthAfBurnS2, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
-		fmt.Println("[INFO] pETH balance after burning step 2 : ", balpEthAfBurnS2)
-		// TODO assert pETH balance issuing
-	
-		tradingSuite.submitBurnProofForDepositToSC(burningTxID.(string))
-		balEthScDepS2 := tradingSuite.getDepositedBalance(
-			tradingSuite.EtherAddressStr,
-			pubKeyToAddrStr,
-		)
-		time.Sleep(ethWait * time.Second)
-		fmt.Println("[INFO] ETH balance after deposit on SC at step 2: ", balEthScDepS2)
-		// TODO assert ETH balane on SC
-		balKNCScS2 := tradingSuite.getDepositedBalance(
-			tradingSuite.KNCAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] KNC balance on SC at step 2 : ", balKNCScS2)
-	
-		//require.Equal(tradingSuite.T(), big.NewInt(0).Mul(burningPETH, big.NewInt(1000000000)), deposited)
-		fmt.Println("------------ step 3: execute trade ETH for KNC through Kyber aggregator --------------")
-		tradingSuite.executeWithKyber(
-			tradeAmount,
-			tradingSuite.EtherAddressStr,
-			tradingSuite.KNCAddressStr,
-		)
-		time.Sleep(ethWait * time.Second)
-	
-		balEthScTradeS3 := tradingSuite.getDepositedBalance(
-			tradingSuite.EtherAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] ETH balance on SC after trade at step 3 : ", balEthScTradeS3)
-		// TODO assert ETH balane on SC
-		balKNCScTradeS3 := tradingSuite.getDepositedBalance(
-			tradingSuite.KNCAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] KNC balance on SC after trade at step 3 : ", balKNCScTradeS3)
-		// TODO assert KNC balane on SC
-		require.NotEqual(tradingSuite.T(), balKNCScTradeS3, balKNCScS2, "trade failed")
-	
-		fmt.Println("------------ step 4: withdrawing KNC from SC to pKNC on Incognito --------------")
-		txHashByEmittingWithdrawalReq := tradingSuite.requestWithdraw(
-			tradingSuite.KNCAddressStr,
-			balKNCScTradeS3,
-		)
-		time.Sleep(ethWait * time.Second)
-	
-		balKNCScDepS4 := tradingSuite.getDepositedBalance(
-			tradingSuite.KNCAddressStr,
-			pubKeyToAddrStr,
-		)
-		fmt.Println("[INFO] KNC balance on SC after withdraw at step 4 : ", balKNCScDepS4)
-		// TODO assert KNC balane on SC
-		_, ethBlockHash, ethTxIdx, ethDepositProof, err = getETHDepositProof(tradingSuite.ETHHost, txHashByEmittingWithdrawalReq)
-		require.Equal(tradingSuite.T(), nil, err)
-		fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
-	
-		fmt.Println("Waiting 90s for 15 blocks confirmation")
-		time.Sleep(confirmWait * time.Second)
-		_, err = tradingSuite.callIssuingETHReq(
-			tradingSuite.IncKNCTokenIDStr,
-			ethDepositProof,
-			ethBlockHash,
-			ethTxIdx,
-		)
-		require.Equal(tradingSuite.T(), nil, err)
-		time.Sleep(incWait * time.Second)
-	
-		balpEthAfIssS4, _ := tradingSuite.getBalanceTokenIncAccount(
-			tradingSuite.IncPrivKeyStr,
-			tradingSuite.IncKNCTokenIDStr,
-		)
-		fmt.Println("[INFO] pKNC balance after issuing step 4 : ", balpEthAfIssS4)
-	
-		balPrvAfIssS4, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
-		fmt.Println("[INFO] PRV balance after issuing step 4: ", balPrvAfIssS4)
-		// TODO assert PRV balance remain
-	
-		fmt.Println("------------ step 5: withdrawing pKNC from Incognito to KNC --------------")
-		withdrawingPKNC := big.NewInt(0).Div(balKNCScTradeS3, big.NewInt(1000000000))
-		burningRes, err = tradingSuite.callBurningPToken(
-			tradingSuite.IncKNCTokenIDStr,
-			withdrawingPKNC,
-			tradingSuite.ETHOwnerAddrStr,
-			"createandsendburningrequest",
-		)
-	
-		require.Equal(tradingSuite.T(), nil, err)
-		burningTxID, found = burningRes["TxID"]
-		require.Equal(tradingSuite.T(), true, found)
-		time.Sleep(incWait * time.Second)
-	
-		tradingSuite.submitBurnProofForWithdrawal(burningTxID.(string))
-		time.Sleep(ethWait * time.Second)
-	
-		balKNC := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.KNCAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("KNC balance after trade: ", balKNC)
-	
-		// require.Equal(tradingSuite.T(), withdrawingPKNC.Uint64(), bal.Div(bal, big.NewInt(1000000000)).Uint64())
-	
-		balEth := tradingSuite.getBalanceOnETHNet(
-			common.HexToAddress(tradingSuite.EtherAddressStr),
-			common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
-		)
-		fmt.Println("ETH balance after trade: ", balEth)
-	}
-	
-	
-	
+
+func (tradingSuite *MnTradingTestSuite) Test4DepositAndWithdrwatokenUSDC() {
+	// return
+	fmt.Println("============ TEST 4 DEPOSIT AND WITHDRAW ERC20 TOKEN (USDC) ===========")
+	fmt.Println("------------ STEP 0: declaration & initialization --------------")
+
+	pubKeyToAddrStr := crypto.PubkeyToAddress(tradingSuite.GeneratedPubKeyForSC).Hex()
+
+	// get info balance initialization
+	balPrvInit, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance initialization : ", balPrvInit)
+
+	balEthInit := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance initialization : ", balEthInit)
+
+	balpUSDCInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncUSDCTokenIDStr)
+	fmt.Println("[INFO] pUSDC balance initialization : ", balpUSDCInit)
+
+	balUSDCInit := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.USDCAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] USDC balance initialization : ", balUSDCInit)
+
+	balEthScInit := tradingSuite.getDepositedBalance(
+		tradingSuite.USDCAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] USDC balance initialization on SC : ", balEthScInit)
+
+	fmt.Println("------------ STEP 1: porting USDC to pUSDC --------------")
+
+	fmt.Println("amount USDC deposit input : ", (big.NewInt(int64(1000))))
+	deposit := big.NewInt(int64(1000))
+	burningPETH := deposit
+	// Deposit to proof
+	txHash := tradingSuite.depositERC20ToBridge(
+		deposit,
+		common.HexToAddress(tradingSuite.USDCAddressStr),
+		tradingSuite.IncPaymentAddrStr,
+	)
+
+	balUSDCAfDep := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.USDCAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] USDC balance remain after deposit : ", balUSDCAfDep)
+
+	fmt.Println("gas Fee transaction :", tradingSuite.getGasFeeETHbyTxhash(txHash))
+	// get ETH remain after depsit
+	balEthAfDep := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance remain after deposit : ", balEthAfDep)
+
+	//require.Equal(tradingSuite.T(), balEthAfDep, big.NewInt(0).Sub(big.NewInt(0).Sub(balEthInit, big.NewInt(int64(tradingSuite.DepositingEther*params.Ether))), tradingSuite.getGasFeeETHbyTxhash(txHash)), "balance ETH incorrect")
+
+	// Proof
+	_, ethBlockHash, ethTxIdx, ethDepositProof, err := getETHDepositProof(tradingSuite.ETHHost, txHash)
+	require.Equal(tradingSuite.T(), nil, err)
+	fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
+
+	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	time.Sleep(confirmWait * time.Second)
+
+	_, err = tradingSuite.callIssuingETHReq(
+		tradingSuite.IncUSDCTokenIDStr,
+		ethDepositProof,
+		ethBlockHash,
+		ethTxIdx,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+
+	time.Sleep(incWait * time.Second)
+
+	balpUSDCAfIssS1, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncUSDCTokenIDStr)
+	fmt.Println("[INFO] pUSDC balance after issuing step 1 : ", balpUSDCAfIssS1)
+	// check PRV and token balance after issuing
+	balPrvAfIssS1, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance after issuing step 1: ", balPrvAfIssS1)
+
+	fmt.Println("------------ STEP 2: burning pUSDC to deposit USDC to SC --------------")
+	// make a burn tx to incognito chain as a result of deposit to SC
+	burningRes, err := tradingSuite.callBurningPToken(
+		tradingSuite.IncUSDCTokenIDStr,
+		burningPETH,
+		pubKeyToAddrStr[2:],
+		"createandsendburningfordeposittoscrequest",
+		tradingSuite.IncPrivKeyStr,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	burningTxID, found := burningRes["TxID"]
+	require.Equal(tradingSuite.T(), true, found)
+	time.Sleep(incWait * time.Second)
+
+	// check PRV and token balance after burning
+	balPrvAfBurnS2, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance after burning step 2: ", balPrvAfBurnS2)
+
+	balpUSDCAfBurnS2, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncUSDCTokenIDStr)
+	fmt.Println("[INFO] pUSDC balance after burning step 2 : ", balpUSDCAfBurnS2)
+	// TODO assert pETH balance issuing
+
+	txHash2 := tradingSuite.submitBurnProofForDepositToSC(burningTxID.(string))
+	time.Sleep(ethWait * time.Second)
+	fmt.Println("gas Fee transaction :", tradingSuite.getGasFeeETHbyTxhash(txHash2))
+	// get ETH remain
+	balEthAfDep2 := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance remain  : ", balEthAfDep2)
+	// TODO : assert ETH balance
+	//require.Equal(tradingSuite.T(), balEthAfDep2, big.NewInt(0).Sub(balEthAfDep, tradingSuite.getGasFeeETHbyTxhash(txHash2)), "balance ETH incorrect")
+
+	balUSDCScDepS2 := tradingSuite.getDepositedBalance(
+		tradingSuite.USDCAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] USDC balance after deposit on SC at step 2: ", balUSDCScDepS2)
+	// TODO assert ETH balane on SC
+
+	fmt.Println("------------ STEP 3: withdraw USDC to deposit pUSDC to Incognito  --------------")
+
+	txHashByEmittingWithdrawalReq1 := tradingSuite.requestWithdraw(
+		tradingSuite.USDCAddressStr,
+		balUSDCScDepS2,
+		tradingSuite.IncPaymentAddrStr,
+	)
+	time.Sleep(ethWait * time.Second)
+	balUSDCScDepS41 := tradingSuite.getDepositedBalance(
+		tradingSuite.USDCAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] USDC balance on SC after withdraw at step 3 : ", balUSDCScDepS41)
+	// TODO assert USDC balane on SC
+
+	_, ethBlockHash, ethTxIdx, ethDepositProof, err = getETHDepositProof(tradingSuite.ETHHost, txHashByEmittingWithdrawalReq1)
+	require.Equal(tradingSuite.T(), nil, err)
+	fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
+
+	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	time.Sleep(confirmWait * time.Second)
+
+	_, err = tradingSuite.callIssuingETHReq(
+		tradingSuite.IncUSDCTokenIDStr,
+		ethDepositProof,
+		ethBlockHash,
+		ethTxIdx,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	time.Sleep(incWait * time.Second)
+
+	balpUSDCAfIssS41, _ := tradingSuite.getBalanceTokenIncAccount(
+		tradingSuite.IncPrivKeyStr,
+		tradingSuite.IncUSDCTokenIDStr,
+	)
+	fmt.Println("[INFO] pUSDC balance after issuing step 3 : ", balpUSDCAfIssS41)
+
+	fmt.Println("------------ STEP 4: withdraw pUSDC to deposit USDC   --------------")
+
+	withdrawingPUSDC := big.NewInt(int64(balpUSDCAfIssS1))
+
+	burningRes, err = tradingSuite.callBurningPToken(
+		tradingSuite.IncUSDCTokenIDStr,
+		withdrawingPUSDC,
+		tradingSuite.ETHOwnerAddrStr,
+		"createandsendburningrequest",
+		tradingSuite.IncPrivKeyStr,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	burningTxID, found = burningRes["TxID"]
+	require.Equal(tradingSuite.T(), true, found)
+	time.Sleep(incWait * time.Second)
+
+	balpUSDCAfBurnS51, _ := tradingSuite.getBalanceTokenIncAccount(
+		tradingSuite.IncPrivKeyStr,
+		tradingSuite.IncUSDCTokenIDStr,
+	)
+	fmt.Println("[INFO] pUSDC balance after burning step 4 : ", balpUSDCAfBurnS51)
+
+	tradingSuite.submitBurnProofForWithdrawal(burningTxID.(string))
+	time.Sleep(ethWait * time.Second)
+	balUSDCAfDep51 := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.USDCAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] USDC balance after withdraw  : ", balUSDCAfDep51)
+
+}
+
+func (tradingSuite *MnTradingTestSuite) Test5TradeEthForKNCWithKyber() {
+	// return
+	fmt.Println("============ TEST 5 TRADE ETHER FOR KNC WITH Kyber AGGREGATOR ===========")
+	fmt.Println("------------ STEP 0: declaration & initialization --------------")
+	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
+	burningPETH := big.NewInt(0).Div(tradeAmount, big.NewInt(1000000000))
+
+	pubKeyToAddrStr := crypto.PubkeyToAddress(tradingSuite.GeneratedPubKeyForSC).Hex()
+
+	// get info balance initialization
+	balPrvInit, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance initialization : ", balPrvInit)
+
+	balpEthInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance initialization : ", balpEthInit)
+
+	balpKNCInit, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncKNCTokenIDStr)
+	fmt.Println("[INFO] pKNC balance initialization : ", balpKNCInit)
+
+	balEthInit := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance initialization : ", balEthInit)
+
+	balKNCInit := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.KNCAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] KNC balance initialization : ", balKNCInit)
+
+	balEthScInit := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] ETH balance initialization on SC : ", balEthScInit)
+
+	balKNCScInit := tradingSuite.getDepositedBalance(
+		tradingSuite.KNCAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] KNC balance initialization on SC : ", balKNCScInit)
+
+	fmt.Println("------------ STEP 1: porting ETH to pETH --------------")
+	txHash := tradingSuite.depositETH(
+		tradingSuite.DepositingEther,
+		tradingSuite.IncPaymentAddrStr,
+	)
+	time.Sleep(ethWait * time.Second)
+
+	_, ethBlockHash, ethTxIdx, ethDepositProof, err := getETHDepositProof(tradingSuite.ETHHost, txHash)
+	require.Equal(tradingSuite.T(), nil, err)
+	fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
+
+	// get ETH remain after depsit
+	balEthAfDep := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("[INFO] ETH balance remain after deposit : ", balEthAfDep)
+	// TODO : assert ETH balance
+
+	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	time.Sleep(confirmWait * time.Second)
+	_, err = tradingSuite.callIssuingETHReq(
+		tradingSuite.IncEtherTokenIDStr,
+		ethDepositProof,
+		ethBlockHash,
+		ethTxIdx,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	time.Sleep(incWait * time.Second)
+	// check PRV and token balance after issuing
+	balPrvAfIssS1, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance after issuing step 1: ", balPrvAfIssS1)
+	// TODO assert PRV balance remain
+	balpEthAfIssS1, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance after issuing step 1 : ", balpEthAfIssS1)
+	// TODO assert pETH balance issuing
+
+	fmt.Println("------------ STEP 2: burning pETH to deposit ETH to SC --------------")
+	// make a burn tx to incognito chain as a result of deposit to SC
+	burningRes, err := tradingSuite.callBurningPToken(
+		tradingSuite.IncEtherTokenIDStr,
+		burningPETH,
+		pubKeyToAddrStr[2:],
+		"createandsendburningfordeposittoscrequest",
+		tradingSuite.IncPrivKeyStr,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	burningTxID, found := burningRes["TxID"]
+	require.Equal(tradingSuite.T(), true, found)
+	time.Sleep(incWait * time.Second)
+
+	// check PRV and token balance after burning
+	balPrvAfBurnS2, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance after burning step 2: ", balPrvAfBurnS2)
+	// TODO assert PRV balance remain
+	balpEthAfBurnS2, _ := tradingSuite.getBalanceTokenIncAccount(tradingSuite.IncPrivKeyStr, tradingSuite.IncEtherTokenIDStr)
+	fmt.Println("[INFO] pETH balance after burning step 2 : ", balpEthAfBurnS2)
+	// TODO assert pETH balance issuing
+
+	tradingSuite.submitBurnProofForDepositToSC(burningTxID.(string))
+	balEthScDepS2 := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	time.Sleep(ethWait * time.Second)
+	fmt.Println("[INFO] ETH balance after deposit on SC at step 2: ", balEthScDepS2)
+	// TODO assert ETH balane on SC
+	balKNCScS2 := tradingSuite.getDepositedBalance(
+		tradingSuite.KNCAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] KNC balance on SC at step 2 : ", balKNCScS2)
+
+	//require.Equal(tradingSuite.T(), big.NewInt(0).Mul(burningPETH, big.NewInt(1000000000)), deposited)
+	fmt.Println("------------ step 3: execute trade ETH for KNC through Kyber aggregator --------------")
+	tradingSuite.executeWithKyber(
+		tradeAmount,
+		tradingSuite.EtherAddressStr,
+		tradingSuite.KNCAddressStr,
+	)
+	time.Sleep(ethWait * time.Second)
+
+	balEthScTradeS3 := tradingSuite.getDepositedBalance(
+		tradingSuite.EtherAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] ETH balance on SC after trade at step 3 : ", balEthScTradeS3)
+	// TODO assert ETH balane on SC
+	balKNCScTradeS3 := tradingSuite.getDepositedBalance(
+		tradingSuite.KNCAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] KNC balance on SC after trade at step 3 : ", balKNCScTradeS3)
+	// TODO assert KNC balane on SC
+	require.NotEqual(tradingSuite.T(), balKNCScTradeS3, balKNCScS2, "trade failed")
+
+	fmt.Println("------------ step 4: withdrawing KNC from SC to pKNC on Incognito --------------")
+	txHashByEmittingWithdrawalReq := tradingSuite.requestWithdraw(
+		tradingSuite.KNCAddressStr,
+		balKNCScTradeS3,
+		tradingSuite.IncPaymentAddrStr,
+	)
+	time.Sleep(ethWait * time.Second)
+
+	balKNCScDepS4 := tradingSuite.getDepositedBalance(
+		tradingSuite.KNCAddressStr,
+		pubKeyToAddrStr,
+	)
+	fmt.Println("[INFO] KNC balance on SC after withdraw at step 4 : ", balKNCScDepS4)
+	// TODO assert KNC balane on SC
+	_, ethBlockHash, ethTxIdx, ethDepositProof, err = getETHDepositProof(tradingSuite.ETHHost, txHashByEmittingWithdrawalReq)
+	require.Equal(tradingSuite.T(), nil, err)
+	fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
+
+	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	time.Sleep(confirmWait * time.Second)
+	_, err = tradingSuite.callIssuingETHReq(
+		tradingSuite.IncKNCTokenIDStr,
+		ethDepositProof,
+		ethBlockHash,
+		ethTxIdx,
+	)
+	require.Equal(tradingSuite.T(), nil, err)
+	time.Sleep(incWait * time.Second)
+
+	balpEthAfIssS4, _ := tradingSuite.getBalanceTokenIncAccount(
+		tradingSuite.IncPrivKeyStr,
+		tradingSuite.IncKNCTokenIDStr,
+	)
+	fmt.Println("[INFO] pKNC balance after issuing step 4 : ", balpEthAfIssS4)
+
+	balPrvAfIssS4, _ := tradingSuite.getBalancePrvIncAccount(tradingSuite.IncPrivKeyStr)
+	fmt.Println("[INFO] PRV balance after issuing step 4: ", balPrvAfIssS4)
+	// TODO assert PRV balance remain
+
+	fmt.Println("------------ step 5: withdrawing pKNC from Incognito to KNC --------------")
+	withdrawingPKNC := big.NewInt(0).Div(balKNCScTradeS3, big.NewInt(1000000000))
+	burningRes, err = tradingSuite.callBurningPToken(
+		tradingSuite.IncKNCTokenIDStr,
+		withdrawingPKNC,
+		tradingSuite.ETHOwnerAddrStr,
+		"createandsendburningrequest",
+		tradingSuite.IncPrivKeyStr,
+	)
+
+	require.Equal(tradingSuite.T(), nil, err)
+	burningTxID, found = burningRes["TxID"]
+	require.Equal(tradingSuite.T(), true, found)
+	time.Sleep(incWait * time.Second)
+
+	tradingSuite.submitBurnProofForWithdrawal(burningTxID.(string))
+	time.Sleep(ethWait * time.Second)
+
+	balKNC := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.KNCAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("KNC balance after trade: ", balKNC)
+
+	// require.Equal(tradingSuite.T(), withdrawingPKNC.Uint64(), bal.Div(bal, big.NewInt(1000000000)).Uint64())
+
+	balEth := tradingSuite.getBalanceOnETHNet(
+		common.HexToAddress(tradingSuite.EtherAddressStr),
+		common.HexToAddress(fmt.Sprintf("0x%s", tradingSuite.ETHOwnerAddrStr)),
+	)
+	fmt.Println("ETH balance after trade: ", balEth)
+}
