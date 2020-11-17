@@ -254,7 +254,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
                 return auto_staking_obj.is_auto_staking()
             auto_staking_objs.append(auto_staking_obj)
 
-        if account is None:
+        if account is not None:
             INFO(f"{l6(acc_pub_key)} (public key) not found in auto-staking list")
             return None
         return auto_staking_objs
