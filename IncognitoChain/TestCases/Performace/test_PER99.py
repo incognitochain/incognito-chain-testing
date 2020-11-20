@@ -81,8 +81,8 @@ def num_of_proofs():
 
 
 @pytest.mark.parametrize("proof_list", [
-    # prepare_proof_1_shard_in_1_shard(-1, 1),
-    prepare_proof_x_shard_from_1_shard(-1, 1),
+    prepare_proof_1_shard_in_1_shard(-1, 1),
+    # prepare_proof_x_shard_from_1_shard(-1, 1),
     # prepare_proof_1_shard_in_1_shard(-1, 0),
 ])
 def test_tx_machine_gun(proof_list):
@@ -124,23 +124,18 @@ def test_tx_machine_gun(proof_list):
         except KeyError:
             SUMMARY[block_height] = 1
 
+    print_sum(None, None)
 
-def print_sum_when_interrupted(sig, frame):
-    count_tx_per_block = {}
-    for k, v in SUMMARY:
-        try:
-            count_tx_per_block[v] += 1
-        except KeyError:
-            count_tx_per_block[v] = 1
+
+def print_sum(sig, frame):
     INFO(f""" SUMMARY==================================================
-tx : block height
+Block height : num of block in height
 {json.dumps(SUMMARY, indent=3)}
 -----------------------------------------------------------
-Block height : num of block in height
-{json.dumps(count_tx_per_block, indent=3)}
 ===========================================================================
             """)
-    exit(0)
+    if sig is not None:
+        exit(0)
 
 
-signal.signal(signal.SIGINT, print_sum_when_interrupted)
+signal.signal(signal.SIGINT, print_sum)
