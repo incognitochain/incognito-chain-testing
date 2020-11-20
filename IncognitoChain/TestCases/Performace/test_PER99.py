@@ -126,9 +126,18 @@ def test_tx_machine_gun(proof_list):
 
 
 def print_sum_when_interrupted(sig, frame):
+    count_tx_per_block = {}
+    for k, v in SUMMARY:
+        try:
+            count_tx_per_block[v] += 1
+        except KeyError:
+            count_tx_per_block[v] = 1
     INFO(f""" SUMMARY==================================================
-Block height : num of block in height
+tx : block height
 {json.dumps(SUMMARY, indent=3)}
+-----------------------------------------------------------
+Block height : num of block in height
+{json.dumps(count_tx_per_block, indent=3)}
 ===========================================================================
             """)
     exit(0)
