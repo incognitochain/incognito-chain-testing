@@ -75,7 +75,8 @@ def setup_module():
     STEP(0.3, 'Stake and wait till becoming committee')
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
     wait_need = False
-    for committee in auto_stake_list:
+    num_of_auto_stake = ChainConfig.ACTIVE_SHARD * (ChainConfig.SHARD_COMMITTEE_SIZE - ChainConfig.FIX_BLOCK_VALIDATOR)
+    for committee in auto_stake_list[:num_of_auto_stake]:
         if not beacon_bsd.is_he_a_committee(committee) and beacon_bsd.get_auto_staking_committees(
                 committee) is None:
             committee.stake_and_reward_me()
@@ -85,8 +86,9 @@ def setup_module():
         ChainHelper.wait_till_next_epoch()
 
     STEP(0.4, "Verify environment, 6 node per shard")
-    num_committee_shard_0 = SUT().help_count_committee_in_shard(0, refresh_cache=True)
-    num_committee_shard_1 = SUT().help_count_committee_in_shard(1, refresh_cache=False)
+    bbs = SUT().get_beacon_best_state_info()
+    num_committee_shard_0 = bbs.get_current_shard_committee_size(0)
+    num_committee_shard_1 = bbs.get_current_shard_committee_size(1)
     assert num_committee_shard_0 == ChainConfig.SHARD_COMMITTEE_SIZE, f"shard 0: {num_committee_shard_0} committees"
     assert num_committee_shard_1 == ChainConfig.SHARD_COMMITTEE_SIZE, f"shard 1: {num_committee_shard_1} committees"
 

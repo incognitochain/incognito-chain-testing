@@ -21,7 +21,7 @@ def test_withdraw_portal_reward(custodian_account):
     prv_reward_amount = custodian_account.portal_get_my_reward(PRV_ID)
     prv_balance_before = custodian_account.get_prv_balance()
     INFO(f'''
-            Reward amount of {l6(fat_custodian.incognito_addr)} is {prv_reward_amount}
+            Reward amount of {l6(custodian_account.incognito_addr)} is {prv_reward_amount}
             Balance is {prv_balance_before}''')
 
     STEP(2, "check if custodian has any reward")
@@ -29,8 +29,7 @@ def test_withdraw_portal_reward(custodian_account):
         pytest.skip("no reward to withdraw, skip this test")
 
     STEP(3, 'Withdraw and check withdraw status')
-    withdraw_tx = custodian_account.portal_withdraw_reward(PRV_ID)
-    withdraw_tx.expect_no_error()
+    withdraw_tx = custodian_account.portal_withdraw_reward(PRV_ID).expect_no_error()
     fee = withdraw_tx.subscribe_transaction().get_fee()
     withdraw_tx_info = RewardWithdrawTxInfo()
     withdraw_tx_info.get_reward_info_by_tx_id(withdraw_tx.get_tx_id())
@@ -41,8 +40,7 @@ def test_withdraw_portal_reward(custodian_account):
     assert prv_balance_after == prv_balance_before + prv_reward_amount - fee
 
     STEP(5, 'Continue to withdraw, expect fail')
-    withdraw_tx = custodian_account.portal_withdraw_reward(PRV_ID)
-    withdraw_tx.expect_no_error()
+    withdraw_tx = custodian_account.portal_withdraw_reward(PRV_ID).expect_no_error()
     fee = withdraw_tx.subscribe_transaction().get_fee()
     withdraw_tx_info = RewardWithdrawTxInfo()
     withdraw_tx_info.get_reward_info_by_tx_id(withdraw_tx.get_tx_id())

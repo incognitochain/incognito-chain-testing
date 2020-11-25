@@ -225,6 +225,8 @@ class BnbCli:
     class BnbResponse:
         def __init__(self, stdout):
             self.data = stdout
+            if self.data is None:
+                raise ValueError('Response data must not be None')
 
         def get_coins(self):
             try:
@@ -242,7 +244,10 @@ class BnbCli:
             return self.get_amount('BNB')
 
         def get_tx_hash(self):
-            return self.data['hash']
+            try:
+                return self.data['hash']
+            except KeyError as ke:
+                raise BaseException(f'Response data does not contain hash: {ke} :{self.data}')
 
         def build_proof(self, tx_hash=None):
             tx_hash = self.get_tx_hash() if tx_hash is None else tx_hash

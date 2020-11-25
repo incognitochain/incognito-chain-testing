@@ -8,7 +8,7 @@ from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER, COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import PortingReqInfo, PTokenReqInfo
 from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, \
-    TEST_SETTING_PORTING_AMOUNT, custodian_remote_addr, big_rate, \
+    TEST_SETTING_PORTING_AMOUNT, all_custodians, big_rate, \
     big_porting_amount, init_portal_rate, TEST_SETTING_DEPOSIT_AMOUNT
 
 n = 'n'
@@ -19,9 +19,9 @@ def setup_module():
     PSI = SUT().get_latest_portal_state_info()
     deposit_amount = 0
     COIN_MASTER.top_him_up_prv_to_amount_if(deposit_amount * 2, deposit_amount * 2 + 1,
-                                            custodian_remote_addr.get_accounts())
+                                            all_custodians)
 
-    for cus in custodian_remote_addr.get_accounts():
+    for cus in all_custodians:
         cus_stat = cus.portal_get_my_custodian_info(PSI)
 
         if cus_stat is None:

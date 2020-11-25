@@ -2,7 +2,7 @@ from IncognitoChain.Configs.Constants import coin, PBNB_ID, PRV_ID, PBTC_ID
 from IncognitoChain.Drivers.NeighborChainCli import BnbCli
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import PortalHelper, ChainHelper
-from IncognitoChain.Objects.AccountObject import Account, AccountGroup, PORTAL_FEEDER, COIN_MASTER
+from IncognitoChain.Objects.AccountObject import AccountGroup, PORTAL_FEEDER, COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 
 # ---- import BNB key for testing
@@ -26,7 +26,7 @@ TEST_SETTING_REDEEM_AMOUNT = 10
 
 self_pick_custodian = ACCOUNTS[6].set_remote_addr(bnb_address_list[0], 'mgdwpAgvYNuJ2MyUimiKdTYsu2vpDZNpAa')
 portal_user = ACCOUNTS[1].set_remote_addr(bnb_address_list[1], 'mhpTRAPdmyB1PUvXR2yqaSBK8ZJhEQ8rEw')
-custodian_remote_addr = AccountGroup(
+all_custodians = AccountGroup(
     ACCOUNTS[3].set_remote_addr(bnb_address_list[2], 'mg3me76RFFWeRuYqM6epwjMHHMTaouYLDe'),
     ACCOUNTS[4].set_remote_addr(bnb_address_list[3], 'mkgT1mphBPX1C3tn9yRK7HmVSYkVEn7VzY'),
     ACCOUNTS[5].set_remote_addr(bnb_address_list[4], 'myo25dPxQNqk94HwFLeFr42cH8VbwTGbBm'),
@@ -42,7 +42,10 @@ init_portal_rate = {
 }
 
 # special case
-fat_custodian = Account()
+fat_custodian = all_custodians.find_the_richest(PRV_ID)
+INFO(f' FAT CUSTODIAN \n'
+     f'{fat_custodian}')
+
 big_collateral = fat_custodian_prv = 1
 big_porting_amount = coin(10)
 big_rate = {PBNB_ID: '105873200000',
@@ -57,7 +60,7 @@ def setup_module():
     INFO()
     INFO('SETUP TEST MODULE, TOP UP PRV FOR CUSTODIAN AND PORTAL FEEDER')
     COIN_MASTER.top_him_up_prv_to_amount_if(TEST_SETTING_DEPOSIT_AMOUNT * 4, TEST_SETTING_DEPOSIT_AMOUNT * 4 + coin(1),
-                                            custodian_remote_addr.get_accounts())
+                                            all_custodians)
     COIN_MASTER.top_him_up_prv_to_amount_if(100, coin(1), PORTAL_FEEDER)
     INFO("Check rate")
     PSI_current = SUT().get_latest_portal_state_info()
@@ -70,14 +73,8 @@ def setup_module():
             ChainHelper.wait_till_next_epoch()
             break
 
-    global fat_custodian, big_collateral, fat_custodian_prv
-    for acc in custodian_remote_addr.get_accounts():  # find custodian account who has most PRV
-        if fat_custodian.get_prv_balance_cache() is None:
-            fat_custodian = acc
-        elif acc.get_prv_balance_cache() >= fat_custodian.get_prv_balance_cache():
-            fat_custodian = acc
-    INFO(f' FAT CUSTODIAN \n'
-         f'{fat_custodian}')
+    global big_collateral, fat_custodian_prv
+
     big_collateral = PortalHelper.cal_lock_collateral(big_porting_amount, big_rate[PBNB_ID],
                                                       init_portal_rate[PRV_ID])
     fat_custodian_prv = big_collateral + coin(1)
@@ -86,7 +83,7 @@ def setup_module():
 def noteardown_module():
     INFO_HEADLINE(f'TEST MODULE TEAR DOWN: Withdraw all free collateral')
     PSI = SUT().get_latest_portal_state_info()
-    for cus in custodian_remote_addr.get_accounts():
+    for cus in all_custodians:
         cus_stat = PSI.get_custodian_info_in_pool(cus)
         if cus_stat is not None:
             cus.portal_withdraw_my_collateral(cus_stat.get_free_collateral()).subscribe_transaction()

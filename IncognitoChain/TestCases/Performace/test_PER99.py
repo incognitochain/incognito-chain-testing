@@ -34,6 +34,20 @@ def create_proofs(senders, receivers, tx_fee, tx_privacy):
     return proof_list
 
 
+def prepare_proof_1_shard_self_send(fee, privacy):
+    # shard = random.randrange(len(ACCOUNTS))
+    shard = 0
+    num_of_acc = len(ACCOUNTS[shard])
+    num_o_proof = num_of_proofs()
+    if num_o_proof > num_of_acc:
+        raise IndexError(f"Need {num_o_proof} Account to create tx, "
+                         f"but there's only {num_of_acc} Account in shard {shard}")
+    senders = ACCOUNTS[shard][:num_of_proofs()]
+    COIN_MASTER.top_him_up_prv_to_amount_if(coin(3), coin(5), senders)
+    INFO_HEADLINE(f' PREPARE TEST DATA, 1 SHARD TX, SHARD {shard}')
+    return create_proofs(senders, senders, fee, privacy)
+
+
 def prepare_proof_1_shard_in_1_shard(fee, privacy):
     # shard = random.randrange(len(ACCOUNTS))
     shard = 0
@@ -81,7 +95,8 @@ def num_of_proofs():
 
 
 @pytest.mark.parametrize("proof_list", [
-    prepare_proof_1_shard_in_1_shard(-1, 1),
+    prepare_proof_1_shard_self_send(1, 1),
+    # prepare_proof_1_shard_in_1_shard(-1, 1),
     # prepare_proof_x_shard_from_1_shard(-1, 1),
     # prepare_proof_1_shard_in_1_shard(-1, 0),
 ])

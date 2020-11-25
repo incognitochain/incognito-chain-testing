@@ -190,10 +190,11 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
     ChainHelper.wait_till_next_epoch(epoch + 2)
 
     STEP(0.4, "Verify environment, 6 node per shard")
-    number_committee_shard_0 = SUT().help_count_committee_in_shard(0, refresh_cache=True)
-    number_committee_shard_1 = SUT().help_count_committee_in_shard(1, refresh_cache=False)
-    assert number_committee_shard_0 == 6, f"shard 0: {number_committee_shard_0} committee"
-    assert number_committee_shard_1 == 6, f"shard 1: {number_committee_shard_1} committee"
+    bbs = SUT().get_beacon_best_state_info()
+    num_committee_shard_0 = bbs.get_current_shard_committee_size(0)
+    num_committee_shard_1 = bbs.get_current_shard_committee_size(1)
+    assert num_committee_shard_0 == ChainConfig.SHARD_COMMITTEE_SIZE, f"shard 0: {num_committee_shard_0} committee"
+    assert num_committee_shard_1 == ChainConfig.SHARD_COMMITTEE_SIZE, f"shard 1: {num_committee_shard_1} committee"
 
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), stake_funder)
     STEP(0, 'check if the staked is already a committee')

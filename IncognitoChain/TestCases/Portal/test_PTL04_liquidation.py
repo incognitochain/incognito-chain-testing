@@ -1,6 +1,6 @@
 import pytest
 
-from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, PBTC_ID
+from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.TestHelper import PortalHelper, l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
@@ -32,13 +32,13 @@ def setup_function():
     (PBNB_ID, 1.2, False, 'liquidated'),
     (PBNB_ID, 0.99, False, 'liquidated'),
 
-    # BTC
-    (PBTC_ID, 1.6, False, 'ok'),
-    (PBTC_ID, 1.7, False, 'ok'),
-    (PBTC_ID, 1.4, False, 'ok'),
-    (PBTC_ID, 1.21, False, 'ok'),
-    (PBTC_ID, 1.2, False, 'liquidated'),
-    (PBTC_ID, 0.99, False, 'liquidated'),
+    # # BTC
+    # (PBTC_ID, 1.6, False, 'ok'),
+    # (PBTC_ID, 1.7, False, 'ok'),
+    # (PBTC_ID, 1.4, False, 'ok'),
+    # (PBTC_ID, 1.21, False, 'ok'),
+    # (PBTC_ID, 1.2, False, 'liquidated'),
+    # (PBTC_ID, 0.99, False, 'liquidated'),
 ])
 def test_liquidate(token, percent, waiting_redeem, expected):
     STEP(0, 'Get portal status before changing rate')

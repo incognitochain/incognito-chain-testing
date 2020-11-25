@@ -16,11 +16,11 @@ DAO_PRIVATE_K = \
 
 class ChainConfig:
     BLOCK_PER_EPOCH = 20
-    RANDOM_TIME = 18
+    RANDOM_TIME = 10
     BLOCK_TIME = 10
     BASIC_REWARD_PER_BLOCK = 400000000
     DAO_REWARD_PERCENT = 0.1
-    COMMITTEE_TIMES = 2
+    ACTIVE_SHARD = 2
     FIX_BLOCK_VALIDATOR = 4
     SHARD_COMMITTEE_SIZE = 6
     PRIVACY_VERSION = 1
@@ -33,8 +33,8 @@ class ChainConfig:
         COLLATERAL_PERCENT = 1.5
         COLLATERAL_LIQUIDATE_PERCENT = 1.2
         COLLATERAL_LIQUIDATE_TO_POOL_PERCENT = 1.05
-        # REQ_TIME_OUT = 15  # minutes
-        REQ_TIME_OUT = 60  # minutes, TestNet
+        REQ_TIME_OUT = 15  # minutes
+        # REQ_TIME_OUT = 60  # minutes, TestNet
         FEEDER_PRIVATE_K = '112t8roezimTQwKbmsoxY9h494xhMZNBe94ux6hCH4SaFYBFnFXS9JoNbUjmeFLQiFWHeFP9MLPcy1sEiDasdW4ZkzEDzXDLG3wmwMU551tv'
 
     class Dex:

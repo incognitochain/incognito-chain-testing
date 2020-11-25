@@ -1,8 +1,12 @@
 import json
 import re
 
+from websocket import WebSocketTimeoutException
+
 import IncognitoChain.Helpers.Logging as Log
-from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Configs.Constants import ChainConfig
+from IncognitoChain.Helpers.Logging import INFO, WARNING
+from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.TransactionObjects import TransactionDetail
 
 
@@ -38,9 +42,15 @@ class Response:
         return self
 
     def data(self):
-        if type(self.response) is str:
-            return json.loads(self.response)  # response from WebSocket
-        return json.loads(self.response.text)  # response from rpc
+        try:
+            if type(self.response) is str:
+                return json.loads(self.response)  # response from WebSocket
+            return json.loads(self.response.text)  # response from rpc
+        except Exception as e:
+            print('+++')
+            print(f'asd {self.response.text}')
+            print(e)
+            print('---')
 
     def params(self):
         return Response.Params(self.data()["Params"])
@@ -141,21 +151,31 @@ class Response:
     def get_shard_id(self):
         return self.get_result('ShardID')
 
+    def is_node_busy(self):
+        return self.response.text == "503 Too busy.  Try again later."
+
     # !!!!!!!! Next actions base on response
     def subscribe_transaction(self, tx_id=None):
         """
-        Subscribe transaction by txid
+        @deprecated: consider using get_transaction_by_hash instead
 
+        Subscribe transaction by tx_id
         :param tx_id: if not specified, use tx id from self
         :return: TransactionDetail Object
         """
         if tx_id is None:
             tx_id = self.get_tx_id()
+        if tx_id is None:
+            raise ValueError("Tx id must not be none")
         INFO(f'Subscribe to transaction tx_id = {tx_id}')
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         from IncognitoChain.Objects.TransactionObjects import TransactionDetail
-        tx = SUT().subscription().subscribe_pending_transaction(tx_id)
-        return TransactionDetail(tx.get_result('Result'))
+        try:
+            res = SUT().subscription().subscribe_pending_transaction(tx_id).get_result('Result')
+            return TransactionDetail(res)
+        except WebSocketTimeoutException:
+            WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
+            return self.get_transaction_by_hash(tx_id, retry=False)
 
     def is_transaction_v2_error_appears(self):
         try:
@@ -166,8 +186,33 @@ class Response:
             INFO('Transaction v2 no longer support paying fee with token')
             return True
 
-    def get_transaction_by_hash(self):
-        return TransactionDetail().get_transaction_by_hash(self.get_tx_id())
+    def get_transaction_by_hash(self, tx_hash=None, retry=True, interval=ChainConfig.BLOCK_TIME,
+                                time_out=120) -> TransactionDetail:
+        """
+        @param tx_hash:
+        @param retry:
+        @param interval:
+        @param time_out:
+        @return: TransactionDetail, use TransactionDetail.is_none() to check if it's an empty object
+        """
+        if tx_hash is None:
+            tx_hash = self.get_tx_id()
+        if tx_hash is None:
+            raise ValueError("Tx id must not be none")
+
+        tx_detail = TransactionDetail().get_transaction_by_hash(tx_hash)
+
+        if not retry and not tx_detail.is_none():
+            return tx_detail
+        if not tx_detail.is_none():
+            return tx_detail
+        while time_out > 0:
+            time_out -= interval
+            WAIT(interval)
+            tx_detail = TransactionDetail().get_transaction_by_hash(tx_hash)
+            if not tx_detail.is_none():
+                return tx_detail
+        return TransactionDetail()
 
     def get_mem_pool_transactions_id_list(self) -> list:
         hashes = self.get_list_txs()

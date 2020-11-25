@@ -9,7 +9,7 @@ from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, UnlockCollateralReqInfo, RedeemMatchingInfo
-from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, custodian_remote_addr, \
+from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, all_custodians, \
     TEST_SETTING_REDEEM_AMOUNT, test_PTL02_create_porting_req, TEST_SETTING_PORTING_AMOUNT
 
 n = 2
@@ -151,7 +151,7 @@ def verify_valid_redeem(psi_b4, redeem_id, redeem_amount, token, matching):
         amount = custodian_info.get_amount()
         memo = (redeem_id, custodian_incognito_addr)
         send_amount = max(amount // 10, 1)
-        custodian_acc = custodian_remote_addr.get_accounts(custodian_incognito_addr)
+        custodian_acc = all_custodians.find_account_by_key(custodian_incognito_addr)
         send_public_token_tx = custodian_acc.send_public_token(token, send_amount, portal_user, cli_pass_phrase, memo)
         send_public_token_tx_list[custodian_acc] = send_public_token_tx
 
@@ -249,7 +249,7 @@ def verify_expired_redeem_1_custodian_sent(token, redeem_id, tok_bal_b4, prv_bal
     runaway_custodians.pop(random_index)
 
     memo = (redeem_id, one_custodian_of_req.get_incognito_addr())
-    custodian_acc = custodian_remote_addr.get_accounts(one_custodian_of_req)
+    custodian_acc = all_custodians.find_account_by_key(one_custodian_of_req)
     STEP(4.1, "Only one of the custodians send public token to user")
     send_tx = custodian_acc.send_public_token(token, one_custodian_of_req.get_amount(), portal_user, cli_pass_phrase,
                                               memo)
@@ -291,7 +291,7 @@ def matching_custodian(matching_mode, num_of_custodian, token, redeem_id, psi_b4
         custodian_pool = psi_b4.help_sort_custodian_by_holding_token_desc(token)
         for i in range(0, num_of_custodian):
             custodian_info = custodian_pool[i]
-            custodian = custodian_remote_addr.get_accounts(custodian_info.get_incognito_addr())
+            custodian = all_custodians.find_account_by_key(custodian_info.get_incognito_addr())
             custodian.portal_let_me_take_care_this_redeem(redeem_id)
             if i != num_of_custodian - 1:  # when the last custodian is matched, status will change to accept instead
                 # Test case 21
@@ -306,7 +306,7 @@ def verify_rematching_custodian_with_0_holding(token, redeem_id, psi_b4, custodi
     if custodian_has_no_holding is None:
         WARNING("There's no custodian with 0 holding token")
     else:
-        poor_custodian = custodian_remote_addr.get_accounts(custodian_has_no_holding.get_incognito_addr())
+        poor_custodian = all_custodians.find_account_by_key(custodian_has_no_holding.get_incognito_addr())
         if poor_custodian is not None:
             matching_tx = poor_custodian.portal_let_me_take_care_this_redeem(redeem_id, do_assert=False)
             assert RedeemMatchingInfo().get_matching_info_by_tx(matching_tx.get_tx_id()).is_rejected()

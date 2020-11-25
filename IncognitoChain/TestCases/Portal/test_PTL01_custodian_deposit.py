@@ -10,7 +10,7 @@ from IncognitoChain.Objects.AccountObject import Account, PORTAL_FEEDER
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 from IncognitoChain.Objects.PortalObjects import CustodianWithdrawTxInfo
 from IncognitoChain.TestCases.Portal import TEST_SETTING_DEPOSIT_AMOUNT, self_pick_custodian, \
-    portal_user, custodian_remote_addr, another_btc_addr, another_bnb_addr
+    portal_user, another_btc_addr, another_bnb_addr
 
 custodian_need_change_remote_addr_back = Account()
 
@@ -21,8 +21,8 @@ def teardown_function():
         return
 
     INFO("Change remote address back")
-    previous_bnb_addr = custodian_remote_addr.get_remote_addr(PBNB_ID, custodian)
-    previous_btc_addr = custodian_remote_addr.get_remote_addr(PBTC_ID, custodian)
+    previous_bnb_addr = custodian.get_remote_addr(PBNB_ID)
+    previous_btc_addr = custodian.get_remote_addr(PBTC_ID)
     custodian_info = custodian.portal_get_my_custodian_info()
     withdraw_tx = custodian.portal_withdraw_my_all_free_collateral()
     if withdraw_tx is not None:
@@ -58,8 +58,7 @@ def test_custodian_deposit(depositor, token, expected_pass):
     bal_b4 = depositor.get_prv_balance()
 
     STEP(1, "Make a valid custodian deposit")
-    deposit_response = depositor.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, token,
-                                                          custodian_remote_addr.get_remote_addr(token, depositor))
+    deposit_response = depositor.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, token)
     if token == PRV_ID:
         deposit_response.expect_error()
     else:

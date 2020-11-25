@@ -1,5 +1,4 @@
 import copy
-import json
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
@@ -9,7 +8,6 @@ from IncognitoChain.Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Sta
 from IncognitoChain.Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from IncognitoChain.Drivers.NeighborChainCli import NeighborChainCli
 from IncognitoChain.Drivers.Response import Response
-from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
@@ -45,16 +43,15 @@ class Account:
         except KeyError:
             return None
 
-    def _to_json(self, pretty=True):
-        key_dict = {
-            "PaymentAddress": self.payment_key,
-            "PrivateKey": self.private_key,
-            "Publickey": self.public_key,
-            "ReadOnlykey": self.read_only_key,
-            "Validatorkey": self.validator_key,
-            "CommitteePublicKey": self.committee_public_k
-        }
-        return json.dumps(key_dict, indent=3) if pretty else json.dumps(key_dict)
+    def is_this_my_key(self, key_to_check):
+        """
+        @param key_to_check:
+        @return: key type of the {key_key_to_check} or None if not found in this account
+        """
+        for key_type, value in self.__dict__.items():
+            if ("key" in key_type or "address" in key_type or "_k" in key_type) and key_to_check == value:
+                return key_type
+        return False
 
     def __init__(self, private_key=None, payment_k=None, **kwargs):
         self.remote_addr = Account.RemoteAddress()
@@ -150,7 +147,9 @@ class Account:
 
     def create_tx_proof(self, receiver, amount, fee=-1, privacy=1):
         resp = self.REQ_HANDLER.transaction().create_tx(self.private_key, receiver.payment_key, amount,
-                                                        fee, privacy)
+                                                        fee, privacy).expect_no_error()
+        if resp.is_node_busy():
+            return 'busy'
         return resp.get_created_proof()
 
     def calculate_shard_id(self):
@@ -324,7 +323,7 @@ class Account:
                 timeout -= check_cycle
             else:
                 e2 = self.REQ_HANDLER.help_get_current_epoch()
-                h = self.REQ_HANDLER.help_get_beacon_height_in_best_state_detail(refresh_cache=False)
+                h = self.REQ_HANDLER.help_get_beacon_height_in_best_state_detail()
                 INFO(f"Already a committee at epoch {e2}, block height {h}")
                 return e2
         INFO(f"Waited {t}s but still not yet become committee")
@@ -740,24 +739,11 @@ class Account:
         pde_state = self.REQ_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
         waiting_contributions = pde_state.get_waiting_contributions()
         for contribution in waiting_contributions:
-            self.pde_contribute(contribution.get_token_id(), 100,
-                                contribution.get_pair_id()).subscribe_transaction()
-
-    def pde_clean_my_waiting_contribution(self, pde_state=None):
-        pde_state = self.REQ_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
-        my_waiting_contributions = pde_state.find_waiting_contribution_of_user(self)
-        thread_pool = []
-        with ThreadPoolExecutor() as executor:
-            for contribution in my_waiting_contributions:
-                future = executor.submit(self.pde_contribute, contribution.get_token_id(), contribution.get_amount(),
-                                         contribution.get_pair_id())
-                thread_pool.append(future)
-
-        tx_thread = []
-        with ThreadPoolExecutor() as executor:
-            for thread in thread_pool:
-                future = executor.submit(thread.result().subscribe_transaction)
-                tx_thread.append(future)
+            if contribution.get_contributor_address() == self.payment_key and contribution.get_token_id() != PRV_ID:
+                INFO(f"{contribution} belong to current user and waiting for PRV, so cannot use PRV to clean up")
+            else:
+                self.pde_contribute(PRV_ID, 100,
+                                    contribution.get_pair_id()).subscribe_transaction()
 
     def pde_wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         INFO(f"Wait until token {l6(token_id)} is in waiting for contribution")
@@ -806,7 +792,7 @@ class Account:
 
     def pde_trade(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
         if token_id_to_sell == PRV_ID:
-            return self.pde_trade_prv(sell_amount, token_id_to_buy, min_amount_to_buy)
+            return self.pde_trade_prv(sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee)
         else:
             return self.pde_trade_token(token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee)
 
@@ -1190,27 +1176,6 @@ class AccountGroup:
     def append(self, acc_obj):
         self.account_list.append(acc_obj)
 
-    def get_remote_addr(self, token, custodian_acc=None):
-        if custodian_acc is not None:
-            for acc in self.account_list:
-                if acc == custodian_acc:
-                    return acc.get_remote_addr(token)
-        else:
-            return [account.get_remote_addr(token) for account in self.account_list]
-
-    def get_accounts(self, inc_addr=None):
-        """
-        :param inc_addr: incognito address or Account object or CustodianInfo object
-        :return:
-        """
-        if inc_addr is None:
-            return self.account_list
-        else:
-            inc_addr = TestHelper.extract_incognito_addr(inc_addr)
-            for acc in self.account_list:
-                if acc.payment_key == inc_addr:
-                    return acc
-
     def get_accounts_in_shard(self, shard_number: int):
         """
         iterate through accounts in account_list, check if they're in the same shard_number
@@ -1231,6 +1196,15 @@ class AccountGroup:
             if acc.public_key == key:
                 return acc
 
+    def find_account_by_key(self, key):
+        """
+        @param key: any kind of key (private, payment, public, committee ...)
+        @return: Account object or None if not found
+        """
+        for acc in self.account_list:
+            if acc.is_this_my_key(key):
+                return acc
+
     def __add__(self, other):
         if type(other) is AccountGroup:  # add 2 AccountGroup
             return AccountGroup(*(self.account_list + other.account_list))
@@ -1240,6 +1214,13 @@ class AccountGroup:
     def change_req_handler(self, HANDLER):
         for acc in self:
             acc.req_to(HANDLER)
+
+    def find_the_richest(self, token_id=PRV_ID):
+        the_richest = self[0]
+        for acc in self[1:]:
+            if acc.get_token_balance(token_id) > the_richest.get_token_balance(token_id):
+                the_richest = acc
+        return the_richest
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None):

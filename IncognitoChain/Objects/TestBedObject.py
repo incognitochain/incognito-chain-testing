@@ -29,15 +29,20 @@ class TestBed:
             self.full_node: Node = tb.full_node
             self.beacons: Beacon = tb.beacon
             self.shards: List[Shard] = tb.shard_list
+            self.name = test_bed
             TestBed.REQUEST_HANDLER = self.full_node
         else:
             self.full_node = Node()
             self.beacons = Beacon()
             self.shards: List[Shard] = []
+            self.name = ""
             TestBed.REQUEST_HANDLER = self.full_node
 
     def __call__(self, *args, **kwargs):
         return TestBed.REQUEST_HANDLER
+
+    def __str__(self):
+        return f"Test bed name: {self.name} | Full node : {self.full_node} | Current request handler: {self()}"
 
     def precondition_check(self):
         Log.INFO(f'Checking test bed')

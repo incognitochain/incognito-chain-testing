@@ -37,6 +37,7 @@ else:
     ChainConfig.PRIVACY_VERSION = 2
     convert_tx.subscribe_transaction()
 
-COIN_MASTER.top_him_up_prv_to_amount_if(coin(2), coin(5), ACCOUNTS)
+if isinstance(ACCOUNTS, list):
+    COIN_MASTER.top_him_up_prv_to_amount_if(coin(2), coin(5), ACCOUNTS)
 
 INFO_HEADLINE("END setup from Testcase init")

@@ -41,12 +41,14 @@ def setup_module():
         for acc in not_yet_stake_list:
             executor.submit(staking_action, acc)
 
+    # Wait for 2 epochs
+    ChainHelper.wait_till_next_epoch()
     ChainHelper.wait_till_next_epoch()
 
 
 @pytest.mark.parametrize("shard_committee,shard_origin", [
-    (SHARD0, SHARD1),
-    # (SHARD1, SHARD0),
+    # (SHARD0, SHARD1),
+    (SHARD1, SHARD0),
 ])
 def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_origin):
     """
@@ -74,8 +76,8 @@ def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_or
         Current beacon height {current_height}, calculated last height of epoch: {last_height}""")
     # breakpoint()
     shard0_committees = shard0_state_detail.get_shard_committee()
-    committee_4th_0 = shard0_committees[4]
-    committee_5th_0 = shard0_committees[5]
+    committee_4th_0 = shard0_committees[ChainConfig.FIX_BLOCK_VALIDATOR]
+    committee_5th_0 = shard0_committees[ChainConfig.FIX_BLOCK_VALIDATOR + 1]
     acc_committee_4th = accounts_from_shard1.find_account_by_public_k(committee_4th_0.get_inc_public_key())
     acc_committee_5th = accounts_from_shard1.find_account_by_public_k(committee_5th_0.get_inc_public_key())
     acc_stop_stake = acc_committee_4th if acc_committee_4th is not None else acc_committee_5th

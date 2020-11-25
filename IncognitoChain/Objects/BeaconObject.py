@@ -406,6 +406,9 @@ class BeaconBestStateInfo(BeaconBestStateBase):
             committee_public_key_dict = self.data['ShardCommittee']
             return committee_public_key_dict
 
+    def get_current_shard_committee_size(self, shard_id):
+        return len(self.get_shard_committees(shard_id))
+
     def get_auto_staking_committees(self, account=None):
         """
         Function to get auto staking committee

@@ -194,6 +194,10 @@ class RedeemMatchingInfo(_PortalInfoBase):
     def get_matching_info_by_tx(self, tx_id):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         response = SUT().portal().get_req_matching_redeem_status(tx_id)
+        if response.get_result() is None:  # retry after 40s if nothing return
+            WAIT(10)
+            response = SUT().portal().get_req_matching_redeem_status(tx_id)
+
         self.data = response.get_result()
         return self
 
@@ -419,8 +423,8 @@ class PortalStateInfo(_PortalInfoBase):
         def __str__(self):
             ret = ""
             for token in self._get_token_set():
-                ret += "token= %s, amount= %s, colatteral = %s\n" % (
-                    l6(token), self.get_collateral_amount_of_token(token), self.get_collateral_amount_of_token(token))
+                ret += "token= %s, amount= %s, collateral = %s\n" % (
+                    l6(token), self.get_public_token_amount_of_token(token), self.get_collateral_amount_of_token(token))
             return ret.strip('\n')
 
         def add_more_public_token(self, token_id, amount):
@@ -1058,10 +1062,10 @@ class RewardWithdrawTxInfo(_PortalInfoBase):
 
     def get_reward_info_by_tx_id(self, tx_id, retry=True):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT().portal().get_request_withdraw_portal_reward_status(tx_id).get_result()
+        self.data = SUT().portal().get_request_withdraw_portal_reward_status(tx_id).expect_no_error().get_result()
         if self.is_none() and retry:
             WAIT(40)
-            self.data = SUT().portal().get_request_withdraw_portal_reward_status(tx_id).get_result()
+            self.data = SUT().portal().get_request_withdraw_portal_reward_status(tx_id).expect_no_error().get_result()
         return self
 
     def get_custodian_addr_str(self):

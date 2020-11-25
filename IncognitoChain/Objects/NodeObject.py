@@ -1,4 +1,5 @@
 import re
+from concurrent.futures.thread import ThreadPoolExecutor
 
 from IncognitoChain.APIs.Bridge import BridgeRpc
 from IncognitoChain.APIs.DEX import DexRpc
@@ -39,6 +40,9 @@ class Node:
         self._web_socket = None
         self._rpc_connection = RpcConnection(self._get_rpc_url())
         self.account = account
+
+    def __str__(self):
+        return f"{self._get_rpc_url()} ws:{self._ws_port}"
 
     def parse_url(self, url):
         import re
@@ -179,36 +183,32 @@ class Node:
         chain_info = self.get_block_chain_info()
         return chain_info.get_beacon_block().get_height()
 
-    def help_get_beacon_height_in_best_state_detail(self, refresh_cache=True):
-        beacon_height = self.system_rpc().get_beacon_best_state_detail(refresh_cache).get_beacon_height()
+    def help_get_beacon_height_in_best_state_detail(self):
+        beacon_height = self.get_beacon_best_state_info().get_beacon_height()
         INFO(f"Current beacon height = {beacon_height}")
         return beacon_height
 
     def help_clear_mem_pool(self):
-        list_tx = self.system_rpc().get_mem_pool().get_result('ListTxs')
-        for tx in list_tx:
-            self.system_rpc().remove_tx_in_mem_pool(tx['TxID'])
+        mem_pool_res = self.system_rpc().get_mem_pool()
+        list_tx = mem_pool_res.get_result('ListTxs')
+        mem_pool_size = mem_pool_res.get_result("Size")
+        INFO(f"There're {mem_pool_size} tx(s) in mem pool. Cleaning now...")
+        with ThreadPoolExecutor() as executor:
+            for tx in list_tx:
+                executor.submit(self.system_rpc().remove_tx_in_mem_pool, tx['TxID'])
 
     def help_count_shard_committee(self, refresh_cache=False):
         best = self.system_rpc().get_beacon_best_state_detail(refresh_cache)
         shard_committee_list = best.get_result()['ShardCommittee']
         return len(shard_committee_list)
 
-    def help_count_committee_in_shard(self, shard_id, refresh_cache=False):
-        best = self.system_rpc().get_beacon_best_state_detail(refresh_cache)
-        shard_committee_list = best.get_result()['ShardCommittee']
-        shard_committee = shard_committee_list[f'{shard_id}']
-        return len(shard_committee)
-
-    def help_get_current_epoch(self, refresh_cache=True):
+    def help_get_current_epoch(self):
         """
-        DEPRECATED, please don't use this method anymore
-        :param refresh_cache:
         :return:
         """
         DEBUG(f'Get current epoch number')
-        beacon_best_state = self.system_rpc().get_beacon_best_state_detail(refresh_cache)
-        epoch = beacon_best_state.get_result('Epoch')
+        beacon_best_state = self.get_beacon_best_state_info()
+        epoch = beacon_best_state.get_epoch()
         DEBUG(f"Current epoch = {epoch}")
         return epoch
 
@@ -464,3 +464,31 @@ class Node:
                 raise IOError(f'Cannot clear data when process is running')
             self.__goto_data_dir()
             return self.send_cmd(f'rm -Rf *')
+
+        def get_log_folder(self):
+            return f"{self.__get_working_dir()}/logs"
+
+        def get_log_file(self):
+            # when build chain, the log file name must be the same as data dir name
+            # if encounter problem here, check your build config again
+            data_path = self.__get_data_dir()
+            data_dir_name = data_path.split('/')[-1]
+            return f"{data_dir_name}.log"
+
+        def log_tail_grep(self, grep_pattern, tail_option=''):
+            """
+            @param grep_pattern:
+            @param tail_option: careful with this, -f might cause serious problem when not handling correctly afterward
+            @return: output of tail command
+            """
+            tail_cmd = f'tail {tail_option} {self.get_log_file()} | grep {grep_pattern}'
+            return self.send_cmd(tail_cmd)
+
+        def log_cat_grep(self, grep_pattern):
+            """
+
+            @param grep_pattern:
+            @return: output of cat command
+            """
+            cat_cmd = f'cat {self.get_log_file()} | grep {grep_pattern}'
+            return self.send_cmd(cat_cmd)
