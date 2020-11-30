@@ -2,7 +2,7 @@ from IncognitoChain.Objects.TestBedObject import Node, Shard, Beacon
 
 addr = "51.79.76.38"
 
-full_node = Node(address=addr, rpc_port=29334, ws_port=39334, node_name='fullnode-testnet')
+full_node = Node(address=addr, rpc_port=8334, ws_port=18334, node_name='fullnode-testnet')
 
 beacon = Beacon([
     Node(address=addr, rpc_port=29335, node_name='beacon1'),
