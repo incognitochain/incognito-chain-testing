@@ -11,7 +11,7 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, UnlockCollateralReqInfo, RedeemMatchingInfo
 from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, \
-    TEST_SETTING_REDEEM_AMOUNT, custodian_remote_addr
+    TEST_SETTING_REDEEM_AMOUNT, all_custodians
 
 
 @pytest.mark.parametrize("token, redeem_fee, custodian_picking, expected", [
@@ -73,7 +73,7 @@ def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
             STEP(3.2, 'Wait 10 min for custodian auto pick')
             WAIT(10.5 * 60)
         else:  # manual matching
-            custodian = custodian_remote_addr.get_accounts(highest_holding_custodian.get_incognito_addr())
+            custodian = all_custodians.find_account_by_key(highest_holding_custodian.get_incognito_addr())
             STEP(3.2, f"Self-picking custodian: {l6(custodian.payment_key)}")
             custodian.portal_let_me_take_care_this_redeem(redeem_id)
 
@@ -92,7 +92,7 @@ def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
         if custodian_has_no_holding is None:
             WARNING("There's no custodian with 0 holding token")
         else:
-            poor_custodian = custodian_remote_addr.get_accounts(custodian_has_no_holding.get_incognito_addr())
+            poor_custodian = all_custodians.find_account_by_key(custodian_has_no_holding.get_incognito_addr())
             matching_tx = poor_custodian.portal_let_me_take_care_this_redeem(redeem_id, do_assert=False)
             assert RedeemMatchingInfo().get_matching_info_by_tx(matching_tx.get_tx_id()).is_rejected()
 
@@ -108,12 +108,12 @@ def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
         custodian_incognito_addr = redeem_info.get_redeem_matching_custodians()[0].get_incognito_addr()
         memo = (redeem_id, redeem_info.get_redeem_matching_custodians()[0].get_incognito_addr())
         send_amount = test_redeem_amount // 10
-        custodian = custodian_remote_addr.get_accounts(custodian_incognito_addr)
+        custodian = all_custodians.find_account_by_key(custodian_incognito_addr)
         send_public_token_tx = custodian.send_public_token(token, send_amount, portal_user, cli_pass_phrase, memo)
 
         STEP(5, 'Submit proof to request unlock collateral')
         proof = send_public_token_tx.build_proof()
-        custodian_account = custodian_remote_addr.get_accounts(
+        custodian_account = all_custodians.find_account_by_key(
             redeem_info.get_redeem_matching_custodians()[0].get_incognito_addr())
 
         custodian_status_after_req = custodian_account.portal_get_my_custodian_info()
@@ -229,7 +229,7 @@ def test_create_redeem_req_1_n(token):
     for custodian_info in custodians_info_of_req:
         memo = (redeem_id, custodian_info.get_incognito_addr())
         custodian_remote_address = custodian_info.get_remote_address()
-        custodian_acc = custodian_remote_addr.get_accounts(custodian_info.get_incognito_addr())
+        custodian_acc = all_custodians.find_account_by_key(custodian_info.get_incognito_addr())
         amount_to_send = custodian_info.get_amount()
         if amount_to_send < 10:
             WARNING(f"Amount of BNB to send from custodian is {amount_to_send} < 10")
@@ -252,7 +252,7 @@ def test_create_redeem_req_1_n(token):
             if custodian_info.get_remote_address() == bnb_addr:
                 break
 
-        custodian_account = custodian_remote_addr.get_accounts(custodian_info.get_incognito_addr())
+        custodian_account = all_custodians.find_account_by_key(custodian_info.get_incognito_addr())
         redeem_amount_of_this_custodian = custodian_info.get_amount()
         custodian_account_list_of_this_req.append(custodian_account)
         custodian_status_after_redeem_req = PSI_after_porting_req.get_custodian_info_in_pool(custodian_account)

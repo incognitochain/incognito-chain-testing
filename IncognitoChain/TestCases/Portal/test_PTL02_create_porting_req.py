@@ -58,11 +58,15 @@ def setup_module():
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "valid"),
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "expire"),
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "liquidate"),
+                             # todo run again
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, 1, "invalid"),
                              (PBNB_ID, big_porting_amount, portal_user, None, 1, "valid"),
+                             # todo not enough coin, run again
                              # n custodian
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "valid"),
+                             # todo: fail sometime, debug later
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "expire"),
+                             # todo: fail sometime, debug later
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "liquidate"),
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, n, "invalid"),
                              #
@@ -83,9 +87,9 @@ def setup_module():
 def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of_custodian, desired_status):
     STEP(0, "Preparation before test")
     remote_receiver_dict = {}
-    PSI_before_test = SUT().get_latest_portal_state_info()
     prv_bal_be4_test = user.get_prv_balance()
     tok_bal_be4_test = user.get_token_balance(token)
+    PSI_before_test = SUT().get_latest_portal_state_info()
     tok_rate = PSI_before_test.get_portal_rate(token)
     prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
     estimated_porting_fee = PortalHelper.cal_portal_portal_fee(porting_amount, tok_rate, prv_rate)
@@ -117,6 +121,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
                                     1)).subscribe_transaction()
         prv_bal_be4_test = user.wait_for_balance_change(from_balance=prv_bal_be4_test)
 
+    PSI_before_test.print_state()
     STEP(1, f"Create a {desired_status} porting request")
     porting_req = user.portal_create_porting_request(token, porting_amount, porting_fee=porting_fee)
     porting_id = porting_req.params().get_portal_register_id()

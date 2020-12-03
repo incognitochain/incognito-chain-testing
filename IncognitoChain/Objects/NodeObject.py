@@ -31,15 +31,18 @@ class Node:
 
     def __init__(self, address=default_address, username=default_user, password=default_password,
                  rpc_port=default_rpc_port, ws_port=default_ws_port, account=None, sshkey=None,
-                 node_name=None):
+                 url=None, node_name=None):
         self._address = address
-        self._ssh_session = Node.SshActions(address, username, password, sshkey)
         self._rpc_port = rpc_port
         self._ws_port = ws_port
         self._node_name = node_name
         self._web_socket = None
-        self._rpc_connection = RpcConnection(self._get_rpc_url())
         self.account = account
+        self.url = url
+        if url is not None:
+            self.parse_url(url)
+        self._rpc_connection = RpcConnection(self._get_rpc_url())
+        self._ssh_session = Node.SshActions(address, username, password, sshkey)
 
     def __str__(self):
         return f"{self._get_rpc_url()} ws:{self._ws_port}"
@@ -65,7 +68,10 @@ class Node:
         return self
 
     def _get_rpc_url(self):
-        return f'http://{self._address}:{self._rpc_port}'
+        if self.url is not None:
+            return self.url
+        self.url = f'http://{self._address}:{self._rpc_port}'
+        return self.url
 
     def _get_ws_url(self):
         return f'ws://{self._address}:{self._ws_port}'
@@ -196,11 +202,6 @@ class Node:
         with ThreadPoolExecutor() as executor:
             for tx in list_tx:
                 executor.submit(self.system_rpc().remove_tx_in_mem_pool, tx['TxID'])
-
-    def help_count_shard_committee(self, refresh_cache=False):
-        best = self.system_rpc().get_beacon_best_state_detail(refresh_cache)
-        shard_committee_list = best.get_result()['ShardCommittee']
-        return len(shard_committee_list)
 
     def help_get_current_epoch(self):
         """

@@ -16,7 +16,7 @@ BNB_MNEMONIC_LIST = [
 ]
 
 cli = BnbCli()
-cli.import_key_mnemonic('user', cli_pass_phrase, BNB_MNEMONIC_LIST)
+cli.import_mnemonics('user', cli_pass_phrase, BNB_MNEMONIC_LIST)
 bnb_address_list = list(cli.list_user_addresses().values())
 # ----------------------------------------------------------------------------------------------------------------------
 

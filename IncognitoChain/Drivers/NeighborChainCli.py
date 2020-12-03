@@ -24,6 +24,10 @@ class NeighborChainCli:
             return BtcGo()
 
 
+class NeighborChainError(BaseException):
+    pass
+
+
 class BnbCli:
     _bnb_host = 'data-seed-pre-0-s1.binance.org'
     _bnb_rpc_port = 443
@@ -49,15 +53,13 @@ class BnbCli:
         return ['--chain-id', self.chain_id, '--node', self.node, self.trust]
 
     def get_balance(self, key):
-        INFO()
-        INFO(f'Bnbcli | get balance of {l6(key)}')
         process = subprocess.Popen([self.cmd, 'account', key] + self.get_default_conn(), stdout=self.stdout,
                                    stderr=self.stderr, universal_newlines=True)
         stdout, stderr = process.communicate()
         out = json_extract(stdout)
-        print(f"out: {stdout.strip()}\n"
-              f"err: {stderr.strip()}")
-        return int(BnbCli.BnbResponse(out).get_balance())
+        bal = int(BnbCli.BnbResponse(out).get_balance())
+        DEBUG(f"out: {stdout.strip()}")
+        return bal
 
     def send_to(self, sender, receiver, amount, password, memo):
         memo_encoded = BnbCli.encode_memo(memo)
@@ -99,16 +101,18 @@ class BnbCli:
                                    universal_newlines=True)
         WAIT(7)
         stdout, stderr = process.communicate(f'{more_input}\n')
-        INFO(f"\n"
-             f"+++ command: {' '.join(command)}\n\n"
-             f"+++ out: {stdout}\n\n"
-             f"+++ err: {stderr}")
+        DEBUG(f"\n"
+              f"+++ command: {' '.join(command)}\n"
+              f"+++ out: {stdout}\n"
+              f"+++ err: {stderr}")
         out = json_extract(stdout)
         err = json_extract(stderr)
         if out is not None:
             return BnbCli.BnbResponse(out)
-        else:
+        elif err is not None:
             return BnbCli.BnbResponse(err)
+        else:
+            raise NeighborChainError(stderr)
 
     @staticmethod
     def get_bnb_rpc_url():
@@ -145,13 +149,13 @@ class BnbCli:
         encode_memo_str_output = b64_encode.decode('utf-8')
         return encode_memo_str_output
 
-    def import_key_mnemonic(self, username, pass_phrase, mnemonic, overwrite=True):
+    def import_mnemonics(self, username, pass_phrase, mnemonic, overwrite=True):
         """
 
         :param overwrite: option to overwrite existing username
-        :param username:
-        :param pass_phrase:
-        :param mnemonic: could be a string or a list of strings
+        :param username: user name prefix
+        :param pass_phrase: pass phrase for all user (all user will have the same pass phrase
+        :param mnemonic: could be a string or a list of strings of mnemonic
         :return:
         """
         mnemonic_list = [mnemonic] if type(mnemonic) is str else mnemonic

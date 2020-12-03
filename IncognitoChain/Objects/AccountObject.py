@@ -49,11 +49,22 @@ class Account:
         @return: key type of the {key_key_to_check} or None if not found in this account
         """
         for key_type, value in self.__dict__.items():
-            if ("key" in key_type or "address" in key_type or "_k" in key_type) and key_to_check == value:
-                return key_type
+            if "key" in key_type or "address" in key_type or "_k" in key_type:
+                if key_to_check == value:
+                    return key_type
         return False
 
-    def __init__(self, private_key=None, payment_k=None, **kwargs):
+    def __init__(self, private_key=None, payment_k=None, nomad=False, **kwargs):
+        """
+
+        @param private_key: private key of this account,
+         other keys will be generated automatically if payment_k is not specified
+        @param payment_k: payment key of this account, if specified along with private key, other keys will not
+         get generated and will be set to None
+        @param nomad: True = not yet tie this account to a Chain.
+            False: tie this account to the configured Chain (from command line arg or from config.py file)
+        @param kwargs:
+        """
         self.remote_addr = Account.RemoteAddress()
 
         if private_key is not None:
@@ -80,8 +91,12 @@ class Account:
             self.private_key = None
 
         self.cache = {}
-        from IncognitoChain.Objects import IncognitoTestCase
-        self.REQ_HANDLER = IncognitoTestCase.SUT()
+        if nomad:
+            from IncognitoChain.Objects.NodeObject import Node
+            self.REQ_HANDLER = Node()
+        else:
+            from IncognitoChain.Objects import IncognitoTestCase
+            self.REQ_HANDLER = IncognitoTestCase.SUT()
 
     def is_empty(self):
         if self.private_key is None:
@@ -913,7 +928,7 @@ class Account:
     def portal_req_redeem_my_token(self, token_id, redeem_amount, redeem_fee=None, privacy=True):
         INFO()
         redeem_id = f"{l6(token_id)}_{get_current_date_time()}"
-        INFO(f'Portal | Custodian {l6(self.payment_key)} | req redeem token |'
+        INFO(f'Portal | User (payment k) {l6(self.payment_key)} | req redeem token |'
              f' ID: {redeem_id} | Amount: {redeem_amount} | token: {l6(token_id)}')
 
         beacon_height = self.REQ_HANDLER.help_get_beacon_height()

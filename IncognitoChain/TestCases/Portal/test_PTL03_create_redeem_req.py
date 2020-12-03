@@ -70,6 +70,7 @@ def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, c
                                                                   1, 'valid')
         WAIT(1, 'm')
         PSI_before_test = SUT().get_latest_portal_state_info()
+        highest_holding_token_custodian_in_pool = PSI_before_test.help_get_highest_holding_token_custodian(token)
         num_of_holding_custodians = len(PSI_before_test.find_custodian_hold_more_than_amount(token, 0))
         INFO(f'Num of holding custodian in chain = {num_of_holding_custodians}')
     if num_of_custodian == n:
@@ -249,7 +250,7 @@ def verify_expired_redeem_1_custodian_sent(token, redeem_id, tok_bal_b4, prv_bal
     runaway_custodians.pop(random_index)
 
     memo = (redeem_id, one_custodian_of_req.get_incognito_addr())
-    custodian_acc = all_custodians.find_account_by_key(one_custodian_of_req)
+    custodian_acc = all_custodians.find_account_by_key(one_custodian_of_req.get_incognito_addr())
     STEP(4.1, "Only one of the custodians send public token to user")
     send_tx = custodian_acc.send_public_token(token, one_custodian_of_req.get_amount(), portal_user, cli_pass_phrase,
                                               memo)

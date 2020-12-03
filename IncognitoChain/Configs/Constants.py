@@ -131,8 +131,8 @@ class Status:
         class Contribution:
             WAITING = 1
             ACCEPTED = 2
-            REFUND = 3
-            MATCHED_RETURNED = 4
+            REFUND = 3  # contrib same token twice with same pair id
+            MATCHED_RETURNED = 4  # success with return.....
 
         class Trading:
             ACCEPTED = 1

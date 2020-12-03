@@ -4,7 +4,7 @@ from typing import List
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PBTC_ID, PRV_ID, Status, ChainConfig
 from IncognitoChain.Helpers.Logging import INFO, DEBUG, INFO_HEADLINE, ERROR
-from IncognitoChain.Helpers.TestHelper import l6, PortalHelper, extract_incognito_addr
+from IncognitoChain.Helpers.TestHelper import l6, PortalHelper, extract_incognito_addr, KeyExtractor
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 
@@ -603,7 +603,7 @@ class PortalStateInfo(_PortalInfoBase):
                 req_list.append(req)
         return req_list
 
-    def get_redeem_matched_req(self, token_id=None) -> List[RedeemReqInfo]:
+    def get_redeem_matched_req(self, token_id=None, custodian=None) -> List[RedeemReqInfo]:
         req_list = []
         req_data_raw = self.data['MatchedRedeemRequests']
         for req_raw in req_data_raw.values():
@@ -612,6 +612,17 @@ class PortalStateInfo(_PortalInfoBase):
                 req_list.append(req)
             else:
                 req_list.append(req)
+
+        if custodian is not None:  # find matching req which belong to custodian
+            req_tok_addr = []
+            inc_addr = KeyExtractor.incognito_addr(custodian)
+            for req in req_list:
+                cus_of_req = req.get_custodian(custodian)
+                if cus_of_req is not None:
+                    if cus_of_req.get_incognito_addr() == inc_addr:
+                        req_tok_addr.append(req)
+            return req_tok_addr
+
         return req_list
 
     def get_liquidation_pool(self) -> LiquidationPool:
@@ -895,21 +906,23 @@ class PortalStateInfo(_PortalInfoBase):
         rate_tok = self.get_portal_rate(token_id)
         return PortalHelper.cal_lock_collateral(amount, rate_tok, rate_prv)
 
-    def estimate_custodian_collateral_unlock(self, custodian, holding_amount_to_unlock, token,
-                                             percent=ChainConfig.Portal.COLLATERAL_PERCENT):
+    def estimate_custodian_collateral_unlock(self, custodian, holding_amount_to_unlock, token):
         custodian_holding = self.get_custodian_info_in_pool(custodian).get_holding_token_amount(token)
         custodian_lock_collateral = self.get_custodian_info_in_pool(custodian).get_locked_collateral(token)
+        matching_holding = sum(
+            [req.get_custodian(custodian).get_amount() for req in self.get_redeem_matched_req(token, custodian)])
         if holding_amount_to_unlock == custodian_holding:
             unlock_prv = custodian_lock_collateral
         else:
-            unlock_token_amount = holding_amount_to_unlock * percent / ChainConfig.Portal.COLLATERAL_PERCENT
-            unlock_prv = int(unlock_token_amount * (custodian_lock_collateral / custodian_holding))
+            unlock_prv = int(
+                holding_amount_to_unlock * custodian_lock_collateral / (custodian_holding + matching_holding))
         INFO(f'Estimated: custodian {l6(custodian.get_incognito_addr())}, '
              f'holding {custodian_holding}, '
+             f'matched hold {matching_holding}, '
              f'unlock {holding_amount_to_unlock} '
              f'token {l6(token)}, '
-             f'% to unlock {percent}. '
-             f'Collateral to unlock: {unlock_prv}')
+             f'locked collateral: {custodian_lock_collateral}, '
+             f'to unlock: {unlock_prv} ')
         return unlock_prv
 
     def estimate_exchange_prv_to_token(self, amount_prv, token_id):

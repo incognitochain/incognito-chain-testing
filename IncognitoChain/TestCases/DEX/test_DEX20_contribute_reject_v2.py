@@ -94,17 +94,6 @@ def test_contribute_prv(token1, token2):
         INFO(f'{l6(token1)} after contribute: {bal_tok1_aft_contrib}')
         INFO(f'{l6(token2)} after contribute: {bal_tok2_aft_contrib}')
 
-    refund_tok1 = contr_info.get_return_amount_of_token(token1)
-    commit_tok1 = contr_info.get_contribute_amount_of_token(token1)
-    refund_tok2 = contr_info.get_return_amount_of_token(token2)
-    commit_tok2 = contr_info.get_contribute_amount_of_token(token2)
-
-    # VERIFY: refund amount in API
-    assert (refund_tok1 == 0 and commit_tok1 == 0) and INFO(
-        f"{l6(token1)} is going to refund"), f"{l6(token1)} refund amount is not correct"
-    assert (refund_tok2 == 0 and commit_tok2 == 0) and INFO(
-        f"{l6(token2)} is going to refund"), f"{l6(token2)} refund amount is not correct"
-
     # VERIFY: account balance after refund
     if token1 == token2 and token1 == PRV_ID:  # token 1 = 1 token 2 and both are PRV
         assert bal_tok1_be4_contrib == bal_tok1_aft_contrib + contrib_fee_sum
@@ -138,12 +127,7 @@ def test_contribute_prv(token1, token2):
             contribute {l6(token2)} : {tok2_contrib_amount}
         Expect contribution Refund:
             {l6(token1)}            : {tok1_contrib_amount}
-            {l6(token2)}            : {tok2_contrib_amount}
-        From API:
-            contribute {l6(token1)} : {commit_tok1}
-            contribute {l6(token2)} : {commit_tok2}
-            return     {l6(token1)} : {refund_tok1}
-            return     {l6(token2)} : {refund_tok2}""")
+            {l6(token2)}            : {tok2_contrib_amount}""")
 
     assert rate == rate_after and INFO(
         "rate after contribution is correct"), f"rate {rate} != {rate_after}"

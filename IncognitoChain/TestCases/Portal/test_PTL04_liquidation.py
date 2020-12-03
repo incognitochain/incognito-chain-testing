@@ -49,7 +49,7 @@ def test_liquidate(token, percent, waiting_redeem, expected):
         token, tok_rate_before_test, prv_liquidate_rate)
 
     if expected == 'liquidated':
-        assert (not custodians_will_be_liquidate) is False, "custodian list that will be liquidated is empty"
+        assert custodians_will_be_liquidate == [], "custodian list that will be liquidated is empty"
         estimated_liquidation_pool = PSI_before_test.estimate_liquidation_pool(token, tok_rate_before_test,
                                                                                prv_liquidate_rate)
 
@@ -83,9 +83,9 @@ def test_liquidate(token, percent, waiting_redeem, expected):
         INFO("liquidation pool estimated")
         INFO(f"{estimated_liquidation_pool.data}")
         INFO("liquidation pool after")
-        INFO(f"{PSI_after_test.get_liquidation_pool().data}")
+        INFO(f"{PSI_after_test.get_liquidation_pool()}")
         INFO("liquidation pool before")
-        INFO(f"{PSI_before_test.get_liquidation_pool().data}")
+        INFO(f"{PSI_before_test.get_liquidation_pool()}")
 
         INFO(f"wait for collateral to be return to custodian if need")
         WAIT(30)

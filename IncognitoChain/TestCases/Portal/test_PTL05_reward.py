@@ -29,8 +29,8 @@ def test_withdraw_portal_reward(custodian_account):
         pytest.skip("no reward to withdraw, skip this test")
 
     STEP(3, 'Withdraw and check withdraw status')
-    withdraw_tx = custodian_account.portal_withdraw_reward(PRV_ID).expect_no_error()
-    fee = withdraw_tx.subscribe_transaction().get_fee()
+    withdraw_tx = custodian_account.portal_withdraw_reward(PRV_ID).expect_no_error().subscribe_transaction()
+    fee = withdraw_tx.get_fee()
     withdraw_tx_info = RewardWithdrawTxInfo()
     withdraw_tx_info.get_reward_info_by_tx_id(withdraw_tx.get_tx_id())
     assert withdraw_tx_info.get_status() == Status.Portal.RewardWithdrawStatus.ACCEPT
