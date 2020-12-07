@@ -503,6 +503,12 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         rate = self.get_rate_between_token(token1, token2)
         return TestHelper.calculate_contribution(amount1, amount2, rate)
 
+    def verify_contribute_status(self, pair_id, expected_status, token1_contributed, token1_expected_return,
+                                 token2_contributed, token2_expected_return):
+        # todo implement later:
+        # get PDEContributeInfo, verify status, contributed amount, return amount ...
+        pass
+
 
 class PDEContributeInfo(BlockChainInfoBaseClass):
     """
@@ -559,8 +565,8 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
 
     def get_return_amount_of_token(self, token_id):
         index = self.__get_data_index_of_token(token_id)
-        key_contribute = f'Contributed{index}Amount'
-        return f'Returned{key_contribute}Amount'
+        key_contribute = f'Returned{index}Amount'
+        return self.data[key_contribute]
 
     def wait_for_contribution_status(self, pair_id, expecting_status, check_interval=10, timeout=40):
         time = 0
