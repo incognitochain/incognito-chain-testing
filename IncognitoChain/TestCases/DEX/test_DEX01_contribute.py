@@ -101,7 +101,8 @@ def test_contribute(token1, token2):
 
     contribution_status = PDEContributeInfo()
     contribution_status.get_contribute_status(pair_id)
-
+    INFO(f"{l6(token1)} balance after contribution (after refund): {bal_tok1_aft_refund}")
+    INFO(f"{l6(token2)} balance after contribution (after refund): {bal_tok2_aft_refund}")
     debug_info = f""" 
         Owner share amount before: {owner_share_amount}
         Owner share amount after : {owner_share_amount_after}
@@ -126,28 +127,21 @@ def test_contribute(token1, token2):
             contribute {l6(token2)} : {api_contrib_tok2}
             return     {l6(token1)} : {api_return_tok1}
             return     {l6(token2)} : {api_return_tok2}"""
-    else:
-        debug_info = "FIRST time contribution" + debug_info
-
-    INFO(debug_info)
-
-    INFO(f"{l6(token1)} balance after contribution (after refund): {bal_tok1_aft_refund}")
-    INFO(f"{l6(token2)} balance after contribution (after refund): {bal_tok2_aft_refund}")
-
-    if not is_first_time_contrib:  # not fist contribute
-        calculated_owner_share_amount_after = round((api_contrib_tok2 * sum(all_share_amount)) / rate_b4[0]) + \
-                                              owner_share_amount
+        INFO(debug_info)
+        assert contribution_status.get_status() == Status.Dex.Contribution.MATCHED_RETURNED
+        calculated_owner_share_amount_after = \
+            round((api_contrib_tok2 * sum(all_share_amount)) / rate_b4[0]) + owner_share_amount
         assert INFO(f"Contribution shares amount is correct") \
                and abs(calculated_owner_share_amount_after - owner_share_amount_after) <= 1, \
             f'calculated vs real = {calculated_owner_share_amount_after} - {owner_share_amount_after}'
+    else:
+        debug_info = "FIRST time contribution" + debug_info
+        INFO(debug_info)
+        assert contribution_status.get_status() == Status.Dex.Contribution.ACCEPTED
 
     # NOTE: at first time contribute, all will be taken so API will return 0 as api_contrib_tok*
     real_contrib_amount1 = tok1_contrib_amount if is_first_time_contrib else api_contrib_tok1
     real_contrib_amount2 = tok2_contrib_amount if is_first_time_contrib else api_contrib_tok2
-    if is_first_time_contrib:
-        assert contribution_status.get_status() == Status.Dex.Contribution.ACCEPTED
-    else:
-        assert contribution_status.get_status() == Status.Dex.Contribution.MATCHED_RETURNED
 
     if token1 == PRV_ID:
         assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1 + contrib_fee_sum
