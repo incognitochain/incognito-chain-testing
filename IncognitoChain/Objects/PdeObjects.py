@@ -559,11 +559,19 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
                 return regex.match(key).group(1)
 
     def get_contribute_amount_of_token(self, token_id):
+        """
+        @param token_id:
+        @return: contributed amount, raise KeyError exception if not found
+        """
         index = self.__get_data_index_of_token(token_id)
         key_contribute = f'Contributed{index}Amount'
         return self.data[key_contribute]
 
     def get_return_amount_of_token(self, token_id):
+        """
+        @param token_id:
+        @return: amount to return back to contributor, raise KeyError exception if not found
+        """
         index = self.__get_data_index_of_token(token_id)
         key_contribute = f'Returned{index}Amount'
         return self.data[key_contribute]
