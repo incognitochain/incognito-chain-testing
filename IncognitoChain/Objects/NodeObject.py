@@ -11,11 +11,12 @@ from IncognitoChain.APIs.Transaction import TransactionRpc
 from IncognitoChain.Configs.Constants import ChainConfig, PRV_ID
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection, SshSession
 from IncognitoChain.Helpers import TestHelper
-from IncognitoChain.Helpers.Logging import INFO, DEBUG, WARNING
+from IncognitoChain.Helpers.Logging import INFO, DEBUG
 from IncognitoChain.Helpers.TestHelper import l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock, BeaconBestStateInfo
 from IncognitoChain.Objects.BlockChainObjects import BlockChainCore
+from IncognitoChain.Objects.CommitteeState import CommitteeState
 from IncognitoChain.Objects.PdeObjects import PDEStateInfo
 from IncognitoChain.Objects.PortalObjects import PortalStateInfo
 from IncognitoChain.Objects.ShardBlock import ShardBlock
@@ -79,21 +80,21 @@ class Node:
     def rpc_connection(self) -> RpcConnection:
         """
         get RPC connection to send custom command
-        :return: RpcConnection object
+        @return: RpcConnection object
         """
         return self._rpc_connection
 
     def web_socket_connection(self) -> WebSocket:
         """
         get web socket to send your custom command
-        :return: WebSocket object
+        @return: WebSocket object
         """
         return self._web_socket
 
     def transaction(self) -> TransactionRpc:
         """
         Transaction APIs by RPC
-        :return: TransactionRpc object
+        @return: TransactionRpc object
         """
         return TransactionRpc(self._get_rpc_url())
 
@@ -103,14 +104,14 @@ class Node:
     def dex(self) -> DexRpc:
         """
         Decentralize Exchange APIs by RPC
-        :return: DexRpc Object
+        @return: DexRpc Object
         """
         return DexRpc(self._get_rpc_url())
 
     def bridge(self) -> BridgeRpc:
         """
         Bridge APIs by RPC
-        :return: BridgeRpc object
+        @return: BridgeRpc object
         """
         return BridgeRpc(self._get_rpc_url())
 
@@ -120,7 +121,7 @@ class Node:
     def subscription(self) -> SubscriptionWs:
         """
         Subscription APIs on web socket
-        :return: SubscriptionWs object
+        @return: SubscriptionWs object
         """
         if self._web_socket is None:
             self._web_socket = WebSocket(self._get_ws_url())
@@ -205,7 +206,7 @@ class Node:
 
     def help_get_current_epoch(self):
         """
-        :return:
+        @return:
         """
         DEBUG(f'Get current epoch number')
         beacon_best_state = self.get_beacon_best_state_info()
@@ -220,21 +221,22 @@ class Node:
         else:
             INFO(f'Get portal state at beacon height: {beacon_height}')
 
-        portal_state_raw = self.portal().get_portal_state(beacon_height)
+        portal_state_raw = self.portal().get_portal_state(beacon_height).expect_no_error()
         return PortalStateInfo(portal_state_raw.get_result())
 
-    def cal_transaction_reward_from_beacon_block_info(self, epoch=None, token=None, shard_txs_fee_list=None):
+    def cal_transaction_reward_from_beacon_block_info(self, epoch=None, token=None, shard_txs_fee_list=None, dcz=False):
         """
         Calculate reward of an epoch
-        :param shard_txs_fee_list:
-        :param token:
-        :param epoch: if None, get latest epoch -1
-        :return: dict { "DAO" : DAO_reward_amount
+        @param shard_txs_fee_list:
+        @param token:
+        @param epoch: if None, get latest epoch -1
+        @return: dict { "DAO" : DAO_reward_amount
                         "beacon" : total_beacon_reward_amount
                         "0" : shard0_reward_amount
                         "1" : shard1_reward_amount
                         .....
                         }
+        @param dcz: True: calculate follow reward formula of dynamic committee size, False: normal
         """
 
         num_of_active_shard = self.get_block_chain_info().get_num_of_shard()
@@ -251,83 +253,97 @@ class Node:
         token = PRV_ID if token is None else token
         # todo: not yet handle custom token
 
-        INFO(f'GET reward info, epoch {epoch}, token {l6(token)}')
-
         first_height_of_epoch = TestHelper.ChainHelper.cal_first_height_of_epoch(epoch)
-        first_BB_of_epoch = self.get_latest_beacon_block(first_height_of_epoch)
-        second_BB_of_epoch = self.get_latest_beacon_block(first_height_of_epoch + 1)
-
         last_height_of_epoch = TestHelper.ChainHelper.cal_last_height_of_epoch(epoch)
-        last_BB_of_epoch = self.get_latest_beacon_block(last_height_of_epoch)
-        pre_last_BB_of_epoch = self.get_latest_beacon_block(last_height_of_epoch - 1)
+
+        INFO(f'GET reward info, epoch {epoch}, token {l6(token)}, first block of epoch = {first_height_of_epoch}, '
+             f'last block of epoch = {last_height_of_epoch}')
 
         list_num_of_shard_block = []
-        # calculate number of shard block in each shard of this epoch
-        for shard_id in shard_range:
-            try:
-                DEBUG(f"Try finding shard {shard_id} state in 1st beacon block of epoch")
-                shard_first_block = first_BB_of_epoch.get_shard_states(shard_id).get_smallest_block_height()
-            except AttributeError:  # case shard state in beacon block is not exist, get it in next beacon block
+        beacon_blocks_in_epoch = {}
+        for shard_id in shard_range:  # get smallest and biggest height of shard block then we have num of block in epoch
+            for height in range(first_height_of_epoch, last_height_of_epoch + 1):
                 try:
-                    WARNING(f'Could not find shard {shard_id} state in 1st beacon block of epoch. '
-                            f'Try again with 2nd block')
-                    shard_first_block = second_BB_of_epoch.get_shard_states(shard_id).get_smallest_block_height()
-                except AttributeError:  # if could not find it in the second block then probably it just doesn't exist
-                    WARNING(f'Could not find shard {shard_id} state in 1st and 2nd beacon block, '
-                            f'assume that this shard create 0 block in this epoch')
-                    shard_first_block = 0
-
-            try:
-                DEBUG(f"Try finding shard {shard_id} state in last beacon block of epoch")
-                shard_last_block = last_BB_of_epoch.get_shard_states(shard_id).get_biggest_block_height()
-            except AttributeError:  # case shard state in beacon block is not exist, get it in previous beacon block
+                    bb = beacon_blocks_in_epoch[height]
+                except KeyError:  # no height in beacon_blocks_in_epoch? get one
+                    bb = self.get_latest_beacon_block(height)
+                    beacon_blocks_in_epoch[height] = bb
                 try:
-                    WARNING(f'Could not find shard {shard_id} state in last beacon block of epoch. '
-                            f'Try again with 2nd last block')
-                    shard_last_block = pre_last_BB_of_epoch.get_shard_states(shard_id).get_biggest_block_height()
-                except AttributeError:  # if could not find it in the previous block then probably it just doesn't exist
-                    WARNING(f'Could not find shard {shard_id} state in last and 2nd last beacon block, '
-                            f'assume that this shard create 0 block in this epoch')
-                    shard_last_block = -1
+                    smallest_shard_height = bb.get_shard_states(shard_id).get_smallest_block_height()
+                    break
+                except AttributeError:  # can't find shard state in beacon block? don't worry, behappy!!
+                    pass
+                smallest_shard_height = 0
 
-            list_num_of_shard_block.append(shard_last_block - shard_first_block + 1)
-        # now calculate each shard reward
+            for height in range(last_height_of_epoch, first_height_of_epoch - 1, -1):
+                try:
+                    bb = beacon_blocks_in_epoch[height]
+                except KeyError:  # no height in beacon_blocks_in_epoch? get one
+                    bb = self.get_latest_beacon_block(height)
+                    beacon_blocks_in_epoch[height] = bb
+                try:
+                    biggest_shard_height = bb.get_shard_states(shard_id).get_biggest_block_height()
+                    break
+                except AttributeError:  # can't find shard state in beacon block? don't worry, behappy!!
+                    pass
+                biggest_shard_height = -1
+
+            num_of_block = biggest_shard_height - smallest_shard_height + 1
+            INFO(f'shard{shard_id} {biggest_shard_height} - {smallest_shard_height} = {num_of_block}')
+            list_num_of_shard_block.append(num_of_block)
+
         list_beacon_reward_from_shard = []
         list_DAO_reward_from_shard = []
-        for shard_id in shard_range:
-            DAO_share = ChainConfig.DAO_REWARD_PERCENT
+        committee_state = self.get_committee_state(first_height_of_epoch)
+        for shard_id in shard_range:  # now calculate each shard reward
+            ChainConfig.DAO_REWARD_PERCENT = ChainConfig.DAO_REWARD_PERCENT
             basic_reward = ChainConfig.BASIC_REWARD_PER_BLOCK
             num_of_shard_block = list_num_of_shard_block[shard_id]
             shard_fee_total = shard_txs_fee_list[shard_id]
 
             total_reward_from_shard = num_of_shard_block * basic_reward + shard_fee_total
-            DAO_reward_from_shard = DAO_share * total_reward_from_shard
-            beacon_reward_from_shard = \
-                (1 - DAO_share) * 2 * total_reward_from_shard / (num_of_active_shard + 2)
-            shard_reward = (1 - DAO_share) * total_reward_from_shard - beacon_reward_from_shard
-
-            shard_reward_to_split = max(0, int(shard_reward))
-            if shard_reward_to_split > 0:
-                RESULT[str(shard_id)] = shard_reward_to_split
-            list_beacon_reward_from_shard.append(max(0, beacon_reward_from_shard))
+            DAO_reward_from_shard = ChainConfig.DAO_REWARD_PERCENT * total_reward_from_shard
             list_DAO_reward_from_shard.append(max(0, DAO_reward_from_shard))
+            # breakpoint()
+            if dcz:  # calculate reward for dynamic committee size
+                shard_comm_size = committee_state.get_shard_committee_size(shard_id)
+                beacon_committee_size = committee_state.get_beacon_committee_size()
+                remain_reward_for_beacon_n_shard = total_reward_from_shard - DAO_reward_from_shard
+                num_o_portion = shard_comm_size + (beacon_committee_size * 2 / num_of_active_shard)
+                each_validator_reward = remain_reward_for_beacon_n_shard / num_o_portion
+                shard_reward = each_validator_reward * shard_comm_size
+                beacon_reward_from_shard = remain_reward_for_beacon_n_shard - shard_reward
+            else:  # calculate reward for fixed committee size
+                beacon_reward_from_shard = \
+                    (1 - ChainConfig.DAO_REWARD_PERCENT) * 2 * total_reward_from_shard / (num_of_active_shard + 2)
+                shard_reward = (1 - ChainConfig.DAO_REWARD_PERCENT) * total_reward_from_shard - beacon_reward_from_shard
 
-        # now calculate total beacon reward
-        total_beacon_reward = max(0, sum(list_beacon_reward_from_shard))
-        if total_beacon_reward > 0:
-            RESULT['beacon'] = int(total_beacon_reward)
-        # now calculate DAO reward
-        total_DAO_reward = max(0, sum(list_DAO_reward_from_shard))
-        if total_DAO_reward > 0:
-            RESULT['DAO'] = int(total_DAO_reward)
+            if shard_reward > 0:
+                RESULT[str(shard_id)] = int(shard_reward)
+            list_beacon_reward_from_shard.append(max(0, beacon_reward_from_shard))
 
+        # now calculate total beacon reward and DAO reward
+        RESULT['beacon'] = int(sum(list_beacon_reward_from_shard))
+        RESULT['DAO'] = int(sum(list_DAO_reward_from_shard))
+        # NOTE, the RESULT must in order of Shard reward -> beacon -> DAO, "DO NOT CHANGE IT"
+        # to unify with the return result of method get reward in instruction
+        # thus it will be easier to compare them to each other
         return RESULT
+
+    def get_committee_state(self, beacon_height=None):
+        """
+        @param beacon_height: beacon height number, default = None will get latest height automatically
+        @return: committee state of beacon_height
+        """
+        beacon_height = self.get_block_chain_info().get_beacon_block().get_height() if beacon_height is None else \
+            beacon_height
+        return CommitteeState(self.system_rpc().get_committee_state(beacon_height).get_result())
 
     def help_get_shard_height(self, shard_num=None):
         """
         Function to get shard height
-        :param shard_num:
-        :return:
+        @param shard_num:
+        @return:
         """
         if shard_num is None:
             dict_shard_height = {}

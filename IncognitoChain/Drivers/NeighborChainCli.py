@@ -124,7 +124,7 @@ class BnbCli:
             return BnbCli.encode_porting_memo(info[0])
         elif len(info) == 2:
             return BnbCli.encode_redeem_memo(info[0], info[1])
-        raise Exception('Expect 1 or 2 parameters only')
+        raise Exception(f'Expect 1 or 2 parameters only, instead got {len(info)}: {info}')
 
     @staticmethod
     def encode_porting_memo(porting_id):

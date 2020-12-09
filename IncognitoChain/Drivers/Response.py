@@ -11,12 +11,13 @@ from IncognitoChain.Objects.TransactionObjects import TransactionDetail
 
 
 class Response:
-    def __init__(self, response, more_info=None):
+    def __init__(self, response=None, more_info=None):
         self.response = response
         self.more_info = more_info
         if more_info is not None:
             Log.DEBUG(more_info)
-        Log.DEBUG(self.__str__())
+        if response is not None:
+            Log.DEBUG(self.__str__())
 
     def __str__(self):
         return f'\n{json.dumps(self.data(), indent=3)}'

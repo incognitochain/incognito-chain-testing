@@ -2,7 +2,7 @@
 # python=./venv/bin/python3
 python=python3
 
-if [ $1 = "clear" ]; then
+if [ $1 = "clear" ] || [ $1 = "clean" ]; then
   rm reports/*.html
   rm log/*.log
   exit
@@ -30,4 +30,5 @@ else
   param4="-k $4"
 fi
 set -x
-$python $xoption -m pytest --show-capture=no -s -v --html="$html_report" --self-contained-html $3 $param4
+$python $xoption -m pytest \
+  --show-capture=stderr --capture=tee-sys -v --html="$html_report" --self-contained-html $3 $param4

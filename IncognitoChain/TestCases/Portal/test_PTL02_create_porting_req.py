@@ -1,6 +1,6 @@
 import pytest
 
-from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status, ChainConfig
+from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, Status, ChainConfig
 from IncognitoChain.Helpers.Logging import STEP, INFO, WARNING, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
@@ -58,10 +58,8 @@ def setup_module():
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "valid"),
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "expire"),
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, 1, "liquidate"),
-                             # todo run again
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, 1, 1, "invalid"),
                              (PBNB_ID, big_porting_amount, portal_user, None, 1, "valid"),
-                             # todo not enough coin, run again
                              # n custodian
                              (PBNB_ID, TEST_SETTING_PORTING_AMOUNT, portal_user, None, n, "valid"),
                              # todo: fail sometime, debug later
@@ -170,6 +168,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         liquidate_rate = {PRV_ID: new_prv_rate}
         PORTAL_FEEDER.portal_create_exchange_rate(liquidate_rate)
         ChainHelper.wait_till_next_epoch()
+        # todo: make sure rate is changed
 
     if desired_status == 'invalid':
         STEP(4, "Porting req fail, wait 60s to return porting fee (only take tx fee), verify user balance")
@@ -293,106 +292,12 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
                 f'Liquidated token {token_added_too_pool}'), 'wrong liquidate token'
 
 
-@pytest.mark.parametrize("num_of_custodian", [
-    1,
-    'n',
-])
-def est_porting_req_expired(num_of_custodian):
-    """
-    already merged to upper test case, just keep it here for backup,
-    might delete this test in the future
-    """
-    STEP(0, "before test")
-    portal_state_info_before_test = SUT().get_latest_portal_state_info()
-    pbnb_rate = portal_state_info_before_test.get_portal_rate(PBNB_ID)
-    prv_rate = portal_state_info_before_test.get_portal_rate(PRV_ID)
-
-    if num_of_custodian == 'n':
-        custodian_has_highest_free_collateral_in_pool = portal_state_info_before_test. \
-            help_get_highest_free_collateral_custodian()
-        highest_collateral = custodian_has_highest_free_collateral_in_pool.get_free_collateral()
-        porting_amount = PortalHelper.cal_token_amount_from_collateral(highest_collateral, pbnb_rate, prv_rate) + 10
-
-        if portal_user.get_prv_balance() < coin(5):
-            COIN_MASTER.top_him_up_prv_to_amount_if(coin(5), coin(5), portal_user)
-
-    else:
-        porting_amount = TEST_SETTING_PORTING_AMOUNT
-    user_prv_bal_be4_test = portal_user.get_prv_balance()
-    estimated_porting_fee = PortalHelper.cal_portal_portal_fee(porting_amount, pbnb_rate, prv_rate)
-
-    STEP(1, f"Create a valid porting request")
-    porting_req = portal_user.portal_create_porting_request(PBNB_ID, porting_amount)
-    porting_id = porting_req.params().get_portal_register_id()
-    porting_fee = porting_req.params().get_portal_porting_fee()
-    tx_block = porting_req.subscribe_transaction()
-    tx_fee = tx_block.get_fee()
-    tx_size = tx_block.get_tx_size()
-    tx_id = porting_req.get_tx_id()
-    INFO(f"""Porting req is created with porting fee = {porting_fee},
-                                             porting id = {porting_id}, 
-                                             tx fee = {tx_fee}, 
-                                             tx size = {tx_size}
-                                             prv bal after req = {portal_user.get_prv_balance()}""")
-    STEP(1.2, 'verify porting fee')
-    assert estimated_porting_fee == porting_fee
-
-    STEP(2, "Check req status")
-    porting_req_info_after_req = PortingReqInfo()
-    porting_req_info_after_req.get_porting_req_by_tx_id(tx_id)
-
-    assert porting_req_info_after_req.get_status() == Status.Portal.PortingStatusByTxId.ACCEPTED
-
-    STEP(2.2, "Check req status by req id")
-    porting_req_info_after_req.get_porting_req_by_porting_id(porting_id)
-    assert porting_req_info_after_req.get_status() == Status.Portal.PortingStatusByPortingId.WAITING
-
-    STEP(3, 'Verify balance')
-    assert user_prv_bal_be4_test - porting_fee - tx_fee == portal_user.get_prv_balance()
-
-    STEP(4, f'Wait {ChainConfig.Portal.REQ_TIME_OUT + 0.5} for the req to be expired')
-    WAIT(ChainConfig.Portal.REQ_TIME_OUT + 0.5, 'm')
-    STEP(5, "Check req status")
-    porting_req_info_after_req.get_porting_req_by_porting_id(porting_id)
-    assert porting_req_info_after_req.get_status() == Status.Portal.PortingStatusByPortingId.EXPIRED
-
-    STEP(6, "Custodian collateral must be unlock")
-    custodians_info = porting_req_info_after_req.get_custodians()
-    INFO(f'Number of custodian for this req = {len(custodians_info)}')
-    if num_of_custodian == 1:
-        assert len(custodians_info) == 1
-    else:
-        assert len(custodians_info) > 1
-
-    portal_state_info_after_expired = SUT().get_latest_portal_state_info()
-    for custodian in custodians_info:
-        state_before_test = portal_state_info_before_test.get_custodian_info_in_pool(custodian)
-        state_after_expire = portal_state_info_after_expired.get_custodian_info_in_pool(custodian)
-        INFO(f'Custodian info before: \n{state_before_test}')
-        INFO(f'Custodian info after : \n{state_after_expire}')
-        assert state_before_test.get_locked_collateral() == state_after_expire.get_locked_collateral()
-        assert state_before_test.get_free_collateral() == state_after_expire.get_free_collateral()
-        assert state_before_test.get_total_collateral() == state_after_expire.get_total_collateral()
-        assert state_before_test.get_holding_token_amount(PBNB_ID) == state_after_expire.get_holding_token_amount(
-            PBNB_ID)
-
-    STEP(7, "Verify user balance, porting fee and tx fee will not be returned")
-    user_prv_bal_after_test = portal_user.get_prv_balance()
-    assert user_prv_bal_be4_test - tx_fee - porting_fee == user_prv_bal_after_test
-
-
 def prepare_fat_custodian():
-    from IncognitoChain.TestCases.Portal import fat_custodian, big_collateral, fat_custodian_prv
+    from IncognitoChain.TestCases.Portal import find_fat_custodian, big_collateral, fat_custodian_prv
+    fat_custodian = find_fat_custodian()
     COIN_MASTER.top_him_up_prv_to_amount_if(big_collateral, fat_custodian_prv, fat_custodian)
     # deposit big collateral
-    deposit_tx = fat_custodian.portal_make_me_custodian((big_collateral + 1), PBNB_ID)
-    deposit_tx.expect_no_error()
-    deposit_tx.subscribe_transaction()
-
-    deposit_tx = fat_custodian.portal_make_me_custodian((big_collateral + 1), PBTC_ID)
-    deposit_tx.expect_no_error()
-    deposit_tx.subscribe_transaction()
-
+    fat_custodian.portal_make_me_custodian((big_collateral + 1), PBNB_ID).expect_no_error().subscribe_transaction()
     ChainHelper.wait_till_next_epoch()
 
 

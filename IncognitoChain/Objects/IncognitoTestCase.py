@@ -2,6 +2,7 @@ import sys
 from distutils.util import strtobool
 
 from IncognitoChain.Configs import config
+from IncognitoChain.Configs.Constants import ChainConfig
 from IncognitoChain.Helpers.Logging import WARNING, ERROR
 from IncognitoChain.Objects.AccountObject import AccountGroup
 from IncognitoChain.Objects.TestBedObject import *
@@ -60,3 +61,4 @@ if not skip_load:
         COMMITTEE_ACCOUNTS = []
 
     # -----------------------------------------------
+ChainConfig.get_running_config()

@@ -5,11 +5,11 @@ from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
 from IncognitoChain.Objects.PortalObjects import RewardWithdrawTxInfo
-from IncognitoChain.TestCases.Portal import fat_custodian, portal_user
+from IncognitoChain.TestCases.Portal import portal_user, find_fat_custodian
 
 
 @pytest.mark.parametrize("custodian_account", [
-    fat_custodian,
+    'fat custodian',
     portal_user,
     ACCOUNTS[3],
     ACCOUNTS[4],
@@ -17,6 +17,8 @@ from IncognitoChain.TestCases.Portal import fat_custodian, portal_user
     ACCOUNTS[6],
 ])
 def test_withdraw_portal_reward(custodian_account):
+    if type(custodian_account) is str and custodian_account == 'fat custodian':
+        custodian_account = find_fat_custodian()
     STEP(1, "Get reward amount, balance of custodian")
     prv_reward_amount = custodian_account.portal_get_my_reward(PRV_ID)
     prv_balance_before = custodian_account.get_prv_balance()
@@ -25,8 +27,7 @@ def test_withdraw_portal_reward(custodian_account):
             Balance is {prv_balance_before}''')
 
     STEP(2, "check if custodian has any reward")
-    if prv_reward_amount <= 0:
-        pytest.skip("no reward to withdraw, skip this test")
+    assert prv_reward_amount > 0, f'Custodian has no reward, fail the test'
 
     STEP(3, 'Withdraw and check withdraw status')
     withdraw_tx = custodian_account.portal_withdraw_reward(PRV_ID).expect_no_error().subscribe_transaction()
