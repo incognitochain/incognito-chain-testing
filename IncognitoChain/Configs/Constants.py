@@ -21,6 +21,7 @@ class ChainConfig:
     BASIC_REWARD_PER_BLOCK = 400000000
     DAO_REWARD_PERCENT = 0.1
     ACTIVE_SHARD = 2
+    BEACON_COMMITTEE_SIZE = 4
     FIX_BLOCK_VALIDATOR = 4
     SHARD_COMMITTEE_SIZE = 6
     PRIVACY_VERSION = 1
@@ -63,6 +64,14 @@ class ChainConfig:
         @return: time (second) for num_of_block to be recorded
         """
         return num_of_block * ChainConfig.BLOCK_TIME
+
+    @staticmethod
+    def get_running_config():
+        # collecting running chain config
+        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        committee_state = SUT().get_committee_state()
+        ChainConfig.ACTIVE_SHARD = committee_state.count_num_of_shard()
+        ChainConfig.BEACON_COMMITTEE_SIZE = committee_state.get_beacon_committee_size()
 
 
 def coin(amount, nano=True):

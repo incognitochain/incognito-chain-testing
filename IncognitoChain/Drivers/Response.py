@@ -1,7 +1,7 @@
 import json
 import re
 
-from websocket import WebSocketTimeoutException
+from websocket import WebSocketTimeoutException, WebSocketBadStatusException
 
 import IncognitoChain.Helpers.Logging as Log
 from IncognitoChain.Configs.Constants import ChainConfig
@@ -177,6 +177,9 @@ class Response:
         except WebSocketTimeoutException:
             WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
             return self.get_transaction_by_hash(tx_id, retry=False)
+        except WebSocketBadStatusException as status_err:  # in case full node does not have web socket enabled
+            WARNING(f"Encounter web socket bad status exception: {status_err}. Now get transaction by hash instead")
+            return self.get_transaction_by_hash(tx_id, retry=True)
 
     def is_transaction_v2_error_appears(self):
         try:

@@ -41,10 +41,25 @@ init_portal_rate = {
     PBTC_ID: '105873200000'
 }
 
+
 # special case
-fat_custodian = all_custodians.find_the_richest(PRV_ID)
-INFO(f' FAT CUSTODIAN \n'
-     f'{fat_custodian}')
+def find_fat_custodian(psi=None, expected_collateral_amount_to_be=None):
+    if expected_collateral_amount_to_be is None:
+        expected_collateral_amount_to_be = big_collateral
+    if psi is None:
+        psi = SUT().get_latest_portal_state_info()
+    fat_custodian = all_custodians[0]
+    for cus in all_custodians[1:]:
+        fat_top_up_amount = expected_collateral_amount_to_be - psi.get_custodian_info_in_pool(
+            fat_custodian).get_free_collateral()
+        cus_top_up_amount = expected_collateral_amount_to_be - psi.get_custodian_info_in_pool(cus).get_free_collateral()
+
+        if cus_top_up_amount < fat_top_up_amount:
+            fat_custodian = cus
+    INFO(f' FAT CUSTODIAN \n'
+         f'{fat_custodian}')
+    return fat_custodian
+
 
 big_collateral = fat_custodian_prv = 1
 big_porting_amount = coin(10)

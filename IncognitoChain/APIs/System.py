@@ -48,3 +48,8 @@ class SystemRpc:
 
     def get_shard_best_state(self, shard_id):
         return self.rpc_connection.with_method('getshardbeststate').with_params([shard_id]).execute()
+
+    def get_committee_state(self, beacon_height):
+        # according to dev, parameter must be [beacon_height, ""],
+        # otherwise it would cause the node panic and crash, this should be a bug
+        return self.rpc_connection.with_method("getcommitteestate").with_params([beacon_height, ""]).execute()
