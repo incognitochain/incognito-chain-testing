@@ -30,7 +30,7 @@ def setup_function():
         total_sent_amount += amount_to_be_received
         receiver_account_n_amount_dict[account] = amount_to_be_received
 
-    COIN_MASTER.top_him_up_prv_to_amount_if(total_sent_amount + 1000, total_sent_amount + 1000)
+    COIN_MASTER.top_him_up_prv_to_amount_if(total_sent_amount + 1000, total_sent_amount + 1000, sender_account)
 
 
 def test_send_prv_multi_output_privacy_x_shard_no_auto_fee():
