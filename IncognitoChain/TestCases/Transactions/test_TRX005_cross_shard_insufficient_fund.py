@@ -49,13 +49,12 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
     assert step4_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed" and INFO("Failed")
     step4_result.expect_error()
     assert sender_bal == sender.get_prv_balance(), INFO("Failed")
-    estimated_fee = sender.get_estimate_tx_fee(receiver, sender_bal - 100)
-    fee_per_size = estimated_fee[1]
-    INFO(f"Estimated fee: {estimated_fee}")
+    fee, size = sender.get_estimate_fee_and_size(receiver, sender_bal - 100)
+    INFO(f'''EstimateFeeCoinPerKb = {fee}, EstimateTxSizeInKb = {size}''')
 
     STEP(5, "send PRV - success")
     # send current balance - fee
-    step5_result = sender.send_prv_to(receiver, sender_bal - 100, int(100 / fee_per_size),
+    step5_result = sender.send_prv_to(receiver, sender_bal - 100, int(100 / size),
                                       privacy).expect_no_error()
 
     STEP(6, "Subcribe transaction")

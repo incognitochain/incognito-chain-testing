@@ -328,10 +328,11 @@ class TransactionRpc:
             with_params([payment_k]). \
             execute()
 
-    def estimate_tx_fee(self, sender_private_k, receiver_payment_k, send_amount):
+    def estimate_tx_fee(self, sender_private_k, receiver_payment_k, send_amount, fee=-1, privacy=1):
+        # send_amount = str(send_amount)
         return self.rpc_connection. \
             with_method('estimatefee'). \
-            with_params([sender_private_k, {receiver_payment_k: send_amount}, -1, 1]). \
+            with_params([sender_private_k, {receiver_payment_k: send_amount}, fee, privacy]). \
             execute()
 
     def create_tx(self, sender_private_k, receiver_payment_k, amount, fee=-1, privacy=1):

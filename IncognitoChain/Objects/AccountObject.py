@@ -221,9 +221,11 @@ class Account:
         self.public_key = tx.get_result('PublicKeyInBase58Check')
         return self.public_key
 
-    def get_estimate_tx_fee(self, receiver, amount):
-        r = self.REQ_HANDLER.transaction().estimate_tx_fee(self.private_key, receiver.payment_key, amount)
-        return int(r.get_result('EstimateFee'))
+    def get_estimate_fee_and_size(self, receiver, amount, fee=-1, privacy=1):
+        r = self.REQ_HANDLER.transaction().estimate_tx_fee(self.private_key, receiver.payment_key, amount, fee, privacy)
+        estimate_fee_coin_perkb = int(r.get_result('EstimateFeeCoinPerKb'))
+        estimate_txsize_inKb = int(r.get_result('EstimateTxSizeInKb'))
+        return estimate_fee_coin_perkb, estimate_txsize_inKb
 
     def get_token_balance(self, token_id):
         """
@@ -456,7 +458,7 @@ class Account:
         return self.REQ_HANDLER.transaction(). \
             send_transaction(self.private_key, send_param, fee, privacy)
 
-    def send_all_prv_to(self, to_account, privacy=0):
+    def send_all_prv_to(self, to_account, privacy=1):
         """
         send all prv to another account
 
@@ -464,15 +466,17 @@ class Account:
         :param privacy:
         :return:
         """
-        fee_per_size = 700000
+
         INFO(f'Sending everything to {to_account}')
         # defrag account so that the custom fee = fee x 2 as below
         defrag = self.defragment_account()
         if defrag is not None:
             defrag.subscribe_transaction()
         balance = self.get_prv_balance()
+        fee, size = self.get_estimate_fee_and_size(to_account, balance - 100)
+        INFO(f'''EstimateFeeCoinPerKb = {fee}, EstimateTxSizeInKb = {size}''')
         if balance > 0:
-            return self.send_prv_to(to_account, balance - fee_per_size * 2, fee_per_size,
+            return self.send_prv_to(to_account, balance - 100, int(100 / size),
                                     privacy).subscribe_transaction()
 
     def count_unspent_output_coins(self):
