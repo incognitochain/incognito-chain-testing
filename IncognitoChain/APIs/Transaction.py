@@ -12,6 +12,8 @@ class TransactionRpc:
         3rd param: -1 => auto estimate fee; >0 => fee * transaction size (KB)
         4th param: 0 => no privacy ; 1 => privacy
         """
+        for receiver, amount in dict_payment_address_amount_prv.items():
+            dict_payment_address_amount_prv[receiver] = str(amount)
         return self.rpc_connection. \
             with_method("createandsendtransaction"). \
             with_params([sender_private_key, dict_payment_address_amount_prv, fee, privacy]). \
@@ -40,6 +42,7 @@ class TransactionRpc:
     ###############
 
     def init_custom_token(self, private_key, payment_address, symbol, amount, prv_fee=-1):
+        amount = str(amount)
         return self.rpc_connection. \
             with_method("createandsendprivacycustomtokentransaction"). \
             with_params([private_key, None, prv_fee, 1,
@@ -48,7 +51,7 @@ class TransactionRpc:
                              "TokenID": "",
                              "TokenName": symbol + "_" + symbol,
                              "TokenSymbol": symbol,
-                             "TokenFee": 0,
+                             "TokenFee": "0",
                              "TokenTxType": 0,
                              "TokenAmount": amount,
                              "TokenReceivers": {
@@ -74,10 +77,13 @@ class TransactionRpc:
         :param token_privacy:
         :return: Response Object
         """
+        token_fee = str(token_fee)
+        amount_custom_token = str(amount_custom_token)
         param = [sender_private_key]
         if prv_amount == 0:
             param.append(None)
         else:
+            prv_amount = str(prv_amount)
             param.append({receiver_payment_address: prv_amount})
 
         param.extend([prv_fee,
@@ -88,7 +94,7 @@ class TransactionRpc:
                           "TokenName": "",
                           "TokenSymbol": "",
                           "TokenTxType": 1,
-                          "TokenAmount": 0,
+                          "TokenAmount": "0",
                           "TokenReceivers": {
                               receiver_payment_address: amount_custom_token
                           },
@@ -102,6 +108,9 @@ class TransactionRpc:
 
     def send_custom_token_multi_output(self, sender_private_key, receiver_payment_key_amount_dict: dict, token_id,
                                        prv_fee=0, token_fee=0, prv_privacy=0, token_privacy=0):
+        for receiver, amount in receiver_payment_key_amount_dict.items():
+            receiver_payment_key_amount_dict[receiver] = str(amount)
+        token_fee = str(token_fee)
         param = [sender_private_key, None]
         param.extend([prv_fee,
                       prv_privacy,
@@ -111,7 +120,7 @@ class TransactionRpc:
                           "TokenName": "",
                           "TokenSymbol": "",
                           "TokenTxType": 1,
-                          "TokenAmount": 0,
+                          "TokenAmount": "0",
                           "TokenReceivers":
                               receiver_payment_key_amount_dict
                           ,
