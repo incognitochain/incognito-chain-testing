@@ -133,6 +133,18 @@ class BlockChainCore(BlockChainInfoBaseClass):
         """
         return self.data['ActiveShards']
 
+    def __str__(self):
+        string = f'beacon : {self.get_beacon_block()}\n'
+        for i in range(self.get_active_shards()):
+            shard_info = self.get_shard_block(i)
+            string += f"shard {i}: {shard_info}\n"
+        return string
+
+    def print_raw_data(self):
+        raw_json = json.dumps(self.data, indent=3)
+        print(raw_json)
+        return raw_json
+
     class BlockChainBlock(BlockChainInfoBaseClass):
         def get_height(self):
             return self.data['Height']
@@ -162,12 +174,5 @@ class BlockChainCore(BlockChainInfoBaseClass):
             return self.data['EpochBlock']
 
         def __str__(self):
-            pass
-
-    def __str__(self):
-        pass
-
-    def print_raw_data(self):
-        raw_json = json.dumps(self.data, indent=3)
-        print(raw_json)
-        return raw_json
+            return f'epoch: {self.get_epoch()} | height: {self.get_height()} | ' \
+                   f'time: {self.get_time()} | hash: {self.get_hash()}'
