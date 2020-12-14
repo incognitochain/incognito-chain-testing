@@ -4,14 +4,10 @@ from typing import List
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.NodeObject import Node
-from IncognitoChain.TestBeds.BMNet import beacon
 
 ssh_k = '/home/rocky/.ssh/id_rsa'
 node1 = Node(url="http://51.79.76.38:9349", sshkey=ssh_k)
 node2 = Node(url="http://51.79.76.38:9340", sshkey=ssh_k)
-node1.ssh().kill_node()
-WAIT(3)
-node1.ssh().start_node()
 
 beacon = Node(url="http://51.79.76.38:9335", sshkey=ssh_k)
 nodes = [node1, node2]
