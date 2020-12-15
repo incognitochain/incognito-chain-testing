@@ -165,7 +165,7 @@ class Response:
         :return: TransactionDetail Object
         """
         if tx_id is None:
-            tx_id = self.get_tx_id()
+            tx_id = self.expect_no_error().get_tx_id()
         if tx_id is None:
             raise ValueError("Tx id must not be none")
         INFO(f'Subscribe to transaction tx_id = {tx_id}')
@@ -200,7 +200,7 @@ class Response:
         @return: TransactionDetail, use TransactionDetail.is_none() to check if it's an empty object
         """
         if tx_hash is None:
-            tx_hash = self.get_tx_id()
+            tx_hash = self.expect_no_error().get_tx_id()
         if tx_hash is None:
             raise ValueError("Tx id must not be none")
 

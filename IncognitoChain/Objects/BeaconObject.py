@@ -6,7 +6,6 @@ from IncognitoChain.Configs.Constants import PRV_ID
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.TestHelper import l6, KeyExtractor
 from IncognitoChain.Objects import BlockChainInfoBaseClass
-from IncognitoChain.Objects.AccountObject import Account
 
 
 class BeaconBestStateBase(BlockChainInfoBaseClass):
@@ -265,6 +264,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         :param account: Account obj or public key
         :return: shard committee number or False if not a committee
         """
+        from IncognitoChain.Objects.AccountObject import Account
         if type(account) == str:
             public_key = account
         elif type(account) == Account:
@@ -288,6 +288,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         :param account: Account obj or public key
         :return: True if it matches, else False
         """
+        from IncognitoChain.Objects.AccountObject import Account
         if type(account) == str:
             public_key = account
         elif type(account) == Account:

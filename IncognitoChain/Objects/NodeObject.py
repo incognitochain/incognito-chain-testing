@@ -25,7 +25,7 @@ from IncognitoChain.Objects.ShardState import ShardBestStateDetailInfo, ShardBes
 
 class Node:
     default_user = "root"
-    default_password = 'xxx'
+    default_password = '123123Az'
     default_address = "localhost"
     default_rpc_port = 9334
     default_ws_port = 19334
@@ -43,7 +43,7 @@ class Node:
         if url is not None:
             self.parse_url(url)
         self._rpc_connection = RpcConnection(self._get_rpc_url())
-        self._ssh_session = Node.SshActions(address, username, password, sshkey)
+        self._ssh_session = Node.SshActions(self._address, username, password, sshkey)
 
     def __str__(self):
         return f"{self._get_rpc_url()} ws:{self._ws_port}"
@@ -213,6 +213,18 @@ class Node:
         epoch = beacon_best_state.get_epoch()
         DEBUG(f"Current epoch = {epoch}")
         return epoch
+
+    def help_watch_block_chain_info(self):
+        """
+        for manual debug only, this will print short block chain info every block height until KeyboardInterrupt happens
+        @return:
+        """
+        try:
+            while True:
+                print(self.get_block_chain_info())
+                WAIT(ChainConfig.BLOCK_TIME)
+        except KeyboardInterrupt:
+            pass
 
     def get_latest_portal_state_info(self, beacon_height=None):
         if beacon_height is None:
@@ -385,14 +397,6 @@ class Node:
         response = self.system_rpc().retrieve_block_by_height(height, shard_id)
         return ShardBlock(response.get_result())
 
-    def ssh(self):
-        if self._ssh_session.closed:
-            INFO(f'Start ssh connection to {self._address}')
-            self._ssh_session.ssh_connect()
-            self._ssh_session.find_pid(self._rpc_port)
-
-        return self._ssh_session
-
     class SshActions(SshSession):
         def __pgrep_incognito(self):
             cmd = 'pgrep incognito -a'
@@ -417,9 +421,9 @@ class Node:
 
         def __find_run_command(self, rpc_port=None):
             try:
-                return self._cache['cmd'][1:]
+                return ' '.join(self._cache['cmd'][1:])
             except KeyError:
-                return self.__find_cmd_full_line(rpc_port)[1:]
+                return ' '.join(self.__find_cmd_full_line(rpc_port)[1:])
 
         def __get_working_dir(self):
             """
@@ -467,7 +471,10 @@ class Node:
             return pid
 
         def start_node(self):
-            return self.send_cmd(f'{self.__find_run_command()} &')
+            cmd = self.__find_run_command()
+            folder = self.__get_working_dir()
+            self.send_cmd(f'cd {folder}')
+            return self.send_cmd(f'{cmd} &')
 
         def kill_node(self):
             return self.send_cmd(f'kill {self.find_pid()}')
@@ -509,3 +516,11 @@ class Node:
             """
             cat_cmd = f'cat {self.get_log_file()} | grep {grep_pattern}'
             return self.send_cmd(cat_cmd)
+
+    def ssh(self) -> SshActions:
+        if self._ssh_session.closed:
+            INFO(f'Start ssh connection to {self._address}')
+            self._ssh_session.ssh_connect()
+            self._ssh_session.find_pid(self._rpc_port)
+
+        return self._ssh_session

@@ -161,13 +161,13 @@ class SshSession(pxssh.pxssh):
         self._cache = {}
 
     def ssh_connect(self):
-        if self._password is not None and self._username is not None:
-            Log.INFO(f'SSH logging in with password. User: {self._username}')
-            self.login(self._address, self._username, password=self._password)
-            return self
+        # if self._password is not None and self._username is not None:
+        #     Log.INFO(f'SSH logging in with password. User: {self._username}/{self._password}')
+        #     self.login(self._address, self._username, password=self._password)
+        #     return self
         if self._sshkey is not None:
-            Log.INFO(f'SSH logging in with ssh key. User: {self._username}')
-            self.login(self._username, ssh_key=self._sshkey)
+            Log.INFO(f'SSH logging to {self._address} with ssh key. User: {self._username}')
+            self.login(self._address, self._username, ssh_key=self._sshkey)
             return self
 
     def disconnect(self):
