@@ -98,7 +98,7 @@ class Shard:
 
 class Beacon(Shard):
     """
-    just an alias, technically Beacon and Shard object in the same in this circumstance
+    just an alias, technically Beacon and Shard object are the same in this circumstance
     they both consist of a list of nodes
     """
     pass
