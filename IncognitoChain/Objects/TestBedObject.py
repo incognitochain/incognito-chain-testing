@@ -92,3 +92,6 @@ class Shard:
 
 class Beacon(Shard):
     pass
+
+class Staker(Shard):
+    pass
