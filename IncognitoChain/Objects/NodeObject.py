@@ -1,3 +1,4 @@
+import os
 import re
 from concurrent.futures.thread import ThreadPoolExecutor
 
@@ -29,9 +30,10 @@ class Node:
     default_address = "localhost"
     default_rpc_port = 9334
     default_ws_port = 19334
+    default_ssh_pub_key = f"{os.getenv('HOME')}/.ssh/id_rsa"
 
     def __init__(self, address=default_address, username=default_user, password=default_password,
-                 rpc_port=default_rpc_port, ws_port=default_ws_port, account=None, sshkey=None,
+                 rpc_port=default_rpc_port, ws_port=default_ws_port, account=None, sshkey=default_ssh_pub_key,
                  url=None, node_name=None):
         self._address = address
         self._rpc_port = rpc_port
@@ -420,6 +422,10 @@ class Node:
             INFO(f'Not found any Incognito process running with rpc port {rpc_port}')
 
         def __find_run_command(self, rpc_port=None):
+            """
+            @param rpc_port:
+            @return: string
+            """
             try:
                 return ' '.join(self._cache['cmd'][1:])
             except KeyError:
@@ -439,9 +445,8 @@ class Node:
             @return: data dir, relative to working dir
             """
             full_cmd = self.__find_run_command()
-            for i in range(len(full_cmd)):
-                if full_cmd[i] == '--datadir':
-                    return full_cmd[i + 1]
+            pattern = re.compile(r"--datadir \w+/(\w+)")
+            return re.findall(pattern, full_cmd)[0]
 
         def __goto_working_dir(self):
             return self.goto_folder(self.__get_working_dir())
@@ -474,7 +479,7 @@ class Node:
             cmd = self.__find_run_command()
             folder = self.__get_working_dir()
             self.send_cmd(f'cd {folder}')
-            return self.send_cmd(f'{cmd} &')
+            return self.send_cmd(f'{cmd} >> logs/{self.get_log_file()} 2> logs/{self.get_error_log_file()} &')
 
         def kill_node(self):
             return self.send_cmd(f'kill {self.find_pid()}')
@@ -498,6 +503,13 @@ class Node:
             data_path = self.__get_data_dir()
             data_dir_name = data_path.split('/')[-1]
             return f"{data_dir_name}.log"
+
+        def get_error_log_file(self):
+            # when build chain, the log file name must be the same as data dir name
+            # if encounter problem here, check your build config again
+            data_path = self.__get_data_dir()
+            data_dir_name = data_path.split('/')[-1]
+            return f"{data_dir_name}_error.log"
 
         def log_tail_grep(self, grep_pattern, tail_option=''):
             """

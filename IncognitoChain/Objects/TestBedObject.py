@@ -30,12 +30,14 @@ class TestBed:
             self.beacons: Beacon = tb.beacon
             self.shards: List[Shard] = tb.shard_list
             self.name = test_bed
+            self.stakers: List[Node] = tb.stakers
             TestBed.REQUEST_HANDLER = self.full_node
         else:
             self.full_node = Node()
             self.beacons = Beacon()
             self.shards: List[Shard] = []
             self.name = ""
+            self.stakers: List[Node] = []
             TestBed.REQUEST_HANDLER = self.full_node
 
     def __call__(self, *args, **kwargs):
@@ -66,6 +68,10 @@ class TestBed:
 
 
 class Shard:
+    """
+    A shard is just a list of node
+    """
+
     def __init__(self, node_list: list = None):
         self._node_list = node_list
 
@@ -91,4 +97,8 @@ class Shard:
 
 
 class Beacon(Shard):
+    """
+    just an alias, technically Beacon and Shard object are the same in this circumstance
+    they both consist of a list of nodes
+    """
     pass
