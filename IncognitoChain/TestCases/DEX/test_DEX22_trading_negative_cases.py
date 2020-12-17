@@ -286,12 +286,14 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
     INFO(f'Trading fee    : {trading_fees}')
     INFO(f'Trade receive  : {estimated_receive_amount_each_trade}')
     # todo: verify algorithm later, for now there's seem a bug here that does not match with trading priority
-    trade_pass_count = 0
+    real_trade_pass_count = 0
     for bal_b4, bal_af, trade_amount, tx_fee, trading_fee in \
             zip(bal_tok_sell_b4, bal_tok_sell_af_ret, trade_amounts, tx_fee_list, trading_fees):
         cost = tx_fee + trading_fee if token_sell == PRV_ID else 0
         if bal_b4 - trade_amount - cost == bal_af:
-            trade_pass_count += 1
-
-    assert trade_pass_count == len(trade_amounts) // 2, \
-        f"Expect half of the trades must be success while there's {trade_pass_count}"
+            real_trade_pass_count += 1
+    estimated_trade_pass_count = 0
+    for amount in estimated_receive_amount_each_trade:
+        if amount >= min_acceptable:
+            estimated_trade_pass_count += 1
+    assert real_trade_pass_count == estimated_trade_pass_count
