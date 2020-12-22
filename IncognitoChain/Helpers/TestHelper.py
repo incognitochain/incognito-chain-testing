@@ -154,10 +154,10 @@ class ChainHelper:
         return ChainHelper.cal_first_height_of_epoch(epoch) + ChainConfig.BLOCK_PER_EPOCH - 1
 
     @staticmethod
-    def wait_till_beacon_height(beacon_height, wait=40, timeout=120):
+    def wait_till_beacon_height(beacon_height, interval=ChainConfig.BLOCK_TIME, timeout=120):
         """
         Wait until a specific beacon height
-        @param wait:
+        @param interval:
         @param timeout:
         @param beacon_height:
         @return:
@@ -170,8 +170,8 @@ class ChainHelper:
             return current_beacon_h
 
         while beacon_height > current_beacon_h:
-            WAIT(wait)
-            timeout -= wait
+            WAIT(interval)
+            timeout -= interval
             current_beacon_h = SUT().help_get_beacon_height()
             if timeout <= 0:
                 INFO(f'Time out and current beacon height is {current_beacon_h}')
