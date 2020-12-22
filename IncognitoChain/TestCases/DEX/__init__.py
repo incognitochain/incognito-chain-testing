@@ -4,7 +4,7 @@ from IncognitoChain.Configs.Constants import coin, PRV_ID
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import calculate_actual_trade_received, l6
 from IncognitoChain.Helpers.Time import get_current_date_time
-from IncognitoChain.Objects.AccountObject import Account, COIN_MASTER
+from IncognitoChain.Objects.AccountObject import Account, COIN_MASTER, AccountGroup
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 # contributor = ACCOUNTS[0]
@@ -38,7 +38,7 @@ if token_id_2 is None:
     token_id_2 = trx008.test_init_ptoken()
     need_withdraw_contribution_2 = True
 
-acc_list_1_shard = [
+acc_list_1_shard = AccountGroup(
     Account(
         "112t8rnYwrzsk7bQgYM6duFMfQsHDvoF3bLLEXQGSXayLzFhH2MDyHRFpYenM9qaPXRFcwVK2b7jFG8WHLgYamaqG8PzAJuC7sqhSw2RzaKx"),
     Account(
@@ -59,9 +59,9 @@ acc_list_1_shard = [
         "112t8ro1aB8Hno84bCGkoPv4fSgdnjghbd5xHg7NmriQGexqy6J7jKL3iDWAEytKwpH6U85MkAaZmEGcV3uBH8kZiUcBHpc1CpskuwyqZNU4"),
     Account(
         "112t8ro3VxLStVFoFiZ2Grose15tyCXCbc9VR2YtHbZCd2GZQPYBMafmXws2DDNd8VKQqKhvw6wW51xyxvrTzLE5prRAjcWJiDWiU4EL3TUT")
-]
+)
 
-acc_list_n_shard = [
+acc_list_n_shard = AccountGroup(
     Account(
         "112t8rnakdKxvk7VMKUB9qmsPY4czwnP24b82BnepcxHLX6kJ1dYQsR8d6xNTzwC9nEhJdocr9u19NAr4iSYXCeTBRu3YET8iADMAP3szdfw"),
     Account(
@@ -82,7 +82,7 @@ acc_list_n_shard = [
         "112t8ro1aB8Hno84bCGkoPv4fSgdnjghbd5xHg7NmriQGexqy6J7jKL3iDWAEytKwpH6U85MkAaZmEGcV3uBH8kZiUcBHpc1CpskuwyqZNU4"),
     Account(
         "112t8ro3VxLStVFoFiZ2Grose15tyCXCbc9VR2YtHbZCd2GZQPYBMafmXws2DDNd8VKQqKhvw6wW51xyxvrTzLE5prRAjcWJiDWiU4EL3TUT")
-]
+)
 
 
 def no_teardown_module():
@@ -113,8 +113,8 @@ def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_st
     for contributor in contributors_of_pair:
         INFO()
         share_of_contributor = pde_state_b4.get_pde_shares_amount(contributor, token1, token2)
-        pde_reward_b4 = pde_state_b4.get_contributor_reward(contributor, token1, token2)
-        pde_reward_af = pde_state_af.get_contributor_reward(contributor, token1, token2)
+        pde_reward_b4 = pde_state_b4.get_contributor_reward_amount(contributor, token1, token2)
+        pde_reward_af = pde_state_af.get_contributor_reward_amount(contributor, token1, token2)
         actual_reward = pde_reward_af - pde_reward_b4
         if len(contributors_of_pair) > 1 and contributor == contributors_of_pair[-1]:
             # last contributor get all remaining fee as reward
@@ -193,3 +193,7 @@ def calculate_trade_order(trading_fees_list, amount_list):
     sort_order = sorted(range(len(trade_priority)), key=lambda k: trade_priority[k], reverse=True)
     INFO("Sort order: " + str(sort_order))
     return sort_order
+
+
+acc_list_n_shard.get_accounts_in_shard(5)[0].pde_trade_prv(10, token_id_1, 1).expect_no_error().subscribe_transaction()
+acc_list_n_shard.get_accounts_in_shard(5)[0].pde_trade_prv(10, token_id_2, 1).expect_no_error().subscribe_transaction()

@@ -65,6 +65,9 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
 
     STEP(1, f'Trade {l6(token_sell)} for {l6(token_buy)}')
     trade_tx = trader.pde_trade_v2(token_sell, trade_amount, token_buy, trading_fee)
+    if 'Invalid Token ID' in trade_tx.get_error_trace().get_message():
+        trade_tx.expect_no_error('Invalid Token ID')
+        return
 
     STEP(2, 'Wait for tx to be confirmed')
     trade_tx = trade_tx.subscribe_transaction()

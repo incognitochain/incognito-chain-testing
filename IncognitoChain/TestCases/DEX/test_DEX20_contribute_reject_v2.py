@@ -4,19 +4,19 @@ from IncognitoChain.Configs.Constants import PRV_ID, coin
 from IncognitoChain.Helpers.Logging import INFO, STEP, WARNING
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import get_current_date_time
-from IncognitoChain.Objects.IncognitoTestCase import SUT
+from IncognitoChain.Objects.IncognitoTestCase import SUT, ACCOUNTS
 from IncognitoChain.Objects.PdeObjects import PDEContributeInfo, wait_for_user_contribution_in_waiting, \
     wait_for_user_contribution_out_waiting
-from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2
+from IncognitoChain.TestCases.DEX import token_id_1, token_id_2, token_owner
 
 
-@pytest.mark.parametrize('token1,token2', (
-        [PRV_ID, PRV_ID],
-        [token_id_1, token_id_1],
-        [token_id_1, token_id_2],
-        [token_id_2, token_id_1]
+@pytest.mark.parametrize('contributor,token1,token2', (
+        [token_owner, PRV_ID, PRV_ID],
+        [token_owner[1], token_id_1, token_id_1],
+        [ACCOUNTS[1], token_id_1, token_id_2],
+        [ACCOUNTS[1], token_id_2, token_id_1]
 ))
-def test_contribute_prv(token1, token2):
+def test_contribute_prv(contributor, token1, token2):
     pair_id = f'auto_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
     tok1_contrib_amount = coin(1234)
     tok2_contrib_amount = coin(2134)
@@ -129,9 +129,9 @@ def test_contribute_prv(token1, token2):
             {l6(token1)}            : {tok1_contrib_amount}
             {l6(token2)}            : {tok2_contrib_amount}""")
 
-    assert rate == rate_after and INFO(
-        "rate after contribution is correct"), f"rate {rate} != {rate_after}"
-    assert owner_share_amount == owner_share_amount_after and INFO(
-        "owner_share_amount after contribution is correct"), f"owner_share_amount {owner_share_amount} != {owner_share_amount_after}"
-    assert all_share_amount == all_share_amount_after and INFO(
-        "all_share_amount after contribution is correct"), f"all_share_amount {all_share_amount} != {all_share_amount_after}"
+    assert rate == rate_after and INFO("rate after contribution is correct"), \
+        f"rate before/after {rate} # {rate_after} while it should be the same"
+    assert owner_share_amount == owner_share_amount_after and INFO("correct owner_share_amount after contribution"), \
+        f"owner_share_amount before/after {owner_share_amount} # {owner_share_amount_after} while it should be the same"
+    assert all_share_amount == all_share_amount_after and INFO("correct all_share_amount after contribution"), \
+        f"all_share_amount before/after {all_share_amount} # {all_share_amount_after}  while it should be the same"

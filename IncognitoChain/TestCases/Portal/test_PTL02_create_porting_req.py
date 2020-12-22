@@ -1,6 +1,6 @@
 import pytest
 
-from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, Status, ChainConfig
+from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status, ChainConfig
 from IncognitoChain.Helpers.Logging import STEP, INFO, WARNING, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6, PortalHelper, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
@@ -261,7 +261,8 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
                 if PSI_after_req.will_custodian_be_liquidated_with_new_rate(custodian, token, tok_rate, new_prv_rate):
                     INFO(f'Verify custodian {l6(custodian.get_incognito_addr())} collateral and holding token')
                     estimated_liquidated_amount, return_collateral = PSI_porting_completed. \
-                        estimate_liquidation_of_custodian(custodian, token, amount, collateral_each_estimate)
+                        calculate_liquidation_of_custodian_with_current_rate(custodian, token, amount,
+                                                                             collateral_each_estimate)
 
                     INFO(f'Real liquidated amount      {total_collateral_after_req - total_collateral_after}')
                     INFO(f'Estimated liquidated amount {estimated_liquidated_amount}')
@@ -297,7 +298,14 @@ def prepare_fat_custodian():
     fat_custodian = find_fat_custodian()
     COIN_MASTER.top_him_up_prv_to_amount_if(big_collateral, fat_custodian_prv, fat_custodian)
     # deposit big collateral
-    fat_custodian.portal_make_me_custodian((big_collateral + 1), PBNB_ID).expect_no_error().subscribe_transaction()
+    deposit_tx = fat_custodian.portal_make_me_custodian((big_collateral + 1), PBNB_ID)
+    deposit_tx.expect_no_error()
+    deposit_tx.subscribe_transaction()
+
+    deposit_tx = fat_custodian.portal_make_me_custodian((big_collateral + 1), PBTC_ID)
+    deposit_tx.expect_no_error()
+    deposit_tx.subscribe_transaction()
+
     ChainHelper.wait_till_next_epoch()
 
 

@@ -521,7 +521,7 @@ def test_07_pdex_withdraw_contribution():
     WAIT(30)
     bal_prv_b4 = COIN_MASTER.get_prv_balance()
     pde_state = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
-    reward_amount = pde_state.get_contributor_reward(COIN_MASTER, PRV_ID, P___TOKEN)
+    reward_amount = pde_state.get_contributor_reward_amount(COIN_MASTER, PRV_ID, P___TOKEN)
     withdraw_tx = COIN_MASTER.pde_withdraw_reward_v2(PRV_ID, P___TOKEN, reward_amount). \
         expect_no_error().subscribe_transaction()
     bal_prv_af = COIN_MASTER.wait_for_balance_change(from_balance=bal_prv_b4)

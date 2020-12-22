@@ -30,7 +30,10 @@ class TestBed:
             self.beacons: Beacon = tb.beacon
             self.shards: List[Shard] = tb.shard_list
             self.name = test_bed
-            self.stakers: List[Node] = tb.stakers
+            try:
+                self.stakers: List[Node] = tb.stakers
+            except AttributeError:
+                self.stakers: List[Node] = []
             TestBed.REQUEST_HANDLER = self.full_node
         else:
             self.full_node = Node()

@@ -87,7 +87,7 @@ def CRITICAL(msg):
 def INFO_HEADLINE(msg):
     INFO(f"""
         {LOG_SEPARATOR}
-        | {msg.upper()}
+        | {str(msg).upper()}
         {LOG_SEPARATOR}""")
 
 

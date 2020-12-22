@@ -48,10 +48,7 @@ class Response:
                 return json.loads(self.response)  # response from WebSocket
             return json.loads(self.response.text)  # response from rpc
         except Exception as e:
-            print('+++')
-            print(f'asd {self.response.text}')
-            print(e)
-            print('---')
+            print(f'+++ {self.response.text} \n {e}')
 
     def params(self):
         return Response.Params(self.data()["Params"])

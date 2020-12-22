@@ -12,8 +12,9 @@ from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2
     pytest.param(token_owner, PRV_ID, token_id_1, 0.1),
     pytest.param(token_owner, token_id_1, token_id_2, 0.01,
                  marks=pytest.mark.xfail(reason="there's no token-token pair in pdev2")),
+    pytest.param(ACCOUNTS[3], PRV_ID, token_id_1, 1.1),
     pytest.param(ACCOUNTS[3], PRV_ID, token_id_1, 1.1,
-                 marks=pytest.mark.xfail(reason="this user has no share")),
+                 marks=pytest.mark.xfail(reason="Withdraw above already, nothing left")),
     pytest.param(ACCOUNTS[3], token_id_1, token_id_2, 0.01,
                  marks=pytest.mark.xfail(reason="there's no token-token pair in pdev2")),
 

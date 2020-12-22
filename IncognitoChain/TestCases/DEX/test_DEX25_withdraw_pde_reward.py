@@ -20,7 +20,7 @@ def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_reward_amo
     pde_state_b4_test = SUT().get_latest_pde_state_info()
     rate_b4 = pde_state_b4_test.get_rate_between_token(token1, token2)
 
-    my_pde_reward_b4 = pde_state_b4_test.get_contributor_reward(withdrawer, token1, token2)
+    my_pde_reward_b4 = pde_state_b4_test.get_contributor_reward_amount(withdrawer, token1, token2)
     withdraw_reward_amount = int(my_pde_reward_b4 * percent_of_reward_amount_to_withdraw)
     received_amount = 0 if percent_of_reward_amount_to_withdraw > 1 else withdraw_reward_amount
 
@@ -52,7 +52,7 @@ def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_reward_amo
     INFO_HEADLINE('Summary')
     pde_state_af_test = SUT().get_latest_pde_state_info()
     rate_af = pde_state_af_test.get_rate_between_token(token1, token2)
-    my_pde_reward_af = pde_state_af_test.get_contributor_reward(withdrawer, token1, token2)
+    my_pde_reward_af = pde_state_af_test.get_contributor_reward_amount(withdrawer, token1, token2)
     assert rate_b4 == rate_af  # make sure rate not change
     assert my_pde_reward_af == my_pde_reward_b4 - received_amount
 

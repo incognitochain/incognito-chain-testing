@@ -8,7 +8,7 @@ from IncognitoChain.Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Sta
 from IncognitoChain.Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from IncognitoChain.Drivers.NeighborChainCli import NeighborChainCli
 from IncognitoChain.Drivers.Response import Response
-from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
+from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE, WARNING
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
 from IncognitoChain.Objects.CoinObject import Coin
@@ -73,6 +73,10 @@ class Account:
                 self.payment_key = self.incognito_addr = payment_k
                 self.validator_key = self.public_key = self.read_only_key = self.bls_public_k = self.bridge_public_k = \
                     self.mining_public_k = self.committee_public_k = self.shard = None
+                try:
+                    self.shard = kwargs['shard']
+                except KeyError:
+                    self.shard = None
             else:
                 private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
                 bridge_public_k, mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(private_key)
@@ -394,8 +398,22 @@ class Account:
         :return:
         """
 
-        balance = self.REQ_HANDLER.transaction().get_balance(self.private_key). \
-            expect_no_error().get_result()
+        # from privacy v2, must subscribe with private key to get balance, hence the code below
+        get_bal_res = self.REQ_HANDLER.transaction().get_balance(self.private_key)
+        while True:
+            if get_bal_res.get_error_trace():
+                error_msg = get_bal_res.get_error_trace().get_message()
+                if 'Subscribed to OTA key to view all coins' in error_msg or \
+                        "OTA Key indexing is in progress" in error_msg:
+                    WARNING(f'{error_msg}. Wait for {ChainConfig.BLOCK_TIME}s and retry')
+                    WAIT(ChainConfig.BLOCK_TIME)
+                    get_bal_res = self.REQ_HANDLER.transaction().get_balance(self.private_key)
+                else:
+                    break
+            else:
+                break
+
+        balance = get_bal_res.expect_no_error().get_result()
         INFO(f"Private k = {l6(self.private_key)}, prv bal = {coin(balance, False)}")
         self.cache['balance_prv'] = balance
         return balance
@@ -421,7 +439,7 @@ class Account:
         return cli.send_to(self.get_remote_addr(token_id), receiver_remote_addr, amount, password,
                            memo)
 
-    def send_public_token_multi(self, token_id, receiver_amount_dict, password=None, *memo):
+    def send_public_token_multi(self, token_id, receiver_amount_dict, password=None, memo=None):
         cli = NeighborChainCli.new(token_id)
         return cli.send_to_multi(self.get_remote_addr(token_id), receiver_amount_dict, password, memo)
 
@@ -718,12 +736,11 @@ class Account:
 
     def stk_get_reward_amount(self, token_id=None):
         """
-        when @token_id is None, return PRV reward amount
-        :return:
+        @return: when @token_id is None, return PRV reward amount
         """
         result = self.REQ_HANDLER.transaction().get_reward_amount(self.payment_key)
         try:
-            if token_id is None:
+            if token_id is None or token_id == PRV_ID:
                 reward = result.get_result("PRV")
             else:
                 reward = result.get_result(token_id)
@@ -1158,6 +1175,11 @@ class Account:
         for acc, amount in receiver.items():
             acc.wait_for_balance_change(from_balance=acc.get_prv_balance_cache())
         return send_tx
+
+    def submit_key(self):
+        self.REQ_HANDLER.transaction().submit_key(self.private_key).expect_no_error()
+        WAIT(ChainConfig.BLOCK_TIME)
+        return self
 
 
 class AccountGroup:

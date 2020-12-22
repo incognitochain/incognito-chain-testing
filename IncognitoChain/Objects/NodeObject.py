@@ -12,7 +12,7 @@ from IncognitoChain.APIs.Transaction import TransactionRpc
 from IncognitoChain.Configs.Constants import ChainConfig, PRV_ID
 from IncognitoChain.Drivers.Connections import WebSocket, RpcConnection, SshSession
 from IncognitoChain.Helpers import TestHelper
-from IncognitoChain.Helpers.Logging import INFO, DEBUG
+from IncognitoChain.Helpers.Logging import INFO, DEBUG, INFO_HEADLINE
 from IncognitoChain.Helpers.TestHelper import l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock, BeaconBestStateInfo
@@ -225,6 +225,33 @@ class Node:
             while True:
                 print(self.get_block_chain_info())
                 WAIT(ChainConfig.BLOCK_TIME)
+        except KeyboardInterrupt:
+            pass
+
+    def help_watch_pde_state(self):
+        height = self.help_get_beacon_height()
+        try:
+            while True:
+                INFO_HEADLINE(height)
+                pde = self.get_latest_pde_state_info(height)
+                waiting_str = "Waiting contributions:\n"
+                for obj in pde.get_waiting_contributions():
+                    waiting_str += f'\t\t{obj}\n'
+                INFO(waiting_str)
+                pool_str = 'Pool:\n'
+                for obj in pde.get_pde_pool_pairs():
+                    pool_str += f'\t\t{obj}\n'
+                INFO(pool_str)
+                share_str = 'PDE Shares:\n'
+                for obj in pde._get_pde_share_objects():
+                    share_str += f'\t\t{obj}\n'
+                INFO(share_str)
+                fee_str = 'Fee:\n'
+                for obj in pde._get_contributor_reward_objects():
+                    fee_str += f'\t\t{obj}\n'
+                INFO(fee_str)
+                WAIT(ChainConfig.BLOCK_TIME)
+                height += 1
         except KeyboardInterrupt:
             pass
 

@@ -68,7 +68,7 @@ class BnbCli:
                    '--memo', memo_encoded] + self.get_default_conn()
         return self._exe_bnb_cli(command, password)
 
-    def send_to_multi(self, sender, receiver_amount_dict: dict, password, *memo):
+    def send_to_multi(self, sender, receiver_amount_dict: dict, password, memo):
         """
         :param sender: sender addr or account name
         :param receiver_amount_dict: dict { receiver_addr : amount to send, ...}
@@ -120,11 +120,16 @@ class BnbCli:
 
     @staticmethod
     def encode_memo(info):
-        if len(info) == 1:
-            return BnbCli.encode_porting_memo(info[0])
-        elif len(info) == 2:
+        """
+        @param info:  Expect porting id string, or tuple/list of (redeem id,incognito address)
+        @return:
+        """
+        if type(info) is str:
+            return BnbCli.encode_porting_memo(info)
+        if (type(info) is tuple or type(info, list)) and len(info) == 2:
             return BnbCli.encode_redeem_memo(info[0], info[1])
-        raise Exception(f'Expect 1 or 2 parameters only, instead got {len(info)}: {info}')
+        raise Exception(f'Expect porting id string, or tuple/list of (redeem id,incognito address), '
+                        f'got {type(info)}: {info} ')
 
     @staticmethod
     def encode_porting_memo(porting_id):

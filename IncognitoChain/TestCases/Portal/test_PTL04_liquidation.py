@@ -6,21 +6,18 @@ from IncognitoChain.Helpers.TestHelper import PortalHelper, l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
-from IncognitoChain.Objects.PortalObjects import PortalStateInfo
 from IncognitoChain.TestCases.Portal import test_PTL02_create_porting_req as porting_step, portal_user
-
-PSI_before_test = PortalStateInfo()
-need_holding_token = False
 
 
 def setup_function():
-    if need_holding_token:
+    PSI_before_test = SUT().get_latest_portal_state_info()
+    # check if there's no holding token, port some
+    # for now only check for BNB, need to add check for BTC later if want to test BTC
+    if PSI_before_test.help_get_highest_holding_token_custodian(PBNB_ID).get_holding_token_amount(PBNB_ID) == 0:
         INFO('Setup liquidation test')
         porting_step.setup_module()
         porting_step.test_create_porting_req_1_1(PBNB_ID, 100, portal_user, None, 1, 'valid')
-
-    global PSI_before_test
-    PSI_before_test = SUT().get_latest_portal_state_info()
+        WAIT(60)
 
 
 @pytest.mark.parametrize("token, percent, waiting_redeem, expected", [
@@ -32,7 +29,7 @@ def setup_function():
     (PBNB_ID, 1.2, False, 'liquidated'),
     (PBNB_ID, 0.99, False, 'liquidated'),
 
-    # # BTC
+    # BTC, not yet support testing, just list the cases here. Also need to check setup_function when do the tests
     # (PBTC_ID, 1.6, False, 'ok'),
     # (PBTC_ID, 1.7, False, 'ok'),
     # (PBTC_ID, 1.4, False, 'ok'),
@@ -42,6 +39,7 @@ def setup_function():
 ])
 def test_liquidate(token, percent, waiting_redeem, expected):
     STEP(0, 'Get portal status before changing rate')
+    PSI_before_test = SUT().get_latest_portal_state_info()
     tok_rate_before_test = PSI_before_test.get_portal_rate(token)
     prv_rate_before_test = PSI_before_test.get_portal_rate(PRV_ID)
     prv_liquidate_rate = PortalHelper.cal_liquidate_rate(percent, tok_rate_before_test, prv_rate_before_test)
@@ -49,9 +47,10 @@ def test_liquidate(token, percent, waiting_redeem, expected):
         token, tok_rate_before_test, prv_liquidate_rate)
 
     if expected == 'liquidated':
-        assert custodians_will_be_liquidate == [], "custodian list that will be liquidated is empty"
-        estimated_liquidation_pool = PSI_before_test.estimate_liquidation_pool(token, tok_rate_before_test,
-                                                                               prv_liquidate_rate)
+        assert custodians_will_be_liquidate != [], "custodian list that will be liquidated is empty"
+        estimated_liquidation_pool = PSI_before_test.estimate_liquidation_pool_with_new_rate(token,
+                                                                                             tok_rate_before_test,
+                                                                                             prv_liquidate_rate)
 
     if waiting_redeem:
         low_custodian_info = PSI_before_test.find_lowest_free_collateral_custodian()
@@ -78,8 +77,6 @@ def test_liquidate(token, percent, waiting_redeem, expected):
     PSI_after_test.print_rate()
 
     if expected == 'liquidated':
-        global need_holding_token
-        need_holding_token = True
         INFO("liquidation pool estimated")
         INFO(f"{estimated_liquidation_pool.data}")
         INFO("liquidation pool after")
@@ -91,20 +88,24 @@ def test_liquidate(token, percent, waiting_redeem, expected):
         WAIT(30)
 
         for custodian in custodians_will_be_liquidate:
-            liquidated_amount, return_collateral = PSI_before_test.estimate_liquidation_of_custodian(
-                custodian, token, tok_rate_before_test, prv_liquidate_rate)
+            estimated_liquidated_amount, estimated_return_collateral = PSI_after_test. \
+                calculate_liquidation_of_custodian_with_current_rate(custodian, token)
             current_free_collateral = custodian.get_free_collateral()
             new_free_collateral = PSI_after_test.get_custodian_info_in_pool(
                 custodian.get_incognito_addr()).get_free_collateral()
-            INFO(f"Custodian {l6(custodian.get_incognito_addr())} "
-                 f"liquidated: {liquidated_amount} "
-                 f"return to free collateral: {return_collateral} "
-                 f"free collateral after: {new_free_collateral}")
+            INFO(f"""Custodian {l6(custodian.get_incognito_addr())} "
+                 estimated liquidated               : {estimated_liquidated_amount} 
+                 estimated return to free collateral: {estimated_return_collateral}
+                 free collateral after              : {new_free_collateral}""")
             if percent <= 1:
-                assert return_collateral == 0
+                assert estimated_return_collateral == 0
             else:
-                assert return_collateral > 0
-            assert new_free_collateral == current_free_collateral + return_collateral
+                assert estimated_return_collateral > 0
+            assert new_free_collateral == current_free_collateral + estimated_return_collateral
+        INFO(f" Estimated liquidation pool  : {estimated_liquidation_pool}")
+        INFO(f" Before test liquidation pool: {PSI_before_test.get_liquidation_pool()}")
+        INFO(f" After test liquidation pool : {PSI_after_test.get_liquidation_pool()}")
+
         assert estimated_liquidation_pool + PSI_before_test.get_liquidation_pool() \
                == PSI_after_test.get_liquidation_pool()
     else:
