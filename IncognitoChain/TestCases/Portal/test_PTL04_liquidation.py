@@ -86,22 +86,22 @@ def test_liquidate(token, percent, waiting_redeem, expected):
 
         INFO(f"wait for collateral to be return to custodian if need")
         WAIT(30)
-
         for custodian in custodians_will_be_liquidate:
-            estimated_liquidated_amount, estimated_return_collateral = PSI_after_test. \
-                calculate_liquidation_of_custodian_with_current_rate(custodian, token)
-            current_free_collateral = custodian.get_free_collateral()
-            new_free_collateral = PSI_after_test.get_custodian_info_in_pool(
+            estimated_liquidated_amount, estimated_return_collateral = PSI_before_test. \
+                estimate_liquidation_of_custodian_with_new_rate(custodian, token, tok_rate_before_test,
+                                                                prv_liquidate_rate)
+            free_collateral_b4_liquidate = custodian.get_free_collateral()
+            free_collateral_af_liquidate = PSI_after_test.get_custodian_info_in_pool(
                 custodian.get_incognito_addr()).get_free_collateral()
             INFO(f"""Custodian {l6(custodian.get_incognito_addr())} "
-                 estimated liquidated               : {estimated_liquidated_amount} 
+                 estimated liquidated amount        : {estimated_liquidated_amount} 
                  estimated return to free collateral: {estimated_return_collateral}
-                 free collateral after              : {new_free_collateral}""")
+                 free collateral after              : {free_collateral_af_liquidate}""")
             if percent <= 1:
                 assert estimated_return_collateral == 0
             else:
                 assert estimated_return_collateral > 0
-            assert new_free_collateral == current_free_collateral + estimated_return_collateral
+            assert free_collateral_af_liquidate == free_collateral_b4_liquidate + estimated_return_collateral
         INFO(f" Estimated liquidation pool  : {estimated_liquidation_pool}")
         INFO(f" Before test liquidation pool: {PSI_before_test.get_liquidation_pool()}")
         INFO(f" After test liquidation pool : {PSI_after_test.get_liquidation_pool()}")
