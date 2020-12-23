@@ -837,7 +837,10 @@ class PortalStateInfo(_PortalInfoBase):
     def calculate_liquidation_of_custodian_with_current_rate(self, custodian, token_id, porting_amount=0,
                                                              porting_collateral=0):
         """
-        calculate liquidate collateral and return collateral of custodian AFTER RATE CHANGES.
+        ONLY use for calculating liquidation of a porting request.
+        The liquidation cause by rate changing right after porting request is accepted (collateral is locked)
+        but before user request for ported token (ptoken is released to user).
+        Use with portal state after rate changed
         @param porting_collateral:
         @param porting_amount:
         @param custodian:a CustodianInfo, Account object or incognito addr of custodian
@@ -851,7 +854,8 @@ class PortalStateInfo(_PortalInfoBase):
 
     def estimate_liquidation_of_custodian_with_new_rate(self, custodian, token_id, new_token_rate, new_prv_rate):
         """
-        estimate liquidate collateral and return collateral of custodian BEFORE RATE CHANGES.
+        Only use for estimating liquidate collateral and return collateral of custodian BEFORE RATE CHANGES.
+        Use with portal state before rate changed
         @param custodian:
         @param token_id:
         @param new_prv_rate:
@@ -863,6 +867,7 @@ class PortalStateInfo(_PortalInfoBase):
     def __cal_liquidation_and_return(self, custodian, token_id, new_token_rate, new_prv_rate,
                                      porting_amount, porting_collateral):
         """
+        Never call this method directly, use the two method above instead
         @param custodian:
         @param token_id:
         @param new_prv_rate:
