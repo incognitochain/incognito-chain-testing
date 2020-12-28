@@ -43,8 +43,8 @@ amount_token_fee = 1000000
 token_init_amount = coin(100000)
 token_contribute_amount = coin(10000)
 prv_contribute_amount = coin(10000)
-token_id = None  # if None, the test will automatically mint a new token and use it for testing
-# token_id = '6c345aaaf93107a205240e1245171adcbcf5a45a89609cdd2e3a36b9bb39da41'
+token_id = '6385e00c6db9f6bfba8d235da8436ce9ab60339ad30fbc0696d055818bf75292'
+# token_id = None  # if None, the test will automatically mint a new token and use it for testing
 tear_down_trx008 = False
 
 
@@ -86,13 +86,12 @@ def setup_module():
         ChainHelper.wait_till_next_epoch()
 
     STEP(0.4, "Verify environment, 6 node per shard")
-    bbs = SUT().get_beacon_best_state_info()
-    num_committee_shard_0 = bbs.get_current_shard_committee_size(0)
-    num_committee_shard_1 = bbs.get_current_shard_committee_size(1)
-    assert num_committee_shard_0 == ChainConfig.SHARD_COMMITTEE_SIZE, f"shard 0: {num_committee_shard_0} committees"
-    assert num_committee_shard_1 == ChainConfig.SHARD_COMMITTEE_SIZE, f"shard 1: {num_committee_shard_1} committees"
+    committee_state = SUT().get_committee_state()
+    for shard_id in range(committee_state.count_num_of_shard()):
+        num_committee_in_shard = committee_state.get_shard_committee_size(shard_id)
+        assert num_committee_in_shard == ChainConfig.SHARD_COMMITTEE_SIZE, \
+            f"shard {shard_id}: {num_committee_in_shard} committees"
 
-    # breakpoint()
     global token_id, tear_down_trx008
     if token_id is None:
         trx008.account_init = token_holder_shard_0

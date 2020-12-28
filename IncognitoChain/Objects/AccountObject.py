@@ -734,13 +734,13 @@ class Account:
     # Stake
     ########
 
-    def stk_get_reward_amount(self, token_id=None):
+    def stk_get_reward_amount(self, token_id=PRV_ID):
         """
-        @return: when @token_id is None, return PRV reward amount
+        @return: reward amount of token
         """
         result = self.REQ_HANDLER.transaction().get_reward_amount(self.payment_key)
         try:
-            if token_id is None or token_id == PRV_ID:
+            if token_id == PRV_ID:
                 reward = result.get_result("PRV")
             else:
                 reward = result.get_result(token_id)
@@ -759,13 +759,17 @@ class Account:
         except KeyError:
             return None
 
-    def stk_withdraw_reward_to(self, reward_receiver, token_id=None):
+    def stk_withdraw_reward_to(self, reward_receiver, token_id=PRV_ID):
         INFO(f"Withdraw token reward {token_id} to {l6(reward_receiver.payment_key)}")
-        return self.REQ_HANDLER.transaction().withdraw_reward(self.private_key,
-                                                              reward_receiver.payment_key,
-                                                              token_id)
+        if ChainConfig.PRIVACY_VERSION == 1:
+            return self.REQ_HANDLER.transaction().withdraw_reward(self.private_key, reward_receiver.payment_key,
+                                                                  token_id)
+        if ChainConfig.PRIVACY_VERSION == 2:
+            return self.REQ_HANDLER.transaction().withdraw_reward_privacy_v2(self.private_key,
+                                                                             reward_receiver.payment_key, token_id)
+        raise BaseException('Can not detect privacy version to use the correct withdraw rpc')
 
-    def stk_withdraw_reward_to_me(self, token_id=None):
+    def stk_withdraw_reward_to_me(self, token_id=PRV_ID):
         return self.stk_withdraw_reward_to(self, token_id)
 
     #######
@@ -1174,7 +1178,6 @@ class Account:
         # thread_pool = []
         for acc, amount in receiver.items():
             acc.wait_for_balance_change(from_balance=acc.get_prv_balance_cache())
-        return send_tx
 
     def submit_key(self):
         self.REQ_HANDLER.transaction().submit_key(self.private_key).expect_no_error()

@@ -10,8 +10,11 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import AccountGroup, COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 
-key_list_file = KeyListJson('keylist_jenkins.json')
-validators = key_list_file.get_staker_accounts()
+key_list_file = KeyListJson()
+# number of node which already run,
+# if this number is higher than the real running node, it might cause the chain not working
+num_of_stakers = 12
+validators = AccountGroup(*(key_list_file.get_staker_accounts()[:num_of_stakers]))
 
 SHARD0 = 0
 SHARD1 = 1
@@ -35,7 +38,7 @@ def setup_module():
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1755), not_yet_stake_list)
 
     def staking_action(account):
-        return account.stake_and_reward_me().expect_no_error()
+        account.stake_and_reward_me().expect_no_error()
 
     with ThreadPoolExecutor() as executor:
         for acc in not_yet_stake_list:
@@ -47,7 +50,7 @@ def setup_module():
 
 
 @pytest.mark.parametrize("shard_committee,shard_origin", [
-    # (SHARD0, SHARD1),
+    (SHARD0, SHARD1),
     (SHARD1, SHARD0),
 ])
 def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_origin):
@@ -67,20 +70,29 @@ def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_or
 
     INFO(f'Get shard best state detail, get epoch, beacon height')
     shard0_state_detail = SUT().get_shard_best_state_detail_info(shard_committee)
-    epoch = shard0_state_detail.get_epoch()
-    current_height = shard0_state_detail.get_beacon_height()
-    last_height = ChainHelper.cal_last_height_of_epoch(epoch) - 1
-    second_till_last_height = (last_height - current_height) * ChainConfig.BLOCK_TIME
-    INFO(f"""
-        Current epoch: {epoch}, last height of epoch: {last_height}
-        Current beacon height {current_height}, calculated last height of epoch: {last_height}""")
-    # breakpoint()
     shard0_committees = shard0_state_detail.get_shard_committee()
     committee_4th_0 = shard0_committees[ChainConfig.FIX_BLOCK_VALIDATOR]
     committee_5th_0 = shard0_committees[ChainConfig.FIX_BLOCK_VALIDATOR + 1]
     acc_committee_4th = accounts_from_shard1.find_account_by_public_k(committee_4th_0.get_inc_public_key())
     acc_committee_5th = accounts_from_shard1.find_account_by_public_k(committee_5th_0.get_inc_public_key())
     acc_stop_stake = acc_committee_4th if acc_committee_4th is not None else acc_committee_5th
+    acc_stop_stake.REQ_HANDLER = SUT.shards[shard_origin].get_representative_node()
+    epoch = shard0_state_detail.get_epoch()
+    if ChainConfig.PRIVACY_VERSION == 2:
+        acc_stop_stake.submit_key()
+        epoch_b4_submit = shard0_state_detail.get_epoch()
+        shard0_state_detail = SUT().get_shard_best_state_detail_info(shard_committee)
+
+        if epoch != epoch_b4_submit:
+            pytest.skip("epoch changed, run again")
+
+    current_height = shard0_state_detail.get_beacon_height()
+    last_height = ChainHelper.cal_last_height_of_epoch(epoch) - 1
+    second_till_last_height = (last_height - current_height) * ChainConfig.BLOCK_TIME
+    INFO(f"""
+        Current epoch: {epoch}, last height of epoch: {last_height}
+        Current beacon height {current_height}, calculated last height of epoch: {last_height}""")
+
     INFO(f"COMMITTEE origin: {acc_stop_stake}")
     if acc_stop_stake is None:
         pytest.skip(f' expect committee is from shard 1 and is a committee of shard 0, but cannot find one like that')
@@ -96,7 +108,6 @@ def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_or
     bal_b4_un_stake = acc_stop_stake.get_prv_balance()
 
     INFO(f'Send stop auto staking to user originated shard')
-    acc_stop_stake.REQ_HANDLER = SUT.shards[shard_origin].get_representative_node()
     un_stake_tx = acc_stop_stake.stk_un_stake_me().expect_no_error().subscribe_transaction()
     assert un_stake_tx.get_block_height() > 0
     acc_stop_stake.stk_wait_till_i_am_swapped_out_of_committee()

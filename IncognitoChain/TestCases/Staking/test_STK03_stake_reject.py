@@ -95,8 +95,8 @@ def test_stake_double():
     STEP(9, 'Withdraw PRV reward and verify balance')
     prv_bal_withdraw_reward = stake_account.get_prv_balance()
     prv_reward_amount = stake_account.stk_get_reward_amount()
-    stake_account.stk_withdraw_reward_to_me().subscribe_transaction()
+    withdraw_fee = stake_account.stk_withdraw_reward_to_me().subscribe_transaction().get_fee()
     prv_bal_after_withdraw_reward = stake_account.wait_for_balance_change(from_balance=prv_bal_withdraw_reward,
                                                                           timeout=180)
     INFO(f'Expect reward amount to received: {prv_reward_amount}')
-    assert prv_bal_withdraw_reward == prv_bal_after_withdraw_reward - prv_reward_amount
+    assert prv_bal_withdraw_reward + prv_reward_amount - withdraw_fee == prv_bal_after_withdraw_reward
