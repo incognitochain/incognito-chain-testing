@@ -1,7 +1,8 @@
 from IncognitoChain.Configs.Constants import coin, PBNB_ID, PRV_ID, PBTC_ID
 from IncognitoChain.Drivers.NeighborChainCli import BnbCli
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
-from IncognitoChain.Helpers.TestHelper import PortalHelper, ChainHelper
+from IncognitoChain.Helpers.PortalHelper import PortalHelper
+from IncognitoChain.Helpers.TestHelper import ChainHelper
 from IncognitoChain.Objects.AccountObject import AccountGroup, PORTAL_FEEDER, COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 

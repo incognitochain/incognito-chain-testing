@@ -6,7 +6,8 @@ import pytest
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, PBTC_ID, Status, ChainConfig
 from IncognitoChain.Helpers.Logging import STEP, INFO, WARNING
-from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
+from IncognitoChain.Helpers.PortalHelper import PortalHelper
+from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, UnlockCollateralReqInfo, RedeemMatchingInfo

@@ -2,7 +2,8 @@ import pytest
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO
-from IncognitoChain.Helpers.TestHelper import PortalHelper, l6, ChainHelper
+from IncognitoChain.Helpers.PortalHelper import PortalHelper
+from IncognitoChain.Helpers.TestHelper import l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
