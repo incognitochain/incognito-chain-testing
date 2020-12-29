@@ -31,6 +31,7 @@ class ChainConfig:
     MIN_FEE_PER_KB = 100000
 
     class Portal:
+        FEE_RATE = 0.0001
         COLLATERAL_PERCENT = 1.5
         COLLATERAL_LIQUIDATE_PERCENT = 1.2
         COLLATERAL_LIQUIDATE_TO_POOL_PERCENT = 1.05
@@ -69,9 +70,10 @@ class ChainConfig:
     def get_running_config():
         # collecting running chain config
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        committee_state = SUT().get_committee_state()
-        ChainConfig.ACTIVE_SHARD = committee_state.count_num_of_shard()
-        ChainConfig.BEACON_COMMITTEE_SIZE = committee_state.get_beacon_committee_size()
+        bbs = SUT().get_beacon_best_state_info()
+        ChainConfig.ACTIVE_SHARD = bbs.get_active_shard()
+        ChainConfig.BEACON_COMMITTEE_SIZE = bbs.get_max_beacon_committee_size()
+        ChainConfig.SHARD_COMMITTEE_SIZE = bbs.get_max_shard_committee_size()
 
 
 def coin(amount, nano=True):

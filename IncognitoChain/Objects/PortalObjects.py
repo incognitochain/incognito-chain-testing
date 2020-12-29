@@ -4,7 +4,8 @@ from typing import List
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PBTC_ID, PRV_ID, Status, ChainConfig
 from IncognitoChain.Helpers.Logging import INFO, DEBUG, INFO_HEADLINE, ERROR
-from IncognitoChain.Helpers.TestHelper import l6, PortalHelper, extract_incognito_addr, KeyExtractor
+from IncognitoChain.Helpers.PortalHelper import PortalMath
+from IncognitoChain.Helpers.TestHelper import l6, extract_incognito_addr, KeyExtractor
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 
@@ -885,8 +886,8 @@ class PortalStateInfo(_PortalInfoBase):
             self.sum_holding_token_waiting_redeem_req(token_id, custodian.get_incognito_addr())
         sum_holding_tok = my_holding_token + waiting_redeem_holding_tok + porting_amount
 
-        estimated_liquidated_collateral = PortalHelper.cal_lock_collateral(sum_holding_tok, new_token_rate,
-                                                                           new_prv_rate)
+        estimated_liquidated_collateral = PortalMath.cal_lock_collateral(sum_holding_tok, new_token_rate,
+                                                                         new_prv_rate)
         if lock_collateral_minus_waiting_porting > estimated_liquidated_collateral:
             collateral_return_to_custodian = lock_collateral_minus_waiting_porting - estimated_liquidated_collateral
             liquidate_amount = estimated_liquidated_collateral
@@ -919,8 +920,8 @@ class PortalStateInfo(_PortalInfoBase):
 
         if holding_token is None or holding_token == 0:
             return False
-        holding_tok_in_prv_new_rate = PortalHelper.cal_portal_exchange_tok_to_prv(holding_token, new_tok_rate,
-                                                                                  new_prv_rate)
+        holding_tok_in_prv_new_rate = PortalMath.cal_portal_exchange_tok_to_prv(holding_token, new_tok_rate,
+                                                                                new_prv_rate)
         new_collateral = int(holding_tok_in_prv_new_rate * ChainConfig.Portal.COLLATERAL_LIQUIDATE_PERCENT)
         if prv_collateral_current <= new_collateral:
             return True
@@ -933,7 +934,7 @@ class PortalStateInfo(_PortalInfoBase):
     def estimate_collateral(self, amount, token_id):
         rate_prv = self.get_portal_rate(PRV_ID)
         rate_tok = self.get_portal_rate(token_id)
-        return PortalHelper.cal_lock_collateral(amount, rate_tok, rate_prv)
+        return PortalMath.cal_lock_collateral(amount, rate_tok, rate_prv)
 
     def estimate_custodian_collateral_unlock(self, custodian, holding_amount_to_unlock, token):
         custodian_holding = self.get_custodian_info_in_pool(custodian).get_holding_token_amount(token)
@@ -957,12 +958,12 @@ class PortalStateInfo(_PortalInfoBase):
     def estimate_exchange_prv_to_token(self, amount_prv, token_id):
         rate_prv = self.get_portal_rate(PRV_ID)
         rate_tok = self.get_portal_rate(token_id)
-        return PortalHelper.cal_portal_exchange_prv_to_tok(amount_prv, rate_prv, rate_tok)
+        return PortalMath.cal_portal_exchange_prv_to_tok(amount_prv, rate_prv, rate_tok)
 
     def estimate_exchange_token_to_prv(self, amount_token, token_id):
         rate_prv = self.get_portal_rate(PRV_ID)
         rate_tok = self.get_portal_rate(token_id)
-        return PortalHelper.cal_portal_exchange_tok_to_prv(amount_token, rate_tok, rate_prv)
+        return PortalMath.cal_portal_exchange_tok_to_prv(amount_token, rate_tok, rate_prv)
 
     def verify_unlock_collateral_custodian_redeem_expire(self, psi_redeem_expire, redeem, runaway_custodian_list=None):
         """

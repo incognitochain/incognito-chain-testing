@@ -1,7 +1,7 @@
 from IncognitoChain.Configs.Constants import coin, PBNB_ID, PRV_ID, PBTC_ID
 from IncognitoChain.Drivers.NeighborChainCli import BnbCli
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
-from IncognitoChain.Helpers.PortalHelper import PortalHelper
+from IncognitoChain.Helpers.PortalHelper import PortalMath
 from IncognitoChain.Helpers.TestHelper import ChainHelper
 from IncognitoChain.Objects.AccountObject import AccountGroup, PORTAL_FEEDER, COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
@@ -91,8 +91,8 @@ def setup_module():
 
     global big_collateral, fat_custodian_prv
 
-    big_collateral = PortalHelper.cal_lock_collateral(big_porting_amount, big_rate[PBNB_ID],
-                                                      init_portal_rate[PRV_ID])
+    big_collateral = PortalMath.cal_lock_collateral(big_porting_amount, big_rate[PBNB_ID],
+                                                    init_portal_rate[PRV_ID])
     fat_custodian_prv = big_collateral + coin(1)
 
 

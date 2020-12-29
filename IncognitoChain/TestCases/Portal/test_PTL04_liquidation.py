@@ -2,7 +2,7 @@ import pytest
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO
-from IncognitoChain.Helpers.PortalHelper import PortalHelper
+from IncognitoChain.Helpers.PortalHelper import PortalMath
 from IncognitoChain.Helpers.TestHelper import l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER
@@ -43,7 +43,7 @@ def test_liquidate(token, percent, waiting_redeem, expected):
     PSI_before_test = SUT().get_latest_portal_state_info()
     tok_rate_before_test = PSI_before_test.get_portal_rate(token)
     prv_rate_before_test = PSI_before_test.get_portal_rate(PRV_ID)
-    prv_liquidate_rate = PortalHelper.cal_liquidate_rate(percent, tok_rate_before_test, prv_rate_before_test)
+    prv_liquidate_rate = PortalMath.cal_liquidate_rate(percent, tok_rate_before_test, prv_rate_before_test)
     custodians_will_be_liquidate = PSI_before_test.find_custodians_will_be_liquidate_with_new_rate(
         token, tok_rate_before_test, prv_liquidate_rate)
 

@@ -2,7 +2,7 @@ import pytest
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status, ChainConfig
 from IncognitoChain.Helpers.Logging import STEP, INFO, WARNING, INFO_HEADLINE
-from IncognitoChain.Helpers.PortalHelper import PortalHelper
+from IncognitoChain.Helpers.PortalHelper import PortalMath
 from IncognitoChain.Helpers.TestHelper import l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER, COIN_MASTER
@@ -91,15 +91,15 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
     PSI_before_test = SUT().get_latest_portal_state_info()
     tok_rate = PSI_before_test.get_portal_rate(token)
     prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
-    estimated_porting_fee = PortalHelper.cal_portal_portal_fee(porting_amount, tok_rate, prv_rate)
+    estimated_porting_fee = PortalMath.cal_portal_portal_fee(porting_amount, tok_rate, prv_rate)
     if num_of_custodian == n:
         ps = SUT().get_latest_portal_state_info()
         highest_free_collateral_in_pool = ps.help_get_highest_free_collateral_custodian().get_free_collateral()
         tok_rate = ps.get_portal_rate(token)
         prv_rate = ps.get_portal_rate(PRV_ID)
-        porting_amount = PortalHelper.cal_token_amount_from_collateral(highest_free_collateral_in_pool, tok_rate,
-                                                                       prv_rate) + 10
-        estimated_porting_fee = PortalHelper.cal_portal_portal_fee(porting_amount, tok_rate, prv_rate)
+        porting_amount = PortalMath.cal_token_amount_from_collateral(highest_free_collateral_in_pool, tok_rate,
+                                                                     prv_rate) + 10
+        estimated_porting_fee = PortalMath.cal_portal_portal_fee(porting_amount, tok_rate, prv_rate)
     if porting_amount == big_porting_amount:  # spacial case, porting large amount, send more prv to custodian and add
         prepare_fat_custodian()
         # create new rate:
@@ -108,8 +108,8 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         # wait for new rate to take effect
         ChainHelper.wait_till_next_beacon_height(2)
         # re-estimate porting fee
-        estimated_porting_fee = PortalHelper.cal_portal_portal_fee(big_porting_amount, big_rate[token],
-                                                                   init_portal_rate[PRV_ID])
+        estimated_porting_fee = PortalMath.cal_portal_portal_fee(big_porting_amount, big_rate[token],
+                                                                 init_portal_rate[PRV_ID])
         PSI_before_test = SUT().get_latest_portal_state_info()
         tok_rate = PSI_before_test.get_portal_rate(token)
         prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
@@ -129,7 +129,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
     tx_fee = tx_block.get_fee()
     tx_size = tx_block.get_tx_size()
     tx_id = porting_req.get_tx_id()
-    estimated_total_lock_collateral = PortalHelper.cal_lock_collateral(porting_amount, tok_rate, prv_rate)
+    estimated_total_lock_collateral = PortalMath.cal_lock_collateral(porting_amount, tok_rate, prv_rate)
     INFO(f"""Porting req is created with 
             amount                         = {porting_amount}
             porting fee                    = {porting_fee},
@@ -164,7 +164,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         one_of_collateral = porting_req_info.get_custodian(one_of_custodians).get_locked_collateral()
         future_holding_token = one_of_custodians.get_holding_token_amount(token) + one_of_amount
         future_lock_collateral = one_of_custodians.get_locked_collateral(token) + one_of_collateral
-        new_prv_rate = PortalHelper.cal_rate_to_liquidate_collateral(
+        new_prv_rate = PortalMath.cal_rate_to_liquidate_collateral(
             future_holding_token, future_lock_collateral, tok_rate, prv_rate, 'prv', 1.1)
         liquidate_rate = {PRV_ID: new_prv_rate}
         PORTAL_FEEDER.portal_create_exchange_rate(liquidate_rate)
@@ -242,7 +242,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
             prv_rate_after = PSI_porting_completed.get_portal_rate(PRV_ID)
 
             amount = porting_req_info.get_custodian(custodian).get_amount()
-            collateral_each_estimate = PortalHelper.cal_lock_collateral(amount, tok_rate, prv_rate)
+            collateral_each_estimate = PortalMath.cal_lock_collateral(amount, tok_rate, prv_rate)
             INFO('----------------------------------------------------------------------------------------')
             INFO(f'custodian incognito addr    = {l6(custodian.get_incognito_addr())}\n'
                  f'\t\t lock collateral after: req - test  = {lock_collateral_after_req} - {lock_collateral_after}\n'

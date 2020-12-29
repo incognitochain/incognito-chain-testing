@@ -4,7 +4,7 @@ import pytest
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status
 from IncognitoChain.Helpers.Logging import STEP, INFO
-from IncognitoChain.Helpers.PortalHelper import PortalHelper
+from IncognitoChain.Helpers.PortalHelper import PortalMath
 from IncognitoChain.Helpers.TestHelper import l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account, PORTAL_FEEDER
@@ -281,7 +281,7 @@ def test_calculating_porting_fee(token):
     STEP(1, f"Get portal fee with amount = {test_amount}")
     portal_fee_from_chain = SUT().portal().get_porting_req_fees(token, test_amount, beacon_height). \
         get_result(token)
-    portal_fee_estimate = PortalHelper.cal_portal_portal_fee(test_amount, bnb_rate, prv_rate)
+    portal_fee_estimate = PortalMath.cal_portal_portal_fee(test_amount, bnb_rate, prv_rate)
 
     STEP(2, 'Compare')
     INFO(f'''
