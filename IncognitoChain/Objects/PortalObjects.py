@@ -937,15 +937,22 @@ class PortalStateInfo(_PortalInfoBase):
         return PortalMath.cal_lock_collateral(amount, rate_tok, rate_prv)
 
     def estimate_custodian_collateral_unlock(self, custodian, holding_amount_to_unlock, token):
+        """
+        Estimate mount of prv collateral will be unlock, use with portal state after redeem matched only
+        @param custodian: incognito address, Account, or CustodianInfo obj
+        @param holding_amount_to_unlock: int, amount of ptoken to unlock
+        @param token: mount of prv collateral will be unlock
+        @return:
+        """
         custodian_holding = self.get_custodian_info_in_pool(custodian).get_holding_token_amount(token)
         custodian_lock_collateral = self.get_custodian_info_in_pool(custodian).get_locked_collateral(token)
         matching_holding = sum(
-            [req.get_custodian(custodian).get_amount() for req in self.get_redeem_matched_req(token, custodian)])
+            [req.get_custodian(custodian).get_amount() for req in self.get_porting_waiting_req(token)])
         if holding_amount_to_unlock == custodian_holding:
             unlock_prv = custodian_lock_collateral
         else:
             unlock_prv = int(
-                holding_amount_to_unlock * custodian_lock_collateral / (custodian_holding + matching_holding))
+                (holding_amount_to_unlock / custodian_holding) * (custodian_lock_collateral - matching_holding))
         INFO(f'Estimated: custodian {l6(custodian.get_incognito_addr())}, '
              f'holding {custodian_holding}, '
              f'matched hold {matching_holding}, '

@@ -494,7 +494,7 @@ class Account:
         fee, size = self.get_estimate_fee_and_size(to_account, balance - 100)
         INFO(f'''EstimateFeeCoinPerKb = {fee}, EstimateTxSizeInKb = {size}''')
         if balance > 0:
-            return self.send_prv_to(to_account, balance - 100, int(100 / size),
+            return self.send_prv_to(to_account, balance - 100, int(100 / (size + 1)),
                                     privacy).subscribe_transaction()
 
     def count_unspent_output_coins(self):
@@ -927,7 +927,7 @@ class Account:
              f'Add collateral to become custodian: {coin(collateral, False)}')
         remote_addr = self.get_remote_addr(ptoken) if remote_addr is None else remote_addr
         return self.REQ_HANDLER.portal().create_n_send_tx_with_custodian_deposit(
-            self.private_key, self.payment_key, collateral, ptoken, remote_addr)
+            self.private_key, self.payment_key, collateral, {ptoken: remote_addr})
 
     def portal_make_me_custodian(self, collateral, ptoken, remote_addr=None):
         """

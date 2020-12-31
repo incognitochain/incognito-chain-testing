@@ -4,7 +4,7 @@ import random
 import pytest
 
 from IncognitoChain.Configs import Constants
-from IncognitoChain.Configs.Constants import coin
+from IncognitoChain.Configs.Constants import coin, ChainConfig
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Helpers.Time import get_current_date_time, WAIT
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, COIN_MASTER
@@ -37,7 +37,7 @@ def setup_module():
                                             token_init_amount + prv_contribute_amount + coin(1), account_init)
 
 
-def teardown_module():
+def no_teardown_module():
     INFO("Tear down")
     global contribute_success
     if contribute_success:
@@ -180,7 +180,7 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
                                                              token_amount_to_send, token_fee=fee,
                                                              token_privacy=privacy)
         if sending_token_transaction.is_transaction_v2_error_appears():
-            pytest.skip(sending_token_transaction.get_error_trace().get_message())
+            pytest.skip("Privacy v2 no longer allow using token as tx fee")
 
     sending_token_transaction.expect_no_error()
     INFO("transaction_id: " + sending_token_transaction.get_tx_id())
@@ -297,7 +297,7 @@ def test_send_token_insufficient_fund(sender, receiver):
                                         token_fee=token_fee)
     if step4_result.is_transaction_v2_error_appears():
         return
-    assert step4_result.get_error_msg() != 'Can not create tx', INFO("Failed")
+    step4_result.expect_no_error()
     INFO("TxID: " + step4_result.get_tx_id())
 
     STEP(5, "Subscribe transaction")
@@ -337,6 +337,8 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
           Prv_privacy =1
 
           ''')
+    if ChainConfig.PRIVACY_VERSION == 2:
+        pytest.skip('Cannot run this test with privacy v2 since token fee is no longer allowed')
     receiver_amount_dict = dict()
     receiver_amount_dict[receiver_account] = random.randrange(1000, 2000)
     receiver_amount_dict[receiver_x_shard] = random.randrange(1000, 2000)

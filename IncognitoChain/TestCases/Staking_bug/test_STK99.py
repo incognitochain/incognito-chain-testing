@@ -63,7 +63,7 @@ def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_or
     accounts_from_shard1 = AccountGroup()
     for i in range(shard_origin, 8, NUM_OF_SHARD):
         # account belong to the shard , not account of committee of the shard
-        accounts_from_shard1 += validators.get_accounts_in_shard(i)
+        accounts_from_shard1 += validators.get_accounts_in_shard(i % ChainConfig.ACTIVE_SHARD)
 
     INFO(f'Change request handler to shard {shard_committee}, which user is a committee')
     SUT.REQUEST_HANDLER = SUT.shards[shard_committee].get_representative_node()

@@ -16,8 +16,8 @@ token_owner = Account(
 # token_id = "a4442a68070fc615abee5e8c665808ebc1c670e5fd16f49ca8e992bf7c126739"
 # token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
 # token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
-token_id_1 = "4f3e7047842a2f776f052ac95ee7e32b2df0bfecaa8fb89254cd2c06b4a9447e"  # local
-token_id_2 = "68fb439443704921f2b524258a80c647c3c402e68dbb2ebfdab14b203a6bc36b"  # local
+token_id_1 = "b9c7f272d283b570b9aa8ec756a22d311eaf16cab197843264a4eaaaffc46f4f"  # local
+token_id_2 = "78b3e0a7178ad910558529fb93224cae831af89a42df11044075fc66678cc801"  # local
 # token_id_1 = None
 # token_id_2 = None
 token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff"  # token not yet added to PDE
@@ -194,6 +194,10 @@ def calculate_trade_order(trading_fees_list, amount_list):
     INFO("Sort order: " + str(sort_order))
     return sort_order
 
-
-acc_list_n_shard.get_accounts_in_shard(5)[0].pde_trade_prv(10, token_id_1, 1).expect_no_error().subscribe_transaction()
-acc_list_n_shard.get_accounts_in_shard(5)[0].pde_trade_prv(10, token_id_2, 1).expect_no_error().subscribe_transaction()
+# work around for privacy v2 "invalid token" bug, if not testing privacy v2, just comment these lines
+# if ChainConfig.PRIVACY_VERSION == 2:
+#     COIN_MASTER.top_him_up_prv_to_amount_if(1000, coin(1), acc_list_n_shard)
+#     acc_list_n_shard.get_accounts_in_shard(5)[0]. \
+#         pde_trade_prv(10, token_id_1, 1).expect_no_error().subscribe_transaction()
+#     acc_list_n_shard.get_accounts_in_shard(5)[0]. \
+#         pde_trade_prv(10, token_id_2, 1).expect_no_error().subscribe_transaction()

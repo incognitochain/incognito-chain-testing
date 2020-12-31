@@ -53,6 +53,12 @@ def test_trade_same_token(trader, token):
     (token_owner, token_id_0, token_id_1),
 ])
 def test_trade_non_exist_pair(trader, token_sell, token_buy):
+    """
+    @param trader:
+    @param token_sell: if this token is not existed, RPC will return Invalid Token Error
+    @param token_buy: if this token is not existed, RPC returns no error but will refund token_sell
+    @return:
+    """
     trade_amount = random.randint(1000, 20000000)
     trading_fee = max(1, trade_amount // 100)
 
@@ -65,8 +71,8 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
 
     STEP(1, f'Trade {l6(token_sell)} for {l6(token_buy)}')
     trade_tx = trader.pde_trade_v2(token_sell, trade_amount, token_buy, trading_fee)
-    if 'Invalid Token ID' in trade_tx.get_error_trace().get_message():
-        trade_tx.expect_no_error('Invalid Token ID')
+    if trade_tx.get_error_trace() is not None and 'Invalid Token ID' in trade_tx.get_error_trace().get_message():
+        trade_tx.expect_error('Invalid Token ID')
         return
 
     STEP(2, 'Wait for tx to be confirmed')

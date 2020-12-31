@@ -39,14 +39,17 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
     STEP(3, "send PRV - Not enough coin")
     # send current balance + 10
     step3_result = sender.send_prv_to(receiver, sender_bal + 10, privacy=privacy)
-    assert step3_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed" and INFO("Failed")
-    assert re.search(r'Not enough coin', step3_result.get_error_trace().get_message()), "something went so wrong" and INFO("Failed")
+    assert step3_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed" and INFO(
+        "Failed")
+    assert re.search(r'Not enough coin',
+                     step3_result.get_error_trace().get_message()), "something went so wrong" and INFO("Failed")
     assert sender_bal == sender.get_prv_balance(), INFO("Failed")
 
     STEP(4, "send all PRV - auto fee")
     # send current balance (auto fee)
     step4_result = sender.send_prv_to(receiver, sender_bal, privacy=privacy)
-    assert step4_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed" and INFO("Failed")
+    assert step4_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed" and INFO(
+        "Failed")
     step4_result.expect_error()
     assert sender_bal == sender.get_prv_balance(), INFO("Failed")
     fee, size = sender.get_estimate_fee_and_size(receiver, sender_bal - 100)
@@ -54,7 +57,7 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
 
     STEP(5, "send PRV - success")
     # send current balance - fee
-    step5_result = sender.send_prv_to(receiver, sender_bal - 100, int(100 / size),
+    step5_result = sender.send_prv_to(receiver, sender_bal - 100, int(100 / (size + 1)),
                                       privacy).expect_no_error()
 
     STEP(6, "Subcribe transaction")
@@ -79,7 +82,7 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
     send_transaction.verify_prv_privacy(privacy)
 
     STEP(11, "Return the money")
-    receiver.send_prv_to(sender, sender_bal+100).subscribe_transaction()
+    receiver.send_prv_to(sender, sender_bal + 100).subscribe_transaction()
     if sender.shard != receiver.shard:
         try:
             sender.subscribe_cross_output_coin()

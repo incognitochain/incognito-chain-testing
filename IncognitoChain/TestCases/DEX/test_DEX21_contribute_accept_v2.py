@@ -5,9 +5,10 @@ from IncognitoChain.Helpers.Logging import INFO, STEP
 from IncognitoChain.Helpers.TestHelper import calculate_contribution, l6, ChainHelper
 from IncognitoChain.Helpers.Time import get_current_date_time
 from IncognitoChain.Objects import PdeObjects
+from IncognitoChain.Objects.AccountObject import COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import SUT, ACCOUNTS
 from IncognitoChain.Objects.PdeObjects import PDEContributeInfo
-from IncognitoChain.TestCases.DEX import token_id_1
+from IncognitoChain.TestCases.DEX import token_id_1, token_owner
 
 
 @pytest.mark.parametrize('contributor,token1,token2', (
@@ -18,6 +19,12 @@ def test_contribute_prv(contributor, token1, token2):
     pair_id = f'{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
     tok1_contrib_amount = coin(1234)
     tok2_contrib_amount = coin(2134)
+    for tok, amount in zip((token1, token2), (tok1_contrib_amount, tok2_contrib_amount)):
+        if tok == PRV_ID:
+            COIN_MASTER.top_him_up_prv_to_amount_if(amount + 1000, int(amount * 1.5), contributor)
+        else:
+            token_owner.top_him_up_token_to_amount_if(tok, amount + 1000, int(amount * 1.5), contributor)
+
     pde_state_b4 = SUT().get_latest_pde_state_info()
     INFO(f"""
             test_DEX01_contribute:
@@ -42,8 +49,7 @@ def test_contribute_prv(contributor, token1, token2):
     INFO(f'Rate before contribution: {l6(token2)}:{l6(token1)} is {rate_b4}')
     # breakpoint()
     STEP(1, f"Contribute {l6(token1)}")
-    contribute_token1_result = contributor.pde_contribute_v2(token1, tok1_contrib_amount, pair_id)
-    contribute_token1_result.expect_no_error()
+    contribute_token1_result = contributor.pde_contribute_v2(token1, tok1_contrib_amount, pair_id).expect_no_error()
     contribute_token1_fee = contribute_token1_result.subscribe_transaction().get_fee()
 
     STEP(2, 'Verify contribution')

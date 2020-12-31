@@ -65,7 +65,7 @@ class Response:
 
     def get_error_trace(self):
         if self.data()['Error'] is None:
-            return ''
+            return None
         return Response.StackTrace(self.data()['Error']['StackTrace'][0:512])
 
     def get_error_msg(self):
@@ -183,7 +183,8 @@ class Response:
             stack_trace_msg = self.get_error_trace().get_message()
         except AttributeError:
             return False
-        if 'error calling MarshalJSON for type *transaction.TxTokenVersion2' in stack_trace_msg:
+        # if 'error calling MarshalJSON for type *transaction.TxTokenVersion2' in stack_trace_msg:
+        if 'Init tx token fee params error' in stack_trace_msg:
             INFO('Transaction v2 no longer support paying fee with token')
             return True
 

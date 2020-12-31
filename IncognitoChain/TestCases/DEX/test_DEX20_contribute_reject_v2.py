@@ -12,7 +12,7 @@ from IncognitoChain.TestCases.DEX import token_id_1, token_id_2, token_owner
 
 @pytest.mark.parametrize('contributor,token1,token2', (
         [token_owner, PRV_ID, PRV_ID],
-        [token_owner[1], token_id_1, token_id_1],
+        [token_owner, token_id_1, token_id_1],
         [ACCOUNTS[1], token_id_1, token_id_2],
         [ACCOUNTS[1], token_id_2, token_id_1]
 ))
