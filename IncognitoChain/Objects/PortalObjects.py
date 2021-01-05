@@ -879,22 +879,19 @@ class PortalStateInfo(_PortalInfoBase):
         """
         custodian = self.get_custodian_info_in_pool(custodian)
         my_holding_token = custodian.get_holding_token_amount(token_id)
-        lock_collateral_minus_waiting_porting = \
-            self._lock_collateral_minus_waiting_porting_of_custodian(custodian, token_id) + porting_collateral
-
         waiting_redeem_holding_tok = \
             self.sum_holding_token_waiting_redeem_req(token_id, custodian.get_incognito_addr())
-        sum_holding_tok = my_holding_token + waiting_redeem_holding_tok + porting_amount
 
-        estimated_liquidated_collateral = PortalMath.cal_lock_collateral(sum_holding_tok, new_token_rate,
-                                                                         new_prv_rate)
-        if lock_collateral_minus_waiting_porting > estimated_liquidated_collateral:
-            collateral_return_to_custodian = lock_collateral_minus_waiting_porting - estimated_liquidated_collateral
-            liquidate_amount = estimated_liquidated_collateral
+        X = self._lock_collateral_minus_waiting_porting_of_custodian(custodian, token_id) + porting_collateral
+        Y = my_holding_token + waiting_redeem_holding_tok + porting_amount
+        Z = int((Y * 1.05 * new_token_rate) / new_prv_rate)
+        if X > Z:
+            F = X - Z  # collateral return to custodian
+            liquidate_amount = Z
         else:
-            collateral_return_to_custodian = 0
-            liquidate_amount = lock_collateral_minus_waiting_porting
-        return liquidate_amount, collateral_return_to_custodian
+            F = 0
+            liquidate_amount = X
+        return liquidate_amount, F
 
     def will_custodian_be_liquidated_with_new_rate(self, custodian, token_id, new_tok_rate, new_prv_rate):
         """

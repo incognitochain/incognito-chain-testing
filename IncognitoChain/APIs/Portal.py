@@ -13,14 +13,14 @@ class PortalRpc:
 
     def create_n_send_portal_exchange_rates(self, signer_private_key, signer_payment_key, rate_dict):
         """
-        :param signer_private_key:
-        :param signer_payment_key:
-        :param rate_dict: dictionary of {
+        @param signer_private_key:
+        @param signer_payment_key:
+        @param rate_dict: dictionary of {
             'tokenid1': USDT price of the token1,
             'tokenid2': USDT price of the token2,
              ...
          }
-        :return: Response object
+        @return: Response object
         """
 
         return self.rpc_connection.with_method('createandsendportalexchangerates'). \
@@ -71,25 +71,22 @@ class PortalRpc:
                           }]).execute()
 
     # custodian deposit ########################################################################################
-    def create_n_send_tx_with_custodian_deposit(self, private_key, payment_key, deposit_amount, ptoken_id,
-                                                remote_addr):
+    def create_n_send_tx_with_custodian_deposit(self, private_key, payment_key, deposit_amount,
+                                                ptoken_id_remote_addr_dict):
         """
 
-        :param ptoken_id: token id of internal ptoken
-        :param private_key: custodian private key
-        :param payment_key: custodian payment key
-        :param deposit_amount:
-        :param remote_addr: remote payment address of BNB or BTC of custodian
-        :return:
+        @param private_key: custodian private key
+        @param payment_key: custodian payment key
+        @param deposit_amount:
+        @param ptoken_id_remote_addr_dict: dict of {ptoken id : remote payment address}  of custodian
+        @return:
         """
         return self.rpc_connection.with_method('createandsendtxwithcustodiandeposit'). \
             with_params([private_key,
                          {BURNING_ADDR: str(deposit_amount)},
                          -1, 0,
                          {"IncognitoAddress": payment_key,
-                          "RemoteAddresses": {
-                              ptoken_id: remote_addr
-                          },
+                          "RemoteAddresses": ptoken_id_remote_addr_dict,
                           "DepositedAmount": str(deposit_amount)}]).execute()
 
     def get_portal_custodian_deposit_status(self, deposit_tx_id):
