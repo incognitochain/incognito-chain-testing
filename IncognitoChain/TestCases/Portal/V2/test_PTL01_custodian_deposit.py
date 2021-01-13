@@ -10,8 +10,8 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account, PORTAL_FEEDER
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 from IncognitoChain.Objects.PortalObjects import CustodianWithdrawTxInfo
-from IncognitoChain.TestCases.Portal import TEST_SETTING_DEPOSIT_AMOUNT, self_pick_custodian, \
-    portal_user, another_btc_addr, another_bnb_addr
+from IncognitoChain.TestCases.Portal import self_pick_custodian, another_bnb_addr, another_btc_addr, portal_user
+from IncognitoChain.TestCases.Portal.V2 import TEST_SETTING_DEPOSIT_AMOUNT
 
 custodian_need_change_remote_addr_back = Account()
 

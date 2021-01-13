@@ -255,6 +255,33 @@ class Node:
         except KeyboardInterrupt:
             pass
 
+    def help_watch_pde_state(self):
+        height = self.help_get_beacon_height()
+        try:
+            while True:
+                INFO_HEADLINE(height)
+                pde = self.get_latest_pde_state_info(height)
+                waiting_str = "Waiting contributions:\n"
+                for obj in pde.get_waiting_contributions():
+                    waiting_str += f'\t\t{obj}\n'
+                INFO(waiting_str)
+                pool_str = 'Pool:\n'
+                for obj in pde.get_pde_pool_pairs():
+                    pool_str += f'\t\t{obj}\n'
+                INFO(pool_str)
+                share_str = 'PDE Shares:\n'
+                for obj in pde._get_pde_share_objects():
+                    share_str += f'\t\t{obj}\n'
+                INFO(share_str)
+                fee_str = 'Fee:\n'
+                for obj in pde._get_contributor_reward_objects():
+                    fee_str += f'\t\t{obj}\n'
+                INFO(fee_str)
+                WAIT(ChainConfig.BLOCK_TIME)
+                height += 1
+        except KeyboardInterrupt:
+            pass
+
     def get_latest_portal_state_info(self, beacon_height=None):
         if beacon_height is None:
             beacon_height = self.help_get_beacon_height()
@@ -424,7 +451,10 @@ class Node:
 
     def get_shard_block_by_height(self, shard_id, height):
         response = self.system_rpc().retrieve_block_by_height(height, shard_id)
-        return ShardBlock(response.get_result())
+        res = response.get_result()
+        if type(res) is list and len(res) == 1:
+            return ShardBlock(res.pop())
+        return ShardBlock(res)
 
     class SshActions(SshSession):
         def __pgrep_incognito(self):

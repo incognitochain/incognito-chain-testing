@@ -4,7 +4,7 @@ from typing import List
 
 from IncognitoChain.Configs import Constants
 from IncognitoChain.Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, \
-    ChainConfig
+    ChainConfig, ETH_ID
 from IncognitoChain.Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from IncognitoChain.Drivers.NeighborChainCli import NeighborChainCli
 from IncognitoChain.Drivers.Response import Response
@@ -32,7 +32,7 @@ class Account:
             address list with following order: BNB, BTC. Set to None if you wish to leave the address empty
         :return:
         """
-        support_token_list = [PBNB_ID, PBTC_ID]
+        support_token_list = [PBNB_ID, PBTC_ID, ETH_ID]
         for token, address in zip(support_token_list, addresses):
             self.remote_addr.data[token] = address
         return self
@@ -78,8 +78,12 @@ class Account:
                 except KeyError:
                     self.shard = None
             else:
-                private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, \
-                bridge_public_k, mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(private_key)
+                try:
+                    version = kwargs['version']
+                except KeyError:
+                    version = None
+                private_k, payment_k, public_k, read_only_k, validator_k, bls_public_k, bridge_public_k, \
+                mining_public_k, committee_public_k, shard_id = get_key_set_from_private_k(private_key, version)
 
                 self.private_key = private_k
                 self.validator_key = validator_k
@@ -133,21 +137,22 @@ class Account:
         copy_obj.cache = self.cache
         return copy_obj
 
-    def __deepcopy__(self, memo={}):
+    def __deepcopy__(self, memo=None):
+        memo = {} if memo is None else memo
         copy_obj = Account()
 
-        copy_obj.private_key = copy.deepcopy(self.private_key)
-        copy_obj.validator_key = copy.deepcopy(self.validator_key)
-        copy_obj.payment_key = copy.deepcopy(self.payment_key)
-        copy_obj.incognito_addr = copy.deepcopy(self.incognito_addr)
-        copy_obj.public_key = copy.deepcopy(self.public_key)
-        copy_obj.read_only_key = copy.deepcopy(self.read_only_key)
-        copy_obj.bls_public_k = copy.deepcopy(self.bls_public_k)
-        copy_obj.bridge_public_k = copy.deepcopy(self.bridge_public_k)
-        copy_obj.mining_public_k = copy.deepcopy(self.mining_public_k)
-        copy_obj.committee_public_k = copy.deepcopy(self.committee_public_k)
-        copy_obj.shard = copy.deepcopy(self.shard)
-        copy_obj.cache = copy.deepcopy(self.cache)
+        copy_obj.private_key = copy.deepcopy(self.private_key, memo)
+        copy_obj.validator_key = copy.deepcopy(self.validator_key, memo)
+        copy_obj.payment_key = copy.deepcopy(self.payment_key, memo)
+        copy_obj.incognito_addr = copy.deepcopy(self.incognito_addr, memo)
+        copy_obj.public_key = copy.deepcopy(self.public_key, memo)
+        copy_obj.read_only_key = copy.deepcopy(self.read_only_key, memo)
+        copy_obj.bls_public_k = copy.deepcopy(self.bls_public_k, memo)
+        copy_obj.bridge_public_k = copy.deepcopy(self.bridge_public_k, memo)
+        copy_obj.mining_public_k = copy.deepcopy(self.mining_public_k, memo)
+        copy_obj.committee_public_k = copy.deepcopy(self.committee_public_k, memo)
+        copy_obj.shard = copy.deepcopy(self.shard, memo)
+        copy_obj.cache = copy.deepcopy(self.cache, memo)
         return copy_obj
 
     def __eq__(self, other):
@@ -936,6 +941,11 @@ class Account:
         remote_addr = self.get_remote_addr(ptoken) if remote_addr is None else remote_addr
         return self.portal_add_collateral(collateral, ptoken, remote_addr)
 
+    def portal_add_collateral_v3(self, ptoken, blk_hash, tx_index, proof, remote_addr):
+        remote_addr = self.get_remote_addr(ptoken) if remote_addr is None else remote_addr
+        return self.REQ_HANDLER.portal().create_n_send_tx_with_custodian_deposit_v3(
+            self.private_key, ptoken, remote_addr, blk_hash, tx_index, proof)
+
     def portal_let_me_take_care_this_redeem(self, redeem_id, do_assert=True):
         INFO(f"{l6(self.payment_key)} will take this redeem: {redeem_id}")
         req_tx = self.REQ_HANDLER.portal().create_n_send_tx_with_req_matching_redeem(self.private_key,
@@ -1002,10 +1012,8 @@ class Account:
         """
         INFO()
         INFO(f'Portal | User {l6(self.payment_key)} | req for ported token')
-        return self.REQ_HANDLER.portal().create_n_send_tx_with_req_ptoken(self.private_key,
-                                                                          self.payment_key,
-                                                                          porting_id, token_id, amount,
-                                                                          proof)
+        return self.REQ_HANDLER.portal(). \
+            create_n_send_tx_with_req_ptoken(self.private_key, self.payment_key, porting_id, token_id, amount, proof)
 
     def portal_get_my_custodian_info(self, psi: PortalStateInfo = None):
         """
@@ -1209,9 +1217,10 @@ class AccountGroup:
     def __getitem__(self, item):
         return self.account_list[item]
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memo=None):
+        memo = {} if memo is None else memo
         copy_acc_group = AccountGroup()
-        copy_acc_group.account_list = copy.deepcopy(self.account_list)
+        copy_acc_group.account_list = copy.deepcopy(self.account_list, memo)
         return copy_acc_group
 
     def remove(self, obj):

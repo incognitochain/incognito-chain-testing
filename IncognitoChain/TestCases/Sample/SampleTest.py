@@ -2,7 +2,6 @@ import pytest
 
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Objects.AccountObject import *
-from IncognitoChain.Objects.IncognitoTestCase import SUT
 
 """
 Test case: Send PRV
@@ -14,7 +13,6 @@ Test case: Send PRV
 def test_05_send_prv_no_privacy_same_shard_auto_fee(send_amount, shard_id):
     account_sender = get_accounts_in_shard(shard_id)[0]
     account_receiver = get_accounts_in_shard(shard_id)[1]
-    full_node = SUT.full_node
 
     print("""
                Verify send PRV ( no privacy - Auto fee )to another address 1Shard successfully with no privacy
@@ -22,16 +20,14 @@ def test_05_send_prv_no_privacy_same_shard_auto_fee(send_amount, shard_id):
     STEP(1, "get sender and receiver balance before sending")
     sender_bal = account_sender.get_prv_balance()
     INFO("sender balance before: " + str(sender_bal))
-    assert sender_bal.is_success(), "get sender balance wrong"
 
     receiver_bal = account_receiver.get_prv_balance()
     INFO("receiver balance before: " + str(receiver_bal))
-    assert receiver_bal.is_success(), "get receiver balance wrong"
 
     STEP(2, "send PRV")
     send_result = account_sender.send_prv_to(account_receiver, send_amount, privacy=0)
     INFO("transaction id: " + send_result.get_tx_id())
-    assert send_result.is_success(), "make transaction success"
+    assert send_result.expect_no_error()
 
     STEP(3, "subscribe transaction")
     send_transaction_info = send_result.subscribe_transaction()
@@ -50,8 +46,7 @@ def test_05_send_prv_no_privacy_same_shard_auto_fee(send_amount, shard_id):
     assert receiver_bal_after.get_result() == receiver_bal.get_result() + send_amount, "receiver balance output incorrect"
 
     STEP(6, "Check transaction privacy")
-    step6_result = full_node.transaction().get_tx_by_hash(send_result.get_tx_id())
-    assert not step6_result.get_privacy(), "transaction is no privacy"
+    send_result.subscribe_transaction().verify_prv_privacy()
 
 
 def setup_function():

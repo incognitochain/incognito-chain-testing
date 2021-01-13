@@ -201,6 +201,18 @@ class TransactionRpc:
                          ]). \
             execute()
 
+    def withdraw_reward_privacy_v2(self, private_key, payment_address, token_id):
+        tx_fee = 1
+        return self.rpc_connection. \
+            with_method("withdrawreward"). \
+            with_params([private_key, {}, tx_fee, 0,
+                         {
+                             "PaymentAddress": payment_address,
+                             "TokenID": token_id,
+                         }
+                         ]). \
+            execute()
+
     def get_reward_prv(self, payment_address):
         return self.rpc_connection. \
             with_method("getrewardamount"). \
@@ -357,6 +369,14 @@ class TransactionRpc:
             with_method('sendtransaction'). \
             with_params([proof]). \
             execute()
+
+    def submit_key(self, private_k):
+        """
+        for privacy v2, must subscribe for caching and getting balance
+        @param private_k:
+        @return:
+        """
+        return self.rpc_connection.with_method('submitkey').with_params([private_k]).execute()
 
     def submit_key(self, private_k):
         """

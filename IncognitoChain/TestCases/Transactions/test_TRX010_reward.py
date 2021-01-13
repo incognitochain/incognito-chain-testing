@@ -58,11 +58,11 @@ def test_verify_reward_received():
 
     STEP(1, "Get current epoch")
     current_bb = SUT().get_latest_beacon_block()
-    current_epoch = current_bb.get_epoch()
-    INFO(f'Current epoch = {current_epoch}')
+    epoch_b4_test = current_bb.get_epoch()
+    INFO(f'Current epoch = {epoch_b4_test}')
 
     STEP(2, "Wait till next epoch")
-    next_epoch = ChainHelper.wait_till_next_epoch(current_epoch + 1)
+    next_epoch = ChainHelper.wait_till_next_epoch(epoch_b4_test + 1)
 
     STEP(3.1, "Get Beacons earned reward before test")
     sum_beacons_earned_reward_b4 = 0
@@ -84,7 +84,7 @@ def test_verify_reward_received():
     BB_reward_instruction = instruction_BB.get_transaction_reward_from_instruction()
 
     STEP(4.2, 'Wait for 1 more epoch')
-    ChainHelper.wait_till_next_epoch(current_epoch + 2)
+    ChainHelper.wait_till_next_epoch(epoch_b4_test + 2)
     STEP(5.1, "Get Beacons earned reward after 1 epoch")
     sum_beacons_earned_reward_af = 0
     for acc in BEACON_ACCOUNTS:

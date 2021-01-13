@@ -1,40 +1,10 @@
 from IncognitoChain.Configs.Constants import coin, PBNB_ID, PRV_ID, PBTC_ID
-from IncognitoChain.Drivers.NeighborChainCli import BnbCli
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
 from IncognitoChain.Helpers.PortalHelper import PortalMath
 from IncognitoChain.Helpers.TestHelper import ChainHelper
-from IncognitoChain.Objects.AccountObject import AccountGroup, PORTAL_FEEDER, COIN_MASTER
-from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
-
-# ---- import BNB key for testing
-cli_pass_phrase = '123123Az'
-BNB_MNEMONIC_LIST = [
-    'web dwarf series matrix promote verb ahead topple blue maple vicious must useful then ice slice useless teach skate fork giraffe bamboo undo answer',
-    'orbit endless sample emotion black armor duck erosion next grow apart envelope inform museum aspect task buddy salt adjust bag eyebrow involve void unfair',
-    'place gas monkey narrow leaf cross electric hero minimum nothing improve soul slow casual fun clerk muffin piece wool admit immense search response miracle',
-    'enemy moral minute rude field seven setup odor address salad state select board useful punch fault mass flip culture duty metal much priority joy',
-    'luggage guide power apple transfer swarm mammal raw super bubble buffalo thunder sister insane veteran sheriff sport body crack belt outdoor grit drama range',
-]
-
-cli = BnbCli()
-cli.import_mnemonics('user', cli_pass_phrase, BNB_MNEMONIC_LIST)
-bnb_address_list = list(cli.list_user_addresses().values())
-# ----------------------------------------------------------------------------------------------------------------------
-
-TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
-TEST_SETTING_PORTING_AMOUNT = 100
-TEST_SETTING_REDEEM_AMOUNT = 10
-
-self_pick_custodian = ACCOUNTS[6].set_remote_addr(bnb_address_list[0], 'mgdwpAgvYNuJ2MyUimiKdTYsu2vpDZNpAa')
-portal_user = ACCOUNTS[1].set_remote_addr(bnb_address_list[1], 'mhpTRAPdmyB1PUvXR2yqaSBK8ZJhEQ8rEw')
-all_custodians = AccountGroup(
-    ACCOUNTS[3].set_remote_addr(bnb_address_list[2], 'mg3me76RFFWeRuYqM6epwjMHHMTaouYLDe'),
-    ACCOUNTS[4].set_remote_addr(bnb_address_list[3], 'mkgT1mphBPX1C3tn9yRK7HmVSYkVEn7VzY'),
-    ACCOUNTS[5].set_remote_addr(bnb_address_list[4], 'myo25dPxQNqk94HwFLeFr42cH8VbwTGbBm'),
-    self_pick_custodian
-)
-another_bnb_addr = 'tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss'
-another_btc_addr = 'mytWP2jW6Hsj5YdPvucm8Kkop9789adjQn'
+from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER, COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
+from IncognitoChain.TestCases.Portal import all_custodians, TEST_SETTING_DEPOSIT_AMOUNT
 
 init_portal_rate = {
     PRV_ID: '83159',

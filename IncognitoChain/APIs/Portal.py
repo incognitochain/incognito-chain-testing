@@ -272,3 +272,46 @@ class PortalRpc:
     def get_btc_relaying_state(self):
         return self.rpc_connection.with_method('getbtcrelayingbeststate'). \
             with_params([]).execute()
+
+
+class PortalRpcV3(PortalRpc):
+    def create_n_send_tx_with_custodian_deposit(self, private_k, token_id, remote_addr, blk_hash, tx_index, proof):
+        """
+        @param private_k: of custodian
+        @param token_id: of ptoken
+        @param remote_addr:
+        @param blk_hash:
+        @param tx_index:
+        @param proof:
+        @return:
+        """
+        return self.rpc_connection.with_method("createandsendtxwithcustodiandepositv3"). \
+            with_params([private_k, None, -1, 0,
+                         {"RemoteAddresses": {token_id: remote_addr},
+                          "BlockHash": blk_hash,
+                          "TxIndex": tx_index,
+                          "ProffStrs": proof}]).execute()
+
+    def get_portal_custodian_deposit_status_v3(self, deposit_tx_id):
+        return self.rpc_connection.with_method('getportalcustodiandepositstatusv3'). \
+            with_params([{"DepositTxID": deposit_tx_id}]). \
+            execute()
+
+    def create_n_send_custodian_withdraw_req_v3(self, private_key, custodian_inc_addr, amount, custodian_ext_addr,
+                                                ext_token_id):
+        return self.rpc_connection.with_method("createandsendtxwithcustodianwithdrawrequestv3"). \
+            with_params([private_key, None, -1, 0,
+                         {"Amount": str(amount),
+                          "ExternalTokenID": ext_token_id,
+                          "CustodianExtAddress": custodian_ext_addr,
+                          "CustodianIncAddress": custodian_inc_addr}]).execute()
+
+    def get_custodian_withdraw_by_tx_id_v3(self, tx_id):
+        return self.rpc_connection.with_method("getcustodianwithdrawrequeststatusv3"). \
+            with_params([{"TxId": tx_id}]).execute()
+
+    def create_n_send_custodian_withdraw_req(self, private_key, payment_key, amount):
+        return self.rpc_connection.with_method("createandsendcustodianwithdrawrequest"). \
+            with_params([private_key, None, -1, 0,
+                         {"Amount": str(amount),
+                          "CustodianIncAddress": payment_key}]).execute()

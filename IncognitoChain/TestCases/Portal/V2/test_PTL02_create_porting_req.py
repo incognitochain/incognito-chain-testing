@@ -8,9 +8,9 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER, COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import PortingReqInfo, PTokenReqInfo
-from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, \
-    TEST_SETTING_PORTING_AMOUNT, all_custodians, big_rate, \
-    big_porting_amount, init_portal_rate, TEST_SETTING_DEPOSIT_AMOUNT
+from IncognitoChain.TestCases.Portal import portal_user, TEST_SETTING_PORTING_AMOUNT, cli_pass_phrase
+from IncognitoChain.TestCases.Portal.V2 import all_custodians, big_rate, big_porting_amount, init_portal_rate, \
+    TEST_SETTING_DEPOSIT_AMOUNT
 
 n = 'n'
 
@@ -295,7 +295,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
 
 
 def prepare_fat_custodian():
-    from IncognitoChain.TestCases.Portal import find_fat_custodian, big_collateral, fat_custodian_prv
+    from IncognitoChain.TestCases.Portal.V2 import find_fat_custodian, big_collateral, fat_custodian_prv
     fat_custodian = find_fat_custodian()
     COIN_MASTER.top_him_up_prv_to_amount_if(big_collateral, fat_custodian_prv, fat_custodian)
     # deposit big collateral

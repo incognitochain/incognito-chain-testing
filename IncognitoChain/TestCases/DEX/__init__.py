@@ -201,3 +201,11 @@ def calculate_trade_order(trading_fees_list, amount_list):
 #         pde_trade_prv(10, token_id_1, 1).expect_no_error().subscribe_transaction()
 #     acc_list_n_shard.get_accounts_in_shard(5)[0]. \
 #         pde_trade_prv(10, token_id_2, 1).expect_no_error().subscribe_transaction()
+
+# work around for privacy v2 "invalid token" bug, if not testing privacy v2, just comment these lines
+# if ChainConfig.PRIVACY_VERSION == 2:
+#     COIN_MASTER.top_him_up_prv_to_amount_if(1000, coin(1), acc_list_n_shard)
+#     acc_list_n_shard.get_accounts_in_shard(5)[0]. \
+#         pde_trade_prv(10, token_id_1, 1).expect_no_error().subscribe_transaction()
+#     acc_list_n_shard.get_accounts_in_shard(5)[0]. \
+#         pde_trade_prv(10, token_id_2, 1).expect_no_error().subscribe_transaction()

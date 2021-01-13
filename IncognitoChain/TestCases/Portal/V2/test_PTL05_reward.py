@@ -5,7 +5,8 @@ from IncognitoChain.Helpers.Logging import STEP, INFO
 from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
 from IncognitoChain.Objects.PortalObjects import RewardWithdrawTxInfo
-from IncognitoChain.TestCases.Portal import portal_user, find_fat_custodian
+from IncognitoChain.TestCases.Portal import portal_user
+from IncognitoChain.TestCases.Portal.V2 import find_fat_custodian
 
 
 @pytest.mark.parametrize("custodian_account", [

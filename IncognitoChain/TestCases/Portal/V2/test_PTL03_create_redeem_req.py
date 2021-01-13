@@ -9,8 +9,8 @@ from IncognitoChain.Helpers.TestHelper import l6
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, UnlockCollateralReqInfo, RedeemMatchingInfo
-from IncognitoChain.TestCases.Portal import portal_user, cli_pass_phrase, all_custodians, \
-    TEST_SETTING_REDEEM_AMOUNT, test_PTL02_create_porting_req, TEST_SETTING_PORTING_AMOUNT
+from IncognitoChain.TestCases.Portal import TEST_SETTING_REDEEM_AMOUNT, TEST_SETTING_PORTING_AMOUNT, portal_user
+from IncognitoChain.TestCases.Portal.V2 import all_custodians, test_PTL02_create_porting_req
 
 n = 2
 full_holding = 'full holding'

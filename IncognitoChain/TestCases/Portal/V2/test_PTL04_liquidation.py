@@ -7,7 +7,8 @@ from IncognitoChain.Helpers.TestHelper import l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import PORTAL_FEEDER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
-from IncognitoChain.TestCases.Portal import test_PTL02_create_porting_req as porting_step, portal_user
+from IncognitoChain.TestCases.Portal import portal_user
+from IncognitoChain.TestCases.Portal.V2 import test_PTL02_create_porting_req as porting_step
 
 
 def setup_function():

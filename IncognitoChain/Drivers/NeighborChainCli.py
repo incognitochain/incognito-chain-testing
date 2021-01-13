@@ -423,3 +423,51 @@ class BtcGo:
             DEBUG(f""" Proof: =================  \n{proof}""")
 
             return proof
+
+
+class EthGo:
+    if sys.platform == 'darwin':
+        eth_go_path = f'{os.getcwd()}/IncognitoChain/bin/ethGo/mac/'
+    elif sys.platform == 'linux':
+        eth_go_path = f'{os.getcwd()}/IncognitoChain/bin/ethGo/linux/'
+    else:
+        eth_go_path = f'{os.getcwd()}/IncognitoChain/bin/ethGo/win/'
+
+    eth_send_bin = eth_go_path + "send"
+    eth_get_proof_bin = eth_go_path + "getProof"
+
+    if sys.platform == 'windows':
+        eth_send_bin += '.exe'
+        eth_get_proof_bin += '.exe'
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def __exec_command(command):
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE,
+                                   universal_newlines=True)
+        stdout, stderr = process.communicate()
+
+        INFO(f"\n"
+             f"+++ command: {' '.join(command)}\n\n"
+             f"+++ out: {stdout}\n\n"
+             f"+++ err: {stderr}")
+
+        dict_response = json_extract(stdout)
+        return EthGo.EthResponse(dict_response)
+
+    def get_balance(self, addr):
+        pass
+
+    def get_tx_by_hash(self, tx_hash=None):
+        pass
+
+    def send_to(self, sender, receiver, amount, password, memo):
+        pass
+
+    def send_to_multi(self, sender, receiver_amount_dict, password, memo):
+        pass
+
+    class EthResponse:
+        pass
