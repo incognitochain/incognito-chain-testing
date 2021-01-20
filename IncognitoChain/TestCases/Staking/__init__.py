@@ -11,30 +11,29 @@ from IncognitoChain.Configs.Constants import coin, ChainConfig
 from IncognitoChain.Helpers.KeyListJson import KeyListJson
 from IncognitoChain.Helpers.Logging import INFO, STEP
 from IncognitoChain.Helpers.TestHelper import ChainHelper
-from IncognitoChain.Objects.AccountObject import Account, COIN_MASTER
+from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 key_list_file = KeyListJson()
-
 fixed_validators = key_list_file.get_shard_fix_validator_accounts()
-auto_stake_list = key_list_file.get_staker_accounts()
+stakers = key_list_file.get_staker_accounts()
+try:
+    num_of_auto_stake = ChainConfig.ACTIVE_SHARD * (ChainConfig.SHARD_COMMITTEE_SIZE - ChainConfig.FIX_BLOCK_VALIDATOR)
+    auto_stake_list = stakers[:num_of_auto_stake]
+    stake_account = stakers[num_of_auto_stake]
+    staked_account = stakers[num_of_auto_stake + 1]
+    account_a = stakers[num_of_auto_stake + 2]
+    account_u = stakers[num_of_auto_stake + 3]
+    account_t = stakers[num_of_auto_stake + 4]
+except IndexError:
+    raise EnvironmentError(f'Not enough staker in keylist file for the test. '
+                           f'Check the file, and make sure nodes are run or else chain will be stuck')
 
 token_holder_shard_0 = Account(
     "112t8rnX6USJnBzswUeuuanesuEEUGsxE8Pj3kkxkqvGRedUUPyocmtsqETX2WMBSvfBCwwsmMpxonhfQm2N5wy3SrNk11eYxEyDtwuGxw2E")
 token_holder_shard_1 = Account(
     "112t8rnXoEWG5H8x1odKxSj6sbLXowTBsVVkAxNWr5WnsbSTDkRiVrSdPy8QfMujntKRYBqywKMJCyhMpdr93T3XiUD5QJR1QFtTpYKpjBEx")
-stake_account = Account(
-    "112t8rowNCSCcPcT6JNHqNLHJsPJTk5t9c9fu8eCVCXXoAsFgdxH2xXCjit3oumU1bdQYsWQP72Z1djfMvg77GfysH2ftYJz88EpyZbEdxvq")
-staked_account = Account(
-    "112t8roAjzuJQvmH9PBEunsPRrdpfxXh768DBrhrnit3GxamwdcyFmgXxvP4ZaGr3uikLkUJWV7b2gmTBuBnNVQQzCpJkp3yVXXXeXsxdAL3")
-
-account_a = Account(
-    "112t8ropXTnh4BAjMLidgzVB4KGxd1rQiXrPsJsDELd5sfXyUFXVpebB2KgMRexv1Uab7p1Y2TGfqDT9iQyqW8MNd5ZC72rbAee2J8nkUiA7")
-account_u = Account(
-    "112t8rop2yLXRJyKi4WsKTi3cqHgRQuG73zBBExm5QVoRbSgK1qEEgoTpZTQVz5dJeLfbzmx4K4FUJzDCSAkbAuF29U2Q3yngD7RstxYuWmT")
-account_t = Account(
-    "112t8roADWxdSoEnc9bjCBvZTzVGpw2ejL3QvoCfBPkMmmKmDqH8Mk6JYEx2HqCtCtF2fMo9eRL4NuodKoLmVpXwJYpUxMPGxHtF6sdtrSTw")
 
 amount_stake_under_1750 = random.randint(coin(1), coin(1749))
 amount_stake_over_1750 = random.randint(coin(1751), coin(1850))
@@ -43,8 +42,8 @@ amount_token_fee = 1000000
 token_init_amount = coin(100000)
 token_contribute_amount = coin(10000)
 prv_contribute_amount = coin(10000)
-token_id = '6385e00c6db9f6bfba8d235da8436ce9ab60339ad30fbc0696d055818bf75292'
-# token_id = None  # if None, the test will automatically mint a new token and use it for testing
+# token_id = '6385e00c6db9f6bfba8d235da8436ce9ab60339ad30fbc0696d055818bf75292'
+token_id = None  # if None, the test will automatically mint a new token and use it for testing
 tear_down_trx008 = False
 
 
@@ -69,13 +68,9 @@ def setup_module():
         INFO(msg)
         pytest.skip(msg)
 
-    STEP(0.2, 'Top up committees')
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), auto_stake_list + [stake_account, staked_account])
-
-    STEP(0.3, 'Stake and wait till becoming committee')
+    STEP(0.3, 'Top up, stake and wait till becoming committee')
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
     wait_need = False
-    num_of_auto_stake = ChainConfig.ACTIVE_SHARD * (ChainConfig.SHARD_COMMITTEE_SIZE - ChainConfig.FIX_BLOCK_VALIDATOR)
     for committee in auto_stake_list[:num_of_auto_stake]:
         if not beacon_bsd.is_he_a_committee(committee) and beacon_bsd.get_auto_staking_committees(
                 committee) is None:
