@@ -36,6 +36,9 @@ class Node:
                  rpc_port=default_rpc_port, ws_port=default_ws_port, account=None, sshkey=default_ssh_pub_key,
                  url=None, node_name=None):
         self._address = address
+        self._username = username
+        self._password = password
+        self._ssh_key = sshkey
         self._rpc_port = rpc_port
         self._ws_port = ws_port
         self._node_name = node_name
@@ -45,7 +48,8 @@ class Node:
         if url is not None:
             self.parse_url(url)
         self._rpc_connection = RpcConnection(self._get_rpc_url())
-        self._ssh_session = Node.SshActions(self._address, username, password, sshkey)
+        self._ssh_session = SshSession()
+        self._cache = {}
 
     def __str__(self):
         return f"{self._get_rpc_url()} ws:{self._ws_port}"
@@ -302,7 +306,8 @@ class Node:
 
         list_num_of_shard_block = []
         beacon_blocks_in_epoch = {}
-        for shard_id in shard_range:  # get smallest and biggest height of shard block then we have num of block in epoch
+        for shard_id in shard_range:
+            # get smallest and biggest height of shard block then we have num of block in epoch
             for height in range(first_height_of_epoch, last_height_of_epoch + 1):
                 try:
                     bb = beacon_blocks_in_epoch[height]
@@ -426,146 +431,138 @@ class Node:
         response = self.system_rpc().retrieve_block_by_height(height, shard_id)
         return ShardBlock(response.get_result())
 
-    class SshActions(SshSession):
-        def __pgrep_incognito(self):
-            cmd = 'pgrep incognito -a'
-            pgrep_data = self.send_cmd(cmd)
-            return pgrep_data
-
-        def __find_cmd_full_line(self, rpc_port=None):
-            try:
-                return self._cache['cmd']
-            except KeyError:
-                pass
-
-            regex = re.compile(
-                r'--rpclisten (localhost|'
-                r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):'
-                f'{rpc_port}', re.IGNORECASE)
-            for line in self.__pgrep_incognito():
-                if re.findall(regex, line):
-                    self._cache['cmd'] = line.split()
-                    return line.split()
-            INFO(f'Not found any Incognito process running with rpc port {rpc_port}')
-
-        def __find_run_command(self, rpc_port=None):
-            """
-            @param rpc_port:
-            @return: string
-            """
-            try:
-                return ' '.join(self._cache['cmd'][1:])
-            except KeyError:
-                return ' '.join(self.__find_cmd_full_line(rpc_port)[1:])
-
-        def __get_working_dir(self):
-            """
-            @return: Absolute path to working dir
-            """
-            try:
-                return self._cache['dir']
-            except KeyError:
-                raise ValueError('Not found working directory in cache, must run find_pid_by_rpc_port first')
-
-        def __get_data_dir(self):
-            """
-            @return: data dir, relative to working dir
-            """
-            full_cmd = self.__find_run_command()
-            pattern = re.compile(r"--datadir \w+/(\w+)")
-            return re.findall(pattern, full_cmd)[0]
-
-        def __goto_working_dir(self):
-            return self.goto_folder(self.__get_working_dir())
-
-        def __goto_data_dir(self):
-            return self.goto_folder(f'{self.__get_working_dir()}/{self.__get_data_dir()}')
-
-        def find_pid(self, rpc_port=None):
-            """
-            get process id base on rpc port of the node
-            @return:
-            """
-            try:
-                pid = self._cache['cmd'][0]
-            except KeyError:
-                pid = self.__find_cmd_full_line(rpc_port)[0]
-
-            # find working dir if not yet found
-            try:
-                self._cache['dir']
-            except KeyError:
-                cmd = f'pwdx {pid}'
-                result = self.send_cmd(cmd)
-                if result[1] != 'No such process':
-                    self._cache['dir'] = result[1].split()[1]
-
-            return pid
-
-        def start_node(self):
-            cmd = self.__find_run_command()
-            folder = self.__get_working_dir()
-            self.send_cmd(f'cd {folder}')
-            return self.send_cmd(f'{cmd} >> logs/{self.get_log_file()} 2> logs/{self.get_error_log_file()} &')
-
-        def kill_node(self):
-            return self.send_cmd(f'kill {self.find_pid()}')
-
-        def is_node_alive(self):
-            cmd = f'[ -d "/proc/{self.find_pid()}" ] && echo 1 || echo 0'
-            return bool(int(self.send_cmd(cmd)[1][0]))
-
-        def clear_data(self):
-            if self.is_node_alive():
-                raise IOError(f'Cannot clear data when process is running')
-            self.__goto_data_dir()
-            return self.send_cmd(f'rm -Rf *')
-
-        def get_log_folder(self):
-            return f"{self.__get_working_dir()}/logs"
-
-        def get_log_file(self):
-            # when build chain, the log file name must be the same as data dir name
-            # if encounter problem here, check your build config again
-            data_path = self.__get_data_dir()
-            data_dir_name = data_path.split('/')[-1]
-            return f"{data_dir_name}.log"
-
-        def get_error_log_file(self):
-            # when build chain, the log file name must be the same as data dir name
-            # if encounter problem here, check your build config again
-            data_path = self.__get_data_dir()
-            data_dir_name = data_path.split('/')[-1]
-            return f"{data_dir_name}_error.log"
-
-        def log_tail_grep(self, grep_pattern, tail_option=''):
-            """
-            @param grep_pattern:
-            @param tail_option: careful with this, -f might cause serious problem when not handling correctly afterward
-            @return: output of tail command
-            """
-            tail_cmd = f'tail {tail_option} {self.get_log_file()} | grep {grep_pattern}'
-            return self.send_cmd(tail_cmd)
-
-        def log_cat_grep(self, grep_pattern):
-            """
-
-            @param grep_pattern:
-            @return: output of cat command
-            """
-            cat_cmd = f'cat {self.get_log_file()} | grep {grep_pattern}'
-            return self.send_cmd(cat_cmd)
-
-    def ssh(self) -> SshActions:
+    def ssh_attach(self, ssh_session):
         """
-        Everytime this method is called, will will create a new ssh connection even if to the same host that you already
-        ssh to before. Use this method only if you intend to do so
-        Otherwise, please use 'TestBed.ssh_to(node)' method
         @return:
         """
-        if self._ssh_session.closed:
-            INFO(f'Start ssh connection to {self._address}')
-            self._ssh_session.ssh_connect()
-            self._ssh_session.find_pid(self._rpc_port)
+        self._ssh_session = ssh_session
+        return self
 
-        return self._ssh_session
+    def __pgrep_incognito(self):
+        cmd = 'pgrep incognito -a'
+        pgrep_data = self._ssh_session.send_cmd(cmd)
+        return pgrep_data
+
+    def __find_cmd_full_line(self, rpc_port=None):
+        try:
+            return self._cache['cmd']
+        except KeyError:
+            pass
+
+        regex = re.compile(
+            r'--rpclisten (localhost|'
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):'
+            f'{rpc_port}', re.IGNORECASE)
+        for line in self.__pgrep_incognito():
+            if re.findall(regex, line):
+                self._cache['cmd'] = line.split()
+                return line.split()
+        INFO(f'Not found any Incognito process running with rpc port {rpc_port}')
+
+    def __find_run_command(self, rpc_port=None):
+        """
+        @param rpc_port:
+        @return: string
+        """
+        try:
+            return ' '.join(self._cache['cmd'][1:])
+        except KeyError:
+            return ' '.join(self.__find_cmd_full_line(rpc_port)[1:])
+
+    def __get_working_dir(self):
+        """
+        @return: Absolute path to working dir
+        """
+        try:
+            return self._cache['dir']
+        except KeyError:
+            raise ValueError('Not found working directory in cache, must run find_pid_by_rpc_port first')
+
+    def __get_data_dir(self):
+        """
+        @return: data dir, relative to working dir
+        """
+        full_cmd = self.__find_run_command(self._rpc_port)
+        pattern = re.compile(r"--datadir \w+/(\w+)")
+        return re.findall(pattern, full_cmd)[0]
+
+    def __goto_working_dir(self):
+        return self._ssh_session.goto_folder(self.__get_working_dir())
+
+    def __goto_data_dir(self):
+        return self._ssh_session.goto_folder(f'{self.__get_working_dir()}/{self.__get_data_dir()}')
+
+    def find_pid(self, rpc_port=None):
+        """
+        get process id base on rpc port of the node
+        @return:
+        """
+        try:
+            pid = self._cache['cmd'][0]
+        except KeyError:
+            pid = self.__find_cmd_full_line(rpc_port)[0]
+
+        # find working dir if not yet found
+        try:
+            self._cache['dir']
+        except KeyError:
+            cmd = f'pwdx {pid}'
+            result = self._ssh_session.send_cmd(cmd)
+            if result[1] != 'No such process':
+                self._cache['dir'] = result[1].split()[1]
+
+        return pid
+
+    def start_node(self):
+        cmd = self.__find_run_command(self._rpc_port)
+        folder = self.__get_working_dir()
+        self._ssh_session.send_cmd(f'cd {folder}')
+        return self._ssh_session.send_cmd(f'{cmd} >> logs/{self.get_log_file()} 2> logs/{self.get_error_log_file()} &')
+
+    def kill_node(self):
+        return self._ssh_session.send_cmd(f'kill {self.find_pid()}')
+
+    def is_node_alive(self):
+        cmd = f'[ -d "/proc/{self.find_pid()}" ] && echo 1 || echo 0'
+        return bool(int(self._ssh_session.send_cmd(cmd)[1][0]))
+
+    def clear_data(self):
+        if self.is_node_alive():
+            raise IOError(f'Cannot clear data when process is running')
+        self.__goto_data_dir()
+        return self._ssh_session.send_cmd(f'rm -Rf *')
+
+    def get_log_folder(self):
+        return f"{self.__get_working_dir()}/logs"
+
+    def get_log_file(self):
+        # when build chain, the log file name must be the same as data dir name
+        # if encounter problem here, check your build config again
+        data_path = self.__get_data_dir()
+        data_dir_name = data_path.split('/')[-1]
+        return f"{data_dir_name}.log"
+
+    def get_error_log_file(self):
+        # when build chain, the log file name must be the same as data dir name
+        # if encounter problem here, check your build config again
+        data_path = self.__get_data_dir()
+        data_dir_name = data_path.split('/')[-1]
+        return f"{data_dir_name}_error.log"
+
+    def log_tail_grep(self, grep_pattern, tail_option=''):
+        """
+        @param grep_pattern:
+        @param tail_option: careful with this, -f might cause serious problem when not handling correctly afterward
+        @return: output of tail command
+        """
+        tail_cmd = f'tail {tail_option} {self.get_log_file()} | grep {grep_pattern}'
+        return self._ssh_session.send_cmd(tail_cmd)
+
+    def log_cat_grep(self, grep_pattern):
+        """
+
+        @param grep_pattern:
+        @return: output of cat command
+        """
+        cat_cmd = f'cat {self.get_log_file()} | grep {grep_pattern}'
+        return self._ssh_session.send_cmd(cat_cmd)

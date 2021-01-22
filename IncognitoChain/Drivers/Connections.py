@@ -152,7 +152,7 @@ class WebSocket(RpcConnection):
 
 
 class SshSession(pxssh.pxssh):
-    def __init__(self, address, username=None, password=None, sshkey=None):
+    def __init__(self, address=None, username=None, password=None, sshkey=None):
         super().__init__()
         self._address = address
         self._username = username

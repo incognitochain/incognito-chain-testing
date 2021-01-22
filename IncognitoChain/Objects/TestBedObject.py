@@ -1,6 +1,7 @@
 from typing import List
 
 import IncognitoChain.Helpers.Logging as Log
+from IncognitoChain.Drivers.Connections import SshSession
 from IncognitoChain.Objects.NodeObject import Node
 
 
@@ -45,12 +46,14 @@ class TestBed:
             TestBed.REQUEST_HANDLER = self.full_node
 
     @staticmethod
-    def ssh_to(node):
+    def ssh_to(node: Node):
         try:
-            return TestBed.SSH_CONNECTION[node._address]
+            TestBed.SSH_CONNECTION[node._address]
         except KeyError:
-            TestBed.SSH_CONNECTION[node._address] = node.ssh()
-            return TestBed.SSH_CONNECTION[node._address]
+            TestBed.SSH_CONNECTION[node._address] = SshSession(node._address, node._username, node._password,
+                                                               node._ssh_key).ssh_connect()
+        node.ssh_attach(TestBed.SSH_CONNECTION[node._address])
+        return node
 
     def __call__(self, *args, **kwargs):
         return TestBed.REQUEST_HANDLER
