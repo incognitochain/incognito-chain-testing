@@ -557,6 +557,12 @@ class Node:
             return self.send_cmd(cat_cmd)
 
     def ssh(self) -> SshActions:
+        """
+        Everytime this method is called, will will create a new ssh connection even if to the same host that you already
+        ssh to before. Use this method only if you intend to do so
+        Otherwise, please use 'TestBed.ssh_to(node)' method
+        @return:
+        """
         if self._ssh_session.closed:
             INFO(f'Start ssh connection to {self._address}')
             self._ssh_session.ssh_connect()

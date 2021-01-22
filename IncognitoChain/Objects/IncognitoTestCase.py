@@ -21,7 +21,7 @@ if not skip_load:
     # load test bed
     test_bed = config.test_bed
     if PARAMS.get("testBed") is not None:
-        test_bed = PARAMS.get("testBed").strip('.py')
+        test_bed = PARAMS.get("testBed").rstrip('y').rstrip('p').rstrip('.')
     SUT: TestBed = TestBed(test_bed)
 
     # load account list

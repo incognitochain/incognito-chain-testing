@@ -22,6 +22,7 @@ def load_test_bed(name):
 
 class TestBed:
     REQUEST_HANDLER: Node = Node()
+    SSH_CONNECTION = {}
 
     def __init__(self, test_bed=None):
         if test_bed is not None:
@@ -42,6 +43,14 @@ class TestBed:
             self.name = ""
             self.stakers: List[Node] = []
             TestBed.REQUEST_HANDLER = self.full_node
+
+    @staticmethod
+    def ssh_to(node):
+        try:
+            return TestBed.SSH_CONNECTION[node._address]
+        except KeyError:
+            TestBed.SSH_CONNECTION[node._address] = node.ssh()
+            return TestBed.SSH_CONNECTION[node._address]
 
     def __call__(self, *args, **kwargs):
         return TestBed.REQUEST_HANDLER
