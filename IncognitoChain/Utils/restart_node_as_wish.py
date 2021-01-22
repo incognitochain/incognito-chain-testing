@@ -4,6 +4,7 @@ from typing import List
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.NodeObject import Node
+from IncognitoChain.Objects.TestBedObject import TestBed
 
 node1 = Node(url="http://51.79.76.38:9352")
 node2 = Node(url="http://51.79.76.38:9340")
@@ -15,7 +16,7 @@ nodes = [node1, node2]
 def restart_at_beacon_height(stop_height, start_height, node_list: List[Node], check_interval):
     height = beacon.help_get_beacon_height()
     for n in node_list:
-        n.ssh()
+        TestBed.ssh_to(n)
 
     while True:
         INFO(f"current height = {height}")
@@ -23,7 +24,7 @@ def restart_at_beacon_height(stop_height, start_height, node_list: List[Node], c
             INFO(f'Height = {height}, stop the nodes')
             with ThreadPoolExecutor() as e:
                 for n in node_list:
-                    e.submit(n.ssh().kill_node)
+                    e.submit(n.kill_node)
             break
         WAIT(check_interval)
         height = beacon.help_get_beacon_height()
@@ -34,7 +35,7 @@ def restart_at_beacon_height(stop_height, start_height, node_list: List[Node], c
             INFO(f'Height = {height}, start the nodes')
             with ThreadPoolExecutor() as e:
                 for n in node_list:
-                    e.submit(n.ssh().start_node)
+                    e.submit(n.start_node)
             break
         WAIT(check_interval)
         height = beacon.help_get_beacon_height()

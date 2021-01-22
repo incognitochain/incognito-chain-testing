@@ -48,7 +48,7 @@ class Node:
         if url is not None:
             self.parse_url(url)
         self._rpc_connection = RpcConnection(self._get_rpc_url())
-        self._ssh_session = SshSession()
+        self._ssh_session = SshSession(self._address, self._username, self._password, self._ssh_key)
         self._cache = {}
 
     def __str__(self):
@@ -460,7 +460,7 @@ class Node:
                 return line.split()
         INFO(f'Not found any Incognito process running with rpc port {self._rpc_port}')
 
-    def __find_run_command(self, ):
+    def __find_run_command(self):
         """
         @return: string
         """
@@ -482,7 +482,7 @@ class Node:
         """
         @return: data dir, relative to working dir
         """
-        full_cmd = self.__find_run_command(self._rpc_port)
+        full_cmd = self.__find_run_command()
         pattern = re.compile(r"--datadir \w+/(\w+)")
         return re.findall(pattern, full_cmd)[0]
 
@@ -514,7 +514,7 @@ class Node:
         return pid
 
     def start_node(self):
-        cmd = self.__find_run_command(self._rpc_port)
+        cmd = self.__find_run_command()
         folder = self.__get_working_dir()
         self._ssh_session.send_cmd(f'cd {folder}')
         return self._ssh_session.send_cmd(f'{cmd} >> logs/{self.get_log_file()} 2> logs/{self.get_error_log_file()} &')
