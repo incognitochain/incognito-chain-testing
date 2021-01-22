@@ -443,7 +443,8 @@ class Node:
         pgrep_data = self._ssh_session.send_cmd(cmd)
         return pgrep_data
 
-    def __find_cmd_full_line(self, rpc_port=None):
+    def __find_cmd_full_line(self):
+
         try:
             return self._cache['cmd']
         except KeyError:
@@ -452,22 +453,21 @@ class Node:
         regex = re.compile(
             r'--rpclisten (localhost|'
             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):'
-            f'{rpc_port}', re.IGNORECASE)
+            f'{self._rpc_port}', re.IGNORECASE)
         for line in self.__pgrep_incognito():
             if re.findall(regex, line):
                 self._cache['cmd'] = line.split()
                 return line.split()
-        INFO(f'Not found any Incognito process running with rpc port {rpc_port}')
+        INFO(f'Not found any Incognito process running with rpc port {self._rpc_port}')
 
-    def __find_run_command(self, rpc_port=None):
+    def __find_run_command(self, ):
         """
-        @param rpc_port:
         @return: string
         """
         try:
             return ' '.join(self._cache['cmd'][1:])
         except KeyError:
-            return ' '.join(self.__find_cmd_full_line(rpc_port)[1:])
+            return ' '.join(self.__find_cmd_full_line()[1:])
 
     def __get_working_dir(self):
         """
@@ -492,7 +492,7 @@ class Node:
     def __goto_data_dir(self):
         return self._ssh_session.goto_folder(f'{self.__get_working_dir()}/{self.__get_data_dir()}')
 
-    def find_pid(self, rpc_port=None):
+    def find_pid(self):
         """
         get process id base on rpc port of the node
         @return:
@@ -500,7 +500,7 @@ class Node:
         try:
             pid = self._cache['cmd'][0]
         except KeyError:
-            pid = self.__find_cmd_full_line(rpc_port)[0]
+            pid = self.__find_cmd_full_line()[0]
 
         # find working dir if not yet found
         try:
