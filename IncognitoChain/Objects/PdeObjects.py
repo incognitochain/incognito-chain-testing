@@ -1,5 +1,5 @@
 import copy
-from re import search
+import re
 
 from IncognitoChain.Configs.Constants import PRV_ID, ChainConfig
 from IncognitoChain.Helpers import TestHelper
@@ -181,13 +181,13 @@ class PDEStateInfo(BlockChainInfoBaseClass):
     def __eq__(self, other):
         self_waiting_contributions = self.get_waiting_contributions()
         self_pde_pool = self.get_pde_pool_pairs()
-        self_pde_shares = self._get_pde_shares()
-        self_pde_reward = self._get_contributor_rewards()
+        self_pde_shares = self._get_pde_share_objects()
+        self_pde_reward = self._get_contributor_reward_objects()
 
         other_waiting_contributions = other.get_waiting_contributions()
         other_pde_pool = other.get_pde_pool_pairs()
-        other_pde_shares = other._get_pde_shares()
-        other_pde_reward = other._get_contributor_rewards()
+        other_pde_shares = other._get_pde_share_objects()
+        other_pde_reward = other._get_contributor_reward_objects()
 
         return self_waiting_contributions == other_waiting_contributions and \
                self_pde_pool == other_pde_pool and \
@@ -196,6 +196,14 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __str__(self):
+        # todo: implement this
+        string = ''
+        # self.get_waiting_contributions()
+        # self.get_pde_pool_pairs()
+        # self._get_contributor_reward_objects()
+        # self._get_pde_share_objects()
 
     def get_waiting_contributions(self):
         raw_waiting_list = self.data['WaitingPDEContributions']
@@ -254,7 +262,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             pool_pair_objs.append(pool_pair_obj)
         return pool_pair_objs
 
-    def _get_contributor_rewards(self, user=None, token1=None, token2=None):
+    def _get_contributor_reward_objects(self, user=None, token1=None, token2=None):
         DEBUG('==================================================================================================')
         of_user = 'any' if user is None else l6(extract_incognito_addr(user))
         tok1 = 'any' if token1 is None else l6(token1)
@@ -297,14 +305,14 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             INFO(f"Reward of {of_user}:{tok1}-{tok2} not found")
         return reward_pool
 
-    def get_contributor_reward(self, user=None, token1=None, token2=None):
+    def get_contributor_reward_amount(self, user=None, token1=None, token2=None):
         """
         :param user: Account or payment k
         :param token1:
         :param token2:
         :return: int value if found one, list of int if found many
         """
-        share_objects = self._get_contributor_rewards(user, token1, token2)
+        share_objects = self._get_contributor_reward_objects(user, token1, token2)
         list_amount = []
         for obj in share_objects:
             list_amount.append(obj.get_amount())
@@ -315,7 +323,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             return list_amount
         return 0
 
-    def _get_pde_shares(self, user=None, token1=None, token2=None):
+    def _get_pde_share_objects(self, user=None, token1=None, token2=None):
         # DEBUG('==================================================================================================')
         of_user = 'any' if user is None else l6(extract_incognito_addr(user))
         tok1 = 'any' if token1 is None else l6(token1)
@@ -366,7 +374,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         :param token2:
         :return: int value if found one, list of int if found many
         """
-        share_objects = self._get_pde_shares(user, token1, token2)
+        share_objects = self._get_pde_share_objects(user, token1, token2)
         list_amount = []
         for obj in share_objects:
             list_amount.append(obj.get_share_amount())
@@ -402,7 +410,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
     def sum_contributor_reward_of_pair(self, user=None, token1=None, token2=None):
         INFO(f'Calculating PDE reward of pair...')
-        reward_pool = self.get_contributor_reward(user, token1, token2)
+        reward_pool = self.get_contributor_reward_amount(user, token1, token2)
         sum_reward = sum(reward_pool) if type(reward_pool) is list else reward_pool
         sum_reward = 0 if sum_reward is None else sum_reward
         INFO(f'Sum reward = {sum_reward}')
@@ -410,7 +418,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
     def get_contributor_of_pair(self, token1, token2):
         contributor_list = []
-        for pair in self._get_pde_shares(None, token1, token2):
+        for pair in self._get_pde_share_objects(None, token1, token2):
             contributor = pair.get_payment_k()
             if contributor not in contributor_list:
                 contributor_list.append(contributor)
@@ -503,6 +511,12 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         rate = self.get_rate_between_token(token1, token2)
         return TestHelper.calculate_contribution(amount1, amount2, rate)
 
+    def verify_contribute_status(self, pair_id, expected_status, token1_contributed, token1_expected_return,
+                                 token2_contributed, token2_expected_return):
+        # todo implement later:
+        # get PDEContributeInfo, verify status, contributed amount, return amount ...
+        pass
+
 
 class PDEContributeInfo(BlockChainInfoBaseClass):
     """
@@ -541,29 +555,34 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
     def get_token2(self):
         return self.data["TokenID2Str"]
 
-    def get_contribute_amount_token1(self):
-        return self.data["Contributed1Amount"]
+    def __get_data_index_of_token(self, token_id):
+        """
+        find out if the input token id is 2 or 1 in contribute info
+        @param token_id:
+        @return:
+        """
+        for key, value in self.data.items():
+            if value == token_id:
+                regex = re.compile(r"TokenID(\d)Str")
+                return regex.match(key).group(1)
 
-    def get_contribute_amount_token2(self):
-        return self.data["Contributed2Amount"]
+    def get_contribute_amount_of_token(self, token_id):
+        """
+        @param token_id:
+        @return: contributed amount, raise KeyError exception if not found
+        """
+        index = self.__get_data_index_of_token(token_id)
+        key_contribute = f'Contributed{index}Amount'
+        return self.data[key_contribute]
 
-    def get_return_amount_1(self):
-        return self.data["Returned1Amount"]
-
-    def get_return_amount_2(self):
-        return self.data["Returned2Amount"]
-
-    def get_return_amount_of_token_id(self, token_id):
-        num = None
-        for k, v in self.data.items():
-            if v == token_id:
-                num = search('TokenID(\\d)Str', k).group(1)
-                break
-
-        if num == '1':
-            return self.get_return_amount_1()
-        elif num == '2':
-            return self.get_return_amount_2()
+    def get_return_amount_of_token(self, token_id):
+        """
+        @param token_id:
+        @return: amount to return back to contributor, raise KeyError exception if not found
+        """
+        index = self.__get_data_index_of_token(token_id)
+        key_contribute = f'Returned{index}Amount'
+        return self.data[key_contribute]
 
     def wait_for_contribution_status(self, pair_id, expecting_status, check_interval=10, timeout=40):
         time = 0

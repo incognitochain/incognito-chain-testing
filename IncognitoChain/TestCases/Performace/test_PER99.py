@@ -1,5 +1,6 @@
 import json
 import random
+import signal
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 
@@ -16,6 +17,8 @@ TX_PER_LOOP = 40
 GAP_BETWEEN_LOOP = 1
 SEND_AMOUNT = random.randrange(1000, 100000)
 
+SUMMARY = {}
+
 
 def create_proofs(senders, receivers, tx_fee, tx_privacy):
     proof_list = []
@@ -29,6 +32,20 @@ def create_proofs(senders, receivers, tx_fee, tx_privacy):
     for thread in thread_list:
         proof_list.append(thread.result())
     return proof_list
+
+
+def prepare_proof_1_shard_self_send(fee, privacy):
+    # shard = random.randrange(len(ACCOUNTS))
+    shard = 0
+    num_of_acc = len(ACCOUNTS[shard])
+    num_o_proof = num_of_proofs()
+    if num_o_proof > num_of_acc:
+        raise IndexError(f"Need {num_o_proof} Account to create tx, "
+                         f"but there's only {num_of_acc} Account in shard {shard}")
+    senders = ACCOUNTS[shard][:num_of_proofs()]
+    COIN_MASTER.top_him_up_prv_to_amount_if(coin(3), coin(5), senders)
+    INFO_HEADLINE(f' PREPARE TEST DATA, 1 SHARD TX, SHARD {shard}')
+    return create_proofs(senders, senders, fee, privacy)
 
 
 def prepare_proof_1_shard_in_1_shard(fee, privacy):
@@ -78,11 +95,13 @@ def num_of_proofs():
 
 
 @pytest.mark.parametrize("proof_list", [
+    prepare_proof_1_shard_self_send(1, 1),
     # prepare_proof_1_shard_in_1_shard(-1, 1),
-    prepare_proof_x_shard_from_1_shard(-1, 1),
+    # prepare_proof_x_shard_from_1_shard(-1, 1),
     # prepare_proof_1_shard_in_1_shard(-1, 0),
 ])
 def test_tx_machine_gun(proof_list):
+    global SUMMARY
     INFO_HEADLINE(f'Firing {len(proof_list)} txs at full node, {TX_PER_LOOP} round at a time')
     send_thread_list = []
     proof_list_len = len(proof_list)
@@ -109,7 +128,6 @@ def test_tx_machine_gun(proof_list):
 
     INFO(f'Wait for subscription complete')
     INFO(f'Waiting done')
-    summary = {}
     for tx_hash, result in block_list.items():
         try:
             block_height = result.result().get_block_height()
@@ -117,12 +135,22 @@ def test_tx_machine_gun(proof_list):
             block_height = 0
         INFO(f'{tx_hash} : {block_height}')
         try:
-            summary[block_height] += 1
+            SUMMARY[block_height] += 1
         except KeyError:
-            summary[block_height] = 1
+            SUMMARY[block_height] = 1
 
+    print_sum(None, None)
+
+
+def print_sum(sig, frame):
     INFO(f""" SUMMARY==================================================
 Block height : num of block in height
-{json.dumps(summary, indent=3)}
+{json.dumps(SUMMARY, indent=3)}
+-----------------------------------------------------------
 ===========================================================================
-        """)
+            """)
+    if sig is not None:
+        exit(0)
+
+
+signal.signal(signal.SIGINT, print_sum)

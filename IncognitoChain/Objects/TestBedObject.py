@@ -1,6 +1,7 @@
 from typing import List
 
 import IncognitoChain.Helpers.Logging as Log
+from IncognitoChain.Drivers.Connections import SshSession
 from IncognitoChain.Objects.NodeObject import Node
 
 
@@ -22,6 +23,7 @@ def load_test_bed(name):
 
 class TestBed:
     REQUEST_HANDLER: Node = Node()
+    SSH_CONNECTION = {}
 
     def __init__(self, test_bed=None):
         if test_bed is not None:
@@ -29,15 +31,35 @@ class TestBed:
             self.full_node: Node = tb.full_node
             self.beacons: Beacon = tb.beacon
             self.shards: List[Shard] = tb.shard_list
+            self.name = test_bed
+            try:
+                self.stakers: List[Node] = tb.stakers
+            except AttributeError:
+                self.stakers: List[Node] = []
             TestBed.REQUEST_HANDLER = self.full_node
         else:
             self.full_node = Node()
             self.beacons = Beacon()
             self.shards: List[Shard] = []
+            self.name = ""
+            self.stakers: List[Node] = []
             TestBed.REQUEST_HANDLER = self.full_node
+
+    @staticmethod
+    def ssh_to(node: Node):
+        try:
+            TestBed.SSH_CONNECTION[node._address]
+        except KeyError:
+            TestBed.SSH_CONNECTION[node._address] = SshSession(node._address, node._username, node._password,
+                                                               node._ssh_key).ssh_connect()
+        node.ssh_attach(TestBed.SSH_CONNECTION[node._address])
+        return node
 
     def __call__(self, *args, **kwargs):
         return TestBed.REQUEST_HANDLER
+
+    def __str__(self):
+        return f"Test bed name: {self.name} | Full node : {self.full_node} | Current request handler: {self()}"
 
     def precondition_check(self):
         Log.INFO(f'Checking test bed')
@@ -61,6 +83,10 @@ class TestBed:
 
 
 class Shard:
+    """
+    A shard is just a list of node
+    """
+
     def __init__(self, node_list: list = None):
         self._node_list = node_list
 
@@ -86,4 +112,8 @@ class Shard:
 
 
 class Beacon(Shard):
+    """
+    just an alias, technically Beacon and Shard object are the same in this circumstance
+    they both consist of a list of nodes
+    """
     pass

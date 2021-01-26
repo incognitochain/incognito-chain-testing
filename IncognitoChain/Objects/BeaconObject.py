@@ -4,9 +4,8 @@ from abc import abstractmethod
 
 from IncognitoChain.Configs.Constants import PRV_ID
 from IncognitoChain.Helpers.Logging import INFO
-from IncognitoChain.Helpers.TestHelper import l6
+from IncognitoChain.Helpers.TestHelper import l6, KeyExtractor
 from IncognitoChain.Objects import BlockChainInfoBaseClass
-from IncognitoChain.Objects.AccountObject import Account
 
 
 class BeaconBestStateBase(BlockChainInfoBaseClass):
@@ -237,20 +236,27 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         else:
             return
 
-    def get_auto_staking_committees(self, auto_staking_number=None):
-        # todo: wrong input arg, must fix, arg must be Account obj, not number, fix and refactor later
+    def get_auto_staking_committees(self, account=None):
+        """
+        get auto staking status of a user or get list of all user with their staking status
+        @param account: optional, Account object or public key (string)
+        @return: list of BeaconBestStateDetailInfo.Committee or True/False/None if account is specified.
+        None means committee is not auto staking list
+        """
+        acc_pub_key = KeyExtractor.inc_public_k(account) if account is not None else None
         auto_staking_objs = []
         raw_auto_staking_list_raw = self.data['AutoStaking']
+        for raw_data in raw_auto_staking_list_raw:
+            auto_staking_obj = BeaconBestStateDetailInfo.Committee(raw_data)
+            if auto_staking_obj.get_inc_public_key() == acc_pub_key:
+                INFO(f"{l6(acc_pub_key)} (public key) auto-staking is {auto_staking_obj.is_auto_staking()}")
+                return auto_staking_obj.is_auto_staking()
+            auto_staking_objs.append(auto_staking_obj)
 
-        if auto_staking_number is not None:  # get a specific committee auto staking
-            auto_staking_raw = raw_auto_staking_list_raw[auto_staking_number]
-            auto_staking_obj = BeaconBestStateDetailInfo.Committee(auto_staking_raw)
-            return auto_staking_obj
-        elif auto_staking_number is None:  # get all committee auto staking
-            for auto_staking_raw in raw_auto_staking_list_raw:
-                auto_staking_obj = BeaconBestStateDetailInfo.Committee(auto_staking_raw)
-                auto_staking_objs.append(auto_staking_obj)
-            return auto_staking_objs
+        if account is not None:
+            INFO(f"{l6(acc_pub_key)} (public key) not found in auto-staking list")
+            return None
+        return auto_staking_objs
 
     def is_he_a_committee(self, account):
         """
@@ -258,6 +264,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         :param account: Account obj or public key
         :return: shard committee number or False if not a committee
         """
+        from IncognitoChain.Objects.AccountObject import Account
         if type(account) == str:
             public_key = account
         elif type(account) == Account:
@@ -281,6 +288,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         :param account: Account obj or public key
         :return: True if it matches, else False
         """
+        from IncognitoChain.Objects.AccountObject import Account
         if type(account) == str:
             public_key = account
         elif type(account) == Account:
@@ -398,6 +406,9 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         elif shard_num is None and validator_number is None:  # get all committee in all shard
             committee_public_key_dict = self.data['ShardCommittee']
             return committee_public_key_dict
+
+    def get_current_shard_committee_size(self, shard_id):
+        return len(self.get_shard_committees(shard_id))
 
     def get_auto_staking_committees(self, account=None):
         """

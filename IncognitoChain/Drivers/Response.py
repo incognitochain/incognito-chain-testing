@@ -1,18 +1,23 @@
 import json
 import re
 
+from websocket import WebSocketTimeoutException, WebSocketBadStatusException
+
 import IncognitoChain.Helpers.Logging as Log
-from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Configs.Constants import ChainConfig
+from IncognitoChain.Helpers.Logging import INFO, WARNING
+from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.TransactionObjects import TransactionDetail
 
 
 class Response:
-    def __init__(self, response, more_info=None):
+    def __init__(self, response=None, more_info=None):
         self.response = response
         self.more_info = more_info
         if more_info is not None:
             Log.DEBUG(more_info)
-        Log.DEBUG(self.__str__())
+        if response is not None:
+            Log.DEBUG(self.__str__())
 
     def __str__(self):
         return f'\n{json.dumps(self.data(), indent=3)}'
@@ -38,9 +43,12 @@ class Response:
         return self
 
     def data(self):
-        if type(self.response) is str:
-            return json.loads(self.response)  # response from WebSocket
-        return json.loads(self.response.text)  # response from rpc
+        try:
+            if type(self.response) is str:
+                return json.loads(self.response)  # response from WebSocket
+            return json.loads(self.response.text)  # response from rpc
+        except Exception as e:
+            print(f'+++ {self.response.text} \n {e}')
 
     def params(self):
         return Response.Params(self.data()["Params"])
@@ -57,7 +65,7 @@ class Response:
 
     def get_error_trace(self):
         if self.data()['Error'] is None:
-            return ''
+            return None
         return Response.StackTrace(self.data()['Error']['StackTrace'][0:512])
 
     def get_error_msg(self):
@@ -141,33 +149,72 @@ class Response:
     def get_shard_id(self):
         return self.get_result('ShardID')
 
+    def is_node_busy(self):
+        return self.response.text == "503 Too busy.  Try again later."
+
     # !!!!!!!! Next actions base on response
     def subscribe_transaction(self, tx_id=None):
         """
-        Subscribe transaction by txid
+        @deprecated: consider using get_transaction_by_hash instead
 
+        Subscribe transaction by tx_id
         :param tx_id: if not specified, use tx id from self
         :return: TransactionDetail Object
         """
         if tx_id is None:
-            tx_id = self.get_tx_id()
+            tx_id = self.expect_no_error().get_tx_id()
+        if tx_id is None:
+            raise ValueError("Tx id must not be none")
         INFO(f'Subscribe to transaction tx_id = {tx_id}')
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         from IncognitoChain.Objects.TransactionObjects import TransactionDetail
-        tx = SUT().subscription().subscribe_pending_transaction(tx_id)
-        return TransactionDetail(tx.get_result('Result'))
+        try:
+            res = SUT().subscription().subscribe_pending_transaction(tx_id).get_result('Result')
+            return TransactionDetail(res)
+        except WebSocketTimeoutException:
+            WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
+            return self.get_transaction_by_hash(tx_id, retry=False)
+        except WebSocketBadStatusException as status_err:  # in case full node does not have web socket enabled
+            WARNING(f"Encounter web socket bad status exception: {status_err}. Now get transaction by hash instead")
+            return self.get_transaction_by_hash(tx_id, retry=True)
 
     def is_transaction_v2_error_appears(self):
         try:
             stack_trace_msg = self.get_error_trace().get_message()
         except AttributeError:
             return False
-        if 'error calling MarshalJSON for type *transaction.TxTokenVersion2' in stack_trace_msg:
+        # if 'error calling MarshalJSON for type *transaction.TxTokenVersion2' in stack_trace_msg:
+        if 'Init tx token fee params error' in stack_trace_msg:
             INFO('Transaction v2 no longer support paying fee with token')
             return True
 
-    def get_transaction_by_hash(self):
-        return TransactionDetail().get_transaction_by_hash(self.get_tx_id())
+    def get_transaction_by_hash(self, tx_hash=None, retry=True, interval=ChainConfig.BLOCK_TIME,
+                                time_out=120) -> TransactionDetail:
+        """
+        @param tx_hash:
+        @param retry:
+        @param interval:
+        @param time_out:
+        @return: TransactionDetail, use TransactionDetail.is_none() to check if it's an empty object
+        """
+        if tx_hash is None:
+            tx_hash = self.expect_no_error().get_tx_id()
+        if tx_hash is None:
+            raise ValueError("Tx id must not be none")
+
+        tx_detail = TransactionDetail().get_transaction_by_hash(tx_hash)
+
+        if not retry and not tx_detail.is_none():
+            return tx_detail
+        if not tx_detail.is_none():
+            return tx_detail
+        while time_out > 0:
+            time_out -= interval
+            WAIT(interval)
+            tx_detail = TransactionDetail().get_transaction_by_hash(tx_hash)
+            if not tx_detail.is_none():
+                return tx_detail
+        return TransactionDetail()
 
     def get_mem_pool_transactions_id_list(self) -> list:
         hashes = self.get_list_txs()

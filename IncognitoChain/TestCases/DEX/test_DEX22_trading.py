@@ -13,7 +13,7 @@ from IncognitoChain.TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_
     calculate_trade_order, verify_trading_prv_token, verify_sum_fee_prv_token, verify_contributor_reward_prv_token
 
 # trade_amount = random.randrange(9900000, 10000000)
-trade_amounts = [123456] * 10
+trade_amounts = [random.randrange(9900000, 10000000)] * 10
 
 
 def setup_function():
@@ -22,7 +22,13 @@ def setup_function():
     COIN_MASTER.top_him_up_prv_to_amount_if(top, 2 * top, acc_list_1_shard + acc_list_n_shard)
     token_owner.top_him_up_token_to_amount_if(token_id_1, top, 2 * top,
                                               acc_list_1_shard + acc_list_n_shard)
+    token_owner.top_him_up_token_to_amount_if(token_id_2, top, 2 * top,
+                                              acc_list_1_shard + acc_list_n_shard)
     INFO_HEADLINE("DONE SETUP DEX TRADING")
+
+
+def teardown_function():
+    WAIT(30)
 
 
 @pytest.mark.parametrize('test_mode,token_sell,token_buy', (
@@ -174,7 +180,9 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
 
         estimate_bal_buy_after_list = [bal + receive for (bal, receive) in
                                        zip(balance_tok_buy_before, estimate_amount_received_list)]
-
+    INFO(f"""::: estimated after vs real after
+    {estimate_bal_buy_after_list}
+    {balance_tok_buy_after}""")
     assert estimate_bal_sell_after_list == balance_tok_sell_after
     assert estimate_bal_buy_after_list == balance_tok_buy_after
 

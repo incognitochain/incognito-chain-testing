@@ -1,3 +1,4 @@
+import json
 from abc import ABC
 
 
@@ -14,3 +15,12 @@ class BlockChainInfoBaseClass(ABC):
 
     def is_none(self):
         return self.data is None or self.data == ''
+
+    def pretty_format(self):
+        return json.dumps(self.data, indent=3)
+
+    def pretty_print(self):
+        print(self.pretty_format())
+
+    def __str__(self):
+        return self.pretty_format()

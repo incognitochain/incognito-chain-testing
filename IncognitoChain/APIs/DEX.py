@@ -161,7 +161,7 @@ class DexRpc:
             with_method("createandsendtxwithprvtradereq"). \
             with_params([private_key,
                          {
-                             Const.BURNING_ADDR: amount_to_sell
+                             Const.BURNING_ADDR: amount_to_sell + trading_fee
                          }, -1, -1,
                          {
                              "TokenIDToBuyStr": token_id_to_buy,

@@ -4,7 +4,6 @@ from IncognitoChain.Drivers.Connections import RpcConnection
 class SystemRpc:
     def __init__(self, url):
         self.rpc_connection = RpcConnection(url=url)
-        self._cache = {}
 
     def retrieve_beacon_block_by_height(self, beacon_height, level=2):
         return self.rpc_connection.with_method('retrievebeaconblockbyheight').with_params(
@@ -24,18 +23,8 @@ class SystemRpc:
     def get_mem_pool(self):
         return self.rpc_connection.with_method("getmempoolinfo").execute()
 
-    def get_beacon_best_state_detail(self, refresh_cache=True):
-        if refresh_cache:
-            beacon_best_state_detail = self.rpc_connection.with_method('getbeaconbeststatedetail').with_params(
-                []).execute()
-            self._cache['getbeaconbeststatedetail'] = beacon_best_state_detail
-        else:
-            try:
-                beacon_best_state_detail = self._cache['getbeaconbeststatedetail']
-            except KeyError:
-                beacon_best_state_detail = self.rpc_connection.with_method('getbeaconbeststatedetail').with_params(
-                    []).execute()
-        return beacon_best_state_detail
+    def get_beacon_best_state_detail(self):
+        return self.rpc_connection.with_method('getbeaconbeststatedetail').with_params([]).execute()
 
     def get_beacon_best_state(self):
         return self.rpc_connection. \
@@ -59,3 +48,8 @@ class SystemRpc:
 
     def get_shard_best_state(self, shard_id):
         return self.rpc_connection.with_method('getshardbeststate').with_params([shard_id]).execute()
+
+    def get_committee_state(self, beacon_height):
+        # according to dev, parameter must be [beacon_height, ""],
+        # otherwise it would cause the node panic and crash, this should be a bug
+        return self.rpc_connection.with_method("getcommitteestate").with_params([beacon_height, ""]).execute()

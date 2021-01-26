@@ -2,7 +2,7 @@ import sys
 
 from IncognitoChain.Configs.Constants import coin, ChainConfig
 from IncognitoChain.Helpers.Logging import INFO_HEADLINE, INFO
-from IncognitoChain.Objects.AccountObject import COIN_MASTER, PORTAL_FEEDER
+from IncognitoChain.Objects.AccountObject import COIN_MASTER, PORTAL_FEEDER, AccountGroup
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 from IncognitoChain.Objects.NodeObject import Node
 from IncognitoChain.Objects.TestBedObject import TestBed
@@ -33,11 +33,15 @@ if convert_tx.get_error_msg() == "Method not found":
     ChainConfig.PRIVACY_VERSION = 1
 elif convert_tx.get_error_msg() == "Can not create tx":
     ChainConfig.PRIVACY_VERSION = 2
+    COIN_MASTER.submit_key()
+    PORTAL_FEEDER.submit_key()
 else:
     ChainConfig.PRIVACY_VERSION = 2
     convert_tx.subscribe_transaction()
+    COIN_MASTER.submit_key()
+    PORTAL_FEEDER.submit_key()
 
-if type(ACCOUNTS) is list:
+if isinstance(ACCOUNTS, AccountGroup) or isinstance(ACCOUNTS, list):
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(2), coin(5), ACCOUNTS)
 
 INFO_HEADLINE("END setup from Testcase init")

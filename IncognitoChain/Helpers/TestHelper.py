@@ -2,7 +2,7 @@ import json
 import time
 from json.decoder import JSONDecodeError
 
-from IncognitoChain.Configs.Constants import ChainConfig, Status
+from IncognitoChain.Configs.Constants import ChainConfig
 from IncognitoChain.Helpers.Logging import INFO
 from IncognitoChain.Helpers.Time import WAIT
 
@@ -10,8 +10,8 @@ from IncognitoChain.Helpers.Time import WAIT
 def l6(string):
     """
     Return the last 6 chars of a string
-    :param string:
-    :return:
+    @param string:
+    @return:
     """
     return str(string)[-6:]
 
@@ -19,8 +19,8 @@ def l6(string):
 def json_extract(string):
     """
     strip all none json part a string
-    :param string:
-    :return: dictionary
+    @param string:
+    @return: dictionary
     """
     try:
         string = '{' + string.split('{', 1)[-1]  # remove all non-sense before the first {
@@ -44,6 +44,44 @@ def to_num(*args):
     return ret
 
 
+def format_dict_side_by_side(dict1, dict2):
+    # find max line len
+    max_k_len = 0
+    max_v_len = 0
+    dict_mix = {}
+
+    for key, value in dict1.items():
+        if max_k_len < len(str(key)):
+            max_k_len = len(str(key))
+        if max_v_len < len(str(value)):
+            max_v_len = len(str(value))
+        dict_mix[key] = [value, '_']
+
+    for key, value in dict2.items():
+        if max_k_len < len(str(key)):
+            max_k_len = len(str(key))
+        try:
+            dict_mix[key][1] = value
+        except KeyError:
+            dict_mix[key] = ['-', value]
+
+    lines = ""
+    for key, list in dict_mix.items():
+        try:
+            if list[0] == list[1]:
+                compare = '='
+            elif list[0] < list[1]:
+                compare = '<'
+            else:
+                compare = '>'
+        except TypeError:
+            compare = '#'
+
+        lines += f"%{max_k_len + 15}s : %{max_v_len}s %s %s\n" % (key, list[0], compare, list[1])
+
+    return lines
+
+
 def extract_incognito_addr(obj):
     from IncognitoChain.Objects.AccountObject import Account
     from IncognitoChain.Objects.PortalObjects import PortalStateInfo
@@ -57,6 +95,49 @@ def extract_incognito_addr(obj):
     else:
         raise TypeError("Input must be incognito address (string), CustodianInfo or Account object")
     return addr
+
+
+class KeyExtractor:
+    @staticmethod
+    def incognito_addr(obj):
+        from IncognitoChain.Objects.AccountObject import Account
+        from IncognitoChain.Objects.PortalObjects import PortalStateInfo
+
+        if type(obj) is str:
+            addr = obj
+        elif type(obj) is Account:
+            addr = obj.incognito_addr
+        elif type(obj) is PortalStateInfo.CustodianInfo:
+            addr = obj.get_incognito_addr()
+        else:
+            raise TypeError("Input must be incognito address (string), CustodianInfo or Account object")
+        return addr
+
+    @staticmethod
+    def committee_public_k(obj):
+        from IncognitoChain.Objects.AccountObject import Account
+        if type(obj) is str:
+            addr = obj
+        elif type(obj) is Account:
+            addr = obj.committee_public_k
+        else:
+            raise TypeError("Input must be committee public key (string) or Account object")
+        return addr
+
+    @staticmethod
+    def inc_public_k(obj):
+        from IncognitoChain.Objects.AccountObject import Account
+        from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo
+        if type(obj) is str:
+            addr = obj
+        elif type(obj) is Account:
+            addr = obj.public_key
+        elif type(obj) is BeaconBestStateDetailInfo.Committee:
+            addr = obj.get_inc_public_key()
+        else:
+            raise TypeError("Input must be inc public key (string), "
+                            "BeaconBestStateDetailInfo.Committee or Account object")
+        return addr
 
 
 class ChainHelper:
@@ -73,13 +154,13 @@ class ChainHelper:
         return ChainHelper.cal_first_height_of_epoch(epoch) + ChainConfig.BLOCK_PER_EPOCH - 1
 
     @staticmethod
-    def wait_till_beacon_height(beacon_height, wait=40, timeout=120):
+    def wait_till_beacon_height(beacon_height, interval=ChainConfig.BLOCK_TIME, timeout=120):
         """
         Wait until a specific beacon height
-        :param wait:
-        :param timeout:
-        :param beacon_height:
-        :return:
+        @param interval:
+        @param timeout:
+        @param beacon_height:
+        @return:
         """
         INFO(f'Waiting till beacon height {beacon_height}')
         from IncognitoChain.Objects.IncognitoTestCase import SUT
@@ -89,8 +170,8 @@ class ChainHelper:
             return current_beacon_h
 
         while beacon_height > current_beacon_h:
-            WAIT(wait)
-            timeout -= wait
+            WAIT(interval)
+            timeout -= interval
             current_beacon_h = SUT().help_get_beacon_height()
             if timeout <= 0:
                 INFO(f'Time out and current beacon height is {current_beacon_h}')
@@ -103,10 +184,10 @@ class ChainHelper:
     def wait_till_next_beacon_height(num_of_beacon_height_to_wait=1, wait=40, timeout=120):
         """
         wait for an amount of beacon height to pass
-        :param timeout:
-        :param wait:
-        :param num_of_beacon_height_to_wait:
-        :return:
+        @param timeout:
+        @param wait:
+        @param num_of_beacon_height_to_wait:
+        @return:
         """
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         current_beacon_h = SUT().help_get_beacon_height()
@@ -117,11 +198,11 @@ class ChainHelper:
     def wait_till_next_shard_height(shard_id, num_of_shard_height_to_wait=1, wait=40, timeout=120):
         """
         Function to wait for an amount of shard height to pass
-        :param shard_id:
-        :param num_of_shard_height_to_wait:
-        :param wait:
-        :param timeout:
-        :return:
+        @param shard_id:
+        @param num_of_shard_height_to_wait:
+        @param wait:
+        @param timeout:
+        @return:
         """
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         current_shard_h = SUT().help_get_shard_height(shard_id)
@@ -144,20 +225,20 @@ class ChainHelper:
         return current_shard_h
 
     @staticmethod
-    def wait_till_next_epoch(epoch_wait=None, check_interval=40, timeout=180):
+    def wait_till_next_epoch(epoch_wait=None, check_interval=None, timeout=180):
         f"""
         Wait till {epoch_wait} to come, if {epoch_wait} is None, just wait till next epoch
-        :param epoch_wait: 
-        :param check_interval: 
-        :param timeout: 
-        :return: 
+        @param epoch_wait: 
+        @param check_interval: 
+        @param timeout: 
+        @return: 
         """
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-
-        INFO(f'Wait until epoch {epoch_wait}, check every {check_interval}s, timeout {timeout}s')
+        check_interval = ChainConfig.get_epoch_time() if check_interval is None else check_interval
         blk_chain_info = SUT().get_block_chain_info()
         current_epoch = blk_chain_info.get_beacon_block().get_epoch()
         epoch_wait = current_epoch + 1 if epoch_wait is None else epoch_wait
+        INFO(f'Wait until epoch {epoch_wait}, check every {check_interval}s, timeout {timeout}s')
         if current_epoch >= epoch_wait:
             return current_epoch
         time_start = time.perf_counter()
@@ -228,13 +309,13 @@ def calculate_actual_reward(total_tx_fee, block_on_epoch, max_shard_committee, n
     """
     Function to calculate reward on a node and DAO
 
-    :param total_tx_fee:
-    :param block_on_epoch: block on epoch
-    :param basic_reward: basic reward by default is 400000000 nanoPRV
-    :param max_shard_committee: max shard committee
-    :param number_active_shard: number active of shard
-    :param number_of_beacon: number of beacon
-    :return: reward_dao_receive, reward_on_node_in_shard, reward_of_beacon
+    @param total_tx_fee:
+    @param block_on_epoch: block on epoch
+    @param basic_reward: basic reward by default is 400000000 nanoPRV
+    @param max_shard_committee: max shard committee
+    @param number_active_shard: number active of shard
+    @param number_of_beacon: number of beacon
+    @return: reward_dao_receive, reward_on_node_in_shard, reward_of_beacon
     """
     total_reward_on_epoch = block_on_epoch * basic_reward + total_tx_fee
     print(f"Total reward received on a epoch: {total_reward_on_epoch}")
@@ -259,151 +340,13 @@ def calculate_actual_reward(total_tx_fee, block_on_epoch, max_shard_committee, n
     return reward_dao, reward_on_node_in_shard, reward_of_a_beacon
 
 
-class PortalHelper:
-
-    @staticmethod
-    def cal_lock_collateral(token_amount, token_rate, prv_rate):
-        token_amount, token_rate, prv_rate = to_num(token_amount, token_rate, prv_rate)
-        estimated_lock_collateral = int(
-            int(token_amount * ChainConfig.Portal.COLLATERAL_PERCENT) * token_rate // prv_rate)
-        INFO(f'''Calculating lock collateral: 
-            token amount: {token_amount}, 
-            token rate:   {token_rate}, 
-            prv rate:     {prv_rate},
-            lock amount:  {estimated_lock_collateral} 
-        -------------------------------------------------------------------''')
-        return estimated_lock_collateral
-
-    @staticmethod
-    def cal_portal_exchange_tok_to_prv(token_amount, token_rate, prv_rate):
-        token_amount, token_rate, prv_rate = to_num(token_amount, token_rate, prv_rate)
-        return token_amount * token_rate // prv_rate
-
-    @staticmethod
-    def cal_portal_exchange_prv_to_tok(prv_amount, prv_rate, token_rate):
-        prv_amount, prv_rate, token_rate = to_num(prv_amount, prv_rate, token_rate)
-        return prv_amount * prv_rate // token_rate
-
-    @staticmethod
-    def cal_portal_portal_fee(token_amount, token_rate, prv_rate, fee_rate=0.0001):
-        token_amount, token_rate, prv_rate = to_num(token_amount, token_rate, prv_rate)
-        return round(token_amount * fee_rate * token_rate / prv_rate)  # fee = 0.01%
-
-    @staticmethod
-    def cal_liquidate_rate(percent, token_rate, prv_rate, change_token_rate=False):
-        """
-
-        :param percent:
-        :param token_rate:
-        :param prv_rate:
-        :param change_token_rate: if true, return new token rate. otherwise , return new prv rate
-        :return:
-        """
-
-        new_prv_rate = (percent * prv_rate) // ChainConfig.Portal.COLLATERAL_PERCENT
-        new_tok_rate = (ChainConfig.Portal.COLLATERAL_PERCENT * token_rate) // percent
-
-        if change_token_rate:
-            INFO(f'Current token rate {token_rate}, new rate {new_tok_rate}')
-            return int(new_tok_rate)
-        else:
-            INFO(f'Current prv rate {prv_rate}, new rate {new_prv_rate}')
-            return int(new_prv_rate)
-
-    @staticmethod
-    def cal_rate_to_match_collateral_percent(percent, token_holding, prv_collateral, current_tok_rate,
-                                             current_prv_rate, rate_return='token'):
-        """
-
-        :param current_tok_rate:
-        :param current_prv_rate:
-        :param percent:
-        :param token_holding:
-        :param prv_collateral:
-        :param rate_return: select new rate to return, PRV or token
-        :return:
-        """
-
-        new_prv_rate = int(current_tok_rate * percent * token_holding / prv_collateral)
-        new_tok_rate = int(prv_collateral * current_prv_rate / percent / token_holding)
-
-        if rate_return == 'token':
-            INFO(f'Current token rate {current_tok_rate}, new rate {new_tok_rate}')
-            return int(new_tok_rate)
-        else:
-            INFO(f'Current prv rate {current_prv_rate}, new rate {new_prv_rate}')
-            return int(new_prv_rate)
-
-    @staticmethod
-    def cal_rate_to_liquidate_collateral(token_holding, prv_collateral, current_tok_rate,
-                                         current_prv_rate, new_rate='token',
-                                         liquidate_percent=ChainConfig.Portal.COLLATERAL_LIQUIDATE_PERCENT):
-        """
-
-        :param liquidate_percent:
-        :param token_holding:
-        :param prv_collateral:
-        :param current_tok_rate:
-        :param current_prv_rate:
-        :param new_rate: 'token' or 'prv', to indicate which of the new rate you want to get
-        :return:
-        """
-        if new_rate == 'token':
-            return PortalHelper.cal_rate_to_match_collateral_percent(
-                liquidate_percent, token_holding, prv_collateral, current_tok_rate, current_prv_rate)
-        else:
-            return PortalHelper.cal_rate_to_match_collateral_percent(
-                liquidate_percent, token_holding, prv_collateral, current_tok_rate, current_prv_rate,
-                rate_return='prv')
-
-    @staticmethod
-    def cal_liquidation_amount_of_collateral(holding_token, holding_token_of_waiting_redeem, rate_token, rate_prv):
-        """
-        :param rate_prv:
-        :param rate_token:
-        :param holding_token: of custodian
-        :param holding_token_of_waiting_redeem: of custodian
-        :return: (sum_holding * 1.05 * ratePubToken) / ratePRV
-        """
-        sum_holding = holding_token + holding_token_of_waiting_redeem
-        return int(sum_holding * 1.05 * rate_token / rate_prv)
-
-    @staticmethod
-    def check_custodian_deposit_tx_status(tx_id, expected='accept'):
-        from IncognitoChain.Objects.PortalObjects import DepositTxInfo
-
-        info = DepositTxInfo()
-        info.get_deposit_info(tx_id)
-        if expected.lower() == "accept":
-            assert info.get_status() == Status.Portal.DepositStatus.ACCEPT
-        else:
-            assert info.get_status() == Status.Portal.DepositStatus.REJECTED
-
-    @staticmethod
-    def cal_liquidation_of_porting(porting_amount, current_token_rate, current_prv_rate):
-        porting_amount_in_new_prv_rate = PortalHelper.cal_portal_exchange_tok_to_prv(porting_amount, current_token_rate,
-                                                                                     current_prv_rate)
-
-        estimate_lock_collateral = PortalHelper.cal_lock_collateral(porting_amount, current_token_rate,
-                                                                    current_prv_rate)
-        estimated_liquidated_collateral = int(
-            ChainConfig.Portal.COLLATERAL_LIQUIDATE_TO_POOL_PERCENT * porting_amount_in_new_prv_rate)
-        return_collateral = estimate_lock_collateral - estimated_liquidated_collateral
-        return int(estimated_liquidated_collateral), int(return_collateral)
-
-    @staticmethod
-    def cal_token_amount_from_collateral(collateral, token_rate, prv_rate):
-        prv_equivalent = collateral // ChainConfig.Portal.COLLATERAL_PERCENT
-        return int(PortalHelper.cal_portal_exchange_prv_to_tok(prv_equivalent, prv_rate, token_rate))
-
-
 def get_beacon_best_state_detail(number_of_beacon_height_to_get=100, wait=5, timeout=50):
     """
     Function to get beacon best state detail
-    :param number_of_beacon_height_to_get: number of beacon height to get
-    :param wait:
-    :param timeout:
-    :return: a list beacon best state detail obj
+    @param number_of_beacon_height_to_get: number of beacon height to get
+    @param wait:
+    @param timeout:
+    @return: a list beacon best state detail obj
     """
     from IncognitoChain.Objects.IncognitoTestCase import SUT
     list_beacon_best_state_detail_objs = []
@@ -418,11 +361,11 @@ def get_beacon_best_state_detail(number_of_beacon_height_to_get=100, wait=5, tim
 def get_shard_best_state_detail(shard_id, number_of_shard_height_to_get=100, wait=5, timeout=50):
     """
     Function to get shard best state detail
-    :param shard_id:
-    :param number_of_shard_height_to_get: number of shard height to get
-    :param wait:
-    :param timeout:
-    :return: a list shard detail obj
+    @param shard_id:
+    @param number_of_shard_height_to_get: number of shard height to get
+    @param wait:
+    @param timeout:
+    @return: a list shard detail obj
     """
     from IncognitoChain.Objects.IncognitoTestCase import SUT
     list_shard_best_state_detail_objs = []
@@ -438,10 +381,10 @@ def get_shard_best_state_detail(shard_id, number_of_shard_height_to_get=100, wai
 def get_beacon_best_state(number_of_beacon_height_to_get=100, wait=5, timeout=50):
     """
     Function to get beacon best state
-    :param number_of_beacon_height_to_get: number of beacon height to get
-    :param wait:
-    :param timeout:
-    :return: a list beacon best state obj
+    @param number_of_beacon_height_to_get: number of beacon height to get
+    @param wait:
+    @param timeout:
+    @return: a list beacon best state obj
     """
     from IncognitoChain.Objects.IncognitoTestCase import SUT
     list_beacon_best_state_objs = []
@@ -456,11 +399,11 @@ def get_beacon_best_state(number_of_beacon_height_to_get=100, wait=5, timeout=50
 def get_shard_best_state(shard_id, number_of_shard_height_to_get=100, wait=5, timeout=50):
     """
     Function to get shard best state
-    :param shard_id: shard id
-    :param number_of_shard_height_to_get: number of shard height to get
-    :param wait:
-    :param timeout:
-    :return: a list shard best state obj
+    @param shard_id: shard id
+    @param number_of_shard_height_to_get: number of shard height to get
+    @param wait:
+    @param timeout:
+    @return: a list shard best state obj
     """
     from IncognitoChain.Objects.IncognitoTestCase import SUT
     list_shard_best_state_objs = []

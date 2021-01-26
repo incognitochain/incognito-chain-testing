@@ -1,6 +1,7 @@
 import json
 
 import requests
+from pexpect import pxssh
 from urllib3.exceptions import NewConnectionError
 from websocket import create_connection
 
@@ -148,3 +149,46 @@ class WebSocket(RpcConnection):
         if close_when_done:
             self.close()
         return Response(result)
+
+
+class SshSession(pxssh.pxssh):
+    def __init__(self, address=None, username=None, password=None, sshkey=None):
+        super().__init__()
+        self._address = address
+        self._username = username
+        self._password = password
+        self._sshkey = sshkey
+        self._cache = {}
+
+    def ssh_connect(self):
+        # if self._password is not None and self._username is not None:
+        #     Log.INFO(f'SSH logging in with password. User: {self._username}/{self._password}')
+        #     self.login(self._address, self._username, password=self._password)
+        #     return self
+        if self._sshkey is not None:
+            Log.INFO(f'SSH logging to {self._address} with ssh key. User: {self._username}')
+            self.login(self._address, self._username, ssh_key=self._sshkey)
+            return self
+
+    def disconnect(self):
+        self.logout()
+        Log.INFO(f'SSH logout of: {self._address}')
+
+    def send_cmd(self, command):
+        """
+        @param command:
+        @return: command output as a list of strings, with each item of the list is a line of command output
+        """
+        Log.INFO(f'Send command via ssh: {command}')
+        self.sendline(command)
+        self.prompt()
+        response = self.before.decode('utf-8')
+        response_list = response.split('\n')
+        DEBUG(response)
+        if command[-1] == '&' and command[-2] != '&':
+            pass
+        else:
+            return response_list
+
+    def goto_folder(self, folder):
+        return self.send_cmd(f'cd {folder}')

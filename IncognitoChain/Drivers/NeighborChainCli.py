@@ -24,6 +24,10 @@ class NeighborChainCli:
             return BtcGo()
 
 
+class NeighborChainError(BaseException):
+    pass
+
+
 class BnbCli:
     _bnb_host = 'data-seed-pre-0-s1.binance.org'
     _bnb_rpc_port = 443
@@ -49,15 +53,13 @@ class BnbCli:
         return ['--chain-id', self.chain_id, '--node', self.node, self.trust]
 
     def get_balance(self, key):
-        INFO()
-        INFO(f'Bnbcli | get balance of {l6(key)}')
         process = subprocess.Popen([self.cmd, 'account', key] + self.get_default_conn(), stdout=self.stdout,
                                    stderr=self.stderr, universal_newlines=True)
         stdout, stderr = process.communicate()
         out = json_extract(stdout)
-        print(f"out: {stdout.strip()}\n"
-              f"err: {stderr.strip()}")
-        return int(BnbCli.BnbResponse(out).get_balance())
+        bal = int(BnbCli.BnbResponse(out).get_balance())
+        DEBUG(f"out: {stdout.strip()}")
+        return bal
 
     def send_to(self, sender, receiver, amount, password, memo):
         memo_encoded = BnbCli.encode_memo(memo)
@@ -66,7 +68,7 @@ class BnbCli:
                    '--memo', memo_encoded] + self.get_default_conn()
         return self._exe_bnb_cli(command, password)
 
-    def send_to_multi(self, sender, receiver_amount_dict: dict, password, *memo):
+    def send_to_multi(self, sender, receiver_amount_dict: dict, password, memo):
         """
         :param sender: sender addr or account name
         :param receiver_amount_dict: dict { receiver_addr : amount to send, ...}
@@ -99,16 +101,18 @@ class BnbCli:
                                    universal_newlines=True)
         WAIT(7)
         stdout, stderr = process.communicate(f'{more_input}\n')
-        INFO(f"\n"
-             f"+++ command: {' '.join(command)}\n\n"
-             f"+++ out: {stdout}\n\n"
-             f"+++ err: {stderr}")
+        DEBUG(f"\n"
+              f"+++ command: {' '.join(command)}\n"
+              f"+++ out: {stdout}\n"
+              f"+++ err: {stderr}")
         out = json_extract(stdout)
         err = json_extract(stderr)
         if out is not None:
             return BnbCli.BnbResponse(out)
-        else:
+        elif err is not None:
             return BnbCli.BnbResponse(err)
+        else:
+            raise NeighborChainError(stderr)
 
     @staticmethod
     def get_bnb_rpc_url():
@@ -116,11 +120,16 @@ class BnbCli:
 
     @staticmethod
     def encode_memo(info):
-        if len(info) == 1:
-            return BnbCli.encode_porting_memo(info[0])
-        elif len(info) == 2:
+        """
+        @param info:  Expect porting id string, or tuple/list of (redeem id,incognito address)
+        @return:
+        """
+        if type(info) is str:
+            return BnbCli.encode_porting_memo(info)
+        if (type(info) is tuple or type(info, list)) and len(info) == 2:
             return BnbCli.encode_redeem_memo(info[0], info[1])
-        raise Exception('Expect 1 or 2 parameters only')
+        raise Exception(f'Expect porting id string, or tuple/list of (redeem id,incognito address), '
+                        f'got {type(info)}: {info} ')
 
     @staticmethod
     def encode_porting_memo(porting_id):
@@ -145,13 +154,13 @@ class BnbCli:
         encode_memo_str_output = b64_encode.decode('utf-8')
         return encode_memo_str_output
 
-    def import_key_mnemonic(self, username, pass_phrase, mnemonic, overwrite=True):
+    def import_mnemonics(self, username, pass_phrase, mnemonic, overwrite=True):
         """
 
         :param overwrite: option to overwrite existing username
-        :param username:
-        :param pass_phrase:
-        :param mnemonic: could be a string or a list of strings
+        :param username: user name prefix
+        :param pass_phrase: pass phrase for all user (all user will have the same pass phrase
+        :param mnemonic: could be a string or a list of strings of mnemonic
         :return:
         """
         mnemonic_list = [mnemonic] if type(mnemonic) is str else mnemonic
@@ -225,6 +234,8 @@ class BnbCli:
     class BnbResponse:
         def __init__(self, stdout):
             self.data = stdout
+            if self.data is None:
+                raise ValueError('Response data must not be None')
 
         def get_coins(self):
             try:
@@ -242,7 +253,10 @@ class BnbCli:
             return self.get_amount('BNB')
 
         def get_tx_hash(self):
-            return self.data['hash']
+            try:
+                return self.data['hash']
+            except KeyError as ke:
+                raise BaseException(f'Response data does not contain hash: {ke} :{self.data}')
 
         def build_proof(self, tx_hash=None):
             tx_hash = self.get_tx_hash() if tx_hash is None else tx_hash

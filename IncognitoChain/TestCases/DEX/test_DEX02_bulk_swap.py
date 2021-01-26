@@ -27,7 +27,9 @@ def setup_function():
         ["1 shard", token_id_1, PRV_ID],
         ["n shard", token_id_1, PRV_ID],
         ["1 shard", token_id_1, token_id_2],
-        ["n shard", token_id_1, token_id_2]
+        ["n shard", token_id_1, token_id_2],
+        ["1 shard", PRV_ID, token_id_2],
+        ["n shard", PRV_ID, token_id_2],
 ))
 def test_bulk_swap(test_mode, token_sell, token_buy):
     if test_mode == '1 shard':
@@ -62,15 +64,13 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     private_key_alias = []
     trading_fee = [77, 22, 11, 66, 99, 2, 33, 55, 88, 44]
 
-    trade_amount_token1 = trade_amount
-
     for trader in traders:
         bal_tok_1 = trader.get_token_balance(token_sell)
         bal_tok_2 = trader.get_token_balance(token_buy)
 
-        if bal_tok_1 <= trade_amount_token1:
+        if bal_tok_1 <= trade_amount:
             pytest.skip(
-                f"This {l6(trader.private_key)} token {l6(token_sell)} bal: {bal_tok_1} <= {trade_amount_token1},"
+                f"This {l6(trader.private_key)} token {l6(token_sell)} bal: {bal_tok_1} <= {trade_amount},"
                 f"NOT ENOUGH FOR TEST")
 
         balance_tok1_before.append(bal_tok_1)
@@ -135,13 +135,15 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     INFO(f"rate {token_sell[-6:]} vs {token_buy[-6:]} - After Trade  : {rate_after}")
 
     STEP(6, "Double check the algorithm ")
-    result_token = []
-    result_prv = []
+    result_sell = []
+    sell_false = []
+    result_buy = []
+    buy_false = []
     calculated_rate = copy.deepcopy(rate_before)
     trade_priority = []
 
     for i in range(0, len(trading_fee)):
-        trade_priority.append(trade_amount_token1 / trading_fee[i])
+        trade_priority.append(trade_amount / trading_fee[i])
     print("Trade Priority: " + str(trade_priority))
 
     sort_order = sorted(range(len(trade_priority)), key=lambda k: trade_priority[k])
@@ -149,32 +151,53 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
 
     for order in sort_order:
         print(str(order) + "--")
-        received_amount_prv = calculate_actual_trade_received(trade_amount_token1, calculated_rate[0],
+        received_amount = calculate_actual_trade_received(trade_amount, calculated_rate[0],
                                                               calculated_rate[1])
-        if received_amount_prv == balance_tok2_after[order] - balance_tok2_before[order] - tx_fee_list[order]:
-            result_prv.append(str(order) + "Received_True")
+        if token_buy == PRV_ID:
+            if received_amount == balance_tok2_after[order] - balance_tok2_before[order] + tx_fee_list[order]:
+                result_buy.append(str(order) + "Received_True")
+            else:
+                result_buy.append(str(order) + "Received_False")
+                buy_false.append(order)
+            INFO(f'received_amount_calculate: {received_amount}')
+            INFO(f'Actual received: {balance_tok2_after[order] - balance_tok2_before[order] + tx_fee_list[order]}')
         else:
-            result_prv.append(str(order) + "Received_False")
-        print("  Actual received: %d" % (balance_tok2_after[order] - balance_tok2_before[order] - tx_fee_list[order]))
+            if received_amount == balance_tok2_after[order] - balance_tok2_before[order]:
+                result_buy.append(str(order) + "Received_True")
+            else:
+                result_buy.append(str(order) + "Received_False")
+                buy_false.append(order)
+            INFO(f'Received_amount_calculate: {received_amount}')
+            INFO(f'Actual received: {balance_tok2_after[order] - balance_tok2_before[order]}')
+        if token_sell == PRV_ID:
+            if trade_amount == balance_tok1_before[order] - balance_tok1_after[order] - trading_fee[order] - tx_fee_list[order]:
+                result_sell.append(str(order) + "Trade_True")
+            else:
+                result_sell.append(str(order) + "Trade_False")
+                sell_false.append(order)
+        else:
+            if trade_amount == balance_tok1_before[order] - balance_tok1_after[order] - trading_fee[order]:
+                result_sell.append(str(order) + "Trade_True")
+            else:
+                result_sell.append(str(order) + "Trade_False")
+                sell_false.append(order)
 
-        if trade_amount_token1 == balance_tok1_before[order] - balance_tok1_after[order] - trading_fee[order]:
-            result_token.append(str(order) + "Trade_True")
-        else:
-            result_token.append(str(order) + "Trade_False")
         print("  Actual Trade amount: %d " % (
                 balance_tok1_before[order] - balance_tok1_after[order] - trading_fee[order]))
 
-        calculated_rate[1] = calculated_rate[1] - received_amount_prv
-        calculated_rate[0] = calculated_rate[0] + trade_amount_token1 + trading_fee[order]
+        calculated_rate[1] = calculated_rate[1] - received_amount
+        calculated_rate[0] = calculated_rate[0] + trade_amount + trading_fee[order]
 
     # sort result before print
-    result_token.sort()
-    result_prv.sort()
+    result_sell.sort()
+    result_buy.sort()
     INFO("--")
     INFO(f"tx fee list   : {str(tx_fee_list)}")
-    INFO(f"result {l6(token_sell)} : {str(result_token)}")
-    INFO(f"result {token_buy[-6:]} : {str(result_prv)}")
+    INFO(f"result {l6(token_sell)} : {str(result_sell)}")
+    INFO(f"result {token_buy[-6:]} : {str(result_buy)}")
     INFO(f"rate {l6(token_sell)} vs {token_buy[-6:]} - Before Trade    : {str(rate_before)}")
     INFO(f"rate {l6(token_sell)} vs {token_buy[-6:]} - After Trade     : {str(rate_after)}")
     INFO(f"rate {l6(token_sell)} vs {token_buy[-6:]} - Calculated Trade: {str(calculated_rate)}")
     assert calculated_rate == rate_after and INFO("Pair Rate is correct"), "Pair Rate is WRONG after Trade"
+    assert buy_false == [], f'Received_False at {buy_false}'
+    assert sell_false == [], f'Trade_False at {sell_false}'

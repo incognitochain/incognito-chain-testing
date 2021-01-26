@@ -4,63 +4,48 @@ this test is only a support tool to help tester do the manual test faster and ea
 REMEMBER: test data file must contains accounts of Beacons, Committee. In case DAO account is changes, must update
     IncognitoChain.Configs.Constants::DAO_PRIVATE_K accordingly
 """
-import copy
 import json
 
 import pytest
 
+from IncognitoChain.Configs.Constants import ChainConfig
 from IncognitoChain.Helpers import TestHelper
 from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE, STEP
-from IncognitoChain.Helpers.TestHelper import ChainHelper
+from IncognitoChain.Helpers.TestHelper import ChainHelper, format_dict_side_by_side
 from IncognitoChain.Objects.AccountObject import COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import COMMITTEE_ACCOUNTS, BEACON_ACCOUNTS, SUT
 
-beacon_init_reward = 11512801260920
-shard_init_reward = [5916960630818, 5372514525094]
 
-
-@pytest.mark.parametrize('from_epoch, num_of_epoch_to_test, shard_tx_fee_list ', [
+@pytest.mark.parametrize('from_epoch, num_of_epoch_to_test, shard_tx_fee_list,DCZ', [
     # if from_epoch == 0: from_epoch = latest_epoch - num_of_epoch_to_test - 1
-    (0, 10, [0, 0]),
+    (0, 10, [0] * ChainConfig.ACTIVE_SHARD, True),  # true for testing with DCZ
+    (0, 10, [0] * ChainConfig.ACTIVE_SHARD, False),  # false for testing with fixed committee size
+
 ])
-def test_verify_reward_instruction(from_epoch, num_of_epoch_to_test, shard_tx_fee_list):
-    sum_beacon_rw_accumulated = beacon_init_reward
-    sum_shards_rw_accumulated = copy.deepcopy(shard_init_reward)
+def test_verify_reward_instruction(from_epoch, num_of_epoch_to_test, shard_tx_fee_list, DCZ):
     current_epoch = SUT().help_get_current_epoch()
     if from_epoch == 0:
         from_epoch = max(1, current_epoch - num_of_epoch_to_test - 1)
     num_of_epoch_to_test = min(current_epoch - from_epoch, num_of_epoch_to_test)
 
+    INFO(f'Verify reward instruction for {num_of_epoch_to_test} epoch, from epoch number {from_epoch}')
+
     while num_of_epoch_to_test > 0:
         INFO_HEADLINE(f' verify reward for epoch {from_epoch}')
-
-        current_epoch = SUT().get_latest_beacon_block().get_epoch()
+        current_epoch = SUT().get_block_chain_info().get_beacon_block().get_epoch()
         if current_epoch <= from_epoch:  # if epoch is not yet to come, wait til it comes
             ChainHelper.wait_till_next_epoch(from_epoch + 1)
 
         calculated_reward = SUT(). \
-            cal_transaction_reward_from_beacon_block_info(from_epoch, shard_txs_fee_list=shard_tx_fee_list)
+            cal_transaction_reward_from_beacon_block_info(from_epoch, shard_txs_fee_list=shard_tx_fee_list, dcz=DCZ)
         instruction_reward = SUT().get_first_beacon_block_of_epoch(
             from_epoch + 1).get_transaction_reward_from_instruction()
 
-        INFO(f"Calculated       : {calculated_reward}")
-        INFO(f"From instruction : {instruction_reward}")
-        # assert calculated_reward == instruction_reward
+        INFO(f"Calculated vs From instruction comparison :\n"
+             f"{format_dict_side_by_side(calculated_reward, instruction_reward)} ")
+        assert calculated_reward == instruction_reward
         num_of_epoch_to_test -= 1
         from_epoch += 1
-        sum_beacon_rw_accumulated += instruction_reward['beacon']
-        try:
-            sum_shards_rw_accumulated[0] += instruction_reward['0']
-        except:
-            pass
-
-        try:
-            sum_shards_rw_accumulated[1] += instruction_reward['1']
-        except:
-            pass
-
-    print(f" beacon accumulated reward: {sum_beacon_rw_accumulated}")
-    print(f' shard accumulated reward : {sum_shards_rw_accumulated}')
 
 
 def test_verify_reward_received():

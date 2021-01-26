@@ -4,13 +4,14 @@ import pytest
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status
 from IncognitoChain.Helpers.Logging import STEP, INFO
-from IncognitoChain.Helpers.TestHelper import l6, PortalHelper
+from IncognitoChain.Helpers.PortalHelper import PortalMath
+from IncognitoChain.Helpers.TestHelper import l6, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import Account, PORTAL_FEEDER
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS, SUT
 from IncognitoChain.Objects.PortalObjects import CustodianWithdrawTxInfo
 from IncognitoChain.TestCases.Portal import TEST_SETTING_DEPOSIT_AMOUNT, self_pick_custodian, \
-    portal_user, custodian_remote_addr, another_btc_addr, another_bnb_addr
+    portal_user, another_btc_addr, another_bnb_addr
 
 custodian_need_change_remote_addr_back = Account()
 
@@ -21,8 +22,8 @@ def teardown_function():
         return
 
     INFO("Change remote address back")
-    previous_bnb_addr = custodian_remote_addr.get_remote_addr(PBNB_ID, custodian)
-    previous_btc_addr = custodian_remote_addr.get_remote_addr(PBTC_ID, custodian)
+    previous_bnb_addr = custodian.get_remote_addr(PBNB_ID)
+    previous_btc_addr = custodian.get_remote_addr(PBTC_ID)
     custodian_info = custodian.portal_get_my_custodian_info()
     withdraw_tx = custodian.portal_withdraw_my_all_free_collateral()
     if withdraw_tx is not None:
@@ -58,8 +59,7 @@ def test_custodian_deposit(depositor, token, expected_pass):
     bal_b4 = depositor.get_prv_balance()
 
     STEP(1, "Make a valid custodian deposit")
-    deposit_response = depositor.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, token,
-                                                          custodian_remote_addr.get_remote_addr(token, depositor))
+    deposit_response = depositor.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, token)
     if token == PRV_ID:
         deposit_response.expect_error()
     else:
@@ -91,7 +91,6 @@ def test_custodian_deposit(depositor, token, expected_pass):
     (ACCOUNTS[3], PBTC_ID, True),
     (ACCOUNTS[3], PRV_ID, False),
 ])
-@pytest.mark.dependency(depends=["test_custodian_deposit"])
 def test_add_more_collateral(depositor, token, expected_pass):
     deposit_amount = coin(1)
     STEP(1, "Check existing collateral of user")
@@ -152,10 +151,8 @@ def test_update_remote_address(custodian, token, total_collateral_precondition, 
         if withdraw_response is not None:
             withdraw_response.subscribe_transaction()
             WAIT(40)
-
-        custodian.get_prv_balance()
         custodian_info_b4 = custodian.portal_get_my_custodian_info()
-        bal_b4 = custodian.get_prv_balance()
+        bal_b4 = custodian.wait_for_balance_change(from_balance=bal_b4)
     else:
         STEP(1, "DO NOT Withdraw collateral")
 
@@ -251,8 +248,8 @@ def test_creating_rate(account, expected_pass):
     if expected_pass:
         create_rate_tx.expect_no_error()
         create_rate_tx.subscribe_transaction()
-        INFO("Wait 60s for new rate to apply")
-        WAIT(60)
+        INFO("Wait 2 beacon heights for new rate to apply")
+        ChainHelper.wait_till_next_beacon_height(2)
         portal_state_info = SUT().get_latest_portal_state_info()
         INFO('Checking new rate')
         for token, value in test_rate.items():
@@ -284,7 +281,7 @@ def test_calculating_porting_fee(token):
     STEP(1, f"Get portal fee with amount = {test_amount}")
     portal_fee_from_chain = SUT().portal().get_porting_req_fees(token, test_amount, beacon_height). \
         get_result(token)
-    portal_fee_estimate = PortalHelper.cal_portal_portal_fee(test_amount, bnb_rate, prv_rate)
+    portal_fee_estimate = PortalMath.cal_portal_portal_fee(test_amount, bnb_rate, prv_rate)
 
     STEP(2, 'Compare')
     INFO(f'''

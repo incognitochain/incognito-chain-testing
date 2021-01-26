@@ -4,7 +4,8 @@ from typing import List
 
 from IncognitoChain.Configs.Constants import PBNB_ID, PBTC_ID, PRV_ID, Status, ChainConfig
 from IncognitoChain.Helpers.Logging import INFO, DEBUG, INFO_HEADLINE, ERROR
-from IncognitoChain.Helpers.TestHelper import l6, PortalHelper, extract_incognito_addr
+from IncognitoChain.Helpers.PortalHelper import PortalMath
+from IncognitoChain.Helpers.TestHelper import l6, extract_incognito_addr, KeyExtractor
 from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects import BlockChainInfoBaseClass
 
@@ -81,8 +82,8 @@ class PortingReqInfo(_PortalInfoBase):
     def get_custodian(self, custodian):
         """
 
-        :param custodian: CustodianInfo or Account or incognito addr
-        :return: CustodianInfo or None
+        @param custodian: CustodianInfo or Account or incognito addr
+        @return: CustodianInfo or None
         """
         addr = extract_incognito_addr(custodian)
 
@@ -155,8 +156,8 @@ class RedeemReqInfo(_PortalInfoBase):
     def get_custodian(self, custodian):
         """
 
-        :param custodian: CustodianInfo or Account or incognito addr
-        :return:
+        @param custodian: CustodianInfo or Account or incognito addr
+        @return:
         """
         addr = extract_incognito_addr(custodian)
         custodian_list = self.get_redeem_matching_custodians()
@@ -194,6 +195,10 @@ class RedeemMatchingInfo(_PortalInfoBase):
     def get_matching_info_by_tx(self, tx_id):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
         response = SUT().portal().get_req_matching_redeem_status(tx_id)
+        if response.get_result() is None:  # retry after 40s if nothing return
+            WAIT(10)
+            response = SUT().portal().get_req_matching_redeem_status(tx_id)
+
         self.data = response.get_result()
         return self
 
@@ -296,8 +301,8 @@ class PortalStateInfo(_PortalInfoBase):
         def get_locked_collateral(self, token_id=None):
             """
 
-            :param token_id:
-            :return: amount of locked collateral of a token if token_id is specified. If token id is not specified,
+            @param token_id:
+            @return: amount of locked collateral of a token if token_id is specified. If token id is not specified,
                 return a dictionary of {token_id: locked amount}
             """
             if token_id is None:
@@ -419,8 +424,8 @@ class PortalStateInfo(_PortalInfoBase):
         def __str__(self):
             ret = ""
             for token in self._get_token_set():
-                ret += "token= %s, amount= %s, colatteral = %s\n" % (
-                    l6(token), self.get_collateral_amount_of_token(token), self.get_collateral_amount_of_token(token))
+                ret += "token= %s, amount= %s, collateral = %s\n" % (
+                    l6(token), self.get_public_token_amount_of_token(token), self.get_collateral_amount_of_token(token))
             return ret.strip('\n')
 
         def add_more_public_token(self, token_id, amount):
@@ -516,8 +521,8 @@ class PortalStateInfo(_PortalInfoBase):
     def get_custodian_info_in_pool(self, custodian_info):
         """
 
-        :param custodian_info: incognito address, Account, or CustodianInfo obj
-        :return:
+        @param custodian_info: incognito address, Account, or CustodianInfo obj
+        @return:
         """
         addr = extract_incognito_addr(custodian_info)
         pool = self.get_custodian_pool()
@@ -533,7 +538,8 @@ class PortalStateInfo(_PortalInfoBase):
             else:
                 return int(self.data['FinalExchangeRatesState']['Rates'][token_id]['Amount'])
         except TypeError:
-            return None
+            ERROR(f'Cannot find portal rate of token {token_id}, assume rate = 0')
+            return 0
 
     def print_rate(self):
         rate = self.get_portal_rate()
@@ -598,7 +604,7 @@ class PortalStateInfo(_PortalInfoBase):
                 req_list.append(req)
         return req_list
 
-    def get_redeem_matched_req(self, token_id=None) -> List[RedeemReqInfo]:
+    def get_redeem_matched_req(self, token_id=None, custodian=None) -> List[RedeemReqInfo]:
         req_list = []
         req_data_raw = self.data['MatchedRedeemRequests']
         for req_raw in req_data_raw.values():
@@ -607,6 +613,17 @@ class PortalStateInfo(_PortalInfoBase):
                 req_list.append(req)
             else:
                 req_list.append(req)
+
+        if custodian is not None:  # find matching req which belong to custodian
+            req_tok_addr = []
+            inc_addr = KeyExtractor.incognito_addr(custodian)
+            for req in req_list:
+                cus_of_req = req.get_custodian(custodian)
+                if cus_of_req is not None:
+                    if cus_of_req.get_incognito_addr() == inc_addr:
+                        req_tok_addr.append(req)
+            return req_tok_addr
+
         return req_list
 
     def get_liquidation_pool(self) -> LiquidationPool:
@@ -729,7 +746,7 @@ class PortalStateInfo(_PortalInfoBase):
                 liquidating_list.append(custodian)
         return liquidating_list
 
-    def estimate_liquidation_pool(self, token_id, new_token_rate, new_prv_rate) -> LiquidationPool:
+    def estimate_liquidation_pool_with_new_rate(self, token_id, new_token_rate, new_prv_rate) -> LiquidationPool:
         liquidating_custodian = self.find_custodians_will_be_liquidate_with_new_rate(token_id, new_token_rate,
                                                                                      new_prv_rate)
         estimate_liquidate_pool = PortalStateInfo.LiquidationPool()
@@ -740,8 +757,8 @@ class PortalStateInfo(_PortalInfoBase):
 
         for custodian in liquidating_custodian:
             my_holding_token = custodian.get_holding_token_amount(token_id)
-            liquidated_collateral, _ = self.estimate_liquidation_of_custodian(custodian, token_id, new_token_rate,
-                                                                              new_prv_rate)
+            liquidated_collateral, _ = self. \
+                estimate_liquidation_of_custodian_with_new_rate(custodian, token_id, new_token_rate, new_prv_rate)
 
             estimate_liquidate_pool.add_more_public_token(token_id, my_holding_token)
             estimate_liquidate_pool.add_more_collateral(token_id, liquidated_collateral)
@@ -771,9 +788,9 @@ class PortalStateInfo(_PortalInfoBase):
 
     def find_custodian_with_holding_token_amount(self, token_id, holding_amount):
         """
-        :param token_id:
-        :param holding_amount:
-        :return: CustodianInfo who holds specific <holding_amount> of <token_id>
+        @param token_id:
+        @param holding_amount:
+        @return: CustodianInfo who holds specific <holding_amount> of <token_id>
         """
         pool = self.get_custodian_pool()
         for custodian in pool:
@@ -784,9 +801,9 @@ class PortalStateInfo(_PortalInfoBase):
     def find_custodian_hold_more_than_amount(self, token_id, holding_amount):
         """
 
-        :param token_id:
-        :param holding_amount:
-        :return: List of CustodianInfo who holds <token_id> with amount > <holding_amount>
+        @param token_id:
+        @param holding_amount:
+        @return: List of CustodianInfo who holds <token_id> with amount > <holding_amount>
         """
         pool = self.get_custodian_pool()
         list_custodian = []
@@ -798,8 +815,8 @@ class PortalStateInfo(_PortalInfoBase):
     def get_a_random_custodian(self, token=None):
         """
         get a random custodian in pool
-        :param token: if specified return custodian who holding 'token' > 0
-        :return:
+        @param token: if specified return custodian who holding 'token' > 0
+        @return:
         """
         custodian_pool = self.get_custodian_pool()
         random_index = random.randrange(0, len(custodian_pool))
@@ -818,47 +835,73 @@ class PortalStateInfo(_PortalInfoBase):
                 result.append(req)
         return result
 
-    def estimate_liquidation_of_custodian(self, custodian, token_id, porting_amount=0, porting_collateral=0):
+    def calculate_liquidation_of_custodian_with_current_rate(self, custodian, token_id, porting_amount=0,
+                                                             porting_collateral=0):
         """
-        Estimate liquidate collateral and return collateral of custodian
-        :param porting_collateral:
-        :param porting_amount:
-        :param custodian:a CustodianInfo, Account object or incognito addr of custodian
-        :param token_id:
-        :return:
+        ONLY use for calculating liquidation of a porting request.
+        The liquidation cause by rate changing right after porting request is accepted (collateral is locked)
+        but before user request for ported token (ptoken is released to user).
+        Use with portal state after rate changed
+        @param porting_collateral:
+        @param porting_amount:
+        @param custodian:a CustodianInfo, Account object or incognito addr of custodian
+        @param token_id:
+        @return:
+        """
+        prv_rate = self.get_portal_rate(PRV_ID)
+        token_rate = self.get_portal_rate(token_id)
+        return self.__cal_liquidation_and_return(custodian, token_id, token_rate, prv_rate, porting_amount,
+                                                 porting_collateral)
+
+    def estimate_liquidation_of_custodian_with_new_rate(self, custodian, token_id, new_token_rate, new_prv_rate):
+        """
+        Only use for estimating liquidate collateral and return collateral of custodian BEFORE RATE CHANGES.
+        Use with portal state before rate changed
+        @param custodian:
+        @param token_id:
+        @param new_prv_rate:
+        @param new_token_rate:
+        @return:
+        """
+        return self.__cal_liquidation_and_return(custodian, token_id, new_token_rate, new_prv_rate, 0, 0)
+
+    def __cal_liquidation_and_return(self, custodian, token_id, new_token_rate, new_prv_rate,
+                                     porting_amount, porting_collateral):
+        """
+        Never call this method directly, use the two method above instead
+        @param custodian:
+        @param token_id:
+        @param new_prv_rate:
+        @param new_token_rate:
+        @param porting_amount:
+        @param porting_collateral:
+        @return:
         """
         custodian = self.get_custodian_info_in_pool(custodian)
-        new_prv_rate = self.get_portal_rate(PRV_ID)
-        new_token_rate = self.get_portal_rate(token_id)
         my_holding_token = custodian.get_holding_token_amount(token_id)
-        lock_collateral_minus_waiting_porting = \
-            self._lock_collateral_minus_waiting_porting_of_custodian(custodian, token_id) + porting_collateral
-
         waiting_redeem_holding_tok = \
             self.sum_holding_token_waiting_redeem_req(token_id, custodian.get_incognito_addr())
-        sum_holding_tok = my_holding_token + waiting_redeem_holding_tok + porting_amount
 
-        holding_liquidate = int(ChainConfig.Portal.COLLATERAL_LIQUIDATE_TO_POOL_PERCENT * sum_holding_tok)
-        estimated_liquidated_collateral = PortalHelper.cal_portal_exchange_tok_to_prv(holding_liquidate, new_token_rate,
-                                                                                      new_prv_rate)
-        if lock_collateral_minus_waiting_porting > estimated_liquidated_collateral:
-            collateral_return_to_custodian = lock_collateral_minus_waiting_porting - estimated_liquidated_collateral
-            liquidate_amount = estimated_liquidated_collateral
+        X = self._lock_collateral_minus_waiting_porting_of_custodian(custodian, token_id) + porting_collateral
+        Y = my_holding_token + waiting_redeem_holding_tok + porting_amount
+        Z = int((Y * 1.05 * new_token_rate) / new_prv_rate)
+        if X > Z:
+            F = X - Z  # collateral return to custodian
+            liquidate_amount = Z
         else:
-            collateral_return_to_custodian = 0
-            liquidate_amount = lock_collateral_minus_waiting_porting
-        # breakpoint()
-        return liquidate_amount, collateral_return_to_custodian
+            F = 0
+            liquidate_amount = X
+        return liquidate_amount, F
 
     def will_custodian_be_liquidated_with_new_rate(self, custodian, token_id, new_tok_rate, new_prv_rate):
         """
 
-        :param custodian: CustodianInfo object
-        :param new_tok_rate:
-        :param new_prv_rate:
+        @param custodian: CustodianInfo object
+        @param new_tok_rate:
+        @param new_prv_rate:
             when collateral <= liquidation_percent (120% by default) of token price in prv, collateral will be liquidize
-        :param token_id: token to check, bnb or btc
-        :return:
+        @param token_id: token to check, bnb or btc
+        @return:
         """
         porting_waiting = self.get_porting_waiting_req()
         waiting_porting_collateral = 0
@@ -874,9 +917,9 @@ class PortalStateInfo(_PortalInfoBase):
 
         if holding_token is None or holding_token == 0:
             return False
-        holding_tok_in_prv_new_rate = PortalHelper.cal_portal_exchange_tok_to_prv(holding_token, new_tok_rate,
-                                                                                  new_prv_rate)
-        new_collateral = holding_tok_in_prv_new_rate * ChainConfig.Portal.COLLATERAL_LIQUIDATE_PERCENT
+        holding_tok_in_prv_new_rate = PortalMath.cal_portal_exchange_tok_to_prv(holding_token, new_tok_rate,
+                                                                                new_prv_rate)
+        new_collateral = int(holding_tok_in_prv_new_rate * ChainConfig.Portal.COLLATERAL_LIQUIDATE_PERCENT)
         if prv_collateral_current <= new_collateral:
             return True
         return False
@@ -888,34 +931,43 @@ class PortalStateInfo(_PortalInfoBase):
     def estimate_collateral(self, amount, token_id):
         rate_prv = self.get_portal_rate(PRV_ID)
         rate_tok = self.get_portal_rate(token_id)
-        return PortalHelper.cal_lock_collateral(amount, rate_tok, rate_prv)
+        return PortalMath.cal_lock_collateral(amount, rate_tok, rate_prv)
 
-    def estimate_custodian_collateral_unlock(self, custodian, holding_amount_to_unlock, token,
-                                             percent=ChainConfig.Portal.COLLATERAL_PERCENT):
+    def estimate_custodian_collateral_unlock(self, custodian, holding_amount_to_unlock, token):
+        """
+        Estimate mount of prv collateral will be unlock, use with portal state after redeem matched only
+        @param custodian: incognito address, Account, or CustodianInfo obj
+        @param holding_amount_to_unlock: int, amount of ptoken to unlock
+        @param token: mount of prv collateral will be unlock
+        @return:
+        """
         custodian_holding = self.get_custodian_info_in_pool(custodian).get_holding_token_amount(token)
         custodian_lock_collateral = self.get_custodian_info_in_pool(custodian).get_locked_collateral(token)
+        matching_holding = sum(
+            [req.get_custodian(custodian).get_amount() for req in self.get_porting_waiting_req(token)])
         if holding_amount_to_unlock == custodian_holding:
             unlock_prv = custodian_lock_collateral
         else:
-            unlock_token_amount = holding_amount_to_unlock * percent / ChainConfig.Portal.COLLATERAL_PERCENT
-            unlock_prv = int(unlock_token_amount * (custodian_lock_collateral / custodian_holding))
+            unlock_prv = int(
+                (holding_amount_to_unlock / custodian_holding) * (custodian_lock_collateral - matching_holding))
         INFO(f'Estimated: custodian {l6(custodian.get_incognito_addr())}, '
              f'holding {custodian_holding}, '
+             f'matched hold {matching_holding}, '
              f'unlock {holding_amount_to_unlock} '
              f'token {l6(token)}, '
-             f'% to unlock {percent}. '
-             f'Collateral to unlock: {unlock_prv}')
+             f'locked collateral: {custodian_lock_collateral}, '
+             f'to unlock: {unlock_prv} ')
         return unlock_prv
 
     def estimate_exchange_prv_to_token(self, amount_prv, token_id):
         rate_prv = self.get_portal_rate(PRV_ID)
         rate_tok = self.get_portal_rate(token_id)
-        return PortalHelper.cal_portal_exchange_prv_to_tok(amount_prv, rate_prv, rate_tok)
+        return PortalMath.cal_portal_exchange_prv_to_tok(amount_prv, rate_prv, rate_tok)
 
     def estimate_exchange_token_to_prv(self, amount_token, token_id):
         rate_prv = self.get_portal_rate(PRV_ID)
         rate_tok = self.get_portal_rate(token_id)
-        return PortalHelper.cal_portal_exchange_tok_to_prv(amount_token, rate_tok, rate_prv)
+        return PortalMath.cal_portal_exchange_tok_to_prv(amount_token, rate_tok, rate_prv)
 
     def verify_unlock_collateral_custodian_redeem_expire(self, psi_redeem_expire, redeem, runaway_custodian_list=None):
         """
@@ -923,10 +975,10 @@ class PortalStateInfo(_PortalInfoBase):
         custodian(s) who not return public token to user (run away):
        - 105% of there's locked collateral of this request will be sent directly to user
        - 45% left will be unlock automatically
-        :param runaway_custodian_list: list of custodians who not sending public token back to user
-        :param psi_redeem_expire: PortalStateInfo after the redeem is expired
-        :param redeem: redeem id or RedeemReqInfo object
-        :return: amount prv that will return to user
+        @param runaway_custodian_list: list of custodians who not sending public token back to user
+        @param psi_redeem_expire: PortalStateInfo after the redeem is expired
+        @param redeem: redeem id or RedeemReqInfo object
+        @return: amount prv that will return to user
         """
         if type(redeem) is str:
             redeem_info = RedeemReqInfo().get_redeem_status_by_redeem_id(redeem)
@@ -968,10 +1020,10 @@ class PortalStateInfo(_PortalInfoBase):
     def estimate_prv_custodian_return_to_user_when_redeem_expire(self, custodian, redeem, psi_when_expire):
         """
 
-        :param psi_when_expire: PortalStateInfo when the redeem req is expired
-        :param custodian: PortalStateInfo.CustodianInfo
-        :param redeem: redeem id (str) or RedeemReqInfo
-        :return: amount prv return to user , amount collateral to unlock
+        @param psi_when_expire: PortalStateInfo when the redeem req is expired
+        @param custodian: PortalStateInfo.CustodianInfo
+        @param redeem: redeem id (str) or RedeemReqInfo
+        @return: amount prv return to user , amount collateral to unlock
         """
         if type(redeem) is str:
             redeem_info = RedeemReqInfo().get_redeem_status_by_redeem_id(redeem)
@@ -1057,10 +1109,10 @@ class RewardWithdrawTxInfo(_PortalInfoBase):
 
     def get_reward_info_by_tx_id(self, tx_id, retry=True):
         from IncognitoChain.Objects.IncognitoTestCase import SUT
-        self.data = SUT().portal().get_request_withdraw_portal_reward_status(tx_id).get_result()
+        self.data = SUT().portal().get_request_withdraw_portal_reward_status(tx_id).expect_no_error().get_result()
         if self.is_none() and retry:
             WAIT(40)
-            self.data = SUT().portal().get_request_withdraw_portal_reward_status(tx_id).get_result()
+            self.data = SUT().portal().get_request_withdraw_portal_reward_status(tx_id).expect_no_error().get_result()
         return self
 
     def get_custodian_addr_str(self):
