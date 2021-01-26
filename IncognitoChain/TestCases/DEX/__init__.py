@@ -16,10 +16,10 @@ token_owner = Account(
 # token_id = "a4442a68070fc615abee5e8c665808ebc1c670e5fd16f49ca8e992bf7c126739"
 # token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
 # token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
-token_id_1 = "b9c7f272d283b570b9aa8ec756a22d311eaf16cab197843264a4eaaaffc46f4f"  # local
-token_id_2 = "78b3e0a7178ad910558529fb93224cae831af89a42df11044075fc66678cc801"  # local
-# token_id_1 = None
-# token_id_2 = None
+# token_id_1 = "b9c7f272d283b570b9aa8ec756a22d311eaf16cab197843264a4eaaaffc46f4f"  # local
+# token_id_2 = "78b3e0a7178ad910558529fb93224cae831af89a42df11044075fc66678cc801"  # local
+token_id_1 = None
+token_id_2 = None
 token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff"  # token not yet added to PDE
 
 need_withdraw_contribution_1 = False
