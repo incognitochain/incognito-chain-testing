@@ -2,7 +2,7 @@
 # python=./venv/bin/python3
 python=python3
 
-if [ $1 = "clear" ]; then
+if [ $1 = "clear" ] || [ $1 = "clean" ]; then
   rm reports/*.html
   rm log/*.log
   exit
@@ -11,7 +11,7 @@ fi
 test_bed=$1
 test_data=$2
 html_report="reports/$(date '+%Y.%m.%d-%H.%M.%S')-${test_bed}-${test_data}.html"
-xoption="-XprepareCoin "
+xoption=""
 
 if [ "$test_bed" != "-" ]; then
   echo " !!! Using test bed: $test_bed"
@@ -30,4 +30,5 @@ else
   param4="-k $4"
 fi
 set -x
-$python $xoption -m pytest --show-capture=no -s -v --html="$html_report" --self-contained-html $3 $param4
+$python $xoption -m pytest \
+  --show-capture=stderr --capture=tee-sys -v --html="$html_report" --self-contained-html $3 $param4
