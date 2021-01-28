@@ -1,4 +1,4 @@
-from IncognitoChain.Objects.AccountObjectNew import Account
+from Objects.AccountObjectNew import Account
 
 account_list = \
     [

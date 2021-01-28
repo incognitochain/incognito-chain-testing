@@ -1,10 +1,10 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
-from IncognitoChain.Helpers.Logging import INFO
-from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.NodeObject import Node
-from IncognitoChain.Objects.TestBedObject import TestBed
+from Helpers.Logging import INFO
+from Helpers.Time import WAIT
+from Objects.NodeObject import Node
+from Objects.TestBedObject import TestBed
 
 node1 = Node(url="http://51.79.76.38:9352")
 node2 = Node(url="http://51.79.76.38:9340")

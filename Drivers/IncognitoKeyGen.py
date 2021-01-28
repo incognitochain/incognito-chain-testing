@@ -3,7 +3,7 @@ import re
 import subprocess
 import sys
 
-from IncognitoChain.Configs import Constants
+from Configs import Constants
 
 if sys.platform == 'darwin':
     get_key = {1: f'{os.getcwd()}/IncognitoChain/bin/getKey-mac',

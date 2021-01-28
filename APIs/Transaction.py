@@ -1,6 +1,6 @@
-from IncognitoChain.Configs import Constants
-from IncognitoChain.Configs.Constants import BURNING_ADDR, ChainConfig
-from IncognitoChain.Drivers import Connections
+from Configs import Constants
+from Configs.Constants import BURNING_ADDR, ChainConfig
+from Drivers import Connections
 
 
 class TransactionRpc:

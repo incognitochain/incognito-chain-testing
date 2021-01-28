@@ -1,6 +1,6 @@
 import json
 
-from IncognitoChain.Objects import BlockChainInfoBaseClass
+from Objects import BlockChainInfoBaseClass
 
 """
 Sample raw data:

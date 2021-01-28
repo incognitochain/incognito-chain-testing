@@ -4,9 +4,9 @@ import string
 import time
 from json.decoder import JSONDecodeError
 
-from IncognitoChain.Configs.Constants import ChainConfig
-from IncognitoChain.Helpers.Logging import INFO
-from IncognitoChain.Helpers.Time import WAIT
+from Configs.Constants import ChainConfig
+from Helpers.Logging import INFO
+from Helpers.Time import WAIT
 
 
 def l6(string):
@@ -94,8 +94,8 @@ def format_dict_side_by_side(dict1, dict2):
 
 
 def extract_incognito_addr(obj):
-    from IncognitoChain.Objects.AccountObject import Account
-    from IncognitoChain.Objects.PortalObjects import PortalStateInfo
+    from Objects.AccountObject import Account
+    from Objects.PortalObjects import PortalStateInfo
 
     if type(obj) == str:
         addr = obj
@@ -111,8 +111,8 @@ def extract_incognito_addr(obj):
 class KeyExtractor:
     @staticmethod
     def incognito_addr(obj):
-        from IncognitoChain.Objects.AccountObject import Account
-        from IncognitoChain.Objects.PortalObjects import PortalStateInfo
+        from Objects.AccountObject import Account
+        from Objects.PortalObjects import PortalStateInfo
 
         if type(obj) is str:
             addr = obj
@@ -126,7 +126,7 @@ class KeyExtractor:
 
     @staticmethod
     def committee_public_k(obj):
-        from IncognitoChain.Objects.AccountObject import Account
+        from Objects.AccountObject import Account
         if type(obj) is str:
             addr = obj
         elif type(obj) is Account:
@@ -137,8 +137,8 @@ class KeyExtractor:
 
     @staticmethod
     def inc_public_k(obj):
-        from IncognitoChain.Objects.AccountObject import Account
-        from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo
+        from Objects.AccountObject import Account
+        from Objects.BeaconObject import BeaconBestStateDetailInfo
         if type(obj) is str:
             addr = obj
         elif type(obj) is Account:
@@ -174,7 +174,7 @@ class ChainHelper:
         @return:
         """
         INFO(f'Waiting till beacon height {beacon_height}')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        from Objects.IncognitoTestCase import SUT
         current_beacon_h = SUT().help_get_beacon_height()
         if beacon_height <= current_beacon_h:
             INFO(f'Beacon height {beacon_height} is passed already')
@@ -200,7 +200,7 @@ class ChainHelper:
         @param num_of_beacon_height_to_wait:
         @return:
         """
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        from Objects.IncognitoTestCase import SUT
         current_beacon_h = SUT().help_get_beacon_height()
 
         return ChainHelper.wait_till_beacon_height(current_beacon_h + num_of_beacon_height_to_wait, wait, timeout)
@@ -215,7 +215,7 @@ class ChainHelper:
         @param timeout:
         @return:
         """
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        from Objects.IncognitoTestCase import SUT
         current_shard_h = SUT().help_get_shard_height(shard_id)
         shard_height = current_shard_h + num_of_shard_height_to_wait
         INFO(f'Waiting till shard {shard_id} height {shard_height}')
@@ -244,7 +244,7 @@ class ChainHelper:
         @param timeout: 
         @return: 
         """
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        from Objects.IncognitoTestCase import SUT
         check_interval = ChainConfig.get_epoch_time() if check_interval is None else check_interval
         blk_chain_info = SUT().get_block_chain_info()
         current_epoch = blk_chain_info.get_beacon_block().get_epoch()
@@ -359,7 +359,7 @@ def get_beacon_best_state_detail(number_of_beacon_height_to_get=100, wait=5, tim
     @param timeout:
     @return: a list beacon best state detail obj
     """
-    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    from Objects.IncognitoTestCase import SUT
     list_beacon_best_state_detail_objs = []
     for i in range(1, number_of_beacon_height_to_get + 1):
         list_beacon_best_state_detail_objs.append(SUT().get_beacon_best_state_detail_info())
@@ -378,7 +378,7 @@ def get_shard_best_state_detail(shard_id, number_of_shard_height_to_get=100, wai
     @param timeout:
     @return: a list shard detail obj
     """
-    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    from Objects.IncognitoTestCase import SUT
     list_shard_best_state_detail_objs = []
     for i in range(1, number_of_shard_height_to_get + 1):
         list_shard_best_state_detail_objs.append(SUT().get_shard_best_state_detail_info(shard_id))
@@ -397,7 +397,7 @@ def get_beacon_best_state(number_of_beacon_height_to_get=100, wait=5, timeout=50
     @param timeout:
     @return: a list beacon best state obj
     """
-    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    from Objects.IncognitoTestCase import SUT
     list_beacon_best_state_objs = []
     for i in range(1, number_of_beacon_height_to_get + 1):
         list_beacon_best_state_objs.append(SUT().get_beacon_best_state_info())
@@ -416,7 +416,7 @@ def get_shard_best_state(shard_id, number_of_shard_height_to_get=100, wait=5, ti
     @param timeout:
     @return: a list shard best state obj
     """
-    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    from Objects.IncognitoTestCase import SUT
     list_shard_best_state_objs = []
     for i in range(1, number_of_shard_height_to_get + 1):
         list_shard_best_state_objs.append(SUT().get_shard_best_state_info(shard_id))

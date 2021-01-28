@@ -1,6 +1,6 @@
-from IncognitoChain.Configs.Constants import ChainConfig, Status
-from IncognitoChain.Helpers.Logging import INFO
-from IncognitoChain.Helpers.TestHelper import to_num
+from Configs.Constants import ChainConfig, Status
+from Helpers.Logging import INFO
+from Helpers.TestHelper import to_num
 
 
 class PortalMath:
@@ -113,7 +113,7 @@ class PortalMath:
 
     @staticmethod
     def check_custodian_deposit_tx_status(tx_id, expected='accept'):
-        from IncognitoChain.Objects.PortalObjects import DepositTxInfo
+        from Objects.PortalObjects import DepositTxInfo
 
         info = DepositTxInfo()
         info.get_deposit_info(tx_id)

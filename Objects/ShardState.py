@@ -1,5 +1,5 @@
-from IncognitoChain.Objects import BlockChainInfoBaseClass
-from IncognitoChain.Objects.BeaconObject import BeaconBestStateDetailInfo
+from Objects import BlockChainInfoBaseClass
+from Objects.BeaconObject import BeaconBestStateDetailInfo
 
 
 class ShardBestStateDetailInfo(BlockChainInfoBaseClass):

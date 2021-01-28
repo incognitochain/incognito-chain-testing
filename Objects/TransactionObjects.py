@@ -1,9 +1,9 @@
 import json
 
-from IncognitoChain.Configs.Constants import ChainConfig
-from IncognitoChain.Helpers.Logging import INFO
-from IncognitoChain.Objects import BlockChainInfoBaseClass
-from IncognitoChain.Objects.CoinObject import Coin
+from Configs.Constants import ChainConfig
+from Helpers.Logging import INFO
+from Objects import BlockChainInfoBaseClass
+from Objects.CoinObject import Coin
 
 
 class TransactionDetail(BlockChainInfoBaseClass):
@@ -283,7 +283,7 @@ class TransactionDetail(BlockChainInfoBaseClass):
     def get_transaction_by_hash(self, tx_hash=None):
         if tx_hash is None:
             tx_hash = self.get_tx_id()
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        from Objects.IncognitoTestCase import SUT
         self.data = SUT().transaction().get_tx_by_hash(tx_hash).get_result()
         return self
 

@@ -1,10 +1,10 @@
 import sys
 
-from IncognitoChain.Configs import config
-from IncognitoChain.Configs.Constants import ChainConfig
-from IncognitoChain.Helpers.Logging import WARNING, ERROR
-from IncognitoChain.Objects.AccountObject import AccountGroup
-from IncognitoChain.Objects.TestBedObject import *
+from Configs import config
+from Configs.Constants import ChainConfig
+from Helpers.Logging import WARNING, ERROR
+from Objects.AccountObject import AccountGroup
+from Objects.TestBedObject import *
 
 # get command args
 # noinspection PyProtectedMember

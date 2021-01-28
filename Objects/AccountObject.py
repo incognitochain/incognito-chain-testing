@@ -2,17 +2,17 @@ import copy
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
-from IncognitoChain.Configs import Constants
-from IncognitoChain.Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, \
+from Configs import Constants
+from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, \
     ChainConfig
-from IncognitoChain.Drivers.IncognitoKeyGen import get_key_set_from_private_k
-from IncognitoChain.Drivers.NeighborChainCli import NeighborChainCli
-from IncognitoChain.Drivers.Response import Response
-from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE, WARNING
-from IncognitoChain.Helpers.TestHelper import l6
-from IncognitoChain.Helpers.Time import WAIT, get_current_date_time
-from IncognitoChain.Objects.CoinObject import Coin
-from IncognitoChain.Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
+from Drivers.IncognitoKeyGen import get_key_set_from_private_k
+from Drivers.NeighborChainCli import NeighborChainCli
+from Drivers.Response import Response
+from Helpers.Logging import INFO, INFO_HEADLINE, WARNING
+from Helpers.TestHelper import l6
+from Helpers.Time import WAIT, get_current_date_time
+from Objects.CoinObject import Coin
+from Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 
 
 class Account:
@@ -88,10 +88,10 @@ class Account:
 
         self.cache = {}
         if nomad:
-            from IncognitoChain.Objects.NodeObject import Node
+            from Objects.NodeObject import Node
             self.REQ_HANDLER = Node()
         else:
-            from IncognitoChain.Objects import IncognitoTestCase
+            from Objects import IncognitoTestCase
             self.REQ_HANDLER = IncognitoTestCase.SUT()
 
     def is_empty(self):
@@ -1310,7 +1310,7 @@ def get_accounts_in_shard(shard_number: int, account_list=None):
     :return: list of Account which is in the same shard_number
     """
     if account_list is None:
-        from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
+        from Objects.IncognitoTestCase import ACCOUNTS
         account_list = ACCOUNTS
     if type(account_list) is AccountGroup:
         return account_list.get_accounts_in_shard(shard_number)

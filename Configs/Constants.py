@@ -69,7 +69,7 @@ class ChainConfig:
     @staticmethod
     def get_running_config():
         # collecting running chain config
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        from Objects.IncognitoTestCase import SUT
         bbs = SUT().get_beacon_best_state_info()
         ChainConfig.ACTIVE_SHARD = bbs.get_active_shard()
         ChainConfig.BEACON_COMMITTEE_SIZE = bbs.get_max_beacon_committee_size()

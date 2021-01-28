@@ -1,5 +1,5 @@
-from IncognitoChain.Configs.Constants import BURNING_ADDR
-from IncognitoChain.Drivers.Connections import RpcConnection
+from Configs.Constants import BURNING_ADDR
+from Drivers.Connections import RpcConnection
 
 
 class PortalRpc:

@@ -1,4 +1,4 @@
-from IncognitoChain.Objects.TestBedObject import Node
+from Objects.TestBedObject import Node
 
 full_node = Node(url='https://lb-fullnode.incognito.org/fullnode')
 beacon = []

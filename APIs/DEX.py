@@ -1,6 +1,6 @@
-from IncognitoChain.Configs import Constants as Const
-from IncognitoChain.Configs.Constants import PRV_ID, BURNING_ADDR
-from IncognitoChain.Drivers.Connections import RpcConnection
+from Configs import Constants as Const
+from Configs.Constants import PRV_ID, BURNING_ADDR
+from Drivers.Connections import RpcConnection
 
 
 class DexRpc:

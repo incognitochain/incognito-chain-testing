@@ -1,6 +1,6 @@
-from IncognitoChain.Helpers.Logging import DEBUG
-from IncognitoChain.Helpers.TestHelper import l6
-from IncognitoChain.Objects import BlockChainInfoBaseClass
+from Helpers.Logging import DEBUG
+from Helpers.TestHelper import l6
+from Objects import BlockChainInfoBaseClass
 
 
 class Coin(BlockChainInfoBaseClass):

@@ -1,9 +1,9 @@
 from time import sleep
 
-from IncognitoChain.Helpers import TestHelper
-from IncognitoChain.Helpers.Logging import INFO
-from IncognitoChain.Objects.AccountObject import Account
-from IncognitoChain.Objects.IncognitoTestCase import SUT
+from Helpers import TestHelper
+from Helpers.Logging import INFO
+from Objects.AccountObject import Account
+from Objects.IncognitoTestCase import SUT
 
 beacon_list = [
     Account(

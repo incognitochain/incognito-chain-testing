@@ -1,12 +1,12 @@
 import copy
 import re
 
-from IncognitoChain.Configs.Constants import PRV_ID, ChainConfig
-from IncognitoChain.Helpers import TestHelper
-from IncognitoChain.Helpers.Logging import INFO, WARNING, DEBUG, ERROR
-from IncognitoChain.Helpers.TestHelper import extract_incognito_addr, l6
-from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects import BlockChainInfoBaseClass
+from Configs.Constants import PRV_ID, ChainConfig
+from Helpers import TestHelper
+from Helpers.Logging import INFO, WARNING, DEBUG, ERROR
+from Helpers.TestHelper import extract_incognito_addr, l6
+from Helpers.Time import WAIT
+from Objects import BlockChainInfoBaseClass
 
 
 class PDEStateInfo(BlockChainInfoBaseClass):
@@ -541,7 +541,7 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
 """
 
     def get_contribute_status(self, pair_id, check_interval=5, timeout=30):
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
+        from Objects.IncognitoTestCase import SUT
         time = 0
         while time < timeout:
             res = SUT.REQUEST_HANDLER.dex().get_contribution_status(pair_id)
@@ -610,7 +610,7 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
 
 
 def wait_for_user_contribution_in_waiting(user, pair_id, token_id, check_interval=10, timeout=120):
-    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    from Objects.IncognitoTestCase import SUT
     waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
         find_waiting_contribution_of_user(user, pair_id, token_id)
     time = 0
@@ -626,7 +626,7 @@ def wait_for_user_contribution_in_waiting(user, pair_id, token_id, check_interva
 
 
 def wait_for_user_contribution_out_waiting(user, pair_id, token_id, check_interval=10, timeout=120):
-    from IncognitoChain.Objects.IncognitoTestCase import SUT
+    from Objects.IncognitoTestCase import SUT
     waiting_contribution = SUT.REQUEST_HANDLER.get_latest_pde_state_info(). \
         find_waiting_contribution_of_user(user, pair_id, token_id)
     time = 0
