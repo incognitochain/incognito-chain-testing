@@ -9,10 +9,11 @@ import pytest
 
 from Configs.Constants import coin, ChainConfig
 from Helpers.KeyListJson import KeyListJson
-from Helpers.Logging import INFO, STEP
-from Helpers.TestHelper import ChainHelper
+from Helpers.Logging import INFO, STEP, ERROR
+from Helpers.TestHelper import ChainHelper, l3
 from Objects.AccountObject import Account
-from Objects.IncognitoTestCase import SUT
+from Objects.IncognitoTestCase import SUT, ACCOUNTS, STAKER_ACCOUNTS, COMMITTEE_ACCOUNTS, BEACON_ACCOUNTS
+from Objects.TransactionObjects import TransactionDetail
 from TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 key_list_file = KeyListJson()
@@ -106,3 +107,32 @@ def setup_module():
 def no_teardown_module():
     if tear_down_trx008:
         trx008.teardown_module()
+
+def get_staking_info_of_validator(committee_pub_k, shard_bsd_list):
+    """
+
+    @param committee_pub_k: string: committee public key
+    @param shard_bsd_list: List[ShardBestStateDetailInfo obj]
+    @return: staker - Account obj, validator - Account obj, receiver_reward - Account obj, string
+    """
+    acc_group = ACCOUNTS + STAKER_ACCOUNTS + COMMITTEE_ACCOUNTS + BEACON_ACCOUNTS
+    string = ''
+    validator = acc_group.find_account_by_key(committee_pub_k)
+    for shard_bsd in shard_bsd_list:
+        tx_id = shard_bsd.get_staking_tx(committee_pub_k)
+        if tx_id:
+            break
+    if tx_id:
+        response = TransactionDetail().get_transaction_by_hash(tx_id)
+        payment_receiver_reward = response.get_meta_data().get_payment_address_reward_receiver()
+        receiver_reward = acc_group.find_account_by_key(payment_receiver_reward)
+        public_k_staker = response.get_input_coin_pub_key()
+        staker = acc_group.find_account_by_key(public_k_staker)
+    else:
+        receiver_reward = validator
+        staker = validator
+    for acc in [staker, validator, receiver_reward]:
+        assert acc, ERROR(f'committee_pub_k not found: {committee_pub_k}')
+
+    string += f'{l3(staker.private_key)}__{l3(validator.public_key)}__{l3(receiver_reward.payment_key)}'
+    return staker, validator, receiver_reward, string
