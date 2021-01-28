@@ -1,0 +1,1 @@
+todo: TRX010 verify received split reward amount with swap committee
