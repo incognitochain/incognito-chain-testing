@@ -16,6 +16,7 @@ SUT = TestBed()
 ACCOUNTS = AccountGroup()
 BEACON_ACCOUNTS = AccountGroup()
 COMMITTEE_ACCOUNTS = AccountGroup()
+STAKER_ACCOUNTS = AccountGroup()
 
 if not skip_load:
     # load test bed
@@ -56,6 +57,13 @@ if not skip_load:
         ERROR(f'{type(e)}: {e}')
         WARNING("Not found committee accounts list in test data, create an  empty list now")
         COMMITTEE_ACCOUNTS = []
+
+    try:
+        STAKER_ACCOUNTS = AccountGroup(*TEST_DATA.stakers)
+    except AttributeError as e:
+        ERROR(f'{type(e)}: {e}')
+        WARNING("Not found committee accounts list in test data, create an  empty list now")
+        STAKER_ACCOUNTS = []
 
     # -----------------------------------------------
 ChainConfig.get_running_config()

@@ -3,17 +3,17 @@ import pytest
 from IncognitoChain.Configs.Constants import PRV_ID
 from IncognitoChain.Helpers.Logging import STEP, INFO, INFO_HEADLINE, WARNING
 from IncognitoChain.Helpers.TestHelper import l6
-from IncognitoChain.Objects.IncognitoTestCase import SUT, ACCOUNTS
-from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2
+from IncognitoChain.Objects.IncognitoTestCase import SUT
+from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2, acc_list_1_shard
 
 
 @pytest.mark.parametrize('withdrawer, token1, token2, percent_of_reward_amount_to_withdraw', [
     pytest.param(token_owner, PRV_ID, token_id_1, 1.1),
     pytest.param(token_owner, token_id_1, token_id_2, 0.01,
                  marks=pytest.mark.xfail(reason="there's no token-token reward")),
-    pytest.param(ACCOUNTS[3], PRV_ID, token_id_1, 1.1,
+    pytest.param(acc_list_1_shard[2], PRV_ID, token_id_1, 1.1,
                  marks=pytest.mark.xfail(reason="there's no reward")),
-    pytest.param(ACCOUNTS[3], token_id_1, token_id_2, 0.01,
+    pytest.param(acc_list_1_shard[2], token_id_1, token_id_2, 0.01,
                  marks=pytest.mark.xfail(reason="there's no token-token reward")),
 ])
 def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_reward_amount_to_withdraw):

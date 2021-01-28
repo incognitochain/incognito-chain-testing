@@ -41,6 +41,7 @@ def test_send_prv_same_shard_0_balance_with_fee_n_privacy(fee, privacy):
     STEP(1, "get balance of sender and receiver before sending")
     sender_balance = sender_account.get_prv_balance()
     INFO(f"sender balance: {sender_balance}")
+    assert sender_balance == 0, ERROR("Balance != 0")
 
     receiver_balance = receiver_account.get_prv_balance()
     INFO(f"receiver balance: {receiver_balance}")

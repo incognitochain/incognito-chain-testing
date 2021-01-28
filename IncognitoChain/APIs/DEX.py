@@ -221,6 +221,12 @@ class DexRpc:
             with_params([{"ContributionPairID": pair_id}]). \
             execute()
 
+    def get_trade_status(self, txrq_id):
+        return self.rpc_connection. \
+            with_method("getpdetradestatus"). \
+            with_params([{"TxRequestIDStr": txrq_id}]). \
+            execute()
+
     def withdrawal_contribution_v2(self, private_k, payment_k, token1, token2, amount):
         return self.rpc_connection. \
             with_method('createandsendtxwithwithdrawalreqv2'). \

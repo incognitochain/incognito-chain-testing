@@ -9,7 +9,7 @@
 from IncognitoChain.Configs.Constants import coin
 from IncognitoChain.Objects.AccountObject import COIN_MASTER
 from IncognitoChain.TestCases.Staking import account_u, account_a, account_t
-from IncognitoChain.TestCases.Staking.test_STK01 import \
+from IncognitoChain.TestCases.Staking.test_STK01_staking import \
     test_staking as do_stake_test
 
 
@@ -24,7 +24,7 @@ def test_stake_complex():
     except:
         pass
 
-    do_stake_test(account_u, account_a, False)
-    do_stake_test(account_a, account_a, False)
-    do_stake_test(account_t, account_t, False)
-    do_stake_test(account_u, account_u, False)
+    do_stake_test(account_u, account_a, account_a, False)
+    do_stake_test(account_a, account_a, account_a, False)
+    do_stake_test(account_t, account_t, account_t, False)
+    do_stake_test(account_u, account_u, account_u, False)

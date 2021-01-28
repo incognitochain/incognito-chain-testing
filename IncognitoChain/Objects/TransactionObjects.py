@@ -172,6 +172,9 @@ class TransactionDetail(BlockChainInfoBaseClass):
         def get_payment_address(self):
             return self.data['PaymentAddress']
 
+        def get_payment_address_reward_receiver(self):
+            return self.data["RewardReceiverPaymentAddress"]
+
         def get_amount(self):
             return self.data['Amount']
 

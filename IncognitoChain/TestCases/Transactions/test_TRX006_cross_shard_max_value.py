@@ -55,5 +55,5 @@ def test_send_prv_privacy_x_shard_max_value():
     #                  step4_result.get_error_trace().get_message()), "something went so wrong"
 
     STEP(5, f"Check balance sender and receiver")
-    assert receiver_bal_b4 == receiver.get_prv_balance() and INFO("Failed")
-    assert sender_bal_b4 == sender.get_prv_balance() and INFO("Failed")
+    assert receiver_bal_b4 == receiver.get_prv_balance(), INFO("Failed")
+    assert sender_bal_b4 == sender.get_prv_balance(), INFO("Failed")

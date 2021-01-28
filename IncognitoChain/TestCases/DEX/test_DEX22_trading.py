@@ -51,7 +51,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     else:
         traders = acc_list_n_shard
 
-    print(f"""
+    INFO(f"""
        Test bulk swap {test_mode}:
         - token {l6(token_sell)} vs {l6(token_buy)}
         - 10 address make trading at same time
@@ -124,7 +124,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     tx_fee_list = []
     for tx in tx_list:
         tx_is_confirmed = False
-        print(f'          checking tx id: {l6(tx.get_tx_id())}')
+        INFO(f'          checking tx id: {l6(tx.get_tx_id())}')
         for i in range(0, 10):  # check 10 times each Tx
             tx_confirm = tx.get_transaction_by_hash()
             if tx_confirm.get_block_hash() != "":
@@ -133,7 +133,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
                 DEBUG("the " + tx.get_tx_id() + " is confirmed")
                 break
             else:
-                print(f"shard id: {tx_confirm.get_shard_id()}")
+                INFO(f"shard id: {tx_confirm.get_shard_id()}")
                 WAIT(10)
         assert tx_is_confirmed, f"The {tx.get_tx_id()} is NOT yet confirmed"
 
@@ -160,7 +160,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     STEP(5, "Double check the algorithm ")
     trade_order = calculate_trade_order(trading_fees, trade_amounts)
     if token_buy == PRV_ID or token_sell == PRV_ID:
-        print(f" -- sell: {l6(token_buy)} - buy: {l6(token_sell)} -- ")
+        INFO(f" -- sell: {l6(token_buy)} - buy: {l6(token_sell)} -- ")
         calculated_rate, estimate_bal_sell_after_list, estimate_amount_received_list = \
             verify_trading_prv_token(trade_amounts, trading_fees, trade_order, tx_fee_list, token_sell, token_buy,
                                      pde_state_b4, balance_tok_sell_before)
@@ -168,12 +168,12 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
                                        zip(estimate_amount_received_list, balance_tok_buy_before)]
     else:
         trading_fees_zero = tx_fee_list_zero = [0] * len(tx_fee_list)
-        print(f" -- sell: {l6(token_sell)} - buy: {l6(PRV_ID)} -- ")
+        INFO(f" -- sell: {l6(token_sell)} - buy: {l6(PRV_ID)} -- ")
         calculated_rate1, estimate_bal_sell_after_list, estimate_amount_prv_received_list = \
             verify_trading_prv_token(trade_amounts, trading_fees_zero, trade_order, tx_fee_list_zero, token_sell,
                                      PRV_ID, pde_state_b4, balance_tok_sell_before)
 
-        print(f" -- sell: {l6(PRV_ID)} - buy: {l6(token_buy)} -- ")
+        INFO(f" -- sell: {l6(PRV_ID)} - buy: {l6(token_buy)} -- ")
         calculated_rate2, estimate_bal_prv_after_list, estimate_amount_received_list = \
             verify_trading_prv_token(estimate_amount_prv_received_list, trading_fees_zero, trade_order,
                                      tx_fee_list_zero, PRV_ID, token_buy, pde_state_b4, balance_tok_sell_before)

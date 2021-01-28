@@ -3,7 +3,6 @@ import copy
 import pytest
 
 from IncognitoChain.Helpers.Logging import *
-from IncognitoChain.Objects.AccountObject import Account
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
 from IncognitoChain.TestCases.Transactions import test_TRX007_multi_output_x_shard as TRX007
 

@@ -48,6 +48,12 @@ class BeaconBestStateBase(BlockChainInfoBaseClass):
     def get_shard_handle(self):
         return self.data["ShardHandle"]
 
+    def get_missing_signature(self):
+        return self.data["MissingSignature"]
+
+    def get_missing_signature_penalty(self):
+        return self.data["MissingSignaturePenalty"]
+
     def get_best_shard_height(self, shard_number=None):
         if shard_number is not None:
             return self.data['BestShardHeight'][str(shard_number)]
@@ -413,22 +419,26 @@ class BeaconBestStateInfo(BeaconBestStateBase):
     def get_auto_staking_committees(self, account=None):
         """
         Function to get auto staking committee
-        :param account: Account obj
+        :param account: Account obj or committee_public_k
         :return: a dict {committee_public_k: true/false} if account is None.
-         If account not none, return True/Fase if account is found in the list.
+         If account not none, return True/False if account is found in the list.
          Return None if account not exist in the list
         """
         auto_staking_dict_raw = self.data['AutoStaking']
 
         if account is None:  # get all committee auto staking
             return auto_staking_dict_raw
-        elif account is not None:  # get a committee auto staking
-            for key, value in auto_staking_dict_raw.items():
-                if account.committee_public_k == key:
-                    INFO(f'(comm pub k) {l6(account.committee_public_k)} auto staking is {value}')
-                    return value
-            INFO(f'(comm pub k) {l6(account.committee_public_k)} is not found in auto staking list')
-            return None
+        elif type(account) == str:
+            committee_public_k = account
+        else:
+            committee_public_k = account.committee_public_k
+        # get a committee auto staking
+        for key, value in auto_staking_dict_raw.items():
+            if committee_public_k == key:
+                INFO(f'(comm pub k) {l6(committee_public_k)} auto staking is {value}')
+                return value
+        INFO(f'(comm pub k) {l6(committee_public_k)} is not found in auto staking list')
+        return None
 
     def get_shard_pending_validator(self, shard_num=None, validator_number=None):
         """
@@ -693,7 +703,7 @@ class BeaconBlock(BlockChainInfoBaseClass):
             sum_beacon_reward += amount
         RESULT['beacon'] = sum_beacon_reward
         # get DAO reward
-        DAO_amount = DAO_reward_inst[0].get_instruction_detail().get_reward_amount()
+        DAO_amount = DAO_reward_inst[0].get_instruction_detail().get_reward_amount(token)
         RESULT['DAO'] = DAO_amount
 
         return RESULT

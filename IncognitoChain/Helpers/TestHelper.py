@@ -15,6 +15,14 @@ def l6(string):
     """
     return str(string)[-6:]
 
+def l3(string):
+    """
+    Return the last 3 chars of a string
+    @param string:
+    @return:
+    """
+    return str(string)[-3:]
+
 
 def json_extract(string):
     """

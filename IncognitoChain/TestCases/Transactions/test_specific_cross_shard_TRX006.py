@@ -1,7 +1,5 @@
 import copy
 
-import re
-
 import pytest
 
 from IncognitoChain.Helpers.Logging import *
@@ -9,7 +7,6 @@ from IncognitoChain.Objects.AccountObject import COIN_MASTER, Account
 from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
 
 from IncognitoChain.TestCases.Transactions import test_TRX006_cross_shard_max_value as TRX006
-
 
 sender: Account
 receiver: Account

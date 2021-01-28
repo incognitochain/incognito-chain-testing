@@ -25,7 +25,7 @@ from IncognitoChain.Objects.ShardState import ShardBestStateDetailInfo, ShardBes
 
 
 class Node:
-    default_user = "root"
+    default_user = "thach"
     default_password = '123123Az'
     default_address = "localhost"
     default_rpc_port = 9334
@@ -346,8 +346,10 @@ class Node:
             basic_reward = ChainConfig.BASIC_REWARD_PER_BLOCK
             num_of_shard_block = list_num_of_shard_block[shard_id]
             shard_fee_total = shard_txs_fee_list[shard_id]
-
-            total_reward_from_shard = num_of_shard_block * basic_reward + shard_fee_total
+            if token == PRV_ID:
+                total_reward_from_shard = num_of_shard_block * basic_reward + shard_fee_total
+            else:
+                total_reward_from_shard = shard_fee_total
             DAO_reward_from_shard = ChainConfig.DAO_REWARD_PERCENT * total_reward_from_shard
             list_DAO_reward_from_shard.append(max(0, DAO_reward_from_shard))
             # breakpoint()
@@ -429,7 +431,7 @@ class Node:
 
     def get_shard_block_by_height(self, shard_id, height):
         response = self.system_rpc().retrieve_block_by_height(height, shard_id)
-        return ShardBlock(response.get_result())
+        return ShardBlock(response.get_result()[0])
 
     def ssh_attach(self, ssh_session):
         """
@@ -485,6 +487,11 @@ class Node:
         full_cmd = self.__find_run_command()
         pattern = re.compile(r"--datadir \w+/(\w+)")
         return re.findall(pattern, full_cmd)[0]
+
+    def get_mining_key(self):
+        command = self.__find_run_command()
+        pattern = re.compile(r"--miningkeys \"*(\w+)\"*")
+        return re.findall(pattern, command)[0]
 
     def __goto_working_dir(self):
         return self._ssh_session.goto_folder(self.__get_working_dir())

@@ -81,6 +81,20 @@ class TestBed:
     def is_default(self):
         return self.full_node.is_local_host()
 
+    def find_node_by_validator_k(self, validator_k):
+        for shard in self.shards:
+            for node in shard._node_list:
+                TestBed.ssh_to(node)
+                key = node.get_mining_key()
+                if validator_k == key:
+                    return node
+        for node in self.stakers + self.beacons._node_list:
+            TestBed.ssh_to(node)
+            key = node.get_mining_key()
+            if validator_k == key:
+                return node
+        return None
+
 
 class Shard:
     """

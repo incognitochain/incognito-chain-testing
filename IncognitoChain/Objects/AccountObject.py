@@ -178,7 +178,7 @@ class Account:
             self.find_public_key()
         response = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
         last_byte = response.get_result("PublicKeyInBytes")[-1]
-        self.shard = last_byte % 8
+        self.shard = last_byte % ChainConfig.ACTIVE_SHARD
         return self.shard
 
     def __str__(self):
@@ -286,6 +286,31 @@ class Account:
                 obj_coins.append(Coin(raw_coin))
         return obj_coins
 
+    def stake(self, validator=None, receiver_reward=None, stake_amount=None, auto_re_stake=True):
+        """
+
+        @param validator: account_object. if None then validator = the stake
+        @param receiver_reward: account_object. if None then receiver_reward = the stake
+        @param stake_amount: str. if None then stake_amount = 1750PRV
+        @param auto_re_stake: bool
+        @return:
+        """
+        if validator is None:
+            validator = self
+        if receiver_reward is None:
+            receiver_reward = self
+        if receiver_reward.payment_key is None:
+            receiver_reward.find_payment_key()
+        if validator.validator_key is None:
+            raise Exception("Validator key is not specified")
+
+        INFO(
+            f'{l6(self.private_key)} Stake for {l6(validator.validator_key)} and reward other: {l6(receiver_reward.payment_key)}')
+        return self.REQ_HANDLER.transaction(). \
+            create_and_send_staking_transaction(self.private_key, validator.payment_key,
+                                                validator.validator_key,
+                                                receiver_reward.payment_key, stake_amount, auto_re_stake)
+
     def stake_and_reward_me(self, stake_amount=None, auto_re_stake=True):
         """
 
@@ -327,6 +352,11 @@ class Account:
         INFO('Un-stake me')
         return self.REQ_HANDLER.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, self.payment_key, self.validator_key)
+
+    def stk_un_stake_tx(self):
+        INFO('Un-stake transaction')
+        return self.REQ_HANDLER.transaction(). \
+            create_and_send_un_staking_transaction(self.private_key, self.payment_key, self.validator_key)
 
     def stk_un_stake_him(self, him):
         INFO(f"Un-stake other: {him.validator_key}")
@@ -491,7 +521,7 @@ class Account:
         if defrag is not None:
             defrag.subscribe_transaction()
         balance = self.get_prv_balance()
-        fee, size = self.get_estimate_fee_and_size(to_account, balance - 100)
+        fee, size = self.get_estimate_fee_and_size(to_account, balance - 100, privacy=privacy)
         INFO(f'''EstimateFeeCoinPerKb = {fee}, EstimateTxSizeInKb = {size}''')
         if balance > 0:
             return self.send_prv_to(to_account, balance - 100, int(100 / (size + 1)),
@@ -509,7 +539,7 @@ class Account:
             "Outputs")
         return len(response[self.private_key])
 
-    def defragment_account(self):
+    def defragment_account(self, min_bill=1000000000000000):
         """
         check if account need to be defrag by count unspent coin,
             if count > 1 then defrag
@@ -519,7 +549,7 @@ class Account:
         INFO('Defrag account')
 
         if self.count_unspent_output_coins() > 1:
-            return self.REQ_HANDLER.transaction().de_fragment_prv(self.private_key)
+            return self.REQ_HANDLER.transaction().de_fragment_prv(self.private_key, min_bill)
         INFO('No need to defrag!')
         return None
 

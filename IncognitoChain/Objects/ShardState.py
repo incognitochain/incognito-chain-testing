@@ -77,7 +77,7 @@ class ShardBestStateDetailInfo(BlockChainInfoBaseClass):
             dict_obj = {}
         return list_obj
 
-    def get_staking_tx(self):
+    def get_staking_tx(self, committee_pub_k=None):
         """
         data sample:
         {
@@ -85,14 +85,10 @@ class ShardBestStateDetailInfo(BlockChainInfoBaseClass):
             "121VhftSAygpEJZ6i9jGkDy3b6YFqziMHFRQC6TvKTJcZWmy5a3U4KKpsEJLJ8zXsXpoDAQuqMHtjJk5Y52buC4qVvvRw2i6TbvHHFqpBdtfNqaepVfLPRvYB4CiUwLqjfh4R2Yf73YNhJ2MJJcDEsZ4U4QD7fDs3wiUi69WfcidqyYQpLaxU6RSDqLNkDQuosdaMF21xuX2w16DUxvZeyAsGQ8Z9d5AUCghWHTUAeH6tet9ZNaaXbZoSR2vktviitSrxYSXwpuR9JrfhXypxxgJBjeho2yZwTZTCrtqNsQDvrXC1KgK2XniKeeAiMs89ixQ4D3sVEUpvu9JPEiN4Kx7e64vcYh79RFq6qTkXFGLe2oZMqxutVmWGQfXGaSKCFstVU8zgwHLATU5tzvBEvJDRQKgPxcTQxhmqLqa8uLkPUwV": 1706e8bb73b4fd7ec0ed2ef8326a9a902754c5bf2762e6fb9960e678b088f0c6
         }
         """
-        dict_obj = {}
-        list_obj = []
         staking_tx_dict_raw = self.data["StakingTx"]
-        for key, value in staking_tx_dict_raw.items():
-            dict_obj.update({key: value})
-            list_obj.append(dict_obj)
-            dict_obj = {}
-        return list_obj
+        if committee_pub_k is None:
+            return staking_tx_dict_raw
+        return staking_tx_dict_raw.get(committee_pub_k)
 
     def get_num_txns(self):
         return self.data["NumTxns"]

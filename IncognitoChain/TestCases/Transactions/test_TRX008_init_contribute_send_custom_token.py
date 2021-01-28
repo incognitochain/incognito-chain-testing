@@ -31,10 +31,14 @@ token_fee = 1400000
 
 
 def setup_module():
+    global receiver_amount_dict
     INFO("Test set up")
 
     COIN_MASTER.top_him_up_prv_to_amount_if(token_init_amount + prv_contribute_amount,
                                             token_init_amount + prv_contribute_amount + coin(1), account_init)
+    receiver_amount_dict = dict()
+    receiver_amount_dict[receiver_account] = random.randrange(1000, 2000)
+    receiver_amount_dict[receiver_x_shard] = random.randrange(1000, 2000)
 
 
 def no_teardown_module():
@@ -269,7 +273,7 @@ def test_send_token_insufficient_fund(sender, receiver):
         """)
     STEP(1, "Get sender, receiver token and prv balance before sending")
     sender_token_bal = sender.get_token_balance(custom_token_id)
-    sender_prv_bal = sender_account.get_prv_balance()
+    sender_prv_bal = sender.get_prv_balance()
     INFO(f"Sender token balance: {sender_token_bal}")
     INFO(f"Sender prv balance: {sender_prv_bal}")
 
@@ -297,7 +301,7 @@ def test_send_token_insufficient_fund(sender, receiver):
                                         token_fee=token_fee)
     if step4_result.is_transaction_v2_error_appears():
         return
-    step4_result.expect_no_error()
+    step4_result.expect_no_error("Failed")
     INFO("TxID: " + step4_result.get_tx_id())
 
     STEP(5, "Subscribe transaction")
@@ -318,7 +322,7 @@ def test_send_token_insufficient_fund(sender, receiver):
     assert receiver_token_bal_after == receiver_token_bal + sender_token_bal - token_fee, INFO("Failed")
 
     STEP(8, 'Return token to sender for the next run')
-    receiver.send_token_to(sender, custom_token_id, receiver_token_bal_after - token_fee,
+    receiver.send_token_to(sender, custom_token_id, (sender_token_bal - token_fee) - token_fee,
                            token_fee=token_fee).subscribe_transaction()
     if sender.shard != receiver.shard:
         try:
@@ -339,9 +343,6 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
           ''')
     if ChainConfig.PRIVACY_VERSION == 2:
         pytest.skip('Cannot run this test with privacy v2 since token fee is no longer allowed')
-    receiver_amount_dict = dict()
-    receiver_amount_dict[receiver_account] = random.randrange(1000, 2000)
-    receiver_amount_dict[receiver_x_shard] = random.randrange(1000, 2000)
     total_token_sent = 0
 
     STEP(1, "get sender balance before sending")

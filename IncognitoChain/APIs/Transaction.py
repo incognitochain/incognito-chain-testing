@@ -307,6 +307,18 @@ class TransactionRpc:
             with_params(param). \
             execute()
 
+    def create_and_send_un_staking_transaction(self, private_key, candidate_payment_key, validator_key):
+        param = [private_key,
+                 {BURNING_ADDR: 0},
+                 -1, 0,
+                 {"UnStakingType": 210,
+                  "CandidatePaymentAddress": candidate_payment_key,
+                  "PrivateSeed": validator_key}]
+        return self.rpc_connection. \
+            with_method('createunstaketransaction'). \
+            with_params(param). \
+            execute()
+
     def get_reward_amount(self, validator_payment_key):
         return self.rpc_connection. \
             with_method('getrewardamount'). \

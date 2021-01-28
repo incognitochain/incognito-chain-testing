@@ -433,6 +433,15 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 return True
         return False
 
+    def is_trade_able_v1(self, token1, token2):
+        """
+        Check if pair exist in pool pair != [0,0]
+        :param token1:
+        :param token2:
+        :return:
+        """
+        return self.get_rate_between_token(token1, token2) != [0, 0]
+
     def is_pair_existed(self, token1, token2):
         """
         Check if pair exist in pool pair
@@ -450,17 +459,17 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                     return True
                 else:
                     INFO(f'Pair {pair} exists but pool = 0')
-                    return False
+                    return True
 
         INFO(f'Pair {l6(token1)}-{l6(token2)} NOT exist')
         return False
 
     def is_trading_pair_v2_is_possible(self, token1, token2):
         if token1 != PRV_ID and token2 != PRV_ID:  # both are not PRV
-            if self.is_pair_existed(PRV_ID, token1) and self.is_pair_existed(PRV_ID, token2):
+            if self.is_trade_able_v1(PRV_ID, token1) and self.is_trade_able_v1(PRV_ID, token2):
                 return True
         else:  # one of the two token is PRV
-            return self.is_pair_existed(token1, token2)
+            return self.is_trade_able_v1(token1, token2)
 
     def cal_trade_receive_v1(self, token_sell, token_buy, amount_sell):
         rate = self.get_rate_between_token(token_sell, token_buy)
@@ -485,7 +494,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
     def can_token_use_for_fee(self, token):
         INFO(f'Check if token can be use to pay fee')
-        pair_exist = self.is_pair_existed(PRV_ID, token)
+        pair_exist = self.is_trade_able_v1(PRV_ID, token)
         if not pair_exist:
             return False
         prv_in_pool = self.get_rate_between_token(PRV_ID, token)[0]
