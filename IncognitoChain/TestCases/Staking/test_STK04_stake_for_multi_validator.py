@@ -1,0 +1,77 @@
+import concurrent
+from concurrent.futures.thread import ThreadPoolExecutor
+
+from IncognitoChain.Configs.Constants import ChainConfig
+from IncognitoChain.Helpers.Logging import INFO
+from IncognitoChain.Helpers.TestHelper import ChainHelper
+from IncognitoChain.Helpers.Time import WAIT
+from IncognitoChain.Objects.AccountObject import COIN_MASTER
+from IncognitoChain.Objects.IncognitoTestCase import SUT
+from IncognitoChain.TestCases.Staking import staked_account, account_a, account_u, account_t
+
+
+def get_epoch_swap_in_out_and_reward_committee(account_stake):
+    """
+
+    @param account_stake: Account
+    @return:
+    """
+    reward = 0
+    epoch_in = account_stake.stk_wait_till_i_am_committee()
+    bbd_b4 = SUT().get_beacon_best_state_detail_info()
+    shard_committee = bbd_b4.is_he_a_committee(account_stake)
+    assert shard_committee is not False
+    epoch_out = account_stake.stk_wait_till_i_am_swapped_out_of_committee()
+    for epoch in range(epoch_in, epoch_out):
+        instruction_beacon_height = ChainHelper.cal_first_height_of_epoch(epoch + 1)
+        # instruction_beacon_height = (5000 + (epoch - 1 - 499) * 20) + 1
+        instruction_bb = SUT().get_latest_beacon_block(instruction_beacon_height)
+        bb_reward_instruction_prv = instruction_bb.get_transaction_reward_from_instruction()
+        reward += bb_reward_instruction_prv[str(shard_committee)] / ChainConfig.SHARD_COMMITTEE_SIZE
+    return epoch_in, epoch_out, reward, shard_committee
+
+
+def test_staking():
+    COIN_MASTER.top_him_up_prv_to_amount_if(ChainConfig.STK_AMOUNT * 4, ChainConfig.STK_AMOUNT * 5, staked_account)
+    from IncognitoChain.TestCases.Staking import token_id
+    INFO(f'Run test with token: {token_id}')
+    reward_b4 = staked_account.stk_get_reward_amount()
+    if reward_b4 != 0:
+        staked_account.stk_withdraw_reward_to_me().subscribe_transaction()
+        WAIT(40)
+        reward_b4 = staked_account.stk_get_reward_amount()
+    assert reward_b4 == 0
+
+    thread_pool = []
+    executor = ThreadPoolExecutor()
+    thread_validator1 = executor.submit(get_epoch_swap_in_out_and_reward_committee, staked_account)
+    thread_pool.append(thread_validator1)
+    thread_validator2 = executor.submit(get_epoch_swap_in_out_and_reward_committee, account_a)
+    thread_pool.append(thread_validator2)
+    thread_validator3 = executor.submit(get_epoch_swap_in_out_and_reward_committee, account_u)
+    thread_pool.append(thread_validator3)
+    thread_validator4 = executor.submit(get_epoch_swap_in_out_and_reward_committee, account_t)
+    thread_pool.append(thread_validator4)
+
+    INFO('STAKING AND VERIFY BALANCE')
+    bal_b4_stake = staked_account.get_prv_balance()
+    INFO(f'Stake for validator 1')
+    fee_tx1 = staked_account.stake(staked_account, auto_re_stake=False).subscribe_transaction().get_fee()
+    INFO(f'Stake for validator 2')
+    fee_tx2 = staked_account.stake(account_a, auto_re_stake=False).subscribe_transaction().get_fee()
+    INFO(f'Stake for validator 3')
+    fee_tx3 = staked_account.stake(account_u, auto_re_stake=False).subscribe_transaction().get_fee()
+    INFO(f'Stake for validator 4')
+    fee_tx4 = staked_account.stake(account_t, auto_re_stake=False).subscribe_transaction().get_fee()
+    stake_sum_fee_tx = fee_tx1 + fee_tx2 + fee_tx3 + fee_tx4
+    bal_af_stake = staked_account.get_prv_balance()
+    assert bal_af_stake == bal_b4_stake - stake_sum_fee_tx - ChainConfig.STK_AMOUNT * 4
+
+    concurrent.futures.wait(thread_pool)
+    instruction_reward = 0
+    for thread in thread_pool:
+        epoch_in, epoch_out, reward, shard_committee = thread.result()
+        instruction_reward += reward
+
+    reward_receive = staked_account.stk_get_reward_amount()
+    assert reward_receive == instruction_reward
