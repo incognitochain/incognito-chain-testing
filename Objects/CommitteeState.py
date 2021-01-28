@@ -1,5 +1,5 @@
-from IncognitoChain.Helpers.TestHelper import KeyExtractor
-from IncognitoChain.Objects import BlockChainInfoBaseClass
+from Helpers.TestHelper import KeyExtractor
+from Objects import BlockChainInfoBaseClass
 
 
 class CommitteeState(BlockChainInfoBaseClass):

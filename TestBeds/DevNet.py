@@ -1,4 +1,4 @@
-from IncognitoChain.Objects.TestBedObject import Node, Shard, Beacon
+from Objects.TestBedObject import Node, Shard, Beacon
 
 full_node = Node(address="54.39.158.106", rpc_port=9334, ws_port=19334, node_name='fullnode-devnet')
 

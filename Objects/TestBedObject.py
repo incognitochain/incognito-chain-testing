@@ -1,8 +1,9 @@
 from typing import List
 
 import IncognitoChain.Helpers.Logging as Log
-from IncognitoChain.Drivers.Connections import SshSession
-from IncognitoChain.Objects.NodeObject import Node
+
+from Drivers.Connections import SshSession
+from Objects.NodeObject import Node
 
 
 def load_test_data(name):

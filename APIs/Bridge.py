@@ -1,5 +1,5 @@
-from IncognitoChain.Configs import Constants
-from IncognitoChain.Drivers import Connections
+from Configs import Constants
+from Drivers import Connections
 
 
 class BridgeRpc:

@@ -7,11 +7,12 @@ import sys
 import typing
 
 import pexpect
-from IncognitoChain.Configs.Constants import PBNB_ID, PBTC_ID
-from IncognitoChain.Drivers.Connections import RpcConnection
-from IncognitoChain.Helpers.Logging import INFO, DEBUG
-from IncognitoChain.Helpers.TestHelper import l6, json_extract
-from IncognitoChain.Helpers.Time import WAIT
+
+from Configs.Constants import PBNB_ID, PBTC_ID
+from Drivers.Connections import RpcConnection
+from Helpers.Logging import INFO, DEBUG
+from Helpers.TestHelper import l6, json_extract
+from Helpers.Time import WAIT
 
 
 class NeighborChainCli:

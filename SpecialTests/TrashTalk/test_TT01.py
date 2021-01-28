@@ -1,9 +1,10 @@
-from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
-from IncognitoChain.Helpers.TestHelper import make_random_str_list
-from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.NodeObject import Node
-from IncognitoChain.SpecialTests.TrashTalk import RPC_METHODS
 from requests import ConnectionError
+
+from Helpers.Logging import INFO, INFO_HEADLINE
+from Helpers.TestHelper import make_random_str_list
+from Helpers.Time import WAIT
+from Objects.NodeObject import Node
+from SpecialTests.TrashTalk import RPC_METHODS
 
 node_url = 'http://139.162.55.124:8334'
 

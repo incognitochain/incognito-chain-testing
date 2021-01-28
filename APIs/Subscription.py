@@ -1,5 +1,6 @@
 import IncognitoChain.Helpers.Logging as Log
-from IncognitoChain.Drivers.Connections import WebSocket
+
+from Drivers.Connections import WebSocket
 
 
 class SubscriptionWs:

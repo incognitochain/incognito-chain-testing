@@ -1,4 +1,4 @@
-from IncognitoChain.Objects.AccountObject import Account, AccountGroup
+from Objects.AccountObject import Account, AccountGroup
 
 account_list = AccountGroup(
     ##### Shard 0 **** "),

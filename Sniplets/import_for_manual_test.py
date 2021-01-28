@@ -1,6 +1,6 @@
-from IncognitoChain.Helpers.KeyListJson import KeyListJson
-from IncognitoChain.Objects.AccountObject import *
-from IncognitoChain.Objects.IncognitoTestCase import *
+from Helpers.KeyListJson import KeyListJson
+from Objects.AccountObject import *
+from Objects.IncognitoTestCase import *
 
 kl = KeyListJson()
 stakers = kl.get_staker_accounts()

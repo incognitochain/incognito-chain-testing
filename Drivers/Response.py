@@ -2,11 +2,12 @@ import json
 import re
 
 import IncognitoChain.Helpers.Logging as Log
-from IncognitoChain.Configs.Constants import ChainConfig
-from IncognitoChain.Helpers.Logging import INFO, WARNING
-from IncognitoChain.Helpers.Time import WAIT
-from IncognitoChain.Objects.TransactionObjects import TransactionDetail
 from websocket import WebSocketTimeoutException, WebSocketBadStatusException
+
+from Configs.Constants import ChainConfig
+from Helpers.Logging import INFO, WARNING
+from Helpers.Time import WAIT
+from Objects.TransactionObjects import TransactionDetail
 
 
 class Response:
@@ -165,8 +166,8 @@ class Response:
         if tx_id is None:
             raise ValueError("Tx id must not be none")
         INFO(f'Subscribe to transaction tx_id = {tx_id}')
-        from IncognitoChain.Objects.IncognitoTestCase import SUT
-        from IncognitoChain.Objects.TransactionObjects import TransactionDetail
+        from Objects.IncognitoTestCase import SUT
+        from Objects.TransactionObjects import TransactionDetail
         try:
             res = SUT().subscription().subscribe_pending_transaction(tx_id).get_result('Result')
             return TransactionDetail(res)

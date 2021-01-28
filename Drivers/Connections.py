@@ -2,11 +2,12 @@ import json
 
 import IncognitoChain.Helpers.Logging as Log
 import requests
-from IncognitoChain.Drivers.Response import Response
-from IncognitoChain.Helpers.Logging import DEBUG, ERROR
 from pexpect import pxssh
 from urllib3.exceptions import NewConnectionError
 from websocket import create_connection
+
+from Drivers.Response import Response
+from Helpers.Logging import DEBUG, ERROR
 
 rpc_test_net = "http://test-node.incognito.org:9334"
 rpc_main_net = "http://main-node.incognito.org:9334"

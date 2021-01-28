@@ -1,4 +1,4 @@
-from IncognitoChain.Objects import BlockChainInfoBaseClass
+from Objects import BlockChainInfoBaseClass
 
 
 class ShardBlock(BlockChainInfoBaseClass):

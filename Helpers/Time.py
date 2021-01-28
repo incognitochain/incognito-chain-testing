@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 
-from IncognitoChain.Helpers.Logging import INFO
+from Helpers.Logging import INFO
 
 
 def get_current_date_time(my_format=None):

@@ -1,4 +1,4 @@
-from IncognitoChain.Drivers.Connections import RpcConnection
+from Drivers.Connections import RpcConnection
 
 
 class ExploreRpc:
