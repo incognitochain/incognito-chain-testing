@@ -1,7 +1,7 @@
 import json
 import re
 
-import IncognitoChain.Helpers.Logging as Log
+import Helpers.Logging as Log
 from websocket import WebSocketTimeoutException, WebSocketBadStatusException
 
 from Configs.Constants import ChainConfig

@@ -1,6 +1,6 @@
 import json
 
-import IncognitoChain.Helpers.Logging as Log
+import Helpers.Logging as Log
 import requests
 from pexpect import pxssh
 from urllib3.exceptions import NewConnectionError
