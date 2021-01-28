@@ -1,4 +1,4 @@
-import IncognitoChain.Helpers.Logging as Log
+import Helpers.Logging as Log
 
 from Drivers.Connections import WebSocket
 

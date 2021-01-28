@@ -1,6 +1,6 @@
 from typing import List
 
-import IncognitoChain.Helpers.Logging as Log
+import Helpers.Logging as Log
 
 from Drivers.Connections import SshSession
 from Objects.NodeObject import Node
@@ -9,7 +9,7 @@ from Objects.NodeObject import Node
 def load_test_data(name):
     Log.INFO(f'Loading: test data {name}')
     try:
-        return __import__(f'IncognitoChain.TestData.{name}', fromlist=['object'])
+        return __import__(f'TestData.{name}', fromlist=['object'])
     except ModuleNotFoundError:
         raise Exception(f"!!! Test data not found: {name}")
 
@@ -17,7 +17,7 @@ def load_test_data(name):
 def load_test_bed(name):
     Log.INFO(f'Loading test bed: {name}')
     try:
-        return __import__(f'IncognitoChain.TestBeds.{name}', fromlist=['object'])
+        return __import__(f'TestBeds.{name}', fromlist=['object'])
     except ModuleNotFoundError:
         raise Exception(f"!!! Test bed not found: {name}")
 

@@ -6,13 +6,13 @@ import sys
 from Configs import Constants
 
 if sys.platform == 'darwin':
-    get_key = {1: f'{os.getcwd()}/IncognitoChain/bin/getKey-mac',
+    get_key = {1: f'{os.getcwd()}/bin/getKey-mac',
                2: f''}
 elif sys.platform == 'linux':
-    get_key = {1: f'{os.getcwd()}/IncognitoChain/bin/getKey-linux',
-               2: f'{os.getcwd()}/IncognitoChain/bin/getKeyV2-linux'}
+    get_key = {1: f'{os.getcwd()}/bin/getKey-linux',
+               2: f'{os.getcwd()}/bin/getKeyV2-linux'}
 else:
-    get_key = {1: f'{os.getcwd()}/IncognitoChain/bin/getKey-win',
+    get_key = {1: f'{os.getcwd()}/bin/getKey-win',
                2: f''}
 
 
