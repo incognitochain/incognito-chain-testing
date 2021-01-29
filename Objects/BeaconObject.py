@@ -288,6 +288,42 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         INFO(f"NOT committee: pub_key = {public_key}")
         return False
 
+    def is_he_in_shard_pending(self, account):
+        from Objects.AccountObject import Account
+        if type(account) == str:
+            public_key = account
+        elif type(account) == Account:
+            public_key = account.public_key
+        else:
+            public_key = ''
+
+        number_of_shards = self.get_active_shard()
+        for shard_number in range(0, number_of_shards):
+            shard_pending = self.get_shard_pending_validator(shard_number)
+            for committee in shard_pending:
+                if committee.get_inc_public_key() == public_key:
+                    INFO(f" IS committee in shard pending: pub_key = {public_key} : shard {shard_number}")
+                    return shard_number
+        INFO(f"NOT committee: pub_key = {public_key}")
+        return False
+
+    def is_he_in_waiting_next_random(self, account):
+        from Objects.AccountObject import Account
+        if type(account) == str:
+            public_key = account
+        elif type(account) == Account:
+            public_key = account.public_key
+        else:
+            public_key = ''
+
+        waiting_next_random = self.get_candidate_shard_waiting_next_random()
+        for committee in waiting_next_random:
+            if committee.get_inc_public_key() == public_key:
+                INFO(f" IS committee in shard waiting next random: pub_key = {public_key}")
+                return True
+        INFO(f"NOT committee: pub_key = {public_key}")
+        return False
+
     def is_this_committee_auto_stake(self, account):
         """
         Function to check committee auto stake by using Account or public key

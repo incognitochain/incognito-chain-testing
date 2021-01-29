@@ -82,6 +82,6 @@ def view_dynamic():
 
 
 def test_view_dynamic():
-    for i in range(100):
+    for i in range(1000):
         view_dynamic()
-        WAIT(ChainConfig.BLOCK_TIME * (ChainConfig.BLOCK_PER_EPOCH / 2))
+        WAIT(10)

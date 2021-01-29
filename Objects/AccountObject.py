@@ -1170,7 +1170,6 @@ class Account:
         :return:
         """
         # breakpoint()
-        INFO_HEADLINE(f"TOP UP OTHERS' PRV TO {top_up_to_amount}")
         if type(accounts_list) is Account:
             accounts_list = [accounts_list]
         receiver = {}
@@ -1188,6 +1187,8 @@ class Account:
                     receiver[acc] = top_up_amount
         if len(receiver) == 0:
             return None
+
+        INFO_HEADLINE(f"TOP UP OTHERS' PRV TO {top_up_to_amount}")
 
         # there's a max number of output in "createandsendtransaction" rpc, so must split into small batch of output
         each, length, start = 20, len(receiver), 0
