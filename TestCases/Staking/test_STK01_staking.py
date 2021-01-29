@@ -20,21 +20,21 @@ from Helpers.Logging import STEP, INFO
 from Helpers.TestHelper import ChainHelper
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
-from TestCases.Staking import stake_account, token_holder_shard_1, \
-    amount_token_send, amount_token_fee, token_holder_shard_0, staked_account, account_t
+from TestCases.Staking import account_x, token_holder_shard_1, \
+    amount_token_send, amount_token_fee, token_holder_shard_0, account_y, account_t
 
 
 @pytest.mark.parametrize("the_stake, validator, receiver_reward, auto_re_stake", [
-    (staked_account, staked_account, staked_account, False),
-    (staked_account, staked_account, stake_account, False),
-    (stake_account, staked_account, stake_account, False),
-    (stake_account, staked_account, staked_account, False),
-    (stake_account, staked_account, account_t, False),
-    (staked_account, staked_account, staked_account, True),
-    (staked_account, staked_account, stake_account, True),
-    (stake_account, staked_account, stake_account, True),
-    (stake_account, staked_account, staked_account, True),
-    (stake_account, staked_account, account_t, True),
+    (account_y, account_y, account_y, False),
+    (account_y, account_y, account_x, False),
+    (account_x, account_y, account_x, False),
+    (account_x, account_y, account_y, False),
+    (account_x, account_y, account_t, False),
+    (account_y, account_y, account_y, True),
+    (account_y, account_y, account_x, True),
+    (account_x, account_y, account_x, True),
+    (account_x, account_y, account_y, True),
+    (account_x, account_y, account_t, True),
 ])
 def test_staking(the_stake, validator, receiver_reward, auto_re_stake):
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), the_stake)

@@ -4,6 +4,7 @@ chain_committee_min = 4
 chain_committee_max = 6
 """
 import random
+from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
@@ -11,7 +12,7 @@ from Configs.Constants import coin, ChainConfig
 from Helpers.KeyListJson import KeyListJson
 from Helpers.Logging import INFO, STEP, ERROR
 from Helpers.TestHelper import ChainHelper, l3
-from Objects.AccountObject import Account
+from Objects.AccountObject import Account, AccountGroup, COIN_MASTER
 from Objects.IncognitoTestCase import SUT, ACCOUNTS, STAKER_ACCOUNTS, COMMITTEE_ACCOUNTS, BEACON_ACCOUNTS
 from Objects.TransactionObjects import TransactionDetail
 from TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
@@ -21,9 +22,9 @@ fixed_validators = key_list_file.get_shard_fix_validator_accounts()
 stakers = key_list_file.get_staker_accounts()
 try:
     num_of_auto_stake = ChainConfig.ACTIVE_SHARD * (ChainConfig.SHARD_COMMITTEE_SIZE - ChainConfig.FIX_BLOCK_VALIDATOR)
-    auto_stake_list = stakers[:num_of_auto_stake]
-    stake_account = stakers[num_of_auto_stake]
-    staked_account = stakers[num_of_auto_stake + 1]
+    auto_stake_list = AccountGroup(*(stakers[:num_of_auto_stake]))
+    account_x = stakers[num_of_auto_stake]
+    account_y = stakers[num_of_auto_stake + 1]
     account_a = stakers[num_of_auto_stake + 2]
     account_u = stakers[num_of_auto_stake + 3]
     account_t = stakers[num_of_auto_stake + 4]
@@ -43,8 +44,8 @@ amount_token_fee = 1000000
 token_init_amount = coin(100000)
 token_contribute_amount = coin(10000)
 prv_contribute_amount = coin(10000)
-token_id = '8c4a05c7dc9cd3949f9bbf41b56198be5478004f739bebbd92368706431d7ee5'
-# token_id = None  # if None, the test will automatically mint a new token and use it for testing
+# token_id = '8c4a05c7dc9cd3949f9bbf41b56198be5478004f739bebbd92368706431d7ee5'
+token_id = None  # if None, the test will automatically mint a new token and use it for testing
 tear_down_trx008 = False
 
 
@@ -71,15 +72,16 @@ def setup_module():
 
     STEP(0.3, 'Top up, stake and wait till becoming committee')
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
-    wait_need = False
-    for committee in auto_stake_list[:num_of_auto_stake]:
-        if not beacon_bsd.is_he_a_committee(committee) and beacon_bsd.get_auto_staking_committees(
-                committee) is None:
-            committee.stake_and_reward_me()
-            wait_need = True
+    wait_list = []
+    for committee in auto_stake_list:
+        if beacon_bsd.get_auto_staking_committees(committee) is None:
+            COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1751), committee)
+            committee.stake_and_reward_me().expect_no_error()
+            wait_list.append(committee)
 
-    if wait_need:
-        ChainHelper.wait_till_next_epoch()
+    with ThreadPoolExecutor() as executor:
+        for acc in wait_list:
+            executor.submit(acc.stk_wait_till_i_am_committee, check_cycle=ChainConfig.get_epoch_time())
 
     STEP(0.4, "Verify environment, 6 node per shard")
     committee_state = SUT().get_committee_state()
@@ -107,6 +109,7 @@ def setup_module():
 def no_teardown_module():
     if tear_down_trx008:
         trx008.teardown_module()
+
 
 def get_staking_info_of_validator(committee_pub_k, shard_bsd_list):
     """

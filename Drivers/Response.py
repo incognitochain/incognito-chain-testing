@@ -34,12 +34,13 @@ class Response:
         if expecting_error == 'any error':
             INFO(self.get_error_trace().get_message())
             assert self.get_error_msg() is not None, \
-                f'Found no error while expecting {expecting_error}'
+                f'Found no error while expecting: {expecting_error}'
         else:
             trace_msg = self.get_error_trace().get_message()
+            error_msg = self.get_error_msg()
             INFO(trace_msg)
-            assert (expecting_error in self.get_error_msg() or expecting_error in trace_msg), \
-                f'Found no error while expecting {expecting_error}'
+            assert (expecting_error in error_msg or expecting_error in trace_msg), \
+                f'Found no error while expecting: {expecting_error}'
         return self
 
     def data(self):

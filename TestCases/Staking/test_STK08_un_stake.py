@@ -5,7 +5,7 @@ from Helpers.KeyListJson import KeyListJson
 from Helpers.Logging import ERROR, INFO
 from Helpers.Time import WAIT
 from Objects.IncognitoTestCase import SUT
-from TestCases.Staking import staked_account, stake_account, account_t
+from TestCases.Staking import account_y, account_x, account_t
 
 key_list_file = KeyListJson()
 
@@ -29,16 +29,16 @@ def no_test_un_stake():
 
 
 @pytest.mark.parametrize("the_stake, validator, receiver_reward, auto_re_stake", [
-    (staked_account, staked_account, staked_account, False),
-    (staked_account, staked_account, stake_account, False),
-    (stake_account, staked_account, stake_account, False),
-    (stake_account, staked_account, staked_account, False),
-    (stake_account, staked_account, account_t, False),
-    (staked_account, staked_account, staked_account, True),
-    (staked_account, staked_account, stake_account, True),
-    (stake_account, staked_account, stake_account, True),
-    (stake_account, staked_account, staked_account, True),
-    (stake_account, staked_account, account_t, True)])
+    (account_y, account_y, account_y, False),
+    (account_y, account_y, account_x, False),
+    (account_x, account_y, account_x, False),
+    (account_x, account_y, account_y, False),
+    (account_x, account_y, account_t, False),
+    (account_y, account_y, account_y, True),
+    (account_y, account_y, account_x, True),
+    (account_x, account_y, account_x, True),
+    (account_x, account_y, account_y, True),
+    (account_x, account_y, account_t, True)])
 def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_stake):
     INFO('Staking')
     bal_b4_stake = the_stake.get_prv_balance()
@@ -54,18 +54,18 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
 
 
 @pytest.mark.parametrize("the_stake, validator, receiver_reward, auto_re_stake", [
-    pytest.param(staked_account, staked_account, staked_account, False,
+    pytest.param(account_y, account_y, account_y, False,
                  marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    pytest.param(staked_account, staked_account, stake_account, False,
+    pytest.param(account_y, account_y, account_x, False,
                  marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    (stake_account, staked_account, stake_account, False),
-    (stake_account, staked_account, staked_account, False),
-    (stake_account, staked_account, account_t, False),
-    (staked_account, staked_account, staked_account, True),
-    (staked_account, staked_account, stake_account, True),
-    (stake_account, staked_account, stake_account, True),
-    (stake_account, staked_account, staked_account, True),
-    (stake_account, staked_account, account_t, True)
+    (account_x, account_y, account_x, False),
+    (account_x, account_y, account_y, False),
+    (account_x, account_y, account_t, False),
+    (account_y, account_y, account_y, True),
+    (account_y, account_y, account_x, True),
+    (account_x, account_y, account_x, True),
+    (account_x, account_y, account_y, True),
+    (account_x, account_y, account_t, True)
 ])
 def test_un_stake_when_pending(the_stake, validator, receiver_reward, auto_re_stake):
     INFO('Staking')

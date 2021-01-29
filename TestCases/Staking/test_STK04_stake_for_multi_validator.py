@@ -7,7 +7,7 @@ from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
-from TestCases.Staking import staked_account, account_a, account_u, account_t
+from TestCases.Staking import account_y, account_a, account_u, account_t
 
 
 def get_epoch_swap_in_out_and_reward_committee(account_stake):
@@ -32,19 +32,19 @@ def get_epoch_swap_in_out_and_reward_committee(account_stake):
 
 
 def test_staking():
-    COIN_MASTER.top_him_up_prv_to_amount_if(ChainConfig.STK_AMOUNT * 4, ChainConfig.STK_AMOUNT * 5, staked_account)
+    COIN_MASTER.top_him_up_prv_to_amount_if(ChainConfig.STK_AMOUNT * 4, ChainConfig.STK_AMOUNT * 5, account_y)
     from TestCases.Staking import token_id
     INFO(f'Run test with token: {token_id}')
-    reward_b4 = staked_account.stk_get_reward_amount()
+    reward_b4 = account_y.stk_get_reward_amount()
     if reward_b4 != 0:
-        staked_account.stk_withdraw_reward_to_me().subscribe_transaction()
+        account_y.stk_withdraw_reward_to_me().subscribe_transaction()
         WAIT(40)
-        reward_b4 = staked_account.stk_get_reward_amount()
+        reward_b4 = account_y.stk_get_reward_amount()
     assert reward_b4 == 0
 
     thread_pool = []
     executor = ThreadPoolExecutor()
-    thread_validator1 = executor.submit(get_epoch_swap_in_out_and_reward_committee, staked_account)
+    thread_validator1 = executor.submit(get_epoch_swap_in_out_and_reward_committee, account_y)
     thread_pool.append(thread_validator1)
     thread_validator2 = executor.submit(get_epoch_swap_in_out_and_reward_committee, account_a)
     thread_pool.append(thread_validator2)
@@ -54,17 +54,17 @@ def test_staking():
     thread_pool.append(thread_validator4)
 
     INFO('STAKING AND VERIFY BALANCE')
-    bal_b4_stake = staked_account.get_prv_balance()
+    bal_b4_stake = account_y.get_prv_balance()
     INFO(f'Stake for validator 1')
-    fee_tx1 = staked_account.stake(staked_account, auto_re_stake=False).subscribe_transaction().get_fee()
+    fee_tx1 = account_y.stake(account_y, auto_re_stake=False).subscribe_transaction().get_fee()
     INFO(f'Stake for validator 2')
-    fee_tx2 = staked_account.stake(account_a, auto_re_stake=False).subscribe_transaction().get_fee()
+    fee_tx2 = account_y.stake(account_a, auto_re_stake=False).subscribe_transaction().get_fee()
     INFO(f'Stake for validator 3')
-    fee_tx3 = staked_account.stake(account_u, auto_re_stake=False).subscribe_transaction().get_fee()
+    fee_tx3 = account_y.stake(account_u, auto_re_stake=False).subscribe_transaction().get_fee()
     INFO(f'Stake for validator 4')
-    fee_tx4 = staked_account.stake(account_t, auto_re_stake=False).subscribe_transaction().get_fee()
+    fee_tx4 = account_y.stake(account_t, auto_re_stake=False).subscribe_transaction().get_fee()
     stake_sum_fee_tx = fee_tx1 + fee_tx2 + fee_tx3 + fee_tx4
-    bal_af_stake = staked_account.get_prv_balance()
+    bal_af_stake = account_y.get_prv_balance()
     assert bal_af_stake == bal_b4_stake - stake_sum_fee_tx - ChainConfig.STK_AMOUNT * 4
 
     concurrent.futures.wait(thread_pool)
@@ -73,5 +73,5 @@ def test_staking():
         epoch_in, epoch_out, reward, shard_committee = thread.result()
         instruction_reward += reward
 
-    reward_receive = staked_account.stk_get_reward_amount()
+    reward_receive = account_y.stk_get_reward_amount()
     assert reward_receive == instruction_reward
