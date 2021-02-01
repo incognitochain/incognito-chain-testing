@@ -18,7 +18,7 @@ block_per_epoch_af = 20
 
 list_staker_to_test = []
 beacon_bsd = SUT().get_beacon_best_state_detail_info()
-for staker in stake_list[36:]:
+for staker in stake_list[36:]:        # trong file keylist.json, staker số 36 trở đi đã được run node
     if beacon_bsd.get_auto_staking_committees(staker) is None:
         list_staker_to_test.append(staker)
     if len(list_staker_to_test) >= 3:
@@ -115,7 +115,7 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
     (account_x, account_y, account_y, True),
     (account_x, account_y, account_t, True)
 ])
-def _test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, auto_re_stake):
+def test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, auto_re_stake):
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
     if beacon_bsd.get_auto_staking_committees(validator) is True:
         pytest.skip(f'validator {validator.validator_key} is existed in committee with auto re-stake: True')
@@ -162,7 +162,7 @@ def _test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, aut
     (account_x, account_y, account_y, True),
     (account_x, account_y, account_t, True)
 ])
-def _test_un_stake_when_exist_shard_committee(the_stake, validator, receiver_reward, auto_re_stake):
+def test_un_stake_when_exist_shard_committee(the_stake, validator, receiver_reward, auto_re_stake):
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
     if beacon_bsd.get_auto_staking_committees(validator) is True:
         pytest.skip(f'validator {validator.validator_key} is existed in committee with auto re-stake: True')
