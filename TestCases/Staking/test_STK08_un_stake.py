@@ -1,6 +1,5 @@
 import pytest
 
-from concurrent.futures.thread import ThreadPoolExecutor
 from Configs.Constants import coin, ChainConfig
 from Helpers.KeyListJson import KeyListJson
 from Helpers.Logging import ERROR, INFO, STEP
@@ -31,24 +30,6 @@ account_t = list_staker_to_test[2]
 bal_b4_dict = {}
 fee_dict = {}
 bal_af_dict = {}
-
-
-def staking(staker, beacon_bsd, bal_b4_dict, fee_dict):
-    if beacon_bsd.get_auto_staking_committees(staker) is None:
-        COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1850), staker)
-        bal_b4_dict[staker] = staker.get_prv_balance()
-        fee_dict[staker] = staker.stake().subscribe_transaction().get_fee()
-        return bal_b4_dict, fee_dict
-
-
-def _test_stake_bulk():
-    beacon_bsd = SUT().get_beacon_best_state_detail_info()
-    with ThreadPoolExecutor() as executor:
-        for staker in stake_list[100:120]:
-            executor.submit(staking, staker, beacon_bsd, bal_b4_dict, fee_dict)
-    WAIT(40)
-    for acc, bal in bal_b4_dict.items():
-        assert acc.get_prv_balance() == bal - coin(1750) - fee_dict[acc], ERROR(f'ERROR: {acc.private_key}')
 
 
 @pytest.mark.parametrize("the_stake, validator, receiver_reward, auto_re_stake", [
