@@ -349,10 +349,10 @@ class Account:
         return self.REQ_HANDLER.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, self.payment_key, self.validator_key)
 
-    def stk_un_stake_tx(self):
-        INFO('Un-stake transaction')
+    def stk_un_stake_tx(self, validator):
+        INFO(f'Un-stake transaction for validator: {validator.validator_key}')
         return self.REQ_HANDLER.transaction(). \
-            create_and_send_un_staking_transaction(self.private_key, self.payment_key, self.validator_key)
+            create_and_send_un_staking_transaction(self.private_key, validator.payment_key, validator.validator_key)
 
     def stk_un_stake_him(self, him):
         INFO(f"Un-stake other: {him.validator_key}")
@@ -369,12 +369,63 @@ class Account:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
-                e2 = self.REQ_HANDLER.help_get_current_epoch()
-                h = self.REQ_HANDLER.help_get_beacon_height_in_best_state_detail()
+                e2 = beacon_bsd.get_epoch()
+                h = beacon_bsd.get_beacon_height()
                 INFO(f"Already a committee at epoch {e2}, block height {h}")
                 return e2
         INFO(f"Waited {t}s but still not yet become committee")
         return None
+
+    def stk_wait_till_i_exist_in_waiting_next_random(self, check_cycle=ChainConfig.BLOCK_TIME, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+        t = timeout
+        INFO(f"Wait until {self.validator_key} exist in waiting next random, check every {check_cycle}s, timeout: {timeout}s")
+        while timeout > check_cycle:
+            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+            staked_shard = beacon_bsd.is_he_in_waiting_next_random(self)
+            if staked_shard is False:
+                WAIT(check_cycle)
+                timeout -= check_cycle
+            else:
+                e2 = beacon_bsd.get_epoch()
+                h = beacon_bsd.get_beacon_height()
+                INFO(f"Existed in waiting next random at epoch {e2}, block height {h}")
+                return e2
+        INFO(f"Waited {t}s but still not yet exist in waiting next random")
+        return None
+
+    def stk_wait_till_i_exist_in_shard_pending(self, check_cycle=ChainConfig.BLOCK_TIME, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+        t = timeout
+        INFO(f"Wait until {self.validator_key} exist in waiting next random, check every {check_cycle}s, timeout: {timeout}s")
+        while timeout > check_cycle:
+            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+            staked_shard = beacon_bsd.is_he_in_shard_pending(self)
+            if staked_shard is False:
+                WAIT(check_cycle)
+                timeout -= check_cycle
+            else:
+                e2 = beacon_bsd.get_epoch()
+                h = beacon_bsd.get_beacon_height()
+                INFO(f"Existed in shard pending at epoch {e2}, block height {h}")
+                return e2
+        INFO(f"Waited {t}s but still not yet exist in shard pending")
+        return None
+
+    def stk_wait_i_is_not_validator(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+        t = timeout
+        INFO(f"Wait until {self.validator_key} no longer a committee, check every {check_cycle}s, timeout: {timeout}s")
+        while timeout > check_cycle:
+            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+            if beacon_bsd.get_auto_staking_committees(self) is None:
+                e2 = beacon_bsd.get_epoch()
+                h = beacon_bsd.get_beacon_height()
+                INFO(f"Swapped out of validator at epoch {e2}, block height {h}")
+                return e2
+            WAIT(check_cycle)
+            timeout -= check_cycle
+
+        INFO(f"Waited {t}s but still a validator")
+        return None
+
 
     def stk_wait_till_i_am_swapped_out_of_committee(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
@@ -386,7 +437,7 @@ class Account:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
-                e2 = self.REQ_HANDLER.help_get_current_epoch()
+                e2 = beacon_bsd.get_epoch()
                 INFO(f"Swapped out of committee at epoch {e2}")
                 return e2
         INFO(f"Waited {t}s but still a committee")
