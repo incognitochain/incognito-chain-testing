@@ -2,7 +2,7 @@ import pytest
 
 from Configs.Constants import coin, ChainConfig
 from Helpers.KeyListJson import KeyListJson
-from Helpers.Logging import ERROR, INFO, STEP
+from Helpers.Logging import INFO, STEP
 from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
@@ -17,7 +17,7 @@ block_per_epoch_af = 20
 
 list_staker_to_test = []
 beacon_bsd = SUT().get_beacon_best_state_detail_info()
-for staker in stake_list[36:]:        # trong file keylist.json, staker số 36 trở đi đã được run node
+for staker in stake_list[36:]:  # trong file keylist.json, staker số 36 trở đi đã được run node
     if beacon_bsd.get_auto_staking_committees(staker) is None:
         list_staker_to_test.append(staker)
     if len(list_staker_to_test) >= 3:
@@ -48,7 +48,7 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
     if beacon_bsd.get_auto_staking_committees(validator) is True:
         pytest.skip(f'validator {validator.validator_key} is existed in committee with auto re-stake: True')
     elif beacon_bsd.get_auto_staking_committees(validator) is False:
-        validator.stk_wait_i_is_not_validator()
+        validator.stk_wait_till_i_am_out_of_autostaking_list()
 
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1850), the_stake)
     bal_b4_stake = the_stake.get_prv_balance()
@@ -63,14 +63,23 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
 
     STEP(1, 'Staking')
     fee_stk = the_stake.stake(validator, receiver_reward, auto_re_stake=auto_re_stake).subscribe_transaction().get_fee()
-    bal_af_stake = the_stake.wait_for_balance_change(from_balance=bal_b4_stake, least_change_amount=None)
+    bal_af_stake = the_stake.wait_for_balance_change(from_balance=bal_b4_stake,
+                                                     least_change_amount=(- fee_stk - ChainConfig.STK_AMOUNT))
     assert bal_af_stake == bal_b4_stake - fee_stk - ChainConfig.STK_AMOUNT
 
-    validator.stk_wait_till_i_exist_in_waiting_next_random()
+    validator.stk_wait_till_i_am_in_waiting_next_random()
+
+    INFO(f'Wait 40s to shard confirm')
+    WAIT(40)
+    beacon_bsd = SUT().get_beacon_best_state_detail_info()
+    if beacon_bsd.is_he_in_waiting_next_random(validator) is False:
+        pytest.skip(f'validator {validator.validator_key} must exist in the list waiting for random')
 
     STEP(2, 'Un_staking')
     fee_un_stk = the_stake.stk_un_stake_tx(validator).subscribe_transaction().get_fee()
-    bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=(coin(1750)-fee_un_stk), timeout=4000)
+    bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake,
+                                                        least_change_amount=(ChainConfig.STK_AMOUNT - fee_un_stk),
+                                                        timeout=4000)
     assert bal_af_un_stake == bal_b4_stake - fee_stk - fee_un_stk
 
     WAIT(60)  # wait to he swap out, is not validator
@@ -96,29 +105,30 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
     (account_x, account_y, account_y, True),
     (account_x, account_y, account_t, True)
 ])
-def test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, auto_re_stake):
+def _test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, auto_re_stake):
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
     if beacon_bsd.get_auto_staking_committees(validator) is True:
         pytest.skip(f'validator {validator.validator_key} is existed in committee with auto re-stake: True')
     elif beacon_bsd.get_auto_staking_committees(validator) is False:
-        validator.stk_wait_i_is_not_validator()
+        validator.stk_wait_till_i_am_out_of_autostaking_list()
 
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1850), the_stake)
     bal_b4_stake = the_stake.get_prv_balance()
 
     STEP(1, 'Staking')
     fee_stk = the_stake.stake(validator, receiver_reward, auto_re_stake=auto_re_stake).subscribe_transaction().get_fee()
-    bal_af_stake = the_stake.wait_for_balance_change(from_balance=bal_b4_stake, least_change_amount=None)
+    bal_af_stake = the_stake.wait_for_balance_change(from_balance=bal_b4_stake,
+                                                     least_change_amount=(- fee_stk - ChainConfig.STK_AMOUNT))
     assert bal_af_stake == bal_b4_stake - fee_stk - ChainConfig.STK_AMOUNT
 
-    validator.stk_wait_till_i_exist_in_shard_pending()
+    validator.stk_wait_till_i_am_in_shard_pending()
 
     STEP(2, 'Un_staking')
     fee_un_stk = the_stake.stk_un_stake_tx(validator).subscribe_transaction().get_fee()
-    bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=None)
-    assert bal_af_un_stake == bal_b4_stake - fee_stk - fee_un_stk
+    bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=-fee_un_stk)
+    assert bal_af_un_stake == bal_af_stake - fee_un_stk
 
-    WAIT(60) # wait to convert status auto re-stake
+    WAIT(60)  # wait to convert status auto re-stake
 
     STEP(3, 'Verify auto staking is False')
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
@@ -148,22 +158,23 @@ def test_un_stake_when_exist_shard_committee(the_stake, validator, receiver_rewa
     if beacon_bsd.get_auto_staking_committees(validator) is True:
         pytest.skip(f'validator {validator.validator_key} is existed in committee with auto re-stake: True')
     elif beacon_bsd.get_auto_staking_committees(validator) is False:
-        validator.stk_wait_i_is_not_validator()
+        validator.stk_wait_till_i_am_out_of_autostaking_list()
 
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1850), the_stake)
     bal_b4_stake = the_stake.get_prv_balance()
 
     STEP(1, 'Staking')
     fee_stk = the_stake.stake(validator, receiver_reward, auto_re_stake=auto_re_stake).subscribe_transaction().get_fee()
-    bal_af_stake = the_stake.wait_for_balance_change(from_balance=bal_b4_stake, least_change_amount=None)
+    bal_af_stake = the_stake.wait_for_balance_change(from_balance=bal_b4_stake,
+                                                     least_change_amount=(- fee_stk - ChainConfig.STK_AMOUNT))
     assert bal_af_stake == bal_b4_stake - fee_stk - ChainConfig.STK_AMOUNT
 
     validator.stk_wait_till_i_am_committee()
 
     STEP(2, 'Un_staking')
     fee_un_stk = the_stake.stk_un_stake_tx(validator).subscribe_transaction().get_fee()
-    bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=None)
-    assert bal_af_un_stake == bal_b4_stake - fee_stk - fee_un_stk
+    bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=-fee_un_stk)
+    assert bal_af_un_stake == bal_af_stake - fee_un_stk
 
     WAIT(60)  # wait to convert status auto re-stake
 

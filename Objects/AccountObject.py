@@ -376,26 +376,29 @@ class Account:
         INFO(f"Waited {t}s but still not yet become committee")
         return None
 
-    def stk_wait_till_i_exist_in_waiting_next_random(self, check_cycle=ChainConfig.BLOCK_TIME, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+    def stk_wait_till_i_am_in_waiting_next_random(self, check_cycle=ChainConfig.BLOCK_TIME,
+                                                  timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
-        INFO(f"Wait until {self.validator_key} exist in waiting next random, check every {check_cycle}s, timeout: {timeout}s")
+        INFO(
+            f"Wait until {self.validator_key} exist in waiting next random, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
-            staked_shard = beacon_bsd.is_he_in_waiting_next_random(self)
-            if staked_shard is False:
+            staked_in_waiting_4random = beacon_bsd.is_he_in_waiting_next_random(self)
+            if staked_in_waiting_4random is False:
                 WAIT(check_cycle)
                 timeout -= check_cycle
             else:
                 e2 = beacon_bsd.get_epoch()
                 h = beacon_bsd.get_beacon_height()
-                INFO(f"Existed in waiting next random at epoch {e2}, block height {h}")
+                INFO(f"Already exists in waiting next random at epoch {e2}, block height {h}")
                 return e2
         INFO(f"Waited {t}s but still not yet exist in waiting next random")
         return None
 
-    def stk_wait_till_i_exist_in_shard_pending(self, check_cycle=ChainConfig.BLOCK_TIME, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+    def stk_wait_till_i_am_in_shard_pending(self, check_cycle=ChainConfig.BLOCK_TIME,
+                                            timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
-        INFO(f"Wait until {self.validator_key} exist in waiting next random, check every {check_cycle}s, timeout: {timeout}s")
+        INFO(f"Wait until {self.validator_key} exist in shard pending, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             staked_shard = beacon_bsd.is_he_in_shard_pending(self)
@@ -405,27 +408,27 @@ class Account:
             else:
                 e2 = beacon_bsd.get_epoch()
                 h = beacon_bsd.get_beacon_height()
-                INFO(f"Existed in shard pending at epoch {e2}, block height {h}")
+                INFO(f"Already exists in shard pending at epoch {e2}, block height {h}")
                 return e2
         INFO(f"Waited {t}s but still not yet exist in shard pending")
         return None
 
-    def stk_wait_i_is_not_validator(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+    def stk_wait_till_i_am_out_of_autostaking_list(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
-        INFO(f"Wait until {self.validator_key} no longer a committee, check every {check_cycle}s, timeout: {timeout}s")
+        INFO(
+            f"Wait until {self.validator_key} does not exist in the autostaking list, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             if beacon_bsd.get_auto_staking_committees(self) is None:
                 e2 = beacon_bsd.get_epoch()
                 h = beacon_bsd.get_beacon_height()
-                INFO(f"Swapped out of validator at epoch {e2}, block height {h}")
+                INFO(f"Validator is out of autostaking list at epoch {e2}, block height {h}")
                 return e2
             WAIT(check_cycle)
             timeout -= check_cycle
 
-        INFO(f"Waited {t}s but still a validator")
+        INFO(f"Waited {t}s but still exist in the autostaking list")
         return None
-
 
     def stk_wait_till_i_am_swapped_out_of_committee(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
