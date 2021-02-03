@@ -1,0 +1,128 @@
+package jenkinsfiles.QC_Automation_Test
+
+pipeline {
+  agent { label 'Node_134' }
+  parameters {
+    extendedChoice(
+      defaultValue: 'start',
+      description: '',
+      descriptionPropertyValue: 'Do nothing,Start highway,Stop highway,Restart highway',
+      multiSelectDelimiter: ',',
+      name: 'Action',
+      quoteValue: false,
+      saveJSONParameterToFile: false,
+      type: 'PT_RADIO',
+      value: 'none,start,stop,restart',
+      visibleItemCount: 4
+    )
+
+    extendedChoice(
+      defaultValue: 'none',
+      description: '',
+      descriptionPropertyValue: 'Do nothing more,Rebuild highway,Clear all logs',
+      multiSelectDelimiter: ',',
+      name: 'Additional',
+      quoteValue: false,
+      saveJSONParameterToFile: false,
+      type: 'PT_CHECKBOX',
+      value: 'none,rebuild,clearLogs',
+      visibleItemCount: 4
+    )
+
+    string(
+      name: 'branch',
+      description: 'Incognito highway branch',
+      defaultValue: 'v2-newconsensus'
+    )
+
+    string(
+      name: 'firstAdminPort',
+      description: '',
+      defaultValue: '9081'
+    )
+
+    string(
+      name: 'firstProxyPort',
+      description: '',
+      defaultValue: '7337'
+    )
+
+    string(
+      name: 'firstBootnodePort',
+      description: '',
+      defaultValue: '9330'
+    )
+
+    string(
+      name: 'bootstrapAddr',
+      description: '',
+      defaultValue: '0.0.0.0'
+    )
+
+    string(
+      name: 'host',
+      description: '',
+      defaultValue: '0.0.0.0'
+    )
+
+    string(
+      name: 'firstBootstrapPort',
+      description: '',
+      defaultValue: '9330'
+    )
+
+    text(
+      name: 'privateKeys',
+      description: '',
+      defaultValue: '''YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
+YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE='''
+    )
+
+  }
+
+  stages {
+    stage('Checkout source code') {
+      steps {
+        echo "Checkingout branch/tag ${branch}"
+
+        dir("incognito-highway") {
+          checkout(
+            [
+              $class           : 'GitSCM',
+              branches         : [[name: "${branch}"]],
+              userRemoteConfigs: [[url: 'https://github.com/incognitochain/incognito-highway']]
+            ]
+          )
+        }
+      }
+    }
+
+    stage('Build highway') {
+      steps {
+        echo "Building highway"
+        sh "cp ${WORKSPACE}/jenkinsfiles/QC_Automation_Test/shell-scripts/QC_Build_Highway_Pipeline.sh ${WORKSPACE}/incognito-highway/QC_Build_Highway_Pipeline.sh"
+        dir("incognito-highway") {
+          sh "chmod +x ./QC_Build_Highway_Pipeline.sh"
+          sh "./QC_Build_Highway_Pipeline.sh"
+        }
+      }
+    }
+    
+  }
+
+
+  post {
+    failure {
+      slackSend(channel: "#incognito-jenkins-dev", attachments: [
+        [
+          text : "Build <${BUILD_URL}|*${JOB_NAME} ${BUILD_DISPLAY_NAME}*> failed!",
+          color: '#c62828'
+        ],
+        [
+          "type": "divider"
+        ]
+      ])
+    }
+  }
+
+}

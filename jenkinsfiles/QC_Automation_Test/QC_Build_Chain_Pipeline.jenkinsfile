@@ -1,0 +1,254 @@
+package jenkinsfiles.QC_Automation_Test
+
+pipeline {
+  agent { label 'Node_134' }
+  parameters {
+    extendedChoice(
+      defaultValue: 'start',
+      description: '',
+      descriptionPropertyValue: 'Do Do nothing,Start the chain,Stop previous running chain. All other params are ignored,Restart the chain',
+      multiSelectDelimiter: ',',
+      name: 'Action',
+      quoteValue: false,
+      saveJSONParameterToFile: false,
+      type: 'PT_RADIO',
+      value: 'none,start,stop,restart',
+      visibleItemCount: 4
+    )
+
+    extendedChoice(
+      defaultValue: 'rebuild',
+      description: '',
+      descriptionPropertyValue: 'Do nothing more,Clear all logs,Clear all chain\'s data,Rebuild chain',
+      multiSelectDelimiter: ',',
+      name: 'Additional',
+      quoteValue: false,
+      saveJSONParameterToFile: false,
+      type: 'PT_CHECKBOX',
+      value: 'none,clearLogs,clearData,rebuild',
+      visibleItemCount: 4
+    )
+
+    string(
+      name: 'GETH_PROTOCOL',
+      description: 'environment variable',
+      defaultValue: 'https'
+    )
+
+    string(
+      name: 'GETH_NAME',
+      description: 'environment variable',
+      defaultValue: '"kovan.infura.io/v3/12047eb6d7e6439fa3449d00c7694a12"'
+    )
+
+    string(
+      name: 'GETH_PORT',
+      description: 'environment variable',
+      defaultValue: '""'
+    )
+
+    string(
+      name: 'branch',
+      description: 'Incognito chain branch',
+      defaultValue: 'master-temp-B-deploy-consensus-v2-optimized-upgradeBP-v2-release'
+    )
+
+    string(
+      name: 'testnetETHContractAddressStr',
+      description: '''Previous address:<br/>
+- 0xe77aBF10cC0c30Ab3Ac2d877add39553cA7a8654
+''',
+      defaultValue: '0x7c7e371D1e25771f2242833C1A354dCE846f3ec8'
+    )
+
+    string(
+      name: 'blockPerEpoch',
+      description: 'environment variable',
+      defaultValue: '10'
+    )
+
+    string(
+      name: 'randomTime',
+      description: 'environment variable',
+      defaultValue: '5'
+    )
+
+    string(
+      name: 'activeShard',
+      description: 'environment variable',
+      defaultValue: '2'
+    )
+
+    string(
+      name: 'maxShardNumber',
+      description: 'environment variable',
+      defaultValue: '2'
+    )
+
+    string(
+      name: 'beaconHeightBreakPointBurnAddr',
+      description: 'environment variable',
+      defaultValue: '2'
+    )
+
+    string(
+      name: 'beaconBlockHeighMilestoneForMinTxFeesOnTokenRequirement',
+      description: 'environment variable',
+      defaultValue: '3'
+    )
+
+    string(
+      name: 'discoverPeersAddress',
+      description: 'environment variable',
+      defaultValue: '0.0.0.0:9330'
+    )
+
+    string(
+      name: 'listenAddress',
+      description: 'environment variable',
+      defaultValue: '0.0.0.0'
+    )
+
+    string(
+      name: 'firstListenPort',
+      description: 'environment variable',
+      defaultValue: '9451'
+    )
+
+    string(
+      name: 'numOfBeacon',
+      description: 'environment variable',
+      defaultValue: '4'
+    )
+
+    string(
+      name: 'MinBeaconCommitteeSize',
+      description: 'environment variable',
+      defaultValue: '4'
+    )
+
+    string(
+      name: 'BeaconCommitteeSize',
+      description: 'environment variable',
+      defaultValue: '4'
+    )
+
+    string(
+      name: 'shardCommitteeSize',
+      description: 'environment variable',
+      defaultValue: '6'
+    )
+
+    string(
+      name: 'numberOfFixedBlockValidators',
+      description: 'environment variable',
+      defaultValue: '4'
+    )
+
+    string(
+      name: 'MinShardCommitteeSize',
+      description: 'environment variable',
+      defaultValue: '4'
+    )
+
+    string(
+      name: 'firstExternalPort',
+      description: 'environment variable',
+      defaultValue: '9451'
+    )
+
+    string(
+      name: 'firstRpcPort',
+      description: 'environment variable',
+      defaultValue: '9334'
+    )
+
+    string(
+      name: 'firstWsPort',
+      description: 'environment variable',
+      defaultValue: '19334'
+    )
+
+    string(
+      name: 'numOfNodeInShardPreRun',
+      description: 'environment variable',
+      defaultValue: '12'
+    )
+
+    string(
+      name: 'numOfStakerPreRun',
+      description: 'environment variable',
+      defaultValue: '17'
+    )
+
+    string(
+      name: 'epochReplaceCommittee',
+      description: 'environment variable',
+      defaultValue: '700000'
+    )
+
+    string(
+      name: 'beaconHeightSwitchStakeTX',
+      description: 'environment variable',
+      defaultValue: '1'
+    )
+
+    string(
+      name: 'consensusV2Epoch',
+      description: 'environment variable',
+      defaultValue: '1'
+    )
+
+    text(
+      name: 'keylistRunNode',
+      description: 'old value: keylist-jenkin.json',
+      defaultValue: 'keylist.json'
+    )
+
+  }
+
+  stages {
+    stage('Checkout source code') {
+      steps {
+        echo "Checkingout branch/tag ${branch}"
+
+        dir("incognito-chain") {
+          checkout(
+            [
+              $class           : 'GitSCM',
+              branches         : [[name: "${branch}"]],
+              userRemoteConfigs: [[url: 'https://github.com/incognitochain/incognito-chain.git']]
+            ]
+          )
+        }
+      }
+    }
+
+    stage('Build chain') {
+      steps {
+        echo "Building chain"
+        sh "cp ${WORKSPACE}/jenkinsfiles/QC_Automation_Test/shell-scripts/QC_Build_Chain_Pipeline.sh ${WORKSPACE}/incognito-chain/QC_Build_Chain_Pipeline.sh"
+        dir("incognito-chain") {
+          sh "chmod +x ./QC_Build_Chain_Pipeline.sh"
+          sh "./QC_Build_Chain_Pipeline.sh"
+        }
+      }
+    }
+  }
+
+
+  post {
+    failure {
+      slackSend(channel: "#incognito-jenkins-dev", attachments: [
+        [
+          text : "Build <${BUILD_URL}|*${JOB_NAME} ${BUILD_DISPLAY_NAME}*> failed!",
+          color: '#c62828'
+        ],
+        [
+          "type": "divider"
+        ]
+      ])
+    }
+  }
+
+}
