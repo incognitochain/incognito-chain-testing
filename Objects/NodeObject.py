@@ -78,7 +78,7 @@ class Node:
             raise SyntaxError(f'Url {url} is not in correct format')
 
         self._address = url.split(':')[1].lstrip('//')
-        self._rpc_port = int(url.split(':')[2])
+        self._rpc_port = int(url.split(':')[2].split('/')[0])
         return self
 
     def set_web_socket_port(self, port):
