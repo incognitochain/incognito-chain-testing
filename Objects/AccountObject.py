@@ -1324,11 +1324,6 @@ class AccountGroup:
 
         return AccountGroup(*accounts_in_shard)
 
-    def find_account_by_public_k(self, key):
-        for acc in self.account_list:
-            if acc.public_key == key:
-                return acc
-
     def find_account_by_key(self, key):
         """
         @param key: any kind of key (private, payment, public, committee ...)

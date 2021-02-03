@@ -23,9 +23,9 @@ token_amount_to_send = random.randrange(1000, 2000)
 custom_token_id = None
 
 # custom_token_id = '6564ca30b24901c90b446b297e347f6811d8322dfbcd7df9286716aa2116ec16'
-account_init = get_accounts_in_shard(0)[0]
+account_init = get_accounts_in_shard(5)[0]
 sender_account = account_init
-receiver_account = get_accounts_in_shard(0)[0]
+receiver_account = get_accounts_in_shard(5)[1]
 receiver_x_shard = get_accounts_in_shard(0)[0]
 token_fee = 1400000
 

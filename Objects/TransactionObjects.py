@@ -128,11 +128,14 @@ class TransactionDetail(BlockChainInfoBaseClass):
             raw_coins = self.data[coin_list_name]
             list_coin_obj = []
             for raw in raw_coins:
-                if ChainConfig.PRIVACY_VERSION == 1:
+                try:
                     coin_obj = Coin(raw['CoinDetails'])
-                    coin_obj.data['CoinDetailsEncrypted'] = raw['CoinDetailsEncrypted']
-                else:  # ver 2
+                except KeyError:
                     coin_obj = Coin(raw)
+                try:
+                    coin_obj.data['CoinDetailsEncrypted'] = raw['CoinDetailsEncrypted']
+                except KeyError:
+                    pass
                 list_coin_obj.append(coin_obj)
             return list_coin_obj
 
