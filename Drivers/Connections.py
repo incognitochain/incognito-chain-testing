@@ -9,14 +9,6 @@ from websocket import create_connection
 from Drivers.Response import Response
 from Helpers.Logging import DEBUG, ERROR
 
-rpc_test_net = "http://test-node.incognito.org:9334"
-rpc_main_net = "http://main-node.incognito.org:9334"
-rpc_dev_net = "http://dev-node.incognito.org:9334"
-
-ws_test_net = ""
-ws_dev_net = ""
-ws_main_net = ""
-
 
 class RpcConnection:
 
@@ -39,6 +31,7 @@ class RpcConnection:
         self._base_url = url
         self._params = None
         self._method = None
+        self.__payload = None
 
     def with_id(self, new_id):
         self._id = new_id
@@ -52,15 +45,6 @@ class RpcConnection:
         self._base_url = url
         return self
 
-    def with_test_net(self):
-        return self.with_url(rpc_test_net)
-
-    def with_dev_net(self):
-        self.with_url(rpc_dev_net)
-
-    def with_main_net(self):
-        self.with_url(rpc_main_net)
-
     def with_params(self, params):
         self._params = params
         return self
@@ -70,26 +54,29 @@ class RpcConnection:
         return self
 
     def execute(self):
-        data = self.make_payload()
-        Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(data, indent=3)}')
+        self.make_node_payload()
+        Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(self.__payload, indent=3)}')
         try:
-            response = requests.post(self._base_url, data=json.dumps(data), headers=self._headers)
+            response = requests.post(self._base_url, data=json.dumps(self.__payload), headers=self._headers)
         except NewConnectionError:
             ERROR('Connection refused')
         return Response(response, f'From: {self._base_url}')
 
     def print_pay_load(self):
-        data = self.make_payload()
-        print(f'{json.dumps(data, indent=3)}')
-        return data
+        print(f'{json.dumps(self.__payload, indent=3)}')
+        return self
 
-    def make_payload(self):
+    def make_node_payload(self):
         data = {"jsonrpc": self._json_rpc,
                 "id": self._id,
                 "method": self._method}
         if self._params is not None:
             data["params"] = self._params
-        return data
+        self.__payload = data
+        return self
+
+    def set_payload(self, payload):
+        self.__payload = payload
 
 
 class WebSocket(RpcConnection):
