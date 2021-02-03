@@ -5,7 +5,7 @@
 2. get current epoch number (n). stake 1 more node (A) auto-staking = false. Verify accountA balance (-1750PRV - tx_fee)
 3. at epoch (n+1). verify that node (A) become shard committee. Eg. committee of shard-0. From AccountT, send 10 tokenT
     to another account (B) in shard-1, use 1000000 tokenT as tx_fee. Verify (B) received tokenT.
-4. keep watching shard commitee every epoch.
+4. keep watching shard committee every epoch.
 5. Assume at epoch (x), node (A) is swapped out, it was replaced by a node-with-auto-staking-true at step1.
     Note: x could be (n + 2,3,4..), because sometime, node-with-auto-staking-true is assigned to shard-1.
 6. calculate average reward per epoch of node (A). reward_PRV / (x - n+1); reward_tokenT / (x - n+1)
@@ -14,7 +14,6 @@
 """
 
 import pytest
-from websocket import WebSocketTimeoutException
 
 from IncognitoChain.Configs.Constants import coin, ChainConfig
 from IncognitoChain.Helpers.Logging import STEP, INFO
@@ -23,7 +22,7 @@ from IncognitoChain.Helpers.Time import WAIT
 from IncognitoChain.Objects.AccountObject import COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.TestCases.Staking import stake_account, token_holder_shard_1, \
-    amount_token_send, amount_token_fee, token_holder_shard_0, staked_account, token_id
+    amount_token_send, amount_token_fee, token_holder_shard_0, staked_account
 
 
 @pytest.mark.parametrize("the_stake,the_staked,auto_re_stake", [
@@ -32,6 +31,7 @@ from IncognitoChain.TestCases.Staking import stake_account, token_holder_shard_1
 ])
 def test_staking(the_stake, the_staked, auto_re_stake):
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), the_stake)
+    from IncognitoChain.TestCases.Staking import token_id
     INFO(f'Run test with token: {token_id}')
     STEP(1, 'Get epoch number')
     blk_chain_info = SUT().get_block_chain_info()
@@ -71,13 +71,13 @@ def test_staking(the_stake, the_staked, auto_re_stake):
         token_receiver = token_holder_shard_0
 
     token_bal_b4_withdraw_reward = token_receiver.get_token_balance(token_id)
-    token_sender.send_token_to(token_receiver, token_id, amount_token_send, token_fee=amount_token_fee) \
-        .expect_no_error().subscribe_transaction()
-    try:
-        if token_sender.shard != token_receiver.shard:
-            token_receiver.subscribe_cross_output_token()
-    except WebSocketTimeoutException:
-        pass
+    if ChainConfig.PRIVACY_VERSION == 1:
+        token_sender.send_token_to(token_receiver, token_id, amount_token_send, token_fee=amount_token_fee) \
+            .expect_no_error().subscribe_transaction()
+    else:
+        token_sender.send_token_to(token_receiver, token_id, amount_token_send, prv_fee=amount_token_fee) \
+            .expect_no_error().subscribe_transaction()
+    token_receiver.wait_for_balance_change(token_id, token_bal_b4_withdraw_reward)
     assert token_bal_b4_withdraw_reward + amount_token_send == token_receiver.get_token_balance(token_id)
 
     if not auto_re_stake:
@@ -107,17 +107,28 @@ def test_staking(the_stake, the_staked, auto_re_stake):
     STEP(8.1, 'Withdraw PRV reward and verify balance')
     prv_bal_b4_withdraw_reward = the_staked.get_prv_balance()
     prv_reward_amount = the_staked.stk_get_reward_amount()
-    the_staked.stk_withdraw_reward_to_me().subscribe_transaction()
-    prv_bal_after_withdraw_reward = the_staked.wait_for_balance_change(from_balance=prv_bal_b4_withdraw_reward,
-                                                                       timeout=180)
+    assert prv_reward_amount > 0, 'User has no PRV reward while expecting some'
+    withdraw_fee = the_staked.stk_withdraw_reward_to_me().subscribe_transaction().get_fee()
+    prv_bal_after_withdraw_reward = the_staked. \
+        wait_for_balance_change(from_balance=prv_bal_b4_withdraw_reward, least_change_amount=prv_reward_amount / 2,
+                                timeout=180)
     INFO(f'Expect reward amount to received {prv_reward_amount}')
-    assert prv_bal_b4_withdraw_reward == prv_bal_after_withdraw_reward - prv_reward_amount
+    assert prv_bal_b4_withdraw_reward + prv_reward_amount - withdraw_fee == prv_bal_after_withdraw_reward
 
     STEP(8.2, 'Withdraw token reward and verify balance')
     token_bal_b4_withdraw_reward = the_staked.get_token_balance(token_id)
+    prv_bal_b4_withdraw_reward = the_staked.get_prv_balance()
     token_reward_amount = the_staked.stk_get_reward_amount(token_id)
-    the_staked.stk_withdraw_reward_to_me(token_id).subscribe_transaction()
-    token_bal_after_withdraw_reward = the_staked.wait_for_balance_change(token_id, timeout=180,
-                                                                         from_balance=token_bal_b4_withdraw_reward)
-    INFO(f'Expect reward amount to received {token_reward_amount}')
-    assert token_bal_b4_withdraw_reward == token_bal_after_withdraw_reward - token_reward_amount
+    if ChainConfig.PRIVACY_VERSION == 1:
+        assert token_reward_amount > 0, 'User has no token reward while expecting some'
+        the_staked.stk_withdraw_reward_to_me(token_id).subscribe_transaction()
+        token_bal_after_withdraw_reward = the_staked. \
+            wait_for_balance_change(token_id, timeout=180, from_balance=token_bal_b4_withdraw_reward,
+                                    least_change_amount=token_reward_amount / 2)
+        INFO(f'Expect reward amount to received {token_reward_amount}')
+        assert token_bal_b4_withdraw_reward == token_bal_after_withdraw_reward - token_reward_amount
+        assert prv_bal_b4_withdraw_reward == the_staked.get_prv_balance()
+
+    elif ChainConfig.PRIVACY_VERSION == 2:
+        assert token_reward_amount == 0, 'Privacy v2 should not have any token reward, PRV only'
+        the_staked.stk_withdraw_reward_to_me(token_id).expect_error('Not enough reward')

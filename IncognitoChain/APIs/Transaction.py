@@ -1,5 +1,5 @@
 from IncognitoChain.Configs import Constants
-from IncognitoChain.Configs.Constants import BURNING_ADDR, PRV_ID, ChainConfig
+from IncognitoChain.Configs.Constants import BURNING_ADDR, ChainConfig
 from IncognitoChain.Drivers import Connections
 
 
@@ -177,9 +177,7 @@ class TransactionRpc:
     ###############
     # WITHDRAW REWARD
     ###############
-    def withdraw_reward(self, private_key, payment_address, token_id=None, version=1):
-        if token_id is None:
-            token_id = PRV_ID
+    def withdraw_reward(self, private_key, payment_address, token_id, version=1):
         return self.rpc_connection. \
             with_method("withdrawreward"). \
             with_params([private_key, 0, 0, 0,
@@ -187,6 +185,18 @@ class TransactionRpc:
                              "PaymentAddress": payment_address,
                              "TokenID": token_id,
                              "Version": version
+                         }
+                         ]). \
+            execute()
+
+    def withdraw_reward_privacy_v2(self, private_key, payment_address, token_id):
+        tx_fee = 1
+        return self.rpc_connection. \
+            with_method("withdrawreward"). \
+            with_params([private_key, {}, tx_fee, 0,
+                         {
+                             "PaymentAddress": payment_address,
+                             "TokenID": token_id,
                          }
                          ]). \
             execute()
@@ -245,10 +255,10 @@ class TransactionRpc:
                       "StartHeight": start_height}],
                     ""
                     ]
-        param = param_v1 if ChainConfig.PRIVACY_VERSION == 1 else param_v2
+        # param = param_v1 if ChainConfig.PRIVACY_VERSION == 1 else param_v2
         return self.rpc_connection. \
             with_method('listunspentoutputcoins'). \
-            with_params(param). \
+            with_params(param_v2). \
             execute()
 
     def list_unspent_output_tokens(self, private_k, token_id):
@@ -328,10 +338,11 @@ class TransactionRpc:
             with_params([payment_k]). \
             execute()
 
-    def estimate_tx_fee(self, sender_private_k, receiver_payment_k, send_amount):
+    def estimate_tx_fee(self, sender_private_k, receiver_payment_k, send_amount, fee=-1, privacy=1):
+        # send_amount = str(send_amount)
         return self.rpc_connection. \
             with_method('estimatefee'). \
-            with_params([sender_private_k, {receiver_payment_k: send_amount}, -1, 1]). \
+            with_params([sender_private_k, {receiver_payment_k: send_amount}, fee, privacy]). \
             execute()
 
     def create_tx(self, sender_private_k, receiver_payment_k, amount, fee=-1, privacy=1):
@@ -346,3 +357,11 @@ class TransactionRpc:
             with_method('sendtransaction'). \
             with_params([proof]). \
             execute()
+
+    def submit_key(self, private_k):
+        """
+        for privacy v2, must subscribe for caching and getting balance
+        @param private_k:
+        @return:
+        """
+        return self.rpc_connection.with_method('submitkey').with_params([private_k]).execute()

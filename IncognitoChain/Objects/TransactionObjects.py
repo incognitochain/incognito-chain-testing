@@ -292,7 +292,7 @@ class TransactionDetail(BlockChainInfoBaseClass):
             assert privacy, f'Expected privacy = {expected_privacy}, actual = {privacy}'
         else:
             assert privacy == expected_privacy, f'Expected privacy = {expected_privacy} while actual = {privacy}'
-            return self
+        return self
 
     def verify_token_privacy(self, expected_privacy=True):
         INFO(f'Check tx token privacy: {self.get_tx_id()}')

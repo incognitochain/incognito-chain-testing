@@ -20,6 +20,7 @@ def test_contribute(token1, token2):
     tok1_contrib_amount = coin(1234)
     tok2_contrib_amount = coin(2134)
     pde_state_b4_test = SUT().get_latest_pde_state_info()
+    is_first_time_contrib = not pde_state_b4_test.is_pair_existed(token1, token2)
     INFO(f"""
             test_DEX01_contribute:
             - contribute a pair of token {l6(token1)} vs {l6(token2)}
@@ -39,8 +40,8 @@ def test_contribute(token1, token2):
     INFO(f'{l6(token2)} balance before contribution: {bal_tok2_be4_contrib}')
     INFO(f'Sum share amount before contribution  : {all_share_amount}')
     INFO(f'Owner share amount before contribution: {owner_share_amount}')
-    rate = pde_state_b4_test.get_rate_between_token(token2, token1)
-    INFO(f'Rate {l6(token2)}:{l6(token1)} is {rate}')
+    rate_b4 = pde_state_b4_test.get_rate_between_token(token2, token1)
+    INFO(f'Rate {l6(token2)}:{l6(token1)} is {rate_b4}')
     # breakpoint()
     STEP(1, f"Contribute {l6(token1)}")
     if token1 == PRV_ID:
@@ -100,48 +101,47 @@ def test_contribute(token1, token2):
 
     contribution_status = PDEContributeInfo()
     contribution_status.get_contribute_status(pair_id)
-    api_contrib_tok1 = contribution_status.get_contribute_amount_token2()
-    api_contrib_tok2 = contribution_status.get_contribute_amount_token1()
-    api_return_tok1 = contribution_status.get_return_amount_2()
-    api_return_tok2 = contribution_status.get_return_amount_1()
-
-    INFO(f"""
+    INFO(f"{l6(token1)} balance after contribution (after refund): {bal_tok1_aft_refund}")
+    INFO(f"{l6(token2)} balance after contribution (after refund): {bal_tok2_aft_refund}")
+    debug_info = f""" 
         Owner share amount before: {owner_share_amount}
         Owner share amount after : {owner_share_amount_after}
         All share amount before  : {all_share_amount}
         All share amount after   : {all_share_amount_after}
-        Rate before: {rate}
+        Rate before: {rate_b4}
         Rate after : {rate_after}
         Contributed:
             contribute {l6(token1)} : {tok1_contrib_amount}
             contribute {l6(token2)} : {tok2_contrib_amount}
         Expect contribution:
             {l6(token1)}            : {expect_token1_contribution}
-            {l6(token2)}            : {expect_token2_contribution}
+            {l6(token2)}            : {expect_token2_contribution}"""
+    if not is_first_time_contrib:
+        api_contrib_tok1 = contribution_status.get_contribute_amount_of_token(token1)
+        api_contrib_tok2 = contribution_status.get_contribute_amount_of_token(token2)
+        api_return_tok1 = contribution_status.get_return_amount_of_token(token1)
+        api_return_tok2 = contribution_status.get_return_amount_of_token(token2)
+        debug_info = "NOT FIRST time contribution" + debug_info + f"""
         From API:
             contribute {l6(token1)} : {api_contrib_tok1}
             contribute {l6(token2)} : {api_contrib_tok2}
             return     {l6(token1)} : {api_return_tok1}
-            return     {l6(token2)} : {api_return_tok2}""")
-
-    INFO(f"{l6(token1)} balance after contribution (after refund): {bal_tok1_aft_refund}")
-    INFO(f"{l6(token2)} balance after contribution (after refund): {bal_tok2_aft_refund}")
-
-    if rate != [0, 0]:
-        calculated_owner_share_amount_after = round((api_contrib_tok2 * sum(all_share_amount)) / rate[0]) + \
-                                              owner_share_amount
+            return     {l6(token2)} : {api_return_tok2}"""
+        INFO(debug_info)
+        assert contribution_status.get_status() == Status.Dex.Contribution.MATCHED_RETURNED
+        calculated_owner_share_amount_after = \
+            round((api_contrib_tok2 * sum(all_share_amount)) / rate_b4[0]) + owner_share_amount
         assert INFO(f"Contribution shares amount is correct") \
                and abs(calculated_owner_share_amount_after - owner_share_amount_after) <= 1, \
             f'calculated vs real = {calculated_owner_share_amount_after} - {owner_share_amount_after}'
+    else:
+        debug_info = "FIRST time contribution" + debug_info
+        INFO(debug_info)
+        assert contribution_status.get_status() == Status.Dex.Contribution.ACCEPTED
 
     # NOTE: at first time contribute, all will be taken so API will return 0 as api_contrib_tok*
-    is_first_time_contrib = not pde_state_b4_test.is_pair_existed(token1, token2)
     real_contrib_amount1 = tok1_contrib_amount if is_first_time_contrib else api_contrib_tok1
     real_contrib_amount2 = tok2_contrib_amount if is_first_time_contrib else api_contrib_tok2
-    if is_first_time_contrib:
-        assert contribution_status.get_status() == Status.Dex.Contribution.ACCEPTED
-    else:
-        assert contribution_status.get_status() == Status.Dex.Contribution.MATCHED_RETURNED
 
     if token1 == PRV_ID:
         assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1 + contrib_fee_sum

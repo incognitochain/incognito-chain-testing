@@ -1,16 +1,18 @@
 import re
 
 from IncognitoChain.Helpers.Logging import *
-from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, COIN_MASTER
+from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, COIN_MASTER, Account
+from IncognitoChain.Objects.IncognitoTestCase import ACCOUNTS
 
-sender = receiver = send_amount = max_fee = max_send_amount = None
+sender = receiver = Account()
+send_amount = max_fee = max_send_amount = None
 
 
 def setup_function():
     global sender, receiver, send_amount, max_fee, max_send_amount
-    sender = get_accounts_in_shard(2)[0]
-    receiver = get_accounts_in_shard(5)[0]
-    send_amount = 10000 
+    sender = ACCOUNTS.get_accounts_in_shard(2)[0]
+    receiver = ACCOUNTS.get_accounts_in_shard(5)[0]
+    send_amount = 10000
     max_fee = 900000000000000
     max_send_amount = 1000000000000000001
     sender_bal = sender.get_prv_balance()
@@ -30,19 +32,19 @@ def test_send_prv_privacy_x_shard_max_value():
          - Tx fee = 100000000000 PRV success
          """)
     STEP(1, "Get sender balance")
-    receiver_bal = receiver.get_prv_balance()
-    INFO(f"Sender Balance: {receiver_bal}")
+    sender_bal_b4 = sender.get_prv_balance()
+    INFO(f"Sender Balance: {sender_bal_b4}")
+    assert sender_bal_b4 != 0, "Sender balance = 0, stop this testcase" and INFO("Failed")
 
     STEP(2, "Get receiver balance")
-    sender_bal = sender.get_prv_balance()
-    INFO(f"Receiver Balance: {sender_bal}")
-    assert sender_bal != 0, "Sender balance = 0, stop this testcase"
+    receiver_bal_b4 = receiver.get_prv_balance()
+    INFO(f"Receiver Balance: {receiver_bal_b4}")
 
     STEP(3, "From address3 send prv to address1 - max value, expect create tx fail")
     # send amount = 1000000000000000000
     step3_result = sender.send_prv_to(receiver, max_send_amount)
-    assert step3_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
-    assert re.search(r'Not enough coin', step3_result.get_error_trace().get_message()), "something went so wrong"
+    assert step3_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed" and INFO("Failed")
+    assert re.search(r'Not enough coin', step3_result.get_error_trace().get_message()), "something went so wrong" and INFO("Failed")
 
     STEP(4, 'Skip this step, no longer check for max fee')
     # STEP(4, "From address3 send prv to address1 - max value fee, expect create tx fail")
@@ -53,5 +55,5 @@ def test_send_prv_privacy_x_shard_max_value():
     #                  step4_result.get_error_trace().get_message()), "something went so wrong"
 
     STEP(5, f"Check balance sender and receiver")
-    assert receiver.get_prv_balance_cache() == receiver.get_prv_balance()
-    assert sender.get_prv_balance_cache() == sender.get_prv_balance()
+    assert receiver_bal_b4 == receiver.get_prv_balance() and INFO("Failed")
+    assert sender_bal_b4 == sender.get_prv_balance() and INFO("Failed")

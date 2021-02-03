@@ -4,7 +4,7 @@ import random
 import pytest
 
 from IncognitoChain.Configs import Constants
-from IncognitoChain.Configs.Constants import coin
+from IncognitoChain.Configs.Constants import coin, ChainConfig
 from IncognitoChain.Helpers.Logging import *
 from IncognitoChain.Helpers.Time import get_current_date_time, WAIT
 from IncognitoChain.Objects.AccountObject import get_accounts_in_shard, COIN_MASTER
@@ -37,7 +37,7 @@ def setup_module():
                                             token_init_amount + prv_contribute_amount + coin(1), account_init)
 
 
-def teardown_module():
+def no_teardown_module():
     INFO("Tear down")
     global contribute_success
     if contribute_success:
@@ -97,7 +97,7 @@ def test_init_ptoken():
         if rate != [0, 0]:
             break
     INFO(f"rate prv vs token: {rate}")
-    assert rate == contribute_rate, "Contribution Failed, rate is not as expected"
+    assert rate == contribute_rate, "Contribution Failed, rate is not as expected" and INFO("Failed")
     return custom_token_id
 
 
@@ -108,18 +108,14 @@ def test_init_ptoken():
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
     pytest.param(sender_account, receiver_account, -1, 'token', 0, 'prv',
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
-    pytest.param(sender_account, receiver_account, token_fee, 'token', 1, 'prv',
-                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
-    pytest.param(sender_account, receiver_account, token_fee, 'token', 0, 'prv',
-                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_account, token_fee, 'token', 1, 'prv'),
+    pytest.param(sender_account, receiver_account, token_fee, 'token', 0, 'prv'),
     pytest.param(sender_account, receiver_account, -1, 'prv', 1, 'prv'),
     pytest.param(sender_account, receiver_account, -1, 'prv', 0, 'prv'),
     pytest.param(sender_account, receiver_account, 1, 'prv', 1, 'prv'),
     pytest.param(sender_account, receiver_account, 1, 'prv', 0, 'prv'),
-    pytest.param(sender_account, receiver_account, token_fee, 'token', 1, 'token',
-                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
-    pytest.param(sender_account, receiver_account, token_fee, 'token', 0, 'token',
-                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_account, token_fee, 'token', 1, 'token'),
+    pytest.param(sender_account, receiver_account, token_fee, 'token', 0, 'token'),
     pytest.param(sender_account, receiver_account, -1, 'prv', 1, 'token'),
     pytest.param(sender_account, receiver_account, -1, 'prv', 0, 'token'),
     pytest.param(sender_account, receiver_account, 1, 'prv', 1, 'token'),
@@ -127,20 +123,16 @@ def test_init_ptoken():
     # cross shard
     pytest.param(sender_account, receiver_x_shard, -1, 'token', 1, 'prv',
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
-    pytest.param(sender_account, receiver_account, -1, 'token', 0, 'prv',
+    pytest.param(sender_account, receiver_x_shard, -1, 'token', 0, 'prv',
                  marks=pytest.mark.xfail(reason="Cannot set token fee =-1")),
-    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 1, 'prv',
-                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
-    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 0, 'prv',
-                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 1, 'prv'),
+    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 0, 'prv'),
     pytest.param(sender_account, receiver_x_shard, -1, 'prv', 1, 'prv'),
     pytest.param(sender_account, receiver_x_shard, -1, 'prv', 0, 'prv'),
     pytest.param(sender_account, receiver_x_shard, 1, 'prv', 1, 'prv'),
     pytest.param(sender_account, receiver_x_shard, 1, 'prv', 0, 'prv'),
-    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 1, 'token',
-                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
-    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 0, 'token',
-                 marks=pytest.mark.xfail(reason="Privacy v2 not support token fee")),
+    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 1, 'token'),
+    pytest.param(sender_account, receiver_x_shard, token_fee, 'token', 0, 'token'),
     pytest.param(sender_account, receiver_x_shard, -1, 'prv', 1, 'token'),
     pytest.param(sender_account, receiver_x_shard, -1, 'prv', 0, 'token'),
     pytest.param(sender_account, receiver_x_shard, 1, 'prv', 1, 'token'),
@@ -188,17 +180,20 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
                                                              token_amount_to_send, token_fee=fee,
                                                              token_privacy=privacy)
         if sending_token_transaction.is_transaction_v2_error_appears():
-            pytest.skip(sending_token_transaction.get_error_trace().get_message())
+            pytest.skip("Privacy v2 no longer allow using token as tx fee")
 
     sending_token_transaction.expect_no_error()
     INFO("transaction_id: " + sending_token_transaction.get_tx_id())
     assert sending_token_transaction.get_error_msg() != 'Can not create tx' and INFO(
-        "make successful transaction"), sending_token_transaction.get_error_trace().get_message()
+        "make successful transaction"), sending_token_transaction.get_error_trace().get_message() and INFO("Failed")
 
     STEP(3, "Subscribe sending transaction")
     transaction_tx = sending_token_transaction.subscribe_transaction()
     if sender.shard != receiver.shard:
-        receiver.subscribe_cross_output_token()
+        try:
+            receiver.subscribe_cross_output_token()
+        except:
+            pass
 
     STEP(4, '''
             checking sender and receiver bal
@@ -210,30 +205,32 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
     INFO(f"sender_token_balance_after:{sender_token_bal_after}")
     # Balance after = balance before - amount
     if fee_type == 'prv':
-        assert sender_token_bal_after == sender_token_bal_before - token_amount_to_send, "sender balance incorrect"
+        assert sender_token_bal_after == sender_token_bal_before - token_amount_to_send, "sender balance incorrect" and INFO(
+            "Failed")
     else:  # fee_type = 'token'
         assert sender_token_bal_after == sender_token_bal_before - token_amount_to_send - fee, \
-            "sender balance incorrect"
+            "sender balance incorrect" and INFO("Failed")
 
     receiver_token_balance_after = receiver.get_token_balance(custom_token_id)
     INFO(f"Receiver token balance after: ")
     # Balance after = balance before + amount
     assert receiver_token_balance_before == receiver_token_balance_after - token_amount_to_send, \
-        "receiver balance incorrect"
+        "receiver balance incorrect" and INFO("Failed")
 
     STEP(4.2, "check sender and receiver PRV balance after sent")
     sender_prv_bal_after = sender.get_prv_balance()
     INFO(f"Sender prv balance after : {sender_prv_bal_after}")
     if fee_type == 'prv':
         assert sender_prv_bal_after == sender_prv_bal_before - transaction_tx.get_fee(), \
-            "incorrect prv balance of the address 1 "
+            "incorrect prv balance of the address 1 " and INFO("Failed")
     else:  # fee_type = 'token'
         assert sender_prv_bal_after == sender_prv_bal_before, \
-            "incorrect prv balance of the address 1 "
+            "incorrect prv balance of the address 1 " and INFO("Failed")
 
     receiver_prv_balance_after = receiver.get_prv_balance()
     INFO(f"Receiver prv balance after : {receiver_prv_balance_after}")
-    assert receiver_prv_balance_before == receiver_prv_balance_after, "incorrect prv balance of receiver"
+    assert receiver_prv_balance_before == receiver_prv_balance_after, "incorrect prv balance of receiver" and INFO(
+        "Failed")
 
     STEP(5, "privacy check")
     if privacy == 0:  # if privacy = 0 then all privacy type must be the same
@@ -249,7 +246,7 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
             transaction_tx.verify_prv_privacy(False)
 
             INFO("Check transaction token privacy")
-            assert transaction_tx.verify_token_privacy()
+            assert transaction_tx.verify_token_privacy(), INFO("Failed")
 
         else:  # privacy_type  = prv while not sending prv, only token then prv privacy is false
             if fee_type == 'token':
@@ -284,14 +281,15 @@ def test_send_token_insufficient_fund(sender, receiver):
     STEP(2, "From sender send token to receiver - Not enough coin")
     # send current balance + 10
     step2_result = sender.send_token_to(receiver, custom_token_id, sender_token_bal + 10, prv_fee=-1)
-    assert step2_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed"
+    assert step2_result.get_error_msg() == 'Can not create tx', "something went wrong, this tx must failed" and INFO(
+        "Failed")
 
-    assert 'Not enough coin' in step2_result.get_error_trace().get_message()
+    assert 'Not enough coin' in step2_result.get_error_trace().get_message(), INFO("Failed")
 
     STEP(3, "From sender send token to receiver - Wrong input transaction")
     # send current balance (lacking of fee)
     step3_result = sender.send_token_to(receiver, custom_token_id, sender_token_bal, token_fee=200)
-    assert step3_result.get_error_msg() == 'Can not create tx'
+    assert step3_result.get_error_msg() == 'Can not create tx', INFO("Failed")
 
     STEP(4, "From sender send token to receiver - success")
     # send current balance - fee (100)
@@ -299,28 +297,34 @@ def test_send_token_insufficient_fund(sender, receiver):
                                         token_fee=token_fee)
     if step4_result.is_transaction_v2_error_appears():
         return
-    assert step4_result.get_error_msg() != 'Can not create tx'
+    step4_result.expect_no_error()
     INFO("TxID: " + step4_result.get_tx_id())
 
     STEP(5, "Subscribe transaction")
     step4_result.subscribe_transaction()
 
     if sender.shard != receiver.shard:
-        receiver.subscribe_cross_output_token()
+        try:
+            receiver.subscribe_cross_output_token()
+        except:
+            pass
 
     STEP(6, "Check sender balance")
     sender_token_bal_after = sender.get_token_balance(custom_token_id)
-    assert sender_token_bal_after == 0, "sender token balance must be 0"
+    assert sender_token_bal_after == 0, "sender token balance must be 0" and INFO("Failed")
 
     STEP(7, "Check receiver balance")
     receiver_token_bal_after = receiver.get_token_balance(custom_token_id)
-    assert receiver_token_bal_after == receiver_token_bal + sender_token_bal - token_fee
+    assert receiver_token_bal_after == receiver_token_bal + sender_token_bal - token_fee, INFO("Failed")
 
     STEP(8, 'Return token to sender for the next run')
     receiver.send_token_to(sender, custom_token_id, receiver_token_bal_after - token_fee,
                            token_fee=token_fee).subscribe_transaction()
     if sender.shard != receiver.shard:
-        sender.subscribe_cross_output_token()
+        try:
+            sender.subscribe_cross_output_token()
+        except:
+            pass
 
 
 @pytest.mark.dependency(depends=["test_init_ptoken"])
@@ -333,6 +337,8 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
           Prv_privacy =1
 
           ''')
+    if ChainConfig.PRIVACY_VERSION == 2:
+        pytest.skip('Cannot run this test with privacy v2 since token fee is no longer allowed')
     receiver_amount_dict = dict()
     receiver_amount_dict[receiver_account] = random.randrange(1000, 2000)
     receiver_amount_dict[receiver_x_shard] = random.randrange(1000, 2000)
@@ -364,23 +370,23 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
                                                        token_privacy=1)
     INFO(f"Transaction id: {tx_result.get_tx_id()}")
     tx_result.expect_no_error()
-    assert tx_result.get_error_msg() != 'Can not create tx'
+    assert tx_result.get_error_msg() != 'Can not create tx', INFO("Failed")
 
     STEP(4, "subcribe transaction")
     transaction_result = tx_result.subscribe_transaction()
 
     STEP(5, "check sender balance after sent")
     sender_token_bal_after = sender_account.get_token_balance(custom_token_id)
-    INFO(f"Sender token balance after: {sender_token_bal_after}")
+    INFO(f"Sender token balance after: {sender_token_bal_after}"), INFO("Failed")
 
     # Balance token after = balance before - amount * n - fee
-    assert sender_token_bal_after == sender_token_bal_before - total_token_sent - token_fee
+    assert sender_token_bal_after == sender_token_bal_before - total_token_sent - token_fee, INFO("Failed")
 
     sender_prv_bal_after = sender_account.get_prv_balance()
 
     INFO(f"Sender prv balance after: {sender_prv_bal_after}")
     # Balance prv after = balance before - amount * n - fee
-    assert sender_prv_bal_after == sender_prv_bal_before - transaction_result.get_fee()
+    assert sender_prv_bal_after == sender_prv_bal_before - transaction_result.get_fee(), INFO("Failed")
 
     STEP(6, "check receiver balance ")
     for account in receiver_amount_dict.keys():
@@ -393,10 +399,10 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
         for account_before in receiver_amount_dict_copy.keys():
             if account == account_before:
                 if account_before.get_token_balance_cache(custom_token_id) is None:
-                    assert balance_token_after == amount_token_received
+                    assert balance_token_after == amount_token_received, INFO("Failed")
                 else:
                     assert balance_token_after == amount_token_received + account_before.get_token_balance_cache(
-                        custom_token_id)
+                        custom_token_id), INFO("Failed")
 
     STEP(7, "Check transaction privacy")
     INFO("Check transaction prv_privacy")

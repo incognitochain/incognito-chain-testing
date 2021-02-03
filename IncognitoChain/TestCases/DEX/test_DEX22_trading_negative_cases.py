@@ -8,6 +8,7 @@ from IncognitoChain.Configs.Constants import PRV_ID, coin
 from IncognitoChain.Helpers.Logging import STEP, INFO, DEBUG
 from IncognitoChain.Helpers.TestHelper import l6, calculate_actual_trade_received, ChainHelper
 from IncognitoChain.Helpers.Time import WAIT
+from IncognitoChain.Objects.AccountObject import COIN_MASTER
 from IncognitoChain.Objects.IncognitoTestCase import SUT
 from IncognitoChain.Objects.PdeObjects import PDEStateInfo
 from IncognitoChain.TestCases.DEX import token_owner, token_id_1, token_id_2, token_id_0, acc_list_1_shard, \
@@ -52,6 +53,12 @@ def test_trade_same_token(trader, token):
     (token_owner, token_id_0, token_id_1),
 ])
 def test_trade_non_exist_pair(trader, token_sell, token_buy):
+    """
+    @param trader:
+    @param token_sell: if this token is not existed, RPC will return Invalid Token Error
+    @param token_buy: if this token is not existed, RPC returns no error but will refund token_sell
+    @return:
+    """
     trade_amount = random.randint(1000, 20000000)
     trading_fee = max(1, trade_amount // 100)
 
@@ -64,6 +71,9 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
 
     STEP(1, f'Trade {l6(token_sell)} for {l6(token_buy)}')
     trade_tx = trader.pde_trade_v2(token_sell, trade_amount, token_buy, trading_fee)
+    if trade_tx.get_error_trace() is not None and 'Invalid Token ID' in trade_tx.get_error_trace().get_message():
+        trade_tx.expect_error('Invalid Token ID')
+        return
 
     STEP(2, 'Wait for tx to be confirmed')
     trade_tx = trade_tx.subscribe_transaction()
@@ -111,6 +121,13 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
 ))
 def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell, token_buy):
     trade_amounts = [2234900] * 10
+    top = max(trade_amounts)
+    COIN_MASTER.top_him_up_prv_to_amount_if(1.5 * top, 2 * top, acc_list_1_shard + acc_list_n_shard)
+    token_owner.top_him_up_token_to_amount_if(token_id_1, 1.5 * top, 2 * top,
+                                              acc_list_1_shard + acc_list_n_shard)
+    token_owner.top_him_up_token_to_amount_if(token_id_2, 1.5 * top, 2 * top,
+                                              acc_list_1_shard + acc_list_n_shard)
+
     trading_fees = [random.randrange(190000, 200000),
                     random.randrange(190000, 200000),
                     random.randrange(190000, 200000),
@@ -278,12 +295,14 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
     INFO(f'Trading fee    : {trading_fees}')
     INFO(f'Trade receive  : {estimated_receive_amount_each_trade}')
     # todo: verify algorithm later, for now there's seem a bug here that does not match with trading priority
-    trade_pass_count = 0
+    real_trade_pass_count = 0
     for bal_b4, bal_af, trade_amount, tx_fee, trading_fee in \
             zip(bal_tok_sell_b4, bal_tok_sell_af_ret, trade_amounts, tx_fee_list, trading_fees):
         cost = tx_fee + trading_fee if token_sell == PRV_ID else 0
         if bal_b4 - trade_amount - cost == bal_af:
-            trade_pass_count += 1
-
-    assert trade_pass_count == len(trade_amounts) // 2, \
-        f"Expect half of the trades must be success while there's {trade_pass_count}"
+            real_trade_pass_count += 1
+    estimated_trade_pass_count = 0
+    for amount in estimated_receive_amount_each_trade:
+        if amount >= min_acceptable:
+            estimated_trade_pass_count += 1
+    assert real_trade_pass_count == estimated_trade_pass_count

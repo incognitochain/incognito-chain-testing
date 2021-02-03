@@ -33,7 +33,7 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
     send_transaction = sender.send_prv_to(receiver, send_amount, fee=fee, privacy=privacy)
     INFO("Transaction ID: " + send_transaction.get_tx_id())
     assert send_transaction.get_error_msg() != 'Can not create tx' and INFO(
-        "make transaction success"), "transaction failed"
+        "make transaction success"), "transaction failed" and INFO("Failed")
 
     STEP(4, "Subscribe transaction")
     try:
@@ -51,14 +51,14 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
     sender_bal_after = sender.get_prv_balance()
     INFO(f"sender balance after: {sender_bal_after}")
     assert sender_bal_after == sender_bal - send_amount - send_transaction.get_fee(), \
-        "something wrong"  # when privacy=1, ws cannot get fee
+        "something wrong" and INFO("Failed")  # when privacy=1, ws cannot get fee
 
     STEP(7, "Check receiver balance")
     receiver_bal_after = receiver.get_prv_balance()
     INFO(f"receiver balance after: {receiver_bal_after}")
     assert receiver_bal_after == receiver_bal + send_amount, \
         f"Receiver balance after={receiver_bal_after}\n\t " \
-        f"receiver bal before + send amount = {receiver_bal} + {send_amount}"
+        f"receiver bal before + send amount = {receiver_bal} + {send_amount}" and INFO("Failed")
 
     STEP(8, "Check transaction privacy")
     send_transaction.verify_prv_privacy(privacy)

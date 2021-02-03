@@ -1,7 +1,7 @@
 import sys
-from distutils.util import strtobool
 
 from IncognitoChain.Configs import config
+from IncognitoChain.Configs.Constants import ChainConfig
 from IncognitoChain.Helpers.Logging import WARNING, ERROR
 from IncognitoChain.Objects.AccountObject import AccountGroup
 from IncognitoChain.Objects.TestBedObject import *
@@ -9,8 +9,6 @@ from IncognitoChain.Objects.TestBedObject import *
 # get command args
 # noinspection PyProtectedMember
 PARAMS = sys._xoptions
-xpc = PARAMS.get("prepareCoin")
-prepare_coin = config.prepare_coin_precondition if xpc is None else strtobool(str(xpc))
 
 # option to skip loading testbed and test data from both config file and command arg
 skip_load = PARAMS.get("skipLoad")
@@ -23,13 +21,13 @@ if not skip_load:
     # load test bed
     test_bed = config.test_bed
     if PARAMS.get("testBed") is not None:
-        test_bed = PARAMS.get("testBed").strip('.py')
+        test_bed = PARAMS.get("testBed").rstrip('y').rstrip('p').rstrip('.')
     SUT: TestBed = TestBed(test_bed)
 
     # load account list
     __account_file = config.test_data
     if PARAMS.get('testData') is not None:
-        __account_file = PARAMS.get('testData').strip('.py')
+        __account_file = PARAMS.get('testData').rstrip('y').rstrip('p').rstrip('.')
 
     SUT.precondition_check()  # check test bed
 
@@ -60,3 +58,4 @@ if not skip_load:
         COMMITTEE_ACCOUNTS = []
 
     # -----------------------------------------------
+ChainConfig.get_running_config()

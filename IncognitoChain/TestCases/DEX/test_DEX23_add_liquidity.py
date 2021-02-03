@@ -16,8 +16,8 @@ def setup_function():
 
 @pytest.mark.parametrize('contributors, contribute_percent_of_bal_tok2, token1, token2', [
     pytest.param(ACCOUNTS, 0.01, PRV_ID, token_id_1),
-    pytest.param(ACCOUNTS, 0.1, token_id_1, token_id_2,
-                 marks=pytest.mark.xfail(reason="there's no token-token in dex v2")),
+    # pytest.param(ACCOUNTS, 0.1, token_id_1, token_id_2,
+    #              marks=pytest.mark.xfail(reason="there's no token-token in dex v2")),
 ])
 def test_add_liquidity_v2(contributors, contribute_percent_of_bal_tok2, token1, token2):
     pde_state_b4_test = SUT().get_latest_pde_state_info()
@@ -34,50 +34,46 @@ def test_add_liquidity_v2(contributors, contribute_percent_of_bal_tok2, token1, 
         contributor_balance_tok1_b4[account] = account.get_token_balance(token1)
         contributor_balance_tok2_b4[account] = account.get_token_balance(token2)
 
-    INFO(f'Private key | To commit {l6(token1)}/{l6(token2)} | balance {l6(token1)}/{l6(token2)} | '
-         f'share amount {l6(token2)}')
     for account in contributors:
         pair_id = f'{l6(account.private_key)}_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
         pair_ids[account] = pair_id
         bal_tok1 = contributor_balance_tok1_b4[account]
         bal_tok2 = contributor_balance_tok2_b4[account]
-        amount2 = int(bal_tok2 * contribute_percent_of_bal_tok2)
-        amount1 = int(amount2 * rate_b4_test[0] / rate_b4_test[1])
+        amount2 = 1000
+        amount1 = int((amount2 * rate_b4_test[0]) / rate_b4_test[1])
         commit_amount_tok1[account] = amount1
         commit_amount_tok2[account] = amount2
-        assert amount1 != 0, f'Calculated commit amount for {l6(token1)} is 0'
-        assert amount2 != 0, f'Calculated commit amount for {l6(token2)} is 0'
-        pde_share = pde_state_b4_test.get_pde_shares_amount(account, token1, token2)
-        INFO("%8s %11s/%s %9s/%s %13s" % (l6(account.private_key), amount1, amount2, bal_tok1, bal_tok2, pde_share))
+        assert amount1 != 0, f'Calculated commit amount for {l6(token1)} is 0, acc {account}'
+        assert amount2 != 0, f'Calculated commit amount for {l6(token2)} is 0, acc {account}'
 
-    STEP(1, f'Contribute {l6(token1)}')
+    STEP(1, f'Contribute {l6(token2)}')
     for acc in contributors:
         pair_id = pair_ids[acc]
-        contribute_tx = acc.pde_contribute_v2(token1, commit_amount_tok1[acc], pair_id)
+        contribute_tx = acc.pde_contribute_v2(token2, commit_amount_tok2[acc], pair_id)
         contribute_tx.expect_no_error()
-        INFO(f"Contribute {l6(token1)} tx_id: {contribute_tx.get_tx_id()} ")
+        INFO(f"Contribute {l6(token2)} tx_id: {contribute_tx.get_tx_id()} ")
 
-    STEP(2, f'Wait 40s then verify contribution {l6(token1)} is in waiting list')
+    STEP(2, f'Wait 40s then verify contribution {l6(token2)} is in waiting list')
     WAIT(40)
     pde_state_after_contribute = SUT().get_latest_pde_state_info()
     for acc in contributors:
         pair_id = pair_ids[acc]
-        assert pde_state_after_contribute.find_waiting_contribution_of_user(acc, pair_id, token1) != []
+        assert pde_state_after_contribute.find_waiting_contribution_of_user(acc, pair_id, token2) != []
 
-    STEP(3, f'Contribute {l6(token2)}')
+    STEP(3, f'Contribute {l6(token1)}')
     for acc in contributors:
         pair_id = pair_ids[acc]
-        contribute_tx = acc.pde_contribute_v2(token2, commit_amount_tok2[acc], pair_id)
+        contribute_tx = acc.pde_contribute_v2(token1, commit_amount_tok1[acc], pair_id)
 
         contribute_tx.expect_no_error()
         INFO(f"Contribute {l6(token1)}, tx_id: {contribute_tx.get_tx_id()}")
 
-    STEP(4, f'Wait 50s then verify {l6(token1)} is no longer in waiting list')
+    STEP(4, f'Wait 50s then verify {l6(token2)} is no longer in waiting list')
     WAIT(50)
     pde_state_after_test = SUT().get_latest_pde_state_info()
     for acc in contributors:
         pair_id = pair_ids[acc]
-        assert pde_state_after_test.find_waiting_contribution_of_user(acc, pair_id, token1) == []
+        assert pde_state_after_test.find_waiting_contribution_of_user(acc, pair_id, token2) == []
 
     STEP(5, 'Wait 30s then check balance after contribution')
     WAIT(30)
@@ -108,6 +104,7 @@ def test_add_liquidity_v2(contributors, contribute_percent_of_bal_tok2, token1, 
     sum_commit_token_1 = sum(commit_amount_tok1.values())
     sum_commit_token_2 = sum(commit_amount_tok2.values())
 
+    print('\n'.join(list(pair_ids.values())))
     INFO('Rate before test + sum contribute amount = rate after test')
     # each contribute calculation can be off by 1 nano,
     # so expect sum calculation will be off no more than: 1 * num of contributors

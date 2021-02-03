@@ -4,44 +4,42 @@ account_list = \
     [
         Account(
             private_key="112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA",
-            payment_key="12RxERBySmquLtM1R1Dk2s7J4LyPxqHxcZ956kupQX3FPhVo2KtoUYJWKet2nWqWqSh3asWmgGTYsvz3jX73HqD8Jr2LwhjhJfpG756",
             shard=0),
         Account(
             "112t8rnZRcB7o7heKiZsBYoZnyUpnMH9rscSQiLxXM4BRys4QqFSwZpR55VcBUXFzKwggDnG6xaXhG13CZ8vsTm6oxkJV2v4nTvTmip1pwXV",
-            "12Rs8bHvYZELqHrv28bYezBQQpteZUEbYjUf2oqV9pJm6Gx4sD4n9mr4UgQe5cDeP9A2x1DsB4mbJ9LT8x2ShaY41cZJWrL7RpFpp2v",
             shard=0),
         Account(
             "112t8rnaJv3K83FoXV8V9RNvJKQRAmgRS3qEcnqkzqtFWNh4hH3h4ukDqDuoGTfXwQTtg2e4Lqoj8VxFZ4AtWiKQSmMWSWoNk7vTj2YrxGhD",
-            "12RspCMoKXM7axUVnkyTaYdgUZLYAvULZbhVQ5Muxzf2qEGAKC7Nk9yLMJVbU5L1DEVxGvQvfNuyBEUXYmVCRUZVvji3zcu2XKwk4wG",
+
             shard=0),
         Account(
             "112t8rnXVMJJZzfF1naXvfE9nkTKwUwFWFeh8cfEyViG1vpA8A9khJk3mhyB1hDuJ4RbreDTsZpgJK4YcSxdEpXJKMEd8Vmp5UqKWwBcYzxv",
-            "12RyJTSL2G8KvjN7SUFuiS9Ek4pvFFze3EMMic31fmXVw8McwYzpKPpxeW6TLsNo1UoPhCHKV3GDRLQwdLF41PED3LQNCLsGNKzmCE5",
+
             shard=0),
 
         Account(
             "112t8rnXL6n4BCZUtsQAUDjw1Brw4gKe1gWHRKxpGnxqGiMqw5fER4KZPsGmc4NN8nQ5X9SfD5ditXjVWEU8oXwLJ7PEvgKF1cKKvVyfLDbG",
-            "12RsPzgwD48NyD7vvvML94poGAXmV2Nk24j1CTKRnR5XZG9h4cEmcTe3rhRPrcs7qQgcb1WBNDuMkzRUv8MmYSu9iDCsnRWvTXSXBkg",
+
             shard=1),
         Account(
             "112t8rnacYUWBfa7ZsRNM7yedqskd5Pg5ngrvgi8eJUyWuii94PxVBjSfSP232CcPEnu3p8xbUMt6FRFSr23vJts6NkKfPk9BAprB13TqU5L",
-            "12Rqk3m2VEKfuJw7rQiwfLNqHsimZrAu9w877HKovmb1wsNVGQYPJczkLDXjW5ewab3epf5kEMGaTvJ1D8LoYEtfkhYzM4qoHtWSKes",
+
             shard=1),
         Account(
             "112t8rnYUSs1oR1HpVC6MUZMVbvcaLsFYSvdzgyzDFey13UqW1LjvCKDWsypgK33brnNK8X4ZcRdtLqguFNs5m3h3jjt1UZMt5XK2SoYqUrV",
-            "12Rz8iQVFFaSmpDtsZ5Yv43hYnDeCZeKBE77r7VsSQ5dQNa35bKCoDfKak3u75hhpLPdPetvYtEkX4aE5RNNXWZ1p3z73BJRgbtvEu4",
+
             shard=2),
         Account(
             "112t8rnbrxypR7NSupn5J5MzwFBeUe1wZuRMNtWDygVWTbRZth1sqxsDUiS3pSzHQ4zYNmW4eTrguHMcfTcTDRaAoKcjdVrdRkgdxA2KMDwP",
-            "12RtyB7BBkEgk2iv9FsdoMkSF1hCs2mQaPqzfhSBhuZVR4MpnFRXme9XUQAhyo78ivedkw63jEojfHHpA11qH2EpZXwQY9nHHE2eUi2",
+
             shard=2),
         Account(
             "112t8rnXwiiogqZYMdxiiJKPtEdonX9xBqgpAkyMyCds4rrAFRcNP6hKEcrwZTBhUqS87v35uWzsBDcQzQMdaijRGt78qtyCvcipv22DaqgL",
-            "12RtptLG8mj2oniNb2AuBi2XCkimZJXMpxvHmhozxCLfQM5W2xBGX9UrRYfb2jBu778pYozcF6M3qjesJoYn87xCsf8HQ4nyAaucD9F",
+
             shard=5),
         Account(
             "112t8rnbnF6bRaS1rAwQ7cVh1mXJB9ieEKVotWh2VZci7dk7vJP8tkUW4X5cufyuyDMo4ZFtibi83fFPrGvwhQ3RZL5UEyTjTtYrjFGbw5oD",
-            "12S6NcMYjJkkRUGPTdDTvBHJsQAmWPsniV7xJeCE5TYqrCqn2N9p1jerM4hZTLu5sVDsbJSEXJ4WLVnemxsbjmhfP5TK5hHpUzC46vW",
+
             shard=5),
     ]
 
