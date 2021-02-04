@@ -349,7 +349,9 @@ class Account:
         return self.REQ_HANDLER.transaction(). \
             create_and_send_stop_auto_staking_transaction(self.private_key, self.payment_key, self.validator_key)
 
-    def stk_un_stake_tx(self, validator):
+    def stk_un_stake_tx(self, validator = None):
+        if validator is None:
+            validator = self
         INFO(f'Un-stake transaction for validator: {validator.validator_key}')
         return self.REQ_HANDLER.transaction(). \
             create_and_send_un_staking_transaction(self.private_key, validator.payment_key, validator.validator_key)

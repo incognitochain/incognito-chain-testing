@@ -17,6 +17,18 @@ class TransactionRpc:
             with_params([sender_private_key, dict_payment_address_amount_prv, fee, privacy]). \
             execute()
 
+    def create_fork(self, block_list):
+        payload = {
+            "Type": 1,
+            "Scene": {
+                "Heights": block_list,
+                "Branchs": 2,
+                "Chose": 1
+            },
+            "CID": 1
+        }
+        return self.rpc_connection.set_payload(payload).execute()
+
     def get_balance(self, private_key):
         return self.rpc_connection. \
             with_method("getbalancebyprivatekey"). \

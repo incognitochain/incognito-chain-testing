@@ -35,8 +35,10 @@ class TestBed:
             self.name = test_bed
             try:
                 self.stakers: List[Node] = tb.stakers
+                self.highways: List[Node] = tb.highways
             except AttributeError:
                 self.stakers: List[Node] = []
+                self.highways: List[Node] = []
             TestBed.REQUEST_HANDLER = self.full_node
         else:
             self.full_node = Node()
@@ -44,6 +46,7 @@ class TestBed:
             self.shards: List[Shard] = []
             self.name = ""
             self.stakers: List[Node] = []
+            self.highways: List[Node] = []
             TestBed.REQUEST_HANDLER = self.full_node
 
     @staticmethod

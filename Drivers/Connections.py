@@ -54,7 +54,8 @@ class RpcConnection:
         return self
 
     def execute(self):
-        self.make_node_payload()
+        if self.__payload is None:
+            self.make_node_payload()
         Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(self.__payload, indent=3)}')
         try:
             response = requests.post(self._base_url, data=json.dumps(self.__payload), headers=self._headers)

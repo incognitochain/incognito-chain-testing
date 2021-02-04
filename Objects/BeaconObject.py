@@ -264,6 +264,15 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             return None
         return auto_staking_objs
 
+    def get_staking_tx(self, account=None):
+        acc_pub_key = KeyExtractor.inc_public_k(account) if account is not None else None
+        staking_tx_list = self.data['StakingTx']
+        for key, tx in staking_tx_list.items():
+            if key == acc_pub_key:
+                INFO(f"{l6(acc_pub_key)} (public key) staking tx_id is {tx}")
+                return tx
+        return staking_tx_list.values()
+
     def is_he_a_committee(self, account):
         """
         Function to find shard committee number by using Account or public key
