@@ -97,27 +97,25 @@ pipeline {
 
   post {
     success {
-      steps {
-        script {
-          def nodeIPAddress = sh(returnStdout: true, script: 'curl ipinfo.io/ip').trim()
-          def testReportURL = "http://${nodeIPAddress}/test-reports/"
+      script {
+        def nodeIPAddress = sh(returnStdout: true, script: 'curl ipinfo.io/ip').trim()
+        def testReportURL = "http://${nodeIPAddress}/test-reports/"
 
-          slackSend(channel: "#incognito-jenkins-dev", attachments: [
-            [
-              text : "Build <${BUILD_URL}|*${JOB_NAME} ${BUILD_DISPLAY_NAME}*> is successful",
-              color: '#4caf50',
-              type : 'mrkdwn',
-            ],
-            [
-              "type": "divider"
-            ],
-            [
-              text : "Test report url: <${testReportURL}|${testReportURL}>",
-              color: '#4caf50',
-              type : 'mrkdwn',
-            ],
-          ])
-        }
+        slackSend(channel: "#incognito-jenkins-dev", attachments: [
+          [
+            text : "Build <${BUILD_URL}|*${JOB_NAME} ${BUILD_DISPLAY_NAME}*> is successful",
+            color: '#4caf50',
+            type : 'mrkdwn',
+          ],
+          [
+            "type": "divider"
+          ],
+          [
+            text : "Test report url: <${testReportURL}|${testReportURL}>",
+            color: '#4caf50',
+            type : 'mrkdwn',
+          ],
+        ])
       }
     }
 
