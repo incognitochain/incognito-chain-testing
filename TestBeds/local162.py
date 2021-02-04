@@ -22,6 +22,9 @@ shard_list = [Shard([Node(address=addr, rpc_port=9339, ws_port=30004, node_name=
                      ])
               ]
 
+highways = [Node(url="http://68.183.187.162:9081/setbasicscenes", node_name='highway0'),
+            Node(url="http://68.183.187.162:9082/setbasicscenes", node_name='highway1')]
+
 stakers = [Node(address=addr, rpc_port=10335, ws_port=30004, node_name='staker_0'),
            Node(address=addr, rpc_port=10336, ws_port=30005, node_name='staker_1'),
            Node(address=addr, rpc_port=10337, ws_port=30006, node_name='staker_2'),

@@ -77,6 +77,7 @@ class RpcConnection:
 
     def set_payload(self, payload):
         self.__payload = payload
+        return self
 
 
 class WebSocket(RpcConnection):

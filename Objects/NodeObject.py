@@ -56,8 +56,8 @@ class Node:
         self._web_socket = None
         self.account = account
         self.url = url
-        if url is not None:
-            self.parse_url(url)
+        # if url is not None:
+        #     self.parse_url(url)
         self._rpc_connection = RpcConnection(self._get_rpc_url())
         self._ssh_session = SshSession(self._address, self._username, self._password, self._ssh_key)
         self._cache = {}
