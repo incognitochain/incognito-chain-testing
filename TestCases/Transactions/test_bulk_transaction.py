@@ -6,16 +6,6 @@ from Helpers.Logging import INFO
 from Objects.AccountObject import Account
 from Objects.IncognitoTestCase import ACCOUNTS
 
-sender: Account
-receiver: Account
-list_acc_x_shard = {}
-for i in range(8):
-    try:
-        acc = ACCOUNTS.get_accounts_in_shard(i)[0]
-        list_acc_x_shard[i] = acc
-    except IndexError:
-        INFO(f'Not found account in shard {i}')
-
 
 def test_send_bulk_transactions():
     i = 0

@@ -27,10 +27,6 @@ account_y = list_staker_to_test[0]
 account_x = list_staker_to_test[1]
 account_t = list_staker_to_test[2]
 
-bal_b4_dict = {}
-fee_dict = {}
-bal_af_dict = {}
-
 
 @pytest.mark.parametrize("the_stake, validator, receiver_reward, auto_re_stake", [
     (account_y, account_y, account_y, False),
@@ -42,7 +38,8 @@ bal_af_dict = {}
     (account_y, account_y, account_x, True),
     (account_x, account_y, account_x, True),
     (account_x, account_y, account_y, True),
-    (account_x, account_y, account_t, True)])
+    (account_x, account_y, account_t, True),
+])
 def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_stake):
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
     if beacon_bsd.get_auto_staking_committees(validator) is True:
@@ -98,14 +95,15 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
                  marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
     pytest.param(account_x, account_y, account_y, False,
                  marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    (account_x, account_y, account_t, False),
+    pytest.param(account_x, account_y, account_t, False,
+                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
     (account_y, account_y, account_y, True),
     (account_y, account_y, account_x, True),
     (account_x, account_y, account_x, True),
     (account_x, account_y, account_y, True),
-    (account_x, account_y, account_t, True)
+    (account_x, account_y, account_t, True),
 ])
-def _test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, auto_re_stake):
+def test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, auto_re_stake):
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
     if beacon_bsd.get_auto_staking_committees(validator) is True:
         pytest.skip(f'validator {validator.validator_key} is existed in committee with auto re-stake: True')
@@ -142,16 +140,15 @@ def _test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, aut
                  marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
     pytest.param(account_x, account_y, account_x, False,
                  marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    pytest.param(account_y, account_y, account_x, False,
+    pytest.param(account_x, account_y, account_y, False,
                  marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    (account_x, account_y, account_x, False),
-    (account_x, account_y, account_y, False),
-    (account_x, account_y, account_t, False),
+    pytest.param(account_x, account_y, account_t, False,
+                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
     (account_y, account_y, account_y, True),
     (account_y, account_y, account_x, True),
     (account_x, account_y, account_x, True),
     (account_x, account_y, account_y, True),
-    (account_x, account_y, account_t, True)
+    (account_x, account_y, account_t, True),
 ])
 def test_un_stake_when_exist_shard_committee(the_stake, validator, receiver_reward, auto_re_stake):
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
