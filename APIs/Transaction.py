@@ -17,7 +17,7 @@ class TransactionRpc:
             with_params([sender_private_key, dict_payment_address_amount_prv, fee, privacy]). \
             execute()
 
-    def create_fork(self, block_list, num_of_branch=2, branch_tobe_continue=1, shard_id=1):
+    def create_fork(self, block_list, shard_id=1, num_of_branch=2, branch_tobe_continue=1):
         """
 
         @param block_list:
