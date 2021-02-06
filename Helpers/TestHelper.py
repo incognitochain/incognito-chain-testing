@@ -157,8 +157,9 @@ class ChainHelper:
         return height // ChainConfig.BLOCK_PER_EPOCH + 1
 
     @staticmethod
-    def cal_first_height_of_epoch(epoch):
-        return ((epoch - 1) * ChainConfig.BLOCK_PER_EPOCH) + 1
+    def cal_first_height_of_epoch(epoch, index_epoch_change=0, block_per_epoch_b4=0, block_per_epoch_af=ChainConfig.BLOCK_PER_EPOCH):
+        return ((index_epoch_change + 1) * block_per_epoch_b4 + (
+                    epoch - index_epoch_change - 1) * block_per_epoch_af) + 1
 
     @staticmethod
     def cal_last_height_of_epoch(epoch):

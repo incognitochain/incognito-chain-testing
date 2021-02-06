@@ -2,7 +2,7 @@ import pytest
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from Configs.Constants import coin
-from Helpers.Logging import INFO, STEP, ERROR
+from Helpers.Logging import INFO, STEP, ERROR, DEBUG
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER, Account, AccountGroup
 from TestCases.HigwayFork import acc_list_1_shard, get_block_height, create_fork
@@ -36,9 +36,9 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2)
 
     STEP(1, f'Create fork on chain_id {cID1} & chain_id {cID2}')
     with ThreadPoolExecutor() as executor:
-        if cID1:
+        if cID1 is not None:
             thread = executor.submit(create_fork, cID1, num_of_branch1)
-        if cID2:
+        if cID2 is not None:
             executor.submit(create_fork, cID2, num_of_branch2)
     height_current, block_fork_list = thread.result()
 
@@ -46,7 +46,7 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2)
     thread_pool = []
     while height_current < block_fork_list[-1] + 3:
         with ThreadPoolExecutor() as executor:
-            thread_height = executor.submit(get_block_height)
+            thread_height = executor.submit(get_block_height, cID1)
             for sender in sender_list[0:3]:
                 thread_send_prv = executor.submit(sender.send_prv_to, receiver_same_shard, amount, privacy=0)
                 thread_pool.append(thread_send_prv)
@@ -55,13 +55,15 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2)
                 thread_pool.append(thread_send_prv)
         height_current = thread_height.result()
         INFO(f'Beacon_height: {height_current}')
-        WAIT(5)
-
+        WAIT(10)
+    WAIT(30)  # wait balance change
     for thread in thread_pool:
+        result = thread.result()
         try:
-            tx = thread.result().get_transaction_by_hash()
-            tx_id = tx.get_tx_id()
-            INFO(f'TxID: {tx_id}')
+            tx = result.subscribe_transaction()
+            height = tx.get_block_height()
+            shard = tx.get_shard_id()
+            INFO(f'Shard {shard}-height {height}')
             key = tx.get_input_coin_pub_key()
             sender = AccountGroup(*sender_list).find_account_by_key(key)
             fee_dict[sender].append(tx.get_fee())
@@ -73,10 +75,9 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2)
                         public_key)
                     amount_receiver[receiver] += amount
                     break
-        except:
-            pass
-        if thread.result().get_error_msg():
-            ERROR(thread.result().get_error_msg())
+        except AssertionError:
+            ERROR(result.get_error_msg())
+            DEBUG(result)
 
     INFO('Verify balance')
     for sender in sender_list:

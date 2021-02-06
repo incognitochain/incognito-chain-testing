@@ -1,13 +1,17 @@
-from Configs.Constants import coin, ChainConfig
+import copy
+
+from Configs.Constants import coin
 from Helpers.Logging import INFO, ERROR
-from Helpers.TestHelper import ChainHelper
+from Helpers.TestHelper import ChainHelper, calculate_actual_trade_received
 from Helpers.Time import get_current_date_time
 from Objects.AccountObject import AccountGroup, Account, COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
-token_id_1 = "058cc10d616ffb34143da18ce28030ebe6d48c18a38779d371962b936439ea2e"
-token_id_2 = "0e5544d44731d7973c72a336042f50051371fea16c1efe4098c6a2facb21ba18"
+token_id_1 = "f8ac91fe56193f71cb4c86315750dbc0c0f3afcfa798a5455ec90bc783ca3e59"  # local 162
+token_id_2 = "08803efd77bfaad73b13af202d2b5d68315a20e5405f1621aab954407944a451"  # local 162
+# token_id_1 = '24a70af11054fe97bdde7f4d56e3a2b1aa6d8df459de370b61c782033d1b029f'  # TestNet2
+# token_id_2 = '6836077e15731d4bffa9753a58cbebe8f5583a7288660fe1543667ad579e78b7'  # TestNet2
 # token_id_1 = None
 # token_id_2 = None
 
@@ -67,14 +71,29 @@ def create_fork(cID, num_of_branch, branch_tobe_continue=2, num_of_block_list=5)
         block_fork_list.append(height_transfer_next_epoch + i)
     num = block_fork_list[0] - height_current
     assert num >= 5 and INFO(f'Chain will be forked after {num} blocks'), \
-        ERROR(f'Epoch {epoch + 1} is coming, rerun testscript')
+        ERROR(f'Epoch {epoch + 1} is coming, remain {height_transfer_next_epoch - height_current} block, rerun testscript')
     if cID != 255:  # is not beacon
         height_current = chain_info.get_shard_block(cID).get_height()
         block_fork_list = [height_current + num]
         for i in range(1, num_of_block_list):
-            block_fork_list.append(height_current + num + 1)
+            block_fork_list.append(height_current + num + i)
     INFO(
         f'Create fork on chain_id{cID} at block_list {block_fork_list}, fork {num_of_branch} branchs, branch {branch_tobe_continue} tobe continue')
     REQ_HANDLER = SUT.highways[0]
     REQ_HANDLER.transaction().create_fork(block_fork_list, cID, num_of_branch, branch_tobe_continue)
     return height_current, block_fork_list
+
+
+def verify_trading_prv_token(trade_amount_list, trade_order, rate_before):
+    calculated_rate = copy.deepcopy(rate_before)
+    estimate_amount_received_after_list = [0] * len(trade_order)
+    for order in trade_order:
+        trade_amount = trade_amount_list[order]
+        print(str(order) + "--")
+        received_amount_token_buy = calculate_actual_trade_received(trade_amount, calculated_rate[0],
+                                                                    calculated_rate[1])
+        calculated_rate[0] += trade_amount
+        calculated_rate[1] -= received_amount_token_buy
+
+        estimate_amount_received_after_list[order] = received_amount_token_buy
+    return calculated_rate, estimate_amount_received_after_list
