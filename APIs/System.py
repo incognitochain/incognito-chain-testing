@@ -20,6 +20,9 @@ class SystemRpc:
         return self.rpc_connection.with_method('retrieveblockbyheight').with_params(
             [block_height, shard_id, level]).execute()
 
+    def get_all_view_detail(self, shard_id):
+        return self.rpc_connection.with_method('getallviewdetail').with_params([shard_id]).execute()
+
     def get_mem_pool(self):
         return self.rpc_connection.with_method("getmempoolinfo").execute()
 
