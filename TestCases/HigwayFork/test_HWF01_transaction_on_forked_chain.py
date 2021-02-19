@@ -53,7 +53,7 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2)
                 if cID == 255:
                     thread_view_detail = executor.submit(SUT.beacons.get_node().system_rpc().get_all_view_detail, -1)
                 elif cID is not None:
-                    thread_view_detail = executor.submit(SUT.beacons.get_node().system_rpc().get_all_view_detail, cID)
+                    thread_view_detail = executor.submit(SUT.shards[cID].get_node().system_rpc().get_all_view_detail, cID)
             thread_pool_view.append(thread_view_detail)
             for sender in sender_list[0:3]:
                 thread_send_prv = executor.submit(sender.send_prv_to, receiver_same_shard, amount, privacy=0)
