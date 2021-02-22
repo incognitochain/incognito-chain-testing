@@ -487,39 +487,37 @@ pipeline {
     }
 
     stage('Trigger Test Runner') {
-      steps {
-        if (env.START_TEST_RUNNER.toBoolean()) {
-          build(
-            job: 'VPS134/QC-Automation-Test-Runner',
-            parameters: [
-              [
-                $class: 'StringParameterValue',
-                name  : 'INCOGNITO_TEST_FRAMEWORK_BRANCH',
-                value : "${INCOGNITO_TEST_FRAMEWORK_BRANCH}"
-              ],
-              [
-                $class: 'StringParameterValue',
-                name  : 'INCOGNITO_TESTING_TEST_BED',
-                value : "${INCOGNITO_TESTING_TEST_BED}"
-              ],
-              [
-                $class: 'StringParameterValue',
-                name  : 'INCOGNITO_TESTING_TEST_DATA',
-                value : "${INCOGNITO_TESTING_TEST_DATA}"
-              ],
-              [
-                $class: 'StringParameterValue',
-                name  : 'INCOGNITO_TESTING_TEST_DATA_2',
-                value : "${INCOGNITO_TESTING_TEST_DATA_2}"
-              ],
+      if (env.START_TEST_RUNNER.toBoolean()) {
+        build(
+          job: 'VPS134/QC-Automation-Test-Runner',
+          parameters: [
+            [
+              $class: 'StringParameterValue',
+              name  : 'INCOGNITO_TEST_FRAMEWORK_BRANCH',
+              value : "${INCOGNITO_TEST_FRAMEWORK_BRANCH}"
             ],
-            wait: false
-          )
-        } else {
-          echo "Skip test runner"
-        }
-
+            [
+              $class: 'StringParameterValue',
+              name  : 'INCOGNITO_TESTING_TEST_BED',
+              value : "${INCOGNITO_TESTING_TEST_BED}"
+            ],
+            [
+              $class: 'StringParameterValue',
+              name  : 'INCOGNITO_TESTING_TEST_DATA',
+              value : "${INCOGNITO_TESTING_TEST_DATA}"
+            ],
+            [
+              $class: 'StringParameterValue',
+              name  : 'INCOGNITO_TESTING_TEST_DATA_2',
+              value : "${INCOGNITO_TESTING_TEST_DATA_2}"
+            ],
+          ],
+          wait: false
+        )
+      } else {
+        echo "Skip test runner"
       }
+
     }
   }
 
