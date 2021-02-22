@@ -42,6 +42,23 @@ pipeline {
       value: 'none,clearLogs,clearData,rebuild',
       visibleItemCount: 4
     )
+    booleanParam(
+      name: 'START_TEST_RUNNER',
+      defaultValue: true,
+      description: ''
+    )
+    extendedChoice(
+      defaultValue: 'start',
+      description: '',
+      descriptionPropertyValue: 'Bridge,DEX,Staking,Transactions',
+      multiSelectDelimiter: ',',
+      name: 'TEST_RUNNER_TESTCASES',
+      quoteValue: false,
+      saveJSONParameterToFile: false,
+      type: 'PT_RADIO',
+      value: 'Bridge,DEX,Staking,Transactions',
+      visibleItemCount: 4
+    )
     string(
       name: 'INCOGNITO_TESTING_TEST_BED',
       description: 'Incognito testing test bed',
@@ -56,6 +73,176 @@ pipeline {
       name: 'INCOGNITO_TESTING_TEST_DATA_2',
       description: 'Incognito testing test data2',
       defaultValue: 'account_qc_automation_2'
+    )
+
+    string(
+      name: 'GETH_PROTOCOL',
+      description: 'environment variable',
+      defaultValue: 'https'
+    )
+
+    string(
+      name: 'GETH_NAME',
+      description: 'environment variable',
+      defaultValue: '"kovan.infura.io/v3/12047eb6d7e6439fa3449d00c7694a12"'
+    )
+
+    string(
+      name: 'GETH_PORT',
+      description: 'environment variable',
+      defaultValue: '""'
+    )
+
+    string(
+      name: 'testnetETHContractAddressStr',
+      description: '''Previous address:<br/>
+- 0xe77aBF10cC0c30Ab3Ac2d877add39553cA7a8654
+''',
+      defaultValue: '0x7c7e371D1e25771f2242833C1A354dCE846f3ec8'
+    )
+
+    string(
+      name: 'blockPerEpoch',
+      description: 'environment variable',
+      defaultValue: '10'
+    )
+
+    string(
+      name: 'randomTime',
+      description: 'environment variable',
+      defaultValue: '5'
+    )
+
+    string(
+      name: 'activeShard',
+      description: 'environment variable',
+      defaultValue: '2'
+    )
+
+    string(
+      name: 'maxShardNumber',
+      description: 'environment variable',
+      defaultValue: '2'
+    )
+
+    string(
+      name: 'beaconHeightBreakPointBurnAddr',
+      description: 'environment variable',
+      defaultValue: '2'
+    )
+
+    string(
+      name: 'beaconBlockHeighMilestoneForMinTxFeesOnTokenRequirement',
+      description: 'environment variable',
+      defaultValue: '3'
+    )
+
+    string(
+      name: 'discoverPeersAddress',
+      description: 'environment variable',
+      defaultValue: '0.0.0.0:9330'
+    )
+
+    string(
+      name: 'listenAddress',
+      description: 'environment variable',
+      defaultValue: '0.0.0.0'
+    )
+
+    string(
+      name: 'firstListenPort',
+      description: 'environment variable',
+      defaultValue: '9451'
+    )
+
+    string(
+      name: 'numOfBeacon',
+      description: 'environment variable',
+      defaultValue: '4'
+    )
+
+    string(
+      name: 'MinBeaconCommitteeSize',
+      description: 'environment variable',
+      defaultValue: '4'
+    )
+
+    string(
+      name: 'BeaconCommitteeSize',
+      description: 'environment variable',
+      defaultValue: '4'
+    )
+
+    string(
+      name: 'shardCommitteeSize',
+      description: 'environment variable',
+      defaultValue: '6'
+    )
+
+    string(
+      name: 'numberOfFixedBlockValidators',
+      description: 'environment variable',
+      defaultValue: '4'
+    )
+
+    string(
+      name: 'MinShardCommitteeSize',
+      description: 'environment variable',
+      defaultValue: '4'
+    )
+
+    string(
+      name: 'firstExternalPort',
+      description: 'environment variable',
+      defaultValue: '9451'
+    )
+
+    string(
+      name: 'firstRpcPort',
+      description: 'environment variable',
+      defaultValue: '9334'
+    )
+
+    string(
+      name: 'firstWsPort',
+      description: 'environment variable',
+      defaultValue: '19334'
+    )
+
+    string(
+      name: 'numOfNodeInShardPreRun',
+      description: 'environment variable',
+      defaultValue: '12'
+    )
+
+    string(
+      name: 'numOfStakerPreRun',
+      description: 'environment variable',
+      defaultValue: '17'
+    )
+
+    string(
+      name: 'epochReplaceCommittee',
+      description: 'environment variable',
+      defaultValue: '700000'
+    )
+
+    string(
+      name: 'beaconHeightSwitchStakeTX',
+      description: 'environment variable',
+      defaultValue: '1'
+    )
+
+    string(
+      name: 'consensusV2Epoch',
+      description: 'environment variable',
+      defaultValue: '1'
+    )
+
+    text(
+      name: 'keylistRunNode',
+      description: 'old value: keylist-jenkin.json',
+      defaultValue: 'keylist.json'
     )
   }
 
@@ -121,6 +308,161 @@ pipeline {
             $class: 'StringParameterValue',
             name  : 'Additional',
             value : "${ADDITIONAL_ACTIONS}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'GETH_PROTOCOL',
+            value : "${GETH_PROTOCOL}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'GETH_NAME',
+            value : "${GETH_NAME}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'GETH_PORT',
+            value : "${GETH_PORT}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'testnetETHContractAddressStr',
+            value : "${testnetETHContractAddressStr}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'blockPerEpoch',
+            value : "${blockPerEpoch}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'randomTime',
+            value : "${randomTime}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'activeShard',
+            value : "${activeShard}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'maxShardNumber',
+            value : "${maxShardNumber}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'beaconHeightBreakPointBurnAddr',
+            value : "${beaconHeightBreakPointBurnAddr}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'beaconBlockHeighMilestoneForMinTxFeesOnTokenRequirement',
+            value : "${beaconBlockHeighMilestoneForMinTxFeesOnTokenRequirement}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'discoverPeersAddress',
+            value : "${discoverPeersAddress}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'listenAddress',
+            value : "${listenAddress}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'firstListenPort',
+            value : "${firstListenPort}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'numOfBeacon',
+            value : "${numOfBeacon}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'MinBeaconCommitteeSize',
+            value : "${MinBeaconCommitteeSize}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'BeaconCommitteeSize',
+            value : "${BeaconCommitteeSize}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'shardCommitteeSize',
+            value : "${shardCommitteeSize}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'numberOfFixedBlockValidators',
+            value : "${numberOfFixedBlockValidators}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'MinShardCommitteeSize',
+            value : "${MinShardCommitteeSize}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'firstExternalPort',
+            value : "${firstExternalPort}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'firstExternalPort',
+            value : "${firstExternalPort}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'firstExternalPort',
+            value : "${firstExternalPort}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'firstExternalPort',
+            value : "${firstExternalPort}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'firstRpcPort',
+            value : "${firstRpcPort}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'firstWsPort',
+            value : "${firstWsPort}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'numOfNodeInShardPreRun',
+            value : "${numOfNodeInShardPreRun}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'numOfStakerPreRun',
+            value : "${numOfStakerPreRun}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'epochReplaceCommittee',
+            value : "${epochReplaceCommittee}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'beaconHeightSwitchStakeTX',
+            value : "${beaconHeightSwitchStakeTX}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'consensusV2Epoch',
+            value : "${consensusV2Epoch}"
+          ],
+          [
+            $class: 'StringParameterValue',
+            name  : 'keylistRunNode',
+            value : "${keylistRunNode}"
           ]
         ]
       }
@@ -146,32 +488,37 @@ pipeline {
 
     stage('Trigger Test Runner') {
       steps {
-        build(
-          job: 'VPS134/QC-Automation-Test-Runner',
-          parameters: [
-            [
-              $class: 'StringParameterValue',
-              name  : 'INCOGNITO_TEST_FRAMEWORK_BRANCH',
-              value : "${INCOGNITO_TEST_FRAMEWORK_BRANCH}"
+        if (env.START_TEST_RUNNER.toBoolean()) {
+          build(
+            job: 'VPS134/QC-Automation-Test-Runner',
+            parameters: [
+              [
+                $class: 'StringParameterValue',
+                name  : 'INCOGNITO_TEST_FRAMEWORK_BRANCH',
+                value : "${INCOGNITO_TEST_FRAMEWORK_BRANCH}"
+              ],
+              [
+                $class: 'StringParameterValue',
+                name  : 'INCOGNITO_TESTING_TEST_BED',
+                value : "${INCOGNITO_TESTING_TEST_BED}"
+              ],
+              [
+                $class: 'StringParameterValue',
+                name  : 'INCOGNITO_TESTING_TEST_DATA',
+                value : "${INCOGNITO_TESTING_TEST_DATA}"
+              ],
+              [
+                $class: 'StringParameterValue',
+                name  : 'INCOGNITO_TESTING_TEST_DATA_2',
+                value : "${INCOGNITO_TESTING_TEST_DATA_2}"
+              ],
             ],
-            [
-              $class: 'StringParameterValue',
-              name  : 'INCOGNITO_TESTING_TEST_BED',
-              value : "${INCOGNITO_TESTING_TEST_BED}"
-            ],
-            [
-              $class: 'StringParameterValue',
-              name  : 'INCOGNITO_TESTING_TEST_DATA',
-              value : "${INCOGNITO_TESTING_TEST_DATA}"
-            ],
-            [
-              $class: 'StringParameterValue',
-              name  : 'INCOGNITO_TESTING_TEST_DATA_2',
-              value : "${INCOGNITO_TESTING_TEST_DATA_2}"
-            ],
-          ],
-          wait: false
-        )
+            wait: false
+          )
+        } else {
+          echo "Skip test runner"
+        }
+
       }
     }
   }
