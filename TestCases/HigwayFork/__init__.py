@@ -71,7 +71,8 @@ def create_fork(cID, num_of_branch, branch_tobe_continue=2, num_of_block_list=5)
         block_fork_list.append(height_transfer_next_epoch + i)
     num = block_fork_list[0] - height_current
     assert num >= 5 and INFO(f'Chain will be forked after {num} blocks'), \
-        ERROR(f'Epoch {epoch + 1} is coming, remain {height_transfer_next_epoch - height_current} block, rerun testscript')
+        ERROR(
+            f'Epoch {epoch + 1} is coming, remain {height_transfer_next_epoch - height_current} block, rerun testscript')
     if cID != 255:  # is not beacon
         height_current = chain_info.get_shard_block(cID).get_height()
         block_fork_list = [height_current + num]
@@ -80,7 +81,7 @@ def create_fork(cID, num_of_branch, branch_tobe_continue=2, num_of_block_list=5)
     INFO(
         f'Create fork on chain_id{cID} at block_list {block_fork_list}, fork {num_of_branch} branchs, branch {branch_tobe_continue} tobe continue')
     REQ_HANDLER = SUT.highways[0]
-    REQ_HANDLER.transaction().create_fork(block_fork_list, cID, num_of_branch, branch_tobe_continue)
+    # REQ_HANDLER.create_fork(block_fork_list, cID, num_of_branch, branch_tobe_continue)
     return height_current, block_fork_list
 
 

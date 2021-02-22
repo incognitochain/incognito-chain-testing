@@ -17,26 +17,6 @@ class TransactionRpc:
             with_params([sender_private_key, dict_payment_address_amount_prv, fee, privacy]). \
             execute()
 
-    def create_fork(self, block_list, shard_id=1, num_of_branch=2, branch_tobe_continue=1):
-        """
-
-        @param block_list:
-        @param num_of_branch:
-        @param branch_tobe_continue:
-        @param shard_id: number 1 to 7 : shard_id 1-7, 255: beacon
-        @return:
-        """
-        payload = {
-            "Type": 1,
-            "Scene": {
-                "Heights": block_list,
-                "Branchs": num_of_branch,
-                "Chose": branch_tobe_continue
-            },
-            "CID": shard_id
-        }
-        return self.rpc_connection.set_payload(payload).execute()
-
     def get_balance(self, private_key):
         return self.rpc_connection. \
             with_method("getbalancebyprivatekey"). \

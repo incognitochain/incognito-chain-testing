@@ -22,6 +22,7 @@ from Objects.PdeObjects import PDEStateInfo
 from Objects.PortalObjects import PortalStateInfo
 from Objects.ShardBlock import ShardBlock
 from Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
+from Objects.ViewDetailBlock import AllViewDetail
 
 
 def ssh_function(func):
@@ -202,6 +203,12 @@ class Node:
 
     def get_block_chain_info(self):
         return BlockChainCore(self.system_rpc().get_block_chain_info().get_result())
+
+    def get_all_view_detail(self, chain_id):
+        return AllViewDetail(self.system_rpc().get_all_view_detail(chain_id).get_result())
+
+    def create_fork(self, block_fork_list, chain_id=1, num_of_branch=2, branch_tobe_continue=1):
+        return self.system_rpc().create_fork(block_fork_list, chain_id, num_of_branch, branch_tobe_continue)
 
     def help_get_beacon_height(self):
         chain_info = self.get_block_chain_info()

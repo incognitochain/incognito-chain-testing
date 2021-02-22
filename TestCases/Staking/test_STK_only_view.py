@@ -81,7 +81,44 @@ def view_dynamic():
     """)
 
 
-def test_view_dynamic():
+def view_height():
+    chain_info = SUT().get_block_chain_info()
+    epoch = chain_info.get_beacon_block().get_epoch()
+    beacon_height = chain_info.get_beacon_block().get_height()
+    shard_0_height = chain_info.get_shard_block(0).get_height()
+    shard_1_height = chain_info.get_shard_block(1).get_height()
+    current_height_in_epoch = beacon_height % ChainConfig.BLOCK_PER_EPOCH
+    remaining_block_poch = chain_info.get_beacon_block().get_remaining_block_epoch()
+    INFO()
+    INFO(f"""
+            ---- epoch: {epoch} - beacon_height: {beacon_height} - shard_0_height: {shard_0_height} - shard_1_height: {shard_1_height} - at: {current_height_in_epoch}/{ChainConfig.BLOCK_PER_EPOCH} - RemainingBlockEpoch: {remaining_block_poch} ----
+
+    """)
+    INFO()
+
+
+def _test_view_dynamic():
     for i in range(1000):
         view_dynamic()
+        WAIT(10)
+
+
+def test_view_height():
+    for i in range(1000):
+        view_height()
+        WAIT(10)
+
+
+def _test_view_detail():
+    cID = -1
+    for i in range(1000):
+        if cID == -1:
+            REQ_HANDLER = SUT.beacons.get_node()
+        else:
+            REQ_HANDLER = SUT.shards[cID].get_node()
+        result = REQ_HANDLER.get_all_view_detail(cID)
+        INFO()
+        INFO(result.view_hash_follow_height())
+        INFO(result.num_of_hash_follow_height())
+        INFO()
         WAIT(10)

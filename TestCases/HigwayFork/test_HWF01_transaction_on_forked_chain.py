@@ -17,9 +17,9 @@ amount = 10000
 
 
 @pytest.mark.parametrize('cID1, num_of_branch1, cID2, num_of_branch2', [
-    (0, 2, None, None),
+    # (0, 2, None, None),
     (255, 2, None, None),
-    (1, 2, 255, 2),
+    # (1, 2, 255, 2),
     (1, 2, 0, 2),
 ])
 def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2):
@@ -46,15 +46,22 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2)
     STEP(2, "Create and send transaction")
     thread_pool = []
     thread_pool_view = []
+    round_height = {}
+    error = None
+    for height in range(height_current, block_fork_list[-1] + 4):
+        round_height[height] = 0
     while height_current < block_fork_list[-1] + 3:
         with ThreadPoolExecutor() as executor:
             thread_height = executor.submit(get_block_height, cID1)
             for cID in [cID1, cID2]:
                 if cID == 255:
-                    thread_view_detail = executor.submit(SUT.beacons.get_node().system_rpc().get_all_view_detail, -1)
+                    REQ_HANDLER = SUT.beacons.get_node()
+                    thread_view_detail = executor.submit(REQ_HANDLER.get_all_view_detail, -1)
+                    thread_pool_view.append(thread_view_detail)
                 elif cID is not None:
-                    thread_view_detail = executor.submit(SUT.shards[cID].get_node().system_rpc().get_all_view_detail, cID)
-            thread_pool_view.append(thread_view_detail)
+                    REQ_HANDLER = SUT.shards[cID].get_node()
+                    thread_view_detail = executor.submit(REQ_HANDLER.get_all_view_detail, cID)
+                    thread_pool_view.append(thread_view_detail)
             for sender in sender_list[0:3]:
                 thread_send_prv = executor.submit(sender.send_prv_to, receiver_same_shard, amount, privacy=0)
                 thread_pool.append(thread_send_prv)
@@ -62,12 +69,18 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2)
                 thread_send_prv = executor.submit(sender.send_prv_to, receiver_cross_shard, amount, privacy=0)
                 thread_pool.append(thread_send_prv)
         height_current = thread_height.result()
-        INFO(f'Beacon_height: {height_current}')
+        INFO(f'Block_height: {height_current}')
+        if height_current in range(block_fork_list[0] - 1, block_fork_list[-1]):
+            round_height[height_current] += 1
+        if round_height[height_current] > num_of_branch1 * 2 + 2:
+            error = f'chain is stopped at {height_current}'
+            break
         WAIT(10)
+
     WAIT(30)  # wait balance change
     for thread in thread_pool_view:
         result = thread.result()
-        INFO(result.get_result())
+        INFO(result.num_of_hash_follow_height())
     for thread in thread_pool:
         result = thread.result()
         try:
@@ -96,3 +109,5 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2)
             fee_dict[sender])
     for receiver in [receiver_cross_shard, receiver_same_shard]:
         assert receiver.get_prv_balance() == bal_b4_receiver[receiver] + amount_receiver[receiver]
+
+    assert error is None, ERROR(error)
