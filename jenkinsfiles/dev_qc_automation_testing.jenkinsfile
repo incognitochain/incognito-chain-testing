@@ -55,7 +55,7 @@ pipeline {
       name: 'TEST_RUNNER_TESTCASES',
       quoteValue: false,
       saveJSONParameterToFile: false,
-      type: 'PT_RADIO',
+      type: 'PT_CHECKBOX',
       value: 'Bridge,DEX,Staking,Transactions',
       visibleItemCount: 4
     )
