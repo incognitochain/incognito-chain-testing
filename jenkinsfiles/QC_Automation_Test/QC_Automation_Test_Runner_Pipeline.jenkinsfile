@@ -71,7 +71,7 @@ pipeline {
         echo "Running test on IncognitoChain/TestCases/Transactions"
         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
           dir("incognito-chain-testing") {
-            sh "./run.sh ${INCOGNITO_TESTING_TEST_BED} ${INCOGNITO_TESTING_TEST_DATA} ${BUILD_TAG} \"${TEST_RUNNER_TESTCASES}\""
+            sh "./run-jenkin-tests.sh ${INCOGNITO_TESTING_TEST_BED} ${INCOGNITO_TESTING_TEST_DATA} ${BUILD_TAG} \"${TEST_RUNNER_TESTCASES}\""
           }
         }
       }
@@ -88,8 +88,7 @@ pipeline {
   post {
     success {
       script {
-        def nodeIPAddress = sh(returnStdout: true, script: 'curl ipinfo.io/ip').trim()
-        def testReportURL = "http://${env.NODE_IP}/test-reports/"
+        def testReportURL = "http://${env.NODE_IP}/test-reports/${BUILD_TAG}"
 
         slackSend(channel: "#incognito-jenkins-dev", attachments: [
           [
