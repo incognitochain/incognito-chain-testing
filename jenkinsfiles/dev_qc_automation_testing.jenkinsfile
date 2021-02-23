@@ -6,6 +6,7 @@ pipeline {
     gitParameter(
       description: 'Incognito chain build branch',
       defaultValue: 'origin/release',
+      selectedValue: 'DEFAULT',
       name: 'INCOGNITO_CHAIN_BRANCH',
       type: 'PT_BRANCH_TAG',
       useRepository: '*incognito-chain.git'
@@ -13,18 +14,15 @@ pipeline {
     gitParameter(
       description: 'Incognito highway build branch',
       defaultValue: 'testnet_bcfn_libp2p_multi_20201207_01',
+      selectedValue: 'DEFAULT',
       name: 'INCOGNITO_HIGHWAY_BRANCH',
       type: 'PT_BRANCH_TAG',
       useRepository: '*incognito-highway'
     )
-    string(
-      name: 'INCOGNITO_TEST_FRAMEWORK_BRANCH',
-      description: 'Incognito test framework branch',
-      defaultValue: 'jenkins-qc-automation'
-    )
     gitParameter(
       description: 'Incognito highway build branch',
       defaultValue: 'jenkins-qc-automation',
+      selectedValue: 'DEFAULT',
       name: 'INCOGNITO_TEST_FRAMEWORK_BRANCH',
       type: 'PT_BRANCH_TAG',
       useRepository: '*incognito-chain-testing.git'
@@ -275,9 +273,9 @@ pipeline {
             color   : '#0d47a1'
           ]
         ])
-        git branch: "${params.INCOGNITO_CHAIN_BRANCH}", url: 'https://github.com/incognitochain/incognito-chain.git'
-        git branch: "${params.INCOGNITO_HIGHWAY_BRANCH}", url: 'https://github.com/incognitochain/incognito-highway'
-        git branch: "${params.INCOGNITO_TEST_FRAMEWORK_BRANCH}", url: 'https://github.com/incognitochain/incognito-chain-testing.git'
+        git url: 'https://github.com/incognitochain/incognito-chain.git'
+        git url: 'https://github.com/incognitochain/incognito-highway'
+        git url: 'https://github.com/incognitochain/incognito-chain-testing.git'
       }
     }
 
