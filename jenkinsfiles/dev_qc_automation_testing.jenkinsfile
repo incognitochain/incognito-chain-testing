@@ -17,7 +17,7 @@ pipeline {
       selectedValue: 'DEFAULT',
       name: 'INCOGNITO_HIGHWAY_BRANCH',
       type: 'PT_BRANCH_TAG',
-      useRepository: '*incognito-highway'
+      useRepository: '*incognito-highway.git'
     )
     gitParameter(
       description: 'Incognito highway build branch',
@@ -274,7 +274,7 @@ pipeline {
           ]
         ])
         git url: 'https://github.com/incognitochain/incognito-chain.git'
-        git url: 'https://github.com/incognitochain/incognito-highway'
+        git url: 'https://github.com/incognitochain/incognito-highway.git'
         git url: 'https://github.com/incognitochain/incognito-chain-testing.git'
       }
     }
