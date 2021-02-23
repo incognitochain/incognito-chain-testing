@@ -489,7 +489,7 @@ pipeline {
     stage('Trigger Test Runner') {
       steps {
         script {
-          if (env.START_TEST_RUNNER.toBoolean()) {
+          if (params.START_TEST_RUNNER.toBoolean()) {
             build(
               job: 'VPS134/QC-Automation-Test-Runner',
               parameters: [
