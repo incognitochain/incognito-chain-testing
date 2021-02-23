@@ -3,15 +3,21 @@ package jenkinsfiles
 pipeline {
   agent { label 'Node_134' }
   parameters {
-    string(
-      name: 'INCOGNITO_CHAIN_BRANCH',
+    gitParameter(
       description: 'Incognito chain build branch',
-      defaultValue: 'origin/release'
+      branchFilter: 'origin.*/(.*)',
+      defaultValue: 'origin/release',
+      name: 'INCOGNITO_CHAIN_BRANCH',
+      type: 'PT_BRANCH_TAG',
+      useRepository: 'https://github.com/incognitochain/incognito-chain.git'
     )
-    string(
-      name: 'INCOGNITO_HIGHWAY_BRANCH',
+    gitParameter(
       description: 'Incognito highway build branch',
-      defaultValue: 'testnet_bcfn_libp2p_multi_20201207_01'
+      branchFilter: 'origin.*/(.*)',
+      defaultValue: 'testnet_bcfn_libp2p_multi_20201207_01',
+      name: 'INCOGNITO_HIGHWAY_BRANCH',
+      type: 'PT_BRANCH_TAG',
+      useRepository: 'https://github.com/incognitochain/incognito-highway'
     )
     string(
       name: 'INCOGNITO_TEST_FRAMEWORK_BRANCH',
