@@ -21,15 +21,15 @@ class RpcConnection:
 
         self._headers = RpcConnection.DEFAULT_HEADER if headers is None else headers
         self._base_url = url
-        self.__payload = {"jsonrpc": json_rpc,
+        self._payload = {"jsonrpc": json_rpc,
                           "id": id_num}
 
     def with_id(self, new_id):
-        self.__payload['id'] = new_id
+        self._payload['id'] = new_id
         return self
 
     def with_json_rpc(self, json_rpc):
-        self.__payload['jsonrpc'] = json_rpc
+        self._payload['jsonrpc'] = json_rpc
         return self
 
     def with_url(self, url):
@@ -37,27 +37,27 @@ class RpcConnection:
         return self
 
     def with_params(self, params):
-        self.__payload["params"] = params
+        self._payload["params"] = params
         return self
 
     def with_method(self, method):
-        self.__payload["method"] = method
+        self._payload["method"] = method
         return self
 
     def execute(self):
-        Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(self.__payload, indent=3)}')
+        Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(self._payload, indent=3)}')
         try:
-            response = requests.post(self._base_url, data=json.dumps(self.__payload), headers=self._headers)
+            response = requests.post(self._base_url, data=json.dumps(self._payload), headers=self._headers)
         except NewConnectionError:
             ERROR('Connection refused')
         return Response(response, f'From: {self._base_url}')
 
     def print_pay_load(self):
-        print(f'{json.dumps(self.__payload, indent=3)}')
+        print(f'{json.dumps(self._payload, indent=3)}')
         return self
 
     def set_payload(self, payload):
-        self.__payload = payload
+        self._payload = payload
         return self
 
 
@@ -107,8 +107,7 @@ class WebSocket(RpcConnection):
         return self
 
     def execute(self, close_when_done=True):
-        data = {"request": {"jsonrpc": self._json_rpc, "method": self._method, "params": self._params,
-                            "id": self._id},
+        data = {"request": self._payload,
                 "subcription": self.__subscription, "type": self.__type}
         Log.DEBUG(f'exec WS: {self._base_url} \n{json.dumps(data, indent=3)}')
         self.open()
