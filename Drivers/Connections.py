@@ -11,34 +11,25 @@ from Helpers.Logging import DEBUG, ERROR
 
 
 class RpcConnection:
+    DEFAULT_JSON_RPC = "1.0"
+    DEFAULT_HEADER = {'Content-Type': 'application/json'}
+    DEFAULT_ID = 1
 
     def __init__(self, url, headers=None, id_num=None, json_rpc=None):
-        if headers is None:
-            self._headers = {'Content-Type': 'application/json'}
-        else:
-            self._headers = headers
+        id_num = RpcConnection.DEFAULT_ID if id_num is None else id_num
+        json_rpc = RpcConnection.DEFAULT_JSON_RPC if json_rpc is None else json_rpc
 
-        if id_num is None:
-            self._id = 1
-        else:
-            self._id = id_num
-
-        if json_rpc is None:
-            self._json_rpc = "1.0"
-        else:
-            self._json_rpc = json_rpc
-
+        self._headers = RpcConnection.DEFAULT_HEADER if headers is None else headers
         self._base_url = url
-        self._params = None
-        self._method = None
-        self.__payload = None
+        self.__payload = {"jsonrpc": json_rpc,
+                          "id": id_num}
 
     def with_id(self, new_id):
-        self._id = new_id
+        self.__payload['id'] = new_id
         return self
 
     def with_json_rpc(self, json_rpc):
-        self._json_rpc = json_rpc
+        self.__payload['jsonrpc'] = json_rpc
         return self
 
     def with_url(self, url):
@@ -46,16 +37,14 @@ class RpcConnection:
         return self
 
     def with_params(self, params):
-        self._params = params
+        self.__payload["params"] = params
         return self
 
     def with_method(self, method):
-        self._method = method
+        self.__payload["method"] = method
         return self
 
     def execute(self):
-        if self.__payload is None:
-            self.make_node_payload()
         Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(self.__payload, indent=3)}')
         try:
             response = requests.post(self._base_url, data=json.dumps(self.__payload), headers=self._headers)
@@ -65,15 +54,6 @@ class RpcConnection:
 
     def print_pay_load(self):
         print(f'{json.dumps(self.__payload, indent=3)}')
-        return self
-
-    def make_node_payload(self):
-        data = {"jsonrpc": self._json_rpc,
-                "id": self._id,
-                "method": self._method}
-        if self._params is not None:
-            data["params"] = self._params
-        self.__payload = data
         return self
 
     def set_payload(self, payload):
