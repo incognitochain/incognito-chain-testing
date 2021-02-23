@@ -5,6 +5,7 @@ python=python3
 test_bed=$1
 test_data=$2
 test_folder_name=$3
+mkdir -p "reports/${test_folder_name}"
 html_report="reports/${test_folder_name}/$(date '+%Y.%m.%d-%H.%M.%S')-${test_bed}-${test_data}.html"
 xoption=""
 
