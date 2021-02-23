@@ -48,15 +48,15 @@ pipeline {
       description: ''
     )
     extendedChoice(
-      defaultValue: 'start',
-      description: '',
-      descriptionPropertyValue: 'Bridge,DEX,Staking,Transactions',
-      multiSelectDelimiter: ',',
+      defaultValue: 'IncognitoChain/TestCases/Transactions',
+      description: 'Testcase to run',
+      descriptionPropertyValue: 'IncognitoChain/TestCases/Bridge,IncognitoChain/TestCases/DEX,IncognitoChain/TestCases/Staking,IncognitoChain/TestCases/Transactions',
+      multiSelectDelimiter: ' ',
       name: 'TEST_RUNNER_TESTCASES',
       quoteValue: false,
       saveJSONParameterToFile: false,
       type: 'PT_CHECKBOX',
-      value: 'Bridge,DEX,Staking,Transactions',
+      value: 'IncognitoChain/TestCases/Bridge,IncognitoChain/TestCases/DEX,IncognitoChain/TestCases/Staking,IncognitoChain/TestCases/Transactions',
       visibleItemCount: 4
     )
     string(
@@ -488,32 +488,43 @@ pipeline {
 
     stage('Trigger Test Runner') {
       steps {
-        build(
-          job: 'VPS134/QC-Automation-Test-Runner',
-          parameters: [
-            [
-              $class: 'StringParameterValue',
-              name  : 'INCOGNITO_TEST_FRAMEWORK_BRANCH',
-              value : "${INCOGNITO_TEST_FRAMEWORK_BRANCH}"
-            ],
-            [
-              $class: 'StringParameterValue',
-              name  : 'INCOGNITO_TESTING_TEST_BED',
-              value : "${INCOGNITO_TESTING_TEST_BED}"
-            ],
-            [
-              $class: 'StringParameterValue',
-              name  : 'INCOGNITO_TESTING_TEST_DATA',
-              value : "${INCOGNITO_TESTING_TEST_DATA}"
-            ],
-            [
-              $class: 'StringParameterValue',
-              name  : 'INCOGNITO_TESTING_TEST_DATA_2',
-              value : "${INCOGNITO_TESTING_TEST_DATA_2}"
-            ],
-          ],
-          wait: false
-        )
+        script {
+          if (env.START_TEST_RUNNER.toBoolean()) {
+            build(
+              job: 'VPS134/QC-Automation-Test-Runner',
+              parameters: [
+                [
+                  $class: 'StringParameterValue',
+                  name  : 'INCOGNITO_TEST_FRAMEWORK_BRANCH',
+                  value : "${INCOGNITO_TEST_FRAMEWORK_BRANCH}"
+                ],
+                [
+                  $class: 'StringParameterValue',
+                  name  : 'TEST_RUNNER_TESTCASES',
+                  value : "${TEST_RUNNER_TESTCASES}"
+                ],
+                [
+                  $class: 'StringParameterValue',
+                  name  : 'INCOGNITO_TESTING_TEST_BED',
+                  value : "${INCOGNITO_TESTING_TEST_BED}"
+                ],
+                [
+                  $class: 'StringParameterValue',
+                  name  : 'INCOGNITO_TESTING_TEST_DATA',
+                  value : "${INCOGNITO_TESTING_TEST_DATA}"
+                ],
+                [
+                  $class: 'StringParameterValue',
+                  name  : 'INCOGNITO_TESTING_TEST_DATA_2',
+                  value : "${INCOGNITO_TESTING_TEST_DATA_2}"
+                ],
+              ],
+              wait: false
+            )
+          } else {
+            echo "Skip test runner"
+          }
+        }
       }
 
     }

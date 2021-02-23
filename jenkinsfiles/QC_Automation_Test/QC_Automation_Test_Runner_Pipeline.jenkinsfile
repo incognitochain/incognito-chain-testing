@@ -8,6 +8,18 @@ pipeline {
       description: 'Incognito test framework branch',
       defaultValue: 'jenkins-qc-automation'
     )
+    extendedChoice(
+      defaultValue: 'IncognitoChain/TestCases/Transactions',
+      description: 'Testcase to run',
+      descriptionPropertyValue: 'IncognitoChain/TestCases/Bridge,IncognitoChain/TestCases/DEX,IncognitoChain/TestCases/Staking,IncognitoChain/TestCases/Transactions',
+      multiSelectDelimiter: ' ',
+      name: 'TEST_RUNNER_TESTCASES',
+      quoteValue: false,
+      saveJSONParameterToFile: false,
+      type: 'PT_CHECKBOX',
+      value: 'IncognitoChain/TestCases/Bridge,IncognitoChain/TestCases/DEX,IncognitoChain/TestCases/Staking,IncognitoChain/TestCases/Transactions',
+      visibleItemCount: 4
+    )
     string(
       name: 'INCOGNITO_TESTING_TEST_BED',
       description: 'Incognito testing test bed',
@@ -48,46 +60,24 @@ pipeline {
         echo "Install dependencies"
         dir("incognito-chain-testing") {
           sh "pip3 install -r pip_requirements.txt"
-          sh "chmod +x run.sh"
+          sh "chmod +x run-jenkin-tests.sh"
         }
       }
     }
 
 
     stage('Running test cases') {
-      parallel {
-
-        stage('IncognitoChain/TestCases/Transactions') {
-          steps {
-            echo "Running test on IncognitoChain/TestCases/Transactions"
-            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-              dir("incognito-chain-testing") {
-                sh "./run.sh ${INCOGNITO_TESTING_TEST_BED} ${INCOGNITO_TESTING_TEST_DATA} IncognitoChain/TestCases/Transactions"
-              }
-            }
-          }
-          post {
-            always {
-              echo "Done"
-            }
+      steps {
+        echo "Running test on IncognitoChain/TestCases/Transactions"
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+          dir("incognito-chain-testing") {
+            sh "./run.sh ${INCOGNITO_TESTING_TEST_BED} ${INCOGNITO_TESTING_TEST_DATA} ${BUILD_TAG} \"${TEST_RUNNER_TESTCASES}\""
           }
         }
-
-        stage('IncognitoChain/TestCases/DEX') {
-          steps {
-            echo "Running test on IncognitoChain/TestCases/DEX"
-            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-              dir("incognito-chain-testing") {
-                sleep 3 // sleep for 3 seconds to prevent report file name conflict
-                sh "./run.sh ${INCOGNITO_TESTING_TEST_BED} ${INCOGNITO_TESTING_TEST_DATA_2} IncognitoChain/TestCases/DEX"
-              }
-            }
-          }
-          post {
-            always {
-              echo "Done IncognitoChain/TestCases/DEX"
-            }
-          }
+      }
+      post {
+        always {
+          echo "Done"
         }
       }
     }
@@ -99,7 +89,7 @@ pipeline {
     success {
       script {
         def nodeIPAddress = sh(returnStdout: true, script: 'curl ipinfo.io/ip').trim()
-        def testReportURL = "http://${nodeIPAddress}/test-reports/"
+        def testReportURL = "http://${env.NODE_IP}/test-reports/"
 
         slackSend(channel: "#incognito-jenkins-dev", attachments: [
           [
