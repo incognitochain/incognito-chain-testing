@@ -270,17 +270,50 @@ class Account:
             obj_coins.append(Coin(raw_coin))
         return obj_coins
 
-    def list_unspent_token(self):
-        custom_token_bal_raw = self.get_all_custom_token_balance()
+    def list_unspent_token(self, token_id=None):
         obj_coins = []
-        for bal in custom_token_bal_raw:
-            tok_id = bal['TokenID']
+        if token_id is None:
+            for tok_id in self.get_owned_custom_token_list():
+                raw_response = self.REQ_HANDLER.transaction(). \
+                    list_unspent_output_tokens(self.private_key, tok_id).expect_no_error()
+                raw_coins = raw_response.get_result('Outputs')[self.private_key]
+                for raw_coin in raw_coins:
+                    obj_coins.append(Coin(raw_coin))
+        else:
             raw_response = self.REQ_HANDLER.transaction(). \
-                list_unspent_output_tokens(self.private_key, tok_id).expect_no_error()
+                list_unspent_output_tokens(self.private_key, token_id).expect_no_error()
             raw_coins = raw_response.get_result('Outputs')[self.private_key]
             for raw_coin in raw_coins:
                 obj_coins.append(Coin(raw_coin))
         return obj_coins
+
+    def print_all_unspent_coin(self, token_id=None):
+        """
+        for @debug purpose
+        @param token_id:
+        @return:
+        """
+        if token_id is None:
+            print_data = PRV_ID
+            for c in self.list_unspent_token(PRV_ID):
+                print_data += f'\n{c}'
+
+            for token in self.get_owned_custom_token_list():
+                print_data += f'\n{token}'
+                for c in self.list_unspent_token(token):
+                    print_data += f'\n{c}'
+        else:
+            print_data = token_id
+            for c in self.list_unspent_token(token_id):
+                print_data += f'\n{c}'
+        print(print_data)
+
+    def get_owned_custom_token_list(self):
+        token_id_list = []
+        custom_token_bal_raw = self.get_all_custom_token_balance()
+        for bal in custom_token_bal_raw:
+            token_id_list.append(bal['TokenID'])
+        return token_id_list
 
     def stake(self, validator=None, receiver_reward=None, stake_amount=None, auto_re_stake=True):
         """
@@ -344,12 +377,16 @@ class Account:
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
                                                 someone.payment_key, stake_amount, auto_re_stake)
 
+    def stk_stop_auto_staking(self, reward_receiver, validator):
+        return self.REQ_HANDLER.transaction(). \
+            create_and_send_stop_auto_staking_transaction(self.private_key, reward_receiver.payment_key,
+                                                          validator.validator_key)
+
     def stk_un_stake_me(self):
         INFO('Un-stake me')
-        return self.REQ_HANDLER.transaction(). \
-            create_and_send_stop_auto_staking_transaction(self.private_key, self.payment_key, self.validator_key)
+        return self.stk_stop_auto_staking(self, self)
 
-    def stk_un_stake_tx(self, validator = None):
+    def stk_un_stake_tx(self, validator=None):
         if validator is None:
             validator = self
         INFO(f'Un-stake transaction for validator: {validator.validator_key}')
@@ -358,8 +395,7 @@ class Account:
 
     def stk_un_stake_him(self, him):
         INFO(f"Un-stake other: {him.validator_key}")
-        return self.REQ_HANDLER.transaction(). \
-            create_and_send_stop_auto_staking_transaction(self.private_key, him.payment_key, him.validator_key)
+        return self.stk_stop_auto_staking(him, him)
 
     def stk_wait_till_i_am_committee(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
@@ -764,7 +800,6 @@ class Account:
     def burn_token(self, token_id, amount_custom_token):
         """
         Burning token (this mean send token to burning address)
-
         :param token_id: Token ID
         :param amount_custom_token: amount to burn
         :return: Response object
@@ -785,9 +820,7 @@ class Account:
     def issue_centralize_token(self, token_id, token_name, amount):
         """
             initialize a new centralize token
-
             :return: Response Object
-
         """
         return self.REQ_HANDLER.bridge().issue_centralized_bridge_token(self.payment_key, token_id,
                                                                         token_name, amount)
@@ -1169,14 +1202,18 @@ class Account:
         except KeyError:
             return 0
 
-    def convert_prv_to_v2(self):
-        INFO(f"{l6(self.private_key)}(private K): Convert all coin to v2")
-        return self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_transaction(
-            self.private_key)
+    def convert_payment_k_to_v1(self):
+        return self.REQ_HANDLER.util_rpc().convert_payment_k_to_v1(self.payment_key).get_result()
 
-    def convert_token_to_v2(self, token_id):
-        return self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_tx_token(self.private_key,
-                                                                                        token_id)
+    def convert_token_to_v2(self, token_id=PRV_ID):
+        if token_id == PRV_ID:
+            convert_tx = self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_transaction(self.private_key)
+        else:
+            convert_tx = self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_tx_token(self.private_key,
+                                                                                                  token_id)
+        if convert_tx.get_error_msg() is None:
+            return convert_tx.subscribe_transaction()
+        return convert_tx
 
     def top_him_up_token_to_amount_if(self, token_id, if_lower_than, top_up_to_amount, accounts_list):
         """
