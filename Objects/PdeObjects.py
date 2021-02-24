@@ -7,6 +7,7 @@ from Helpers.Logging import INFO, WARNING, DEBUG, ERROR
 from Helpers.TestHelper import extract_incognito_addr, l6
 from Helpers.Time import WAIT
 from Objects import BlockChainInfoBaseClass
+from Objects.AccountObject import Account
 
 
 class PDEStateInfo(BlockChainInfoBaseClass):
@@ -312,6 +313,11 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         :param token2:
         :return: int value if found one, list of int if found many
         """
+        if user is not None:
+            if type(user) is Account:
+                payment_k_v1 = user.convert_payment_k_to_v1()
+                if payment_k_v1 is not None:
+                    user = payment_k_v1
         share_objects = self._get_contributor_reward_objects(user, token1, token2)
         list_amount = []
         for obj in share_objects:
@@ -325,11 +331,11 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
     def _get_pde_share_objects(self, user=None, token1=None, token2=None):
         # DEBUG('==================================================================================================')
-        of_user = 'any' if user is None else l6(extract_incognito_addr(user))
+        inc_addr = 'any' if user is None else l6(extract_incognito_addr(user))
         tok1 = 'any' if token1 is None else l6(token1)
         tok2 = 'any' if token1 is None else l6(token2)
         DEBUG(f'Getting share of user and tokens at beacon height time stamp {self.get_beacon_time_stamp()}: '
-              f'{of_user}:{tok1}-{tok2}')
+              f'{inc_addr}:{tok1}-{tok2}')
 
         pde_share_raw = self.data['PDEShares']
         pde_share_objs = []
@@ -344,7 +350,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 user = extract_incognito_addr(user)
                 if user == pde_share_obj.get_payment_k():
                     match = True
-                    debug_msg += f'user {of_user} | '
+                    debug_msg += f'user {inc_addr} | '
                 else:
                     # DEBUG(f'NOT Match user {of_user}')
                     continue
@@ -374,6 +380,11 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         :param token2:
         :return: int value if found one, list of int if found many
         """
+        if user is not None:
+            if type(user) is Account:
+                payment_k_v1 = user.convert_payment_k_to_v1()
+                if payment_k_v1 is not None:
+                    user = payment_k_v1
         share_objects = self._get_pde_share_objects(user, token1, token2)
         list_amount = []
         for obj in share_objects:
