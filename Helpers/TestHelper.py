@@ -157,7 +157,17 @@ class ChainHelper:
         return height // ChainConfig.BLOCK_PER_EPOCH + 1
 
     @staticmethod
-    def cal_first_height_of_epoch(epoch, index_epoch_change=0, block_per_epoch_b4=0, block_per_epoch_af=ChainConfig.BLOCK_PER_EPOCH):
+    def cal_first_height_of_epoch(epoch, index_epoch_change=0, block_per_epoch_b4=0, block_per_epoch_af=None):
+        """
+
+        @param epoch:
+        @param index_epoch_change: input if there is change block_per_epoch in chain
+        @param block_per_epoch_b4: input if there is change block_per_epoch in chain
+        @param block_per_epoch_af: input if there is change block_per_epoch in chain
+        @return:
+        """
+        if block_per_epoch_af is None:
+            block_per_epoch_af = ChainConfig.BLOCK_PER_EPOCH
         return ((index_epoch_change + 1) * block_per_epoch_b4 + (
                     epoch - index_epoch_change - 1) * block_per_epoch_af) + 1
 
@@ -166,13 +176,15 @@ class ChainHelper:
         return ChainHelper.cal_first_height_of_epoch(epoch) + ChainConfig.BLOCK_PER_EPOCH - 1
 
     @staticmethod
-    def cal_random_height_of_epoch(epoch, index_epoch_change=0, block_per_epoch_b4=0, block_per_epoch_af=ChainConfig.BLOCK_PER_EPOCH):
+    def cal_random_height_of_epoch(epoch, index_epoch_change=0, block_per_epoch_b4=0, block_per_epoch_af=None):
+        if block_per_epoch_af is None:
+            block_per_epoch_af = ChainConfig.BLOCK_PER_EPOCH
         block_height_random = ((index_epoch_change + 1) * block_per_epoch_b4 + (
-                    epoch - index_epoch_change - 1) * block_per_epoch_af) + ChainConfig.RANDOM_TIME
+                epoch - index_epoch_change - 1) * block_per_epoch_af) + ChainConfig.RANDOM_TIME
         return block_height_random
 
     @staticmethod
-    def wait_till_beacon_height(beacon_height, timeout=120):
+    def wait_till_beacon_height(beacon_height, interval=None, timeout=120):
         """
         Wait until a specific beacon height
         @param interval:
@@ -188,8 +200,9 @@ class ChainHelper:
             return current_beacon_h
 
         while beacon_height > current_beacon_h:
-            block_remain = beacon_height - current_beacon_h
-            interval = block_remain*ChainConfig.BLOCK_TIME
+            if interval is None:
+                block_remain = beacon_height - current_beacon_h
+                interval = block_remain * ChainConfig.BLOCK_TIME
             WAIT(interval)
             timeout -= interval
             current_beacon_h = SUT().help_get_beacon_height()
@@ -201,7 +214,7 @@ class ChainHelper:
         return current_beacon_h
 
     @staticmethod
-    def wait_till_next_beacon_height(num_of_beacon_height_to_wait=1, wait=ChainConfig.BLOCK_TIME, timeout=120):
+    def wait_till_next_beacon_height(num_of_beacon_height_to_wait=1, wait=None, timeout=120):
         """
         wait for an amount of beacon height to pass
         @param timeout:
@@ -211,11 +224,10 @@ class ChainHelper:
         """
         from Objects.IncognitoTestCase import SUT
         current_beacon_h = SUT().help_get_beacon_height()
-
         return ChainHelper.wait_till_beacon_height(current_beacon_h + num_of_beacon_height_to_wait, wait, timeout)
 
     @staticmethod
-    def wait_till_next_shard_height(shard_id, num_of_shard_height_to_wait=1, wait=ChainConfig.BLOCK_TIME, timeout=120):
+    def wait_till_next_shard_height(shard_id, num_of_shard_height_to_wait=1, wait=None, timeout=120):
         """
         Function to wait for an amount of shard height to pass
         @param shard_id:
@@ -225,6 +237,7 @@ class ChainHelper:
         @return:
         """
         from Objects.IncognitoTestCase import SUT
+        wait = ChainConfig.BLOCK_TIME if wait is None else wait
         current_shard_h = SUT().help_get_shard_height(shard_id)
         shard_height = current_shard_h + num_of_shard_height_to_wait
         INFO(f'Waiting till shard {shard_id} height {shard_height}')

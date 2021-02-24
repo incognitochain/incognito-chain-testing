@@ -75,7 +75,7 @@ class ChainConfig:
         ChainConfig.BEACON_COMMITTEE_SIZE = bbs.get_max_beacon_committee_size()
         ChainConfig.SHARD_COMMITTEE_SIZE = bbs.get_max_shard_committee_size()
         chain_info = SUT().get_block_chain_info()
-        ChainConfig.BLOCK_PER_EPOCH = chain_info.get_beacon_block().get_epoch_block()
+        ChainConfig.BLOCK_PER_EPOCH = chain_info.get_block_per_epoch_number()
 
 
 class TestConfig:

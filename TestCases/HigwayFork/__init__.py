@@ -61,28 +61,75 @@ def get_block_height(chain_id):
     return height
 
 
-def create_fork(cID, num_of_branch, branch_tobe_continue=2, num_of_block_list=5):
+def calculated_and_create_fork(chain_id, at_transfer_next_epoch=False, min_blocks_wait_fork=3, num_of_branch=2,
+                               branch_tobe_continue=2, num_of_block_fork=5):
+    """
+
+    @param chain_id:
+    @param at_transfer_next_epoch: True if create fork right at the time of epoch transfer, else False
+    @param min_blocks_wait_fork: Chain will be forked after at least {num_of_block_wait} blocks
+    @param num_of_branch:
+    @param branch_tobe_continue:
+    @param num_of_block_fork:
+    @return:
+    """
     chain_info = SUT().get_block_chain_info()
-    height_current = chain_info.get_beacon_block().get_height()
-    epoch = chain_info.get_beacon_block().get_epoch()
-    height_transfer_next_epoch = ChainHelper.cal_first_height_of_epoch(epoch + 1)
-    block_fork_list = []
-    for i in range(-int(num_of_block_list / 2), num_of_block_list - int(num_of_block_list / 2)):
-        block_fork_list.append(height_transfer_next_epoch + i)
-    num = block_fork_list[0] - height_current
-    assert num >= 5 and INFO(f'Chain will be forked after {num} blocks'), \
-        ERROR(
-            f'Epoch {epoch + 1} is coming, remain {height_transfer_next_epoch - height_current} block, rerun testscript')
-    if cID != 255:  # is not beacon
-        height_current = chain_info.get_shard_block(cID).get_height()
-        block_fork_list = [height_current + num]
-        for i in range(1, num_of_block_list):
-            block_fork_list.append(height_current + num + i)
+    beacon_height = chain_info.get_beacon_block().get_height()
+    epoch_current = chain_info.get_epoch_number()
+    block_per_epoch = chain_info.get_block_per_epoch_number()
+    remain_block_epoch = chain_info.get_num_of_remain_block_of_epoch_()
+    block_fork_list = [0] * num_of_block_fork
+    if chain_id != 255 and chain_id != -1:
+        height_current = chain_info.get_shard_block(chain_id).get_height()
+    else:
+        height_current = beacon_height
+    difference_height = beacon_height - height_current
+    INFO(f'Beacon height current {beacon_height}')
+    if at_transfer_next_epoch:
+        INFO('Create fork right at the time of epoch transfer')
+        if remain_block_epoch <= min_blocks_wait_fork:
+            if num_of_block_fork <= block_per_epoch - (min_blocks_wait_fork - remain_block_epoch):
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = ChainHelper.cal_first_height_of_epoch(epoch_current + 2) - int(
+                        num_of_block_fork / 2) + i - difference_height
+            else:
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = height_current + min_blocks_wait_fork + i
+        else:
+            if remain_block_epoch - min_blocks_wait_fork >= num_of_block_fork:
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = ChainHelper.cal_first_height_of_epoch(epoch_current + 1) - int(
+                        num_of_block_fork / 2) + i - difference_height
+            else:
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = height_current + min_blocks_wait_fork + i
+    else:
+        INFO('Create fork not at the time of epoch transfer')
+        assert num_of_block_fork < block_per_epoch, ERROR(
+            'The number of blocks fork is greater than the number of blocks per epoch')
+        if remain_block_epoch <= min_blocks_wait_fork:
+            if num_of_block_fork <= block_per_epoch - (min_blocks_wait_fork - remain_block_epoch):
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = height_current + min_blocks_wait_fork + i
+            else:
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = ChainHelper.cal_first_height_of_epoch(epoch_current + 2) \
+                                         + 1 + i - difference_height
+        else:
+            if remain_block_epoch - min_blocks_wait_fork >= num_of_block_fork:
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = height_current + min_blocks_wait_fork + i
+            else:
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = ChainHelper.cal_first_height_of_epoch(epoch_current + 1) \
+                                         + 1 + i - difference_height
+    real_blocks_wait = block_fork_list[0] - height_current
     INFO(
-        f'Create fork on chain_id{cID} at block_list {block_fork_list}, fork {num_of_branch} branchs, branch {branch_tobe_continue} tobe continue')
+        f'Create fork on chain_id_{chain_id} at block_list {block_fork_list}, fork {num_of_branch} branchs, branch {branch_tobe_continue} tobe continue')
+    INFO(f'Height_current {height_current}, chain will be forked after {real_blocks_wait} blocks')
     REQ_HANDLER = SUT.highways[0]
-    # REQ_HANDLER.create_fork(block_fork_list, cID, num_of_branch, branch_tobe_continue)
-    return height_current, block_fork_list
+    REQ_HANDLER.create_fork(block_fork_list, chain_id, num_of_branch, branch_tobe_continue)
+    return height_current, block_fork_list, real_blocks_wait
 
 
 def verify_trading_prv_token(trade_amount_list, trade_order, rate_before):

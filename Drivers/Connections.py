@@ -53,7 +53,7 @@ class RpcConnection:
         return Response(response, f'From: {self._base_url}')
 
     def print_pay_load(self):
-        print(f'{json.dumps(self._payload, indent=3)}')
+        print(f'RCP: {self._base_url} \n{json.dumps(self._payload, indent=3)}')
         return self
 
     def set_payload(self, payload):

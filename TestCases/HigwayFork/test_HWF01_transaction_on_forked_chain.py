@@ -1,12 +1,12 @@
 import pytest
 from concurrent.futures.thread import ThreadPoolExecutor
 
-from Configs.Constants import coin
+from Configs.Constants import coin, ChainConfig
 from Helpers.Logging import INFO, STEP, ERROR, DEBUG
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER, Account, AccountGroup
 from Objects.IncognitoTestCase import SUT
-from TestCases.HigwayFork import acc_list_1_shard, get_block_height, create_fork
+from TestCases.HigwayFork import acc_list_1_shard, get_block_height, calculated_and_create_fork
 
 receiver_same_shard = acc_list_1_shard[0]
 receiver_cross_shard = Account(
@@ -14,15 +14,21 @@ receiver_cross_shard = Account(
 sender_list = acc_list_1_shard[1:7]
 COIN_MASTER.top_him_up_prv_to_amount_if(coin(2), coin(5), sender_list)
 amount = 10000
+min_blocks_wait_fork = 6  # Chain will be forked after at least {min_blocks_wait_fork} blocks
+time_send_tx = 3  # create & send transaction before and after {time_send_tx} blocks
 
 
-@pytest.mark.parametrize('cID1, num_of_branch1, cID2, num_of_branch2', [
-    # (0, 2, None, None),
-    (255, 2, None, None),
-    # (1, 2, 255, 2),
-    (1, 2, 0, 2),
+@pytest.mark.parametrize('cID1, num_of_branch1, cID2, num_of_branch2, at_transfer_next_epoch', [
+    (0, 2, None, None, True),
+    (0, 2, None, None, False),
+    (255, 2, None, None, True),
+    (255, 2, None, None, False),
+    (1, 2, 255, 2, True),
+    (1, 2, 255, 2, False),
+    (1, 2, 0, 2, True),
+    (1, 2, 0, 2, False),
 ])
-def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2):
+def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_transfer_next_epoch):
     STEP(0, "Balance before")
     bal_b4_sender_dict = {}
     bal_b4_receiver = {}
@@ -38,19 +44,22 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2)
     STEP(1, f'Create fork on chain_id {cID1} & chain_id {cID2}')
     with ThreadPoolExecutor() as executor:
         if cID1 is not None:
-            thread = executor.submit(create_fork, cID1, num_of_branch1)
+            thread = executor.submit(calculated_and_create_fork, cID1, at_transfer_next_epoch=at_transfer_next_epoch,
+                                     min_blocks_wait_fork=min_blocks_wait_fork, num_of_branch=num_of_branch1)
         if cID2 is not None:
-            executor.submit(create_fork, cID2, num_of_branch2)
-    height_current, block_fork_list = thread.result()
+            executor.submit(calculated_and_create_fork, cID2, at_transfer_next_epoch=at_transfer_next_epoch,
+                            min_blocks_wait_fork=min_blocks_wait_fork, num_of_branch=num_of_branch2)
+    height_current, block_fork_list, real_blocks_wait = thread.result()
+
+    WAIT((real_blocks_wait - time_send_tx) * ChainConfig.BLOCK_TIME)
 
     STEP(2, "Create and send transaction")
     thread_pool = []
     thread_pool_view = []
     round_height = {}
-    error = None
-    for height in range(height_current, block_fork_list[-1] + 4):
+    for height in range(height_current, block_fork_list[-1] + time_send_tx + 2):
         round_height[height] = 0
-    while height_current < block_fork_list[-1] + 3:
+    while height_current < block_fork_list[-1] + time_send_tx:
         with ThreadPoolExecutor() as executor:
             thread_height = executor.submit(get_block_height, cID1)
             for cID in [cID1, cID2]:
@@ -70,14 +79,13 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2)
                 thread_pool.append(thread_send_prv)
         height_current = thread_height.result()
         INFO(f'Block_height: {height_current}')
-        if height_current in range(block_fork_list[0] - 1, block_fork_list[-1]):
-            round_height[height_current] += 1
-        if round_height[height_current] > num_of_branch1 * 2 + 2:
-            error = f'chain is stopped at {height_current}'
-            break
-        WAIT(10)
+        round_height[height_current] += 1
+        assert round_height[height_current] <= num_of_branch1 * 2 + 2, ERROR(f'Chain is stopped at {height_current}')
+        WAIT(ChainConfig.BLOCK_TIME)
 
-    WAIT(30)  # wait balance change
+    WAIT(10 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update
+
+    STEP(3, 'Get all view detail')
     for thread in thread_pool_view:
         result = thread.result()
         INFO(result.num_of_hash_follow_height())
@@ -103,11 +111,9 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2)
             ERROR(result.get_error_msg())
             DEBUG(result)
 
-    INFO('Verify balance')
+    STEP(4, 'Verify balance')
     for sender in sender_list:
         assert sender.get_prv_balance() == bal_b4_sender_dict[sender] - sum(fee_dict[sender]) - amount * len(
             fee_dict[sender])
     for receiver in [receiver_cross_shard, receiver_same_shard]:
         assert receiver.get_prv_balance() == bal_b4_receiver[receiver] + amount_receiver[receiver]
-
-    assert error is None, ERROR(error)

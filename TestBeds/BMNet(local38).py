@@ -1,6 +1,6 @@
 from Objects.TestBedObject import Node, Shard, Beacon
 
-addr = "172.105.114.134"
+addr = "51.79.76.38"
 
 full_node = Node(address=addr, rpc_port=8334, ws_port=18334, node_name='fullnode-testnet')
 
@@ -68,4 +68,4 @@ staker = [Node(address=addr, rpc_port=10335, node_name='staker0'),
           Node(address=addr, rpc_port=10367, node_name='staker32'),
           Node(address=addr, rpc_port=10368, node_name='staker33'),
           Node(address=addr, rpc_port=10369, node_name='staker34'),
-          ]
+]

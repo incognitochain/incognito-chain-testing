@@ -100,25 +100,26 @@ def view_height():
 def _test_view_dynamic():
     for i in range(1000):
         view_dynamic()
-        WAIT(10)
+        WAIT(ChainConfig.BLOCK_TIME)
 
 
-def test_view_height():
+def _test_view_height():
     for i in range(1000):
         view_height()
-        WAIT(10)
+        WAIT(ChainConfig.BLOCK_TIME)
 
 
-def _test_view_detail():
-    cID = -1
+def test_view_detail():
     for i in range(1000):
-        if cID == -1:
-            REQ_HANDLER = SUT.beacons.get_node()
-        else:
-            REQ_HANDLER = SUT.shards[cID].get_node()
-        result = REQ_HANDLER.get_all_view_detail(cID)
+        string_beacon = 'Beacon: '
+        string_beacon += str(SUT.beacons.get_node().get_all_view_detail(-1).num_of_hash_follow_height())
+        string_shard_0 = 'Shard 0: '
+        string_shard_0 += str(SUT.shards[0].get_node().get_all_view_detail(0).num_of_hash_follow_height())
+        string_shard_1 = 'Shard 1: '
+        string_shard_1 += str(SUT.shards[1].get_node().get_all_view_detail(1).num_of_hash_follow_height())
         INFO()
-        INFO(result.view_hash_follow_height())
-        INFO(result.num_of_hash_follow_height())
+        INFO(string_beacon)
+        INFO(string_shard_0)
+        INFO(string_shard_1)
         INFO()
-        WAIT(10)
+        WAIT(ChainConfig.BLOCK_TIME)
