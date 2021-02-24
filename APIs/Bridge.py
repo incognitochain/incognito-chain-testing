@@ -1,10 +1,8 @@
+from APIs import BaseRpcApi
 from Configs import Constants
-from Drivers import Connections
 
 
-class BridgeRpc:
-    def __init__(self, url):
-        self.rpc_connection = Connections.RpcConnection(url=url)
+class BridgeRpc(BaseRpcApi):
 
     def get_bridge_token_list(self):
         return self.rpc_connection. \

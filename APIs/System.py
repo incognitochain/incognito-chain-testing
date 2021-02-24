@@ -1,10 +1,8 @@
+from APIs import BaseRpcApi
 from Drivers.Connections import RpcConnection
 
 
-class SystemRpc:
-    def __init__(self, url):
-        self.rpc_connection = RpcConnection(url=url)
-
+class SystemRpc(BaseRpcApi):
     def retrieve_beacon_block_by_height(self, beacon_height, level=2):
         return self.rpc_connection.with_method('retrievebeaconblockbyheight').with_params(
             [beacon_height, level]).execute()

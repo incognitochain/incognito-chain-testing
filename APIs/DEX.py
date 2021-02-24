@@ -1,12 +1,9 @@
+from APIs import BaseRpcApi
 from Configs import Constants as Const
 from Configs.Constants import PRV_ID, BURNING_ADDR
-from Drivers.Connections import RpcConnection
 
 
-class DexRpc:
-    def __init__(self, url):
-        self.rpc_connection = RpcConnection(url=url)
-
+class DexRpc(BaseRpcApi):
     def contribute_prv(self, private_key, payment_address, amount_to_contribute, contribution_pair_id):
         return self.rpc_connection.with_method("createandsendtxwithprvcontribution"). \
             with_params([private_key,

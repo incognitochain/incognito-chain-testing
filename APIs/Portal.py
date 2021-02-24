@@ -1,11 +1,8 @@
+from APIs import BaseRpcApi
 from Configs.Constants import BURNING_ADDR
-from Drivers.Connections import RpcConnection
 
 
-class PortalRpc:
-    def __init__(self, url):
-        self.rpc_connection = RpcConnection(url=url)
-
+class PortalRpc(BaseRpcApi):
     # rate ########################################################################################
     def get_portal_final_exchange_rates(self, beacon_height):
         return self.rpc_connection.with_method('getportalfinalexchangerates'). \

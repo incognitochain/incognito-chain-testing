@@ -4,8 +4,8 @@ from Drivers.Connections import WebSocket
 
 
 class SubscriptionWs:
-    def __init__(self, web_socket: WebSocket):
-        self.ws_conn = web_socket
+    def __init__(self, url):
+        self.ws_conn = WebSocket(url)
 
     def subscribe_new_shard_block(self):
         return self.ws_conn.with_method("subcribenewshardblock").with_params([0]).execute()

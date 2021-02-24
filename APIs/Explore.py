@@ -1,10 +1,7 @@
-from Drivers.Connections import RpcConnection
+from APIs import BaseRpcApi
 
 
-class ExploreRpc:
-    def __init__(self, url):
-        self.rpc_connection = RpcConnection(url=url)
-
+class ExploreRpc(BaseRpcApi):
     def list_privacy_custom_token(self):
         return self.rpc_connection. \
             with_method('listprivacycustomtoken'). \

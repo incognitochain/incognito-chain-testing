@@ -1,12 +1,10 @@
+from APIs import BaseRpcApi
 from Configs import Constants
 from Configs.Constants import BURNING_ADDR, ChainConfig
 from Drivers import Connections
 
 
-class TransactionRpc:
-    def __init__(self, url):
-        self.rpc_connection = Connections.RpcConnection(url=url)
-
+class TransactionRpc(BaseRpcApi):
     def send_transaction(self, sender_private_key, dict_payment_address_amount_prv, fee=-1, privacy=1):
         """
         3rd param: -1 => auto estimate fee; >0 => fee * transaction size (KB)
@@ -117,7 +115,8 @@ class TransactionRpc:
                           ,
                           "TokenFee": token_fee
                       },
-                      "", token_privacy])
+                      # "", token_privacy
+                      ])
         return self.rpc_connection.with_method('createandsendprivacycustomtokentransaction').with_params(param). \
             execute()
 
@@ -328,13 +327,13 @@ class TransactionRpc:
     def create_convert_coin_ver1_to_ver2_transaction(self, private_key):
         return self.rpc_connection. \
             with_method('createconvertcoinver1tover2transaction'). \
-            with_params([private_key, 1]). \
+            with_params([private_key, -1]). \
             execute()
 
     def create_convert_coin_ver1_to_ver2_tx_token(self, private_key, token_id):
         return self.rpc_connection. \
             with_method('createconvertcoinver1tover2txtoken'). \
-            with_params([private_key, token_id, 1]). \
+            with_params([private_key, token_id, -1]). \
             execute()
 
     def get_transaction_by_receiver(self, payment_k, read_only_k):
