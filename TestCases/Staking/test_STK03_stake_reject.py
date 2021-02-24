@@ -62,7 +62,13 @@ def test_stake_same_validator(staker1, validator1, staker2, validator2):
     staking_state = bbsd.get_auto_staking_committees(validator1)
     if staking_state is None:
         STEP(2.1, 'Stake the first time and check balance after staking')
-        COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1751), staker1)
+        if staker1 == staker2:
+            topup_amount = coin(1750.5) * 2
+        else:
+            topup_amount = coin(1751)
+
+        COIN_MASTER.top_him_up_prv_to_amount_if(topup_amount, topup_amount, staker1)
+
         balance_before_stake_first = validator1.get_prv_balance()
         stake_response = validator1.stake_and_reward_me(auto_re_stake=False).subscribe_transaction()
         stake_fee = stake_response.get_fee()
@@ -74,10 +80,9 @@ def test_stake_same_validator(staker1, validator1, staker2, validator2):
         staked_shard = beacon_bsd.is_he_a_committee(validator1)
         assert staked_shard is not False
     else:
-        INFO('Staker already staked, proceed to next step')
+        assert False, 'Staker already staked, this test must be run again with another account'
 
     STEP(3, 'Stake the second time')
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1751), staker2)
     balance_before_stake_second = staker2.get_prv_balance()
     stake_response = staker2.stake(validator=validator2, auto_re_stake=False)
     print("stake_response = %s" % stake_response)

@@ -133,6 +133,15 @@ class BlockChainCore(BlockChainInfoBaseClass):
         """
         return self.data['ActiveShards']
 
+    def get_epoch_number(self):
+        return self.get_beacon_block().get_epoch()
+
+    def get_block_per_epoch_number(self):
+        return self.get_beacon_block().get_epoch_block()
+
+    def get_num_of_remain_block_of_epoch_(self):
+        return self.get_beacon_block().get_remaining_block_epoch()
+
     def __str__(self):
         string = f'beacon : {self.get_beacon_block()}\n'
         for i in range(self.get_active_shards()):

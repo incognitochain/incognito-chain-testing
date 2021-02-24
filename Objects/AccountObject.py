@@ -382,7 +382,7 @@ class Account:
             create_and_send_stop_auto_staking_transaction(self.private_key, reward_receiver.payment_key,
                                                           validator.validator_key)
 
-    def stk_un_stake_me(self):
+    def stk_stop_auto_stake_me(self):
         INFO('Un-stake me')
         return self.stk_stop_auto_staking(self, self)
 
@@ -393,7 +393,7 @@ class Account:
         return self.REQ_HANDLER.transaction(). \
             create_and_send_un_staking_transaction(self.private_key, validator.payment_key, validator.validator_key)
 
-    def stk_un_stake_him(self, him):
+    def stk_stop_auto_stake_him(self, him):
         INFO(f"Un-stake other: {him.validator_key}")
         return self.stk_stop_auto_staking(him, him)
 
