@@ -9,8 +9,9 @@ from APIs.Portal import PortalRpc
 from APIs.Subscription import SubscriptionWs
 from APIs.System import SystemRpc
 from APIs.Transaction import TransactionRpc
+from APIs.Utils import UtilsRpc
 from Configs.Constants import ChainConfig, PRV_ID
-from Drivers.Connections import WebSocket, RpcConnection, SshSession
+from Drivers.Connections import WebSocket, SshSession
 from Helpers import TestHelper
 from Helpers.Logging import INFO, DEBUG, INFO_HEADLINE
 from Helpers.TestHelper import l6, ChainHelper
@@ -54,12 +55,10 @@ class Node:
         self._rpc_port = rpc_port
         self._ws_port = ws_port
         self._node_name = node_name
-        self._web_socket = None
         self.account = account
         self.url = url
         if url is not None:
             self.parse_url(url)
-        self._rpc_connection = RpcConnection(self._get_rpc_url())
         self._ssh_session = SshSession(self._address, self._username, self._password, self._ssh_key)
         self._cache = {}
 
@@ -95,20 +94,6 @@ class Node:
     def _get_ws_url(self):
         return f'ws://{self._address}:{self._ws_port}'
 
-    def rpc_connection(self) -> RpcConnection:
-        """
-        get RPC connection to send custom command
-        @return: RpcConnection object
-        """
-        return self._rpc_connection
-
-    def web_socket_connection(self) -> WebSocket:
-        """
-        get web socket to send your custom command
-        @return: WebSocket object
-        """
-        return self._web_socket
-
     def transaction(self) -> TransactionRpc:
         """
         Transaction APIs by RPC
@@ -141,12 +126,13 @@ class Node:
         Subscription APIs on web socket
         @return: SubscriptionWs object
         """
-        if self._web_socket is None:
-            self._web_socket = WebSocket(self._get_ws_url())
-        return SubscriptionWs(self._web_socket)
+        return SubscriptionWs(self._get_ws_url())
 
     def explore_rpc(self) -> ExploreRpc:
         return ExploreRpc(self._get_rpc_url())
+
+    def util_rpc(self) -> UtilsRpc:
+        return UtilsRpc(self._get_rpc_url())
 
     def get_latest_beacon_block(self, beacon_height=None):
         if beacon_height is None:
