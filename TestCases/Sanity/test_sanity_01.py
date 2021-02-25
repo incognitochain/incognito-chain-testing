@@ -94,6 +94,7 @@ def test_02_transaction():
 
 @pytest.mark.testnet
 def test_03_portal():
+    pytest.skip("feature is removed")
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1), coin(1.5), PORTAL_FEEDER)
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(10), coin(20), account_0)
     STEP(1, 'Portal: deposit collateral')
@@ -536,7 +537,7 @@ def test_07_pdex_withdraw_contribution():
 @pytest.mark.dependency(depends=['test_04_staking'])
 def test_09_stop_staking(stake_funder, the_staked):
     STEP(1, 'Send stop auto staking tx')
-    unstake_tx = stake_funder.stk_un_stake_him(the_staked)
+    unstake_tx = stake_funder.stk_stop_auto_stake_him(the_staked)
     unstake_tx.expect_no_error()
     unstake_tx.subscribe_transaction()
 
