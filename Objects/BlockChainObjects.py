@@ -139,7 +139,7 @@ class BlockChainCore(BlockChainInfoBaseClass):
     def get_block_per_epoch_number(self):
         return self.get_beacon_block().get_epoch_block()
 
-    def get_num_of_remain_block_of_epoch_(self):
+    def get_num_of_remain_block_of_epoch(self):
         return self.get_beacon_block().get_remaining_block_epoch()
 
     def __str__(self):
@@ -153,6 +153,13 @@ class BlockChainCore(BlockChainInfoBaseClass):
         raw_json = json.dumps(self.data, indent=3)
         print(raw_json)
         return raw_json
+
+    def cal_fist_height_of_epoch(self):
+        return self.get_beacon_block().get_height() + self.get_num_of_remain_block_of_epoch() \
+               - self.get_block_per_epoch_number() + 1
+
+    def cal_last_height_of_epoch(self):
+        return self.get_beacon_block().get_height() + self.get_num_of_remain_block_of_epoch()
 
     class BlockChainBlock(BlockChainInfoBaseClass):
         def get_height(self):

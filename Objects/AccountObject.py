@@ -28,9 +28,9 @@ class Account:
     def set_remote_addr(self, *addresses):
         """
 
-        :param addresses:
+        @param addresses:
             address list with following order: BNB, BTC. Set to None if you wish to leave the address empty
-        :return:
+        @return:
         """
         support_token_list = [PBNB_ID, PBTC_ID]
         for token, address in zip(support_token_list, addresses):
@@ -198,7 +198,7 @@ class Account:
         """
         find payment address from private key
 
-        :return:
+        @return:
         """
         if not force:
             if self.payment_key is not None:
@@ -211,7 +211,7 @@ class Account:
     def find_public_key(self, force=False):
         """
 
-        :return:
+        @return:
         """
         if not force:
             if self.public_key is not None:
@@ -231,8 +231,8 @@ class Account:
         """
         get balance by token_id
 
-        :param token_id:
-        :return:
+        @param token_id:
+        @return:
         """
 
         result = self.REQ_HANDLER.transaction().get_custom_token_balance(self.private_key, token_id). \
@@ -246,7 +246,7 @@ class Account:
     def get_all_custom_token_balance(self):
         """
 
-        :return: example
+        @return: example
         [
             {
                 "Name": "",
@@ -343,7 +343,7 @@ class Account:
     def stake_and_reward_me(self, stake_amount=None, auto_re_stake=True):
         """
 
-        :return:
+        @return:
         """
         INFO(f"Stake and reward me: {self.validator_key}")
         if self.payment_key is None:
@@ -360,7 +360,7 @@ class Account:
     def stake_someone_reward_me(self, someone, stake_amount=None):
         """
 
-        :return:
+        @return:
         """
         INFO(f'Stake {someone.validator_key} but reward me')
         return self.REQ_HANDLER.transaction(). \
@@ -370,7 +370,7 @@ class Account:
     def stake_someone_reward_him(self, someone, stake_amount=None, auto_re_stake=True):
         """
 
-        :return:
+        @return:
         """
         INFO(f'Stake and reward other: f{someone.validator_key}')
         return self.REQ_HANDLER.transaction(). \
@@ -513,7 +513,7 @@ class Account:
         when the shard_id is specify, then it will on that shard
         if shard if = -1, it will ask for the balance on it own shard
 
-        :return:
+        @return:
         """
 
         # from privacy v2, must subscribe with private key to get balance, hence the code below
@@ -545,12 +545,12 @@ class Account:
     def send_public_token(self, token_id, amount, receiver, password=None, memo=None):
         """
 
-        :param token_id:
-        :param amount:
-        :param receiver: Account or remote address
-        :param password:
-        :param memo:
-        :return:
+        @param token_id:
+        @param amount:
+        @param receiver: Account or remote address
+        @param password:
+        @param memo:
+        @return:
         """
         cli = NeighborChainCli.new(token_id)
         receiver_remote_addr = receiver.get_remote_addr(token_id) if type(receiver) is Account else receiver
@@ -565,11 +565,11 @@ class Account:
         """
         send amount_prv of prv to to_account. by default fee=-1 and privacy=1
 
-        :param receiver_account:
-        :param amount:
-        :param fee: default = auto
-        :param privacy: default = privacy on
-        :return: Response object
+        @param receiver_account:
+        @param amount:
+        @param fee: default = auto
+        @param privacy: default = privacy on
+        @return: Response object
         """
         INFO(f'From: {l6(self.private_key)}. Send {amount} prv to: {l6(receiver_account.payment_key)}')
 
@@ -579,10 +579,10 @@ class Account:
     def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1):
         """
 
-        :param dict_to_account_and_amount: a dictionary of {receiver account : amount}
-        :param fee:
-        :param privacy:
-        :return:
+        @param dict_to_account_and_amount: a dictionary of {receiver account : amount}
+        @param fee:
+        @param privacy:
+        @return:
         """
         send_param = dict()
         INFO(f"{l6(self.private_key)} sending prv to multiple accounts: --------------------------------------------- ")
@@ -598,9 +598,9 @@ class Account:
         """
         send all prv to another account
 
-        :param to_account:
-        :param privacy:
-        :return:
+        @param to_account:
+        @param privacy:
+        @return:
         """
 
         INFO(f'Sending everything to {to_account}')
@@ -619,7 +619,7 @@ class Account:
         """
         count number of unspent coin
 
-        :return: int
+        @return: int
         """
         INFO('Count unspent coin')
 
@@ -632,7 +632,7 @@ class Account:
         check if account need to be defrag by count unspent coin,
             if count > 1 then defrag
 
-        :return: Response object if need to defrag, None if not to
+        @return: Response object if need to defrag, None if not to
         """
         INFO('Defrag account')
 
@@ -657,9 +657,9 @@ class Account:
         """
         Init custom token to self payment address
 
-        :param token_symbol:
-        :param amount
-        :return:
+        @param token_symbol:
+        @param amount
+        @return:
         """
         INFO(f'Init custom token to self: {self.payment_key}')
 
@@ -671,10 +671,10 @@ class Account:
         """
         Init custom token to other account's payment address
 
-        :param account:
-        :param symbol:
-        :param amount
-        :return:
+        @param account:
+        @param symbol:
+        @param amount
+        @return:
         """
         INFO(f'Init custom token to: {account.payment_key}')
 
@@ -753,15 +753,15 @@ class Account:
         """
         Send token to receiver (custom token only, not prv)
 
-        :param prv_privacy:
-        :param prv_amount:
-        :param receiver: Account
-        :param token_id:
-        :param amount_custom_token:
-        :param prv_fee:
-        :param token_fee:
-        :param token_privacy:
-        :return: Response object
+        @param prv_privacy:
+        @param prv_amount:
+        @param receiver: Account
+        @param token_id:
+        @param amount_custom_token:
+        @param prv_fee:
+        @param token_fee:
+        @param token_privacy:
+        @return: Response object
         """
         INFO(f'Sending {amount_custom_token} token {l6(token_id)} to {l6(receiver.payment_key)}')
 
@@ -800,9 +800,9 @@ class Account:
     def burn_token(self, token_id, amount_custom_token):
         """
         Burning token (this mean send token to burning address)
-        :param token_id: Token ID
-        :param amount_custom_token: amount to burn
-        :return: Response object
+        @param token_id: Token ID
+        @param amount_custom_token: amount to burn
+        @return: Response object
         """
         INFO(f'Send custom token transaction to burning address')
         return self.REQ_HANDLER.transaction().send_custom_token_transaction(self.private_key,
@@ -820,7 +820,7 @@ class Account:
     def issue_centralize_token(self, token_id, token_name, amount):
         """
             initialize a new centralize token
-            :return: Response Object
+            @return: Response Object
         """
         return self.REQ_HANDLER.bridge().issue_centralized_bridge_token(self.payment_key, token_id,
                                                                         token_name, amount)
@@ -837,9 +837,9 @@ class Account:
                                                                                 prv_privacy=0,
                                                                                 token_privacy=0)
 
-        :param token_id: Token ID
-        :param amount_custom_token: amount to withdraw
-        :return: Response object
+        @param token_id: Token ID
+        @param amount_custom_token: amount to withdraw
+        @return: Response object
         """
         INFO(f'Withdraw centralize token')
         return self.REQ_HANDLER.transaction().withdraw_centralize_token(self.private_key, token_id,
@@ -867,7 +867,7 @@ class Account:
     def stk_get_reward_amount_all_token(self):
         """
 
-        :return:
+        @return:
         """
         try:
             return self.REQ_HANDLER.transaction().get_reward_amount(self.payment_key).get_result()
@@ -974,12 +974,12 @@ class Account:
                                 timeout=100):
         """
 
-        :param token_id:
-        :param from_balance:
-        :param least_change_amount: change at least this amount of token
-        :param check_interval:
-        :param timeout:
-        :return: new balance
+        @param token_id:
+        @param from_balance:
+        @param least_change_amount: change at least this amount of token
+        @param check_interval:
+        @param timeout:
+        @return: new balance
         """
         INFO(f'Wait for token {l6(token_id)} of {l6(self.private_key)} '
              f'balance to change at least: {least_change_amount}. From {from_balance}')
@@ -1090,8 +1090,8 @@ class Account:
     def portal_withdraw_my_all_free_collateral(self, psi=None):
         """
 
-        :param psi: PortalStateInfo
-        :return: Response if current total collateral > 0, None if = 0
+        @param psi: PortalStateInfo
+        @return: Response if current total collateral > 0, None if = 0
         """
         if psi is None:
             psi = self.REQ_HANDLER.get_latest_portal_state_info()
@@ -1109,11 +1109,11 @@ class Account:
     def portal_req_ported_ptoken(self, porting_id, token_id, amount, proof):
         """
 
-        :param porting_id:
-        :param token_id:
-        :param amount:
-        :param proof:
-        :return:
+        @param porting_id:
+        @param token_id:
+        @param amount:
+        @param proof:
+        @return:
         """
         INFO()
         INFO(f'Portal | User {l6(self.payment_key)} | req for ported token')
@@ -1125,8 +1125,8 @@ class Account:
     def portal_get_my_custodian_info(self, psi: PortalStateInfo = None):
         """
 
-        :param psi: PortalStateInfo
-        :return CustodianInfo or None:
+        @param psi: PortalStateInfo
+        @return CustodianInfo or None:
         """
         if psi is None:
             psi = self.REQ_HANDLER.get_latest_portal_state_info()
@@ -1218,11 +1218,11 @@ class Account:
     def top_him_up_token_to_amount_if(self, token_id, if_lower_than, top_up_to_amount, accounts_list):
         """
 
-        :param token_id:
-        :param if_lower_than: top up if current balance is equal or lower this number
-        :param top_up_to_amount:
-        :param accounts_list: Account or list of Account
-        :return:
+        @param token_id:
+        @param if_lower_than: top up if current balance is equal or lower this number
+        @param top_up_to_amount:
+        @param accounts_list: Account or list of Account
+        @return:
         """
         INFO_HEADLINE(f"TOP UP OTHERS' TOKEN {l6(token_id)} TO {top_up_to_amount}")
 
@@ -1254,15 +1254,17 @@ class Account:
 
         return send_tx
 
-    def top_him_up_prv_to_amount_if(self, if_lower_than, top_up_to_amount, accounts_list):
+    def top_him_up_prv_to_amount_if(self, if_lower_than, top_up_to_amount, accounts_list,
+                                    retry_interval=30, max_wait=180):
         """
-
-        :param if_lower_than: top up if current balance is equal or lower this number
-        :param top_up_to_amount:
-        :param accounts_list: Account or list of Account
-        :return:
+        @param if_lower_than: top up if current balance is equal or lower this number
+        @param top_up_to_amount:
+        @param accounts_list: Account or list of Account
+        @param retry_interval: amount of time to wait (in each tx)
+                to retry in case out put coin is being used in another transaction
+        @param max_wait: max time to wait (in each tx) if retry keep failing
+        @return:
         """
-        # breakpoint()
         if type(accounts_list) is Account:
             accounts_list = [accounts_list]
         receiver = {}
@@ -1287,14 +1289,27 @@ class Account:
         each, length, start = 20, len(receiver), 0
         mid = each
         keys = list(receiver.keys())
+        wasted_time = 0
         while start < length:
             sub_keys = keys[start:mid]
             sub_receivers = {k: receiver[k] for k in sub_keys}
             send_tx = self.send_prv_to_multi_account(sub_receivers)
-            send_tx.expect_no_error()
-            send_tx.subscribe_transaction()
-            start = mid
-            mid += each
+            # if 'Wrong input transaction Sum of inputs less than outputs' in send_tx.get_error_trace().get_message():
+            if send_tx.get_error_trace().get_error_codes() == -4001:
+                # coin being used in another tx
+                WAIT(retry_interval)
+                wasted_time += retry_interval
+                if wasted_time >= max_wait:
+                    raise BaseException(f"Waited {wasted_time}s but cannot create send tx, "
+                                        f"out put coins appear to being used use in another tx")
+
+            else:
+                # tx should be succeed
+                send_tx.expect_no_error()
+                send_tx.subscribe_transaction()
+                start = mid
+                mid += each
+                wasted_time = 0
 
         # thread_pool = []
         for acc, amount in receiver.items():
@@ -1352,8 +1367,8 @@ class AccountGroup:
         """
         iterate through accounts in account_list, check if they're in the same shard_number
 
-        :param shard_number: shard id to check
-        :return: list of Account which is in the same shard_number
+        @param shard_number: shard id to check
+        @return: list of Account which is in the same shard_number
         """
         INFO(f'Find all accounts in shard {shard_number}')
         accounts_in_shard: List[Account] = []
@@ -1394,9 +1409,9 @@ def get_accounts_in_shard(shard_number: int, account_list=None):
     """ @deprecated
     iterate through accounts in account_list, check if they're in the same shard_number
 
-    :param shard_number: shard id to check
-    :param account_list: account list to check, by default it's TestData
-    :return: list of Account which is in the same shard_number
+    @param shard_number: shard id to check
+    @param account_list: account list to check, by default it's TestData
+    @return: list of Account which is in the same shard_number
     """
     if account_list is None:
         from Objects.IncognitoTestCase import ACCOUNTS
