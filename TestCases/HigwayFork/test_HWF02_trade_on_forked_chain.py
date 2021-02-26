@@ -5,7 +5,7 @@ from concurrent.futures.thread import ThreadPoolExecutor
 import pytest
 
 from Configs.Constants import PRV_ID, coin, ChainConfig
-from Helpers.Logging import INFO, STEP, INFO_HEADLINE, ERROR, DEBUG
+from Helpers.Logging import INFO, STEP, INFO_HEADLINE, ERROR
 from Helpers.TestHelper import l6
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
@@ -39,14 +39,14 @@ def setup_function():
 
 
 @pytest.mark.parametrize('cID1, num_of_branch1, cID2, num_of_branch2, at_transfer_next_epoch', [
-    # (0, 2, None, None, True),
+    (0, 2, None, None, True),
     (0, 2, None, None, False),
-    # (255, 2, None, None, True),
-    # (255, 2, None, None, False),
-    # (1, 2, 255, 2, True),
-    # (1, 2, 255, 2, False),
-    # (1, 2, 0, 2, True),
-    # (1, 2, 0, 2, False),
+    (255, 2, None, None, True),
+    (255, 2, None, None, False),
+    (1, 2, 255, 2, True),
+    (1, 2, 255, 2, False),
+    (1, 2, 0, 2, True),
+    (1, 2, 0, 2, False),
 ])
 def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_transfer_next_epoch):
     pde_state_b4 = SUT().get_latest_pde_state_info()
@@ -116,9 +116,9 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
     height_current = copy.deepcopy(height_b4)
     thread_pool_view = []
     round_height = {}
-    for height in range(height_current, block_fork_list[-1] + time_send_tx + 2):
+    for height in range(height_current, block_fork_list[-1] + time_send_tx + 20):
         round_height[height] = 0
-    while height_current < block_fork_list[-1] + time_send_tx:
+    while height_current < block_fork_list[-1] + time_send_tx + 5:
         threads = []
         with ThreadPoolExecutor() as executor:
             thread_height = executor.submit(get_block_height, cID1)
@@ -140,10 +140,13 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
         INFO(f'Block_height: {height_current}')
         round_height[height_current] += 1
         assert round_height[height_current] <= num_of_branch1 * 2 + 2, ERROR(f'Chain is stopped at {height_current}')
-        WAIT(ChainConfig.BLOCK_TIME)
+        if height_current in block_fork_list:
+            WAIT(40)
+        else:
+            WAIT(ChainConfig.BLOCK_TIME * 2)
 
     STEP(3, 'Wait for Tx to be confirmed and balance to update')
-    WAIT(10 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update
+    WAIT(15 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update
     INFO('Get all view detail')
     for thread in thread_pool_view:
         result = thread.result()
@@ -183,19 +186,29 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
         real_trading_fees = copy.deepcopy(trading_fees)
         for i in range(0, len(threads)):
             result = threads[i].result()
-            try:
-                tx = result.subscribe_transaction()
-                height = tx.get_block_height()
-                shard = tx.get_shard_id()
-                INFO(f'Shard {shard}-height {height}')
-                tx_fee = tx.get_fee()
-                tx_fee_list[i] += tx_fee
-                count_tx_success[i] += 1
-            except AssertionError:
+            if result.get_error_msg() is None:
+                INFO(f'Get transaction tx_id = {result.get_tx_id()}')
+                tx_detail = result.get_transaction_by_hash()
+                if not tx_detail.is_none():
+                    height = tx_detail.get_block_height()
+                    shard = tx_detail.get_shard_id()
+                    INFO(f'Shard {shard}-height {height}')
+                    if height:
+                        tx_fee = tx_detail.get_fee()
+                        tx_fee_list[i] += tx_fee
+                        count_tx_success[i] += 1
+                    else:
+                        real_trade_amounts[i] = 0
+                        real_trading_fees[i] = 0
+                else:
+                    msg_error = SUT().transaction().get_tx_by_hash(result.get_tx_id()).get_error_msg()
+                    ERROR(msg_error)
+                    real_trade_amounts[i] = 0
+                    real_trading_fees[i] = 0
+            else:
+                ERROR(result.get_error_msg())
                 real_trade_amounts[i] = 0
                 real_trading_fees[i] = 0
-                ERROR(result.get_error_msg())
-                DEBUG(result)
         INFO(f" -- sell: {l6(token_sell)} - buy: {l6(PRV_ID)} -- ")
         calculated_rate_toks_prv, estimate_amount_prv_received_list = \
             verify_trading_prv_token(real_trade_amounts, trade_order, calculated_rate_toks_prv)
@@ -219,33 +232,52 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
     rate_toks_prv_after = pde_state_af.get_rate_between_token(token_sell, PRV_ID)
     rate_prv_tokb_after = pde_state_af.get_rate_between_token(PRV_ID, token_buy)
 
-    STEP(5, 'Verify sum fee')
-    sum_trading_fee = sum(sum_trading_fee_list)
-    first_half_reward = int(sum_trading_fee / 2)
-    second_half_reward = sum_trading_fee - first_half_reward
-    verify_sum_fee_prv_token(first_half_reward, token_sell, PRV_ID, pde_state_b4, pde_state_af)
-    verify_sum_fee_prv_token(second_half_reward, token_buy, PRV_ID, pde_state_b4, pde_state_af)
-
-    STEP(6, 'Verify each contributor reward ')
-    reward_result_1, SUMMARY1 = verify_contributor_reward_prv_token(first_half_reward, token_sell, PRV_ID,
-                                                                    pde_state_b4, pde_state_af)
-    reward_result_2, SUMMARY2 = verify_contributor_reward_prv_token(second_half_reward, PRV_ID, token_buy,
-                                                                    pde_state_b4, pde_state_af)
-    SUMMARY = SUMMARY1 + '\n' + SUMMARY2
-    final_reward_result = reward_result_1 and reward_result_2
-
-    INFO_HEADLINE('Test summary')
-    INFO(SUMMARY)
-
-    INFO("--")
+    INFO("---")
+    INFO(f'Count tx success: {count_tx_success}')
     INFO(f"tx fee list   : {str(tx_fee_list)}")
-    INFO(f"trading fee list   : {str(trading_fees)}")
+    INFO(f"trading fee list   : {str(sum_trading_fee_list)}")
     INFO(f"Rate {l6(PRV_ID)} vs {l6(token_buy)} - Before Trade : {str(rate_prv_tokb_before)}")
     INFO(f"Rate {l6(PRV_ID)} vs {l6(token_buy)} - After Trade : {str(rate_prv_tokb_after)}")
     INFO(f"Rate {l6(PRV_ID)} vs {l6(token_buy)} - Calculated Trade : {str(calculated_rate_prv_tokb)}")
     INFO(f"Rate {l6(token_sell)} vs {l6(PRV_ID)} - Before Trade : {str(rate_toks_prv_before)}")
     INFO(f"Rate {l6(token_sell)} vs {l6(PRV_ID)} - After Trade : {str(rate_toks_prv_after)}")
     INFO(f"Rate {l6(token_sell)} vs {l6(PRV_ID)} - Calculated Trade : {str(calculated_rate_toks_prv)}")
+    INFO(f"""::: estimated after vs real after of token buy
+            {estimate_bal_buy_after_list}
+            {balance_tok_buy_after}""")
+    INFO(f"""::: estimated after vs real after of token sell
+                {estimate_bal_sell_after_list}
+                {balance_tok_sell_after}""")
+    INFO(f"""::: estimated after vs real after of PRV
+                {estimate_bal_prv_sell_after_list}
+                {balance_prv_sell_after}""")
+
+    STEP(5, 'Verify sum fee')
+    sum_trading_fee = sum(sum_trading_fee_list)
+    first_half_reward = int(sum_trading_fee / 2)
+    sum_fee_pool_b4 = pde_state_b4.sum_contributor_reward_of_pair(None, token_sell, PRV_ID)
+    sum_fee_pool_af = pde_state_af.sum_contributor_reward_of_pair(None, token_sell, PRV_ID)
+    INFO(f'Verify contributor reward of {l6(token_sell)}-{l6(PRV_ID)}, '
+         f'Expected sum reward = {first_half_reward}, actual sum reward = {sum_fee_pool_af - sum_fee_pool_b4}')
+    different_trading_fee = abs(first_half_reward - (sum_fee_pool_af - sum_fee_pool_b4))
+    second_half_reward = sum_trading_fee - first_half_reward
+    sum_fee_pool_b4 = pde_state_b4.sum_contributor_reward_of_pair(None, token_buy, PRV_ID)
+    sum_fee_pool_af = pde_state_af.sum_contributor_reward_of_pair(None, token_buy, PRV_ID)
+    INFO(f'Verify contributor reward of {l6(token_buy)}-{l6(PRV_ID)}, '
+         f'Expected sum reward = {second_half_reward}, actual sum reward = {sum_fee_pool_af - sum_fee_pool_b4}')
+    different_trading_fee += abs(second_half_reward - (sum_fee_pool_af - sum_fee_pool_b4))
+
+    STEP(6, 'Verify each contributor reward ')
+    reward_result_1, SUMMARY1 = verify_contributor_reward_prv_token((sum_fee_pool_af - sum_fee_pool_b4), token_sell,
+                                                                    PRV_ID, pde_state_b4, pde_state_af)
+    reward_result_2, SUMMARY2 = verify_contributor_reward_prv_token((sum_fee_pool_af - sum_fee_pool_b4), PRV_ID,
+                                                                    token_buy, pde_state_b4, pde_state_af)
+    SUMMARY = SUMMARY1 + '\n' + SUMMARY2
+    final_reward_result = reward_result_1 and reward_result_2
+
+    INFO_HEADLINE('Test summary')
+    INFO(SUMMARY)
+
     assert final_reward_result, 'Wrong reward amount for contributors'
 
     STEP(7, f"Verify rate {l6(token_sell)} vs {l6(token_buy)}")
@@ -256,13 +288,9 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
             'WRONG: rate prv vs token buy')
 
     STEP(8, 'Verify balance')
-    INFO(f"""::: estimated after vs real after
-        {estimate_bal_buy_after_list}
-        {balance_tok_buy_after}""")
-    for i in range(num_of_traders):
-        assert abs(estimate_bal_sell_after_list[i] - balance_tok_sell_after[i]) <= count_tx_success[i] * 2, ERROR(
-            'WRONG: estimated balance sell after vs real after')
-        assert abs(estimate_bal_prv_sell_after_list[i] - balance_prv_sell_after[i]) <= count_tx_success[i] * 2, ERROR(
-            'WRONG: estimated balance prv of trader after vs real after')
-        assert abs(estimate_bal_buy_after_list[i] - balance_tok_buy_after[i]) <= count_tx_success[i] * 2, ERROR(
-            'WRONG: estimated balance buy after vs real after')
+    sum(abs(estimate_bal_sell_after_list[i] - balance_tok_sell_after[i]) for i in range(num_of_traders))
+    different_PRV = sum(
+        abs(estimate_bal_prv_sell_after_list[i] - balance_prv_sell_after[i]) for i in range(num_of_traders))
+    sum(abs(estimate_bal_buy_after_list[i] - balance_tok_buy_after[i]) for i in range(num_of_traders))
+
+    assert abs(different_trading_fee - different_PRV) <= sum(count_tx_success)

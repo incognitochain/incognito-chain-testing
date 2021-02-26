@@ -2,7 +2,7 @@ import pytest
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from Configs.Constants import coin, ChainConfig
-from Helpers.Logging import INFO, STEP, ERROR, DEBUG
+from Helpers.Logging import INFO, STEP, ERROR
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER, Account, AccountGroup
 from Objects.IncognitoTestCase import SUT
@@ -19,8 +19,8 @@ time_send_tx = 3  # create & send transaction before and after {time_send_tx} bl
 
 
 @pytest.mark.parametrize('cID1, num_of_branch1, cID2, num_of_branch2, at_transfer_next_epoch', [
-    (0, 2, None, None, True),
-    (0, 2, None, None, False),
+    (1, 2, None, None, True),
+    (1, 2, None, None, False),
     (255, 2, None, None, True),
     (255, 2, None, None, False),
     (1, 2, 255, 2, True),
@@ -57,7 +57,7 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
     thread_pool = []
     thread_pool_view = []
     round_height = {}
-    for height in range(height_current, block_fork_list[-1] + time_send_tx + 2):
+    for height in range(height_current, block_fork_list[-1] + time_send_tx + 20):
         round_height[height] = 0
     while height_current < block_fork_list[-1] + time_send_tx:
         with ThreadPoolExecutor() as executor:
@@ -81,9 +81,12 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
         INFO(f'Block_height: {height_current}')
         round_height[height_current] += 1
         assert round_height[height_current] <= num_of_branch1 * 2 + 2, ERROR(f'Chain is stopped at {height_current}')
-        WAIT(ChainConfig.BLOCK_TIME)
+        if height_current in block_fork_list + [block_fork_list[0] - 1]:
+            WAIT(40)
+        else:
+            WAIT(ChainConfig.BLOCK_TIME)
 
-    WAIT(10 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update
+    WAIT(15 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update
 
     STEP(3, 'Get all view detail')
     for thread in thread_pool_view:
@@ -91,29 +94,34 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
         INFO(result.num_of_hash_follow_height())
     for thread in thread_pool:
         result = thread.result()
-        try:
-            tx = result.subscribe_transaction()
-            height = tx.get_block_height()
-            shard = tx.get_shard_id()
-            INFO(f'Shard {shard}-height {height}')
-            key = tx.get_input_coin_pub_key()
-            sender = AccountGroup(*sender_list).find_account_by_key(key)
-            fee_dict[sender].append(tx.get_fee())
-            output_coin = tx.get_prv_proof_detail().get_output_coins()
-            for coin in output_coin:
-                if coin.get_value() == amount:
-                    public_key = coin.get_public_key()
-                    receiver = AccountGroup(*(receiver_same_shard, receiver_cross_shard)).find_account_by_key(
-                        public_key)
-                    amount_receiver[receiver] += amount
-                    break
-        except AssertionError:
+        if result.get_error_msg() is None:
+            INFO(f'Get transaction tx_id = {result.get_tx_id()}')
+            tx_detail = result.get_transaction_by_hash()
+            if not tx_detail.is_none():
+                height = tx_detail.get_block_height()
+                shard = tx_detail.get_shard_id()
+                INFO(f'Shard {shard}-height {height}')
+                key = tx_detail.get_input_coin_pub_key()
+                sender = AccountGroup(*sender_list).find_account_by_key(key)
+                fee_dict[sender].append(tx_detail.get_fee())
+                output_coin = tx_detail.get_prv_proof_detail().get_output_coins()
+                for coin in output_coin:
+                    if coin.get_value() == amount:
+                        public_key = coin.get_public_key()
+                        receiver = AccountGroup(*(receiver_same_shard, receiver_cross_shard)).find_account_by_key(
+                            public_key)
+                        amount_receiver[receiver] += amount
+                        break
+            else:
+                msg_error = SUT().transaction().get_tx_by_hash(result.get_tx_id()).get_error_msg()
+                ERROR(msg_error)
+        else:
             ERROR(result.get_error_msg())
-            DEBUG(result)
 
     STEP(4, 'Verify balance')
     for sender in sender_list:
         assert sender.get_prv_balance() == bal_b4_sender_dict[sender] - sum(fee_dict[sender]) - amount * len(
-            fee_dict[sender])
+            fee_dict[sender]), ERROR(f'Sender_{sender_list.index(sender)}: WRONG BALANCE')
     for receiver in [receiver_cross_shard, receiver_same_shard]:
-        assert receiver.get_prv_balance() == bal_b4_receiver[receiver] + amount_receiver[receiver]
+        assert receiver.get_prv_balance() == bal_b4_receiver[receiver] + amount_receiver[receiver], ERROR(
+            f'Receiver_shard_{receiver.calculate_shard_id}: WRONG BALANCE')
