@@ -1,7 +1,7 @@
 import sys
 
 from Configs.Constants import coin, ChainConfig
-from Helpers.Logging import INFO_HEADLINE
+from Helpers.Logging import INFO_HEADLINE, INFO
 from Objects.AccountObject import COIN_MASTER, PORTAL_FEEDER, AccountGroup
 from Objects.IncognitoTestCase import ACCOUNTS, SUT
 from Objects.NodeObject import Node
@@ -27,15 +27,15 @@ COIN_MASTER.req_to(SUT())
 
 INFO_HEADLINE("Setup from Testcase init")
 
-# INFO("CONVERT to COIN V2")
-# convert_tx = COIN_MASTER.convert_prv_to_v2()
-# if convert_tx.get_error_msg() == "Method not found":
-#     ChainConfig.PRIVACY_VERSION = 1
-# elif convert_tx.get_error_msg() == "Can not create tx":
-#     ChainConfig.PRIVACY_VERSION = 2
-# else:
-#     ChainConfig.PRIVACY_VERSION = 2
-#     convert_tx.subscribe_transaction()
+INFO("CONVERT to COIN V2")
+convert_tx = COIN_MASTER.convert_token_to_v2()
+if convert_tx.get_error_msg() == "Method not found":
+    ChainConfig.PRIVACY_VERSION = 1
+elif convert_tx.get_error_msg() == "Can not create tx":
+    ChainConfig.PRIVACY_VERSION = 2
+else:
+    ChainConfig.PRIVACY_VERSION = 2
+    convert_tx.subscribe_transaction()
 
 if ChainConfig.PRIVACY_VERSION == 2:
     COIN_MASTER.submit_key()

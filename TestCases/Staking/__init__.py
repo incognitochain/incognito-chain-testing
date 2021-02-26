@@ -8,10 +8,10 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
-from Configs.Constants import coin, ChainConfig
+from Configs.Constants import coin, ChainConfig, BURNING_ADDR
 from Helpers.KeyListJson import KeyListJson
 from Helpers.Logging import INFO, STEP, ERROR
-from Helpers.TestHelper import ChainHelper, l3
+from Helpers.TestHelper import l3
 from Objects.AccountObject import Account, AccountGroup, COIN_MASTER
 from Objects.IncognitoTestCase import SUT, ACCOUNTS, STAKER_ACCOUNTS, COMMITTEE_ACCOUNTS, BEACON_ACCOUNTS
 from Objects.TransactionObjects import TransactionDetail
@@ -92,6 +92,7 @@ def setup_module():
 
     global token_id, tear_down_trx008
     if token_id is None:
+        token_holder_shard_0.convert_token_to_v2()
         trx008.account_init = token_holder_shard_0
         trx008.prv_contribute_amount = prv_contribute_amount
         trx008.token_contribute_amount = token_contribute_amount
@@ -99,8 +100,13 @@ def setup_module():
         trx008.setup_module()
         token_id = trx008.test_init_ptoken()
         INFO(f'Setup module: new token: {token_id}')
-        token_holder_shard_0.send_token_to(token_holder_shard_1, token_id, token_contribute_amount / 2, prv_fee=-1,
-                                           prv_privacy=0).expect_no_error().subscribe_transaction()
+        # send token to other shard and burn 1 nano as a work-around for privacy v2 issue when token init on one shard
+        # but the token info does not get forwarded to other shards
+        # which cause the case that accounts on other shards have that token but cannot use.
+        burn_acc = Account('gasoline', BURNING_ADDR)
+        token_holder_shard_0. \
+            send_token_multi_output({token_holder_shard_1: token_contribute_amount / 2, burn_acc: 1}, token_id, -1). \
+            expect_no_error().subscribe_transaction()
         tear_down_trx008 = True
     else:
         INFO(f'Setup module: use existing token: {token_id}')

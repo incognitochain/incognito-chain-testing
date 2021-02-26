@@ -1,6 +1,6 @@
 import pytest
 
-from Configs.Constants import PRV_ID
+from Configs.Constants import PRV_ID, ChainConfig
 from Helpers.Logging import INFO_HEADLINE, INFO, STEP
 from Helpers.TestHelper import l6
 from Objects.IncognitoTestCase import ACCOUNTS
@@ -8,8 +8,10 @@ from Objects.IncognitoTestCase import ACCOUNTS
 
 @pytest.mark.parametrize('token_id, account_list', [
     (PRV_ID, ACCOUNTS),
-    # ('token',ACCOUNTS)
+    ('token', ACCOUNTS)
 ])
+@pytest.mark.skipif(ChainConfig.PRIVACY_VERSION != 2,
+                    reason=f"Only available in privacy v2 while current V is {ChainConfig.PRIVACY_VERSION}")
 def test_convert_coin_to_v2(token_id, account_list):
     for account in account_list:
         custom_token_list = []
@@ -36,7 +38,7 @@ def test_convert_coin_to_v2(token_id, account_list):
         STEP(3, 'Convert coin to v2')
         convert_tx_list = []
         if token_id == PRV_ID:
-            convert_tx = account.convert_prv_to_v2().subscribe_transaction()
+            convert_tx = account.convert_token_to_v2().subscribe_transaction()
             convert_tx_list.append(convert_tx)
         else:
             for token in custom_token_list:
@@ -79,7 +81,12 @@ def test_convert_coin_to_v2(token_id, account_list):
                 convert_tx.subscribe_transaction()
 
 
+@pytest.mark.skipif(ChainConfig.PRIVACY_VERSION != 2,
+                    reason=f"Only available in privacy v2 while current V is {ChainConfig.PRIVACY_VERSION}")
 def test_check_all_coin_v2():
+    if ChainConfig.PRIVACY_VERSION != 2:
+        pytest.skip(f'Chain does not yet support privacy v2')
+
     for acc in ACCOUNTS:
         INFO_HEADLINE(f'Checking all coin and token of {l6(acc.payment_key)}')
         for coin in acc.list_unspent_coin():

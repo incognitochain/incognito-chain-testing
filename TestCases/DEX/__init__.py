@@ -5,6 +5,7 @@ from Helpers.Logging import INFO, INFO_HEADLINE
 from Helpers.TestHelper import calculate_actual_trade_received, l6
 from Helpers.Time import get_current_date_time
 from Objects.AccountObject import Account, COIN_MASTER, AccountGroup
+from Objects.IncognitoTestCase import ACCOUNTS
 from TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 # contributor = ACCOUNTS[0]
@@ -12,12 +13,12 @@ token_owner = Account(
     '112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA')
 
 # when token_id set to none, init new token and use it for the test
-# otherwise, use token id for the test without initializing new token
+# otherwise, use specified token id for the test without initializing new token
 # token_id = "a4442a68070fc615abee5e8c665808ebc1c670e5fd16f49ca8e992bf7c126739"
 # token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
 # token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
-token_id_1 = "058cc10d616ffb34143da18ce28030ebe6d48c18a38779d371962b936439ea2e"  # local
-token_id_2 = "0e5544d44731d7973c72a336042f50051371fea16c1efe4098c6a2facb21ba18"  # local
+token_id_1 = "64f1539586983b9799d4819874e2635174c227c572f1fbf3649819c770f30e27"  # local
+token_id_2 = "d38cee5c53f2bdb5f31e77ed45e27d1db26f7d0043ce69d22b560aee1e496444"  # local
 # token_id_1 = None
 # token_id_2 = None
 token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff"  # token not yet added to PDE
@@ -194,6 +195,7 @@ def calculate_trade_order(trading_fees_list, amount_list):
     INFO("Sort order: " + str(sort_order))
     return sort_order
 
+
 # work around for privacy v2 "invalid token" bug, if not testing privacy v2, just comment these lines
 # if ChainConfig.PRIVACY_VERSION == 2:
 #     COIN_MASTER.top_him_up_prv_to_amount_if(1000, coin(1), acc_list_n_shard)
@@ -201,3 +203,8 @@ def calculate_trade_order(trading_fees_list, amount_list):
 #         pde_trade_prv(10, token_id_1, 1).expect_no_error().subscribe_transaction()
 #     acc_list_n_shard.get_accounts_in_shard(5)[0]. \
 #         pde_trade_prv(10, token_id_2, 1).expect_no_error().subscribe_transaction()
+
+# for acc in ACCOUNTS + acc_list_n_shard + acc_list_1_shard:
+#     acc.convert_token_to_v2(token_id_1)
+#     acc.convert_token_to_v2(token_id_2)
+#     acc.convert_token_to_v2()
