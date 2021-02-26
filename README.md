@@ -11,11 +11,11 @@
 1. Using run.sh script
     ./run.sh {test bed} {test data} {path to test script or test suite} [specific test case name (optional)]
 
-   - Test bed: locate under IncognitoChain/TestBeds/
-   - Test data: locate under IncognitoChain/TestData/
-   - Test script/suite: locate under IncognitoChain/TestCases
+   - Test bed: locate under TestBeds/
+   - Test data: locate under TestData/
+   - Test script/suite: locate under TestCases
    - example: 
-        ./run.sh Testnet account_sample IncognitoChain/TestCases/Transaction/test_TRX001*
+        ./run.sh Testnet account_sample TestCases/Transaction/test_TRX001*
 
 2. using pytest command directly: (use for old framework, not recommend for new framework
     pytest testcases/prv_transaction/test_sendPRV.py -s -v --no-print-logs

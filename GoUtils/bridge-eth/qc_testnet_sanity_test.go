@@ -41,7 +41,7 @@ import (
 
 const (
 	ethWaitTn     = 5
-	confirmWaitTn = 80
+	confirmWaitTn = 100
 	incWaitTn     = 100
 
 	GasPriceTn = 100000000000
@@ -159,8 +159,10 @@ func (tradingSuite *TnTradingTestSuite) SetupSuite() {
 	tradingSuite.IncBurningAddrStr = "12RxahVABnAVCGP3LGwCn8jkQxgw7z1x14wztHzn455TTVpi1wBq9YGwkRMQg3J4e657AbAnCvYCJSdA9czBUNuCKwGSRQt55Xwz8WA"
 	tradingSuite.IncPrivKeyStr = "112t8roafGgHL1rhAP9632Yef3sx5k8xgp8cwK4MCJsCL1UWcxXvpzg97N4dwvcD735iKf31Q2ZgrAvKfVjeSUEvnzKJyyJD3GqqSZdxN4or" // shard 0
 	tradingSuite.IncPaymentAddrStr = "12S5Lrs1XeQLbqN4ySyKtjAjd2d7sBP2tjFijzmp6avrrkQCNFMpkXm3FPzj2Wcu2ZNqJEmh9JriVuRErVwhuQnLmWSaggobEWsBEci"
+// 	tradingSuite.IncPaymentAddrStr = "12svfkP6w5UDJDSCwqH978PvqiqBxKmUnA9em9yAYWYJVRv7wuXY1qhhYpPAm4BDz2mLbFrRmdK3yRhnTqJCZXKHUmoi7NV83HCH2YFpctHNaDdkSiQshsjw2UFUuwdEvcidgaKmEvaNCaDU1Mr7"
 	tradingSuite.IncPrivaKeyReceiverStr = "112t8roMtSrKYCL4eA4aXiQ8umGz78znHRTdMpzKAbSgL1Cj6JtbkS9i87jW1KFjbpN9fwM3PY7LNJq3QyawdHX61eTwN6beiiayMjN4yPwC" // shard 1
 	tradingSuite.IncPaymentReceiverStr = "12S4oseu3scZJJuoLeGSEYZka1mmxHBNg7VbC1tQ67ZDjTUqzuRY4ABf4Bjop7uR22U1AxsLEheixfenpcc63tVG7E7QxF1zy5r1SXv"
+// 	tradingSuite.IncPaymentReceiverStr = "12suy7wB2qYzSdUYPrRu2Wys1ZccRDJVwoTY3TyqJjt5nNMUitutD73S5voK5dFmSRpQytiKHRiGs8CwJjx2ZZCjbSCkWSXDwMBpNpytGvKkE6Tg1MFFRNYqLkM5G1Q5a8BeAu9S8EuZQ3GLbQDx"
 
 	// tradingSuite.IncPrivKeyStr = "112t8rnhdyiruPke58LNeqwpzxn3cGQsfnS4dqec6P9HWPwNH7VKPgdXw9svDXp5djM4mQrMZnxwW7sjk5NLBkHXC3pJHBMsoqJi8sNUd47G"
 	// tradingSuite.IncPaymentAddrStr = "12S4HcgzM2zQeq41Bh9w8Ce5YETiQitoTZmTjCHLvvbwmoy8S9Py66wBjCqTgziWPbMpWEWPA2jRabwDmTk2TYV4nAzBN3SwjYN4zfE"
@@ -205,27 +207,27 @@ func (tradingSuite *TnTradingTestSuite) SetupSuite() {
 
 	tradingSuite.ETHHost = "https://kovan.infura.io/v3/1138a1e99b154b10bae5c382ad894361"
 
-	// tradingSuite.IncBridgeHost = "http://51.83.36.184:20002" //testnet 1
-	// tradingSuite.IncRPCHost = "http://51.83.36.184:20002"    //testnet 1
+	tradingSuite.IncBridgeHost = "http://51.83.36.184:20002" //testnet 1
+	tradingSuite.IncRPCHost = "http://51.83.36.184:20002"    //testnet 1
 
 	// tradingSuite.IncBridgeHost = "http://68.183.187.162:8334" //beacon test
 	// tradingSuite.IncRPCHost = "http://68.183.187.162:8334"    //beacon test
 
-	tradingSuite.IncBridgeHost = "http://51.161.119.66:9334" // testnet 2
-	tradingSuite.IncRPCHost = "http://51.161.119.66:9334"    // testnet 2
+// 	tradingSuite.IncBridgeHost = "http://139.162.55.124:8334" // testnet 2
+// 	tradingSuite.IncRPCHost = "http://139.162.55.124:8334"    // testnet 2
 
 	// tradingSuite.UniswapRouteContractAddr = common.HexToAddress("0xf164fC0Ec4E93095b804a4795bBe1e041497b92a")
 	// tradingSuite.KyberContractAddr = common.HexToAddress("0x692f391bCc85cefCe8C237C01e1f636BbD70EA4D")
 
-	// tradingSuite.UniswapTradeDeployedAddr = common.HexToAddress("0x7783C8c5AEC5cBFEF7311b4F4F33302DA6624d69") //testnet 1
-	tradingSuite.UniswapTradeDeployedAddr = common.HexToAddress("0x39017F874291D5d8Aaec9de07E04f5f8047B1C9d") //testnet 2
+	tradingSuite.UniswapTradeDeployedAddr = common.HexToAddress("0x7783C8c5AEC5cBFEF7311b4F4F33302DA6624d69") //testnet 1
+// 	tradingSuite.UniswapTradeDeployedAddr = common.HexToAddress("0x39017F874291D5d8Aaec9de07E04f5f8047B1C9d") //testnet 2
 
-	// tradingSuite.VaultAddr = common.HexToAddress("0xE0D5e7217c6C4bc475404b26d763fAD3F14D2b86") //testnet 1
-	// tradingSuite.IncognitoProxy = common.HexToAddress("0x347b65251d6D2f40dE8F44024F57FEB7b532d2eb")  //testnet 1
-	tradingSuite.VaultAddr = common.HexToAddress("0x7c7e371D1e25771f2242833C1A354dCE846f3ec8")      // testnet 2
-	tradingSuite.IncognitoProxy = common.HexToAddress("0xEaF4c7a89e82Db3aa5932C0F453E29927E1CD6c1") //testnet 2
-	// tradingSuite.KyberTradeDeployedAddr = common.HexToAddress("0xDD71ba9f17172a23F3e70ed70FFB96Fb403e4527")      // testnet 1
-	tradingSuite.KyberTradeDeployedAddr = common.HexToAddress("0x18c1C19b31b08407633776AB24B26Cfac137099d") // testnet 2
+	tradingSuite.VaultAddr = common.HexToAddress("0xE0D5e7217c6C4bc475404b26d763fAD3F14D2b86") //testnet 1
+	tradingSuite.IncognitoProxy = common.HexToAddress("0x347b65251d6D2f40dE8F44024F57FEB7b532d2eb")  //testnet 1
+// 	tradingSuite.VaultAddr = common.HexToAddress("0x7c7e371D1e25771f2242833C1A354dCE846f3ec8")      // testnet 2
+// 	tradingSuite.IncognitoProxy = common.HexToAddress("0xEaF4c7a89e82Db3aa5932C0F453E29927E1CD6c1") //testnet 2
+	tradingSuite.KyberTradeDeployedAddr = common.HexToAddress("0xDD71ba9f17172a23F3e70ed70FFB96Fb403e4527")      // testnet 1
+// 	tradingSuite.KyberTradeDeployedAddr = common.HexToAddress("0x18c1C19b31b08407633776AB24B26Cfac137099d") // testnet 2
 
 	// generate a new keys pair for SC
 	tradingSuite.genKeysPairForSC()
@@ -438,7 +440,7 @@ func (tradingSuite *TnTradingTestSuite) callBurningPToken(
 	bb, _ := json.Marshal(res)
 	fmt.Println("calling burning ptokens res : ", string(bb))
 	if res.RPCError != nil {
-		return nil, errors.New(res.RPCError.Message)
+		return nil, errors.New(res.RPCError.StackTrace)
 	}
 	return res.Result.(map[string]interface{}), nil
 }
@@ -827,7 +829,7 @@ func (tradingSuite *TnTradingTestSuite) executeWithKyber(
 }
 
 func (tradingSuite *TnTradingTestSuite) Test1DepositAndWithdrwaEther() {
-	// return
+// 	return
 	fmt.Println("============ TEST 1 DEPOSIT AND WITHDRAW ETHER ===========")
 	fmt.Println("------------ STEP 0: declaration & initialization --------------")
 	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
@@ -880,7 +882,7 @@ func (tradingSuite *TnTradingTestSuite) Test1DepositAndWithdrwaEther() {
 	require.Equal(tradingSuite.T(), nil, err)
 	fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
 
-	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	fmt.Printf("Waiting %vs for 15 blocks confirmation\n", confirmWaitTn)
 	time.Sleep(confirmWaitTn * time.Second)
 	_, err = tradingSuite.callIssuingETHReq(
 		tradingSuite.IncEtherTokenIDStr,
@@ -962,7 +964,7 @@ func (tradingSuite *TnTradingTestSuite) Test1DepositAndWithdrwaEther() {
 	require.Equal(tradingSuite.T(), nil, err)
 	fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
 
-	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	fmt.Printf("Waiting %vs for 15 blocks confirmation\n", confirmWaitTn)
 	time.Sleep(confirmWaitTn * time.Second)
 
 	_, err = tradingSuite.callIssuingETHReq(
@@ -1014,7 +1016,7 @@ func (tradingSuite *TnTradingTestSuite) Test1DepositAndWithdrwaEther() {
 }
 
 func (tradingSuite *TnTradingTestSuite) Test2DepositAndWithdrwaEtherCrossShard() {
-	// return
+// 	return
 	fmt.Println("============ TEST 2 DEPOSIT AND WITHDRAW ETHER Cross Shard ===========")
 	fmt.Println("------------ STEP 0: declaration & initialization --------------")
 	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
@@ -1075,7 +1077,7 @@ func (tradingSuite *TnTradingTestSuite) Test2DepositAndWithdrwaEtherCrossShard()
 	require.Equal(tradingSuite.T(), nil, err)
 	fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
 
-	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	fmt.Printf("Waiting %vs for 15 blocks confirmation\n", confirmWaitTn)
 	time.Sleep(confirmWaitTn * time.Second)
 	_, err = tradingSuite.callIssuingETHReq(
 		tradingSuite.IncEtherTokenIDStr,
@@ -1169,7 +1171,7 @@ func (tradingSuite *TnTradingTestSuite) Test2DepositAndWithdrwaEtherCrossShard()
 	require.Equal(tradingSuite.T(), nil, err)
 	fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
 
-	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	fmt.Printf("Waiting %vs for 15 blocks confirmation\n", confirmWaitTn)
 	time.Sleep(confirmWaitTn * time.Second)
 
 	_, err = tradingSuite.callIssuingETHReq(
@@ -1233,7 +1235,7 @@ func (tradingSuite *TnTradingTestSuite) Test2DepositAndWithdrwaEtherCrossShard()
 }
 
 func (tradingSuite *TnTradingTestSuite) Test3TradeEthForUSDC() {
-	// return
+// 	return
 	fmt.Println("============ TEST 3 TRADE ETHER FOR USDC WITH Uniswap AGGREGATOR ===========")
 	fmt.Println("------------ STEP 0: declaration & initialization --------------")
 	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
@@ -1293,7 +1295,7 @@ func (tradingSuite *TnTradingTestSuite) Test3TradeEthForUSDC() {
 	fmt.Println("[INFO] ETH balance remain after deposit : ", balEthAfDep)
 	// TODO : assert ETH balance
 
-	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	fmt.Printf("Waiting %vs for 15 blocks confirmation\n", confirmWaitTn)
 	time.Sleep(confirmWaitTn * time.Second)
 	_, err = tradingSuite.callIssuingETHReq(
 		tradingSuite.IncEtherTokenIDStr,
@@ -1389,7 +1391,7 @@ func (tradingSuite *TnTradingTestSuite) Test3TradeEthForUSDC() {
 	require.Equal(tradingSuite.T(), nil, err)
 	fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
 
-	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	fmt.Printf("Waiting %vs for 15 blocks confirmation\n", confirmWaitTn)
 	time.Sleep(confirmWaitTn * time.Second)
 
 	_, err = tradingSuite.callIssuingETHReq(
@@ -1441,7 +1443,7 @@ func (tradingSuite *TnTradingTestSuite) Test3TradeEthForUSDC() {
 }
 
 func (tradingSuite *TnTradingTestSuite) Test4DepositAndWithdrwatokenUSDC() {
-	// return
+// 	return
 	fmt.Println("============ TEST 4 DEPOSIT AND WITHDRAW ERC20 TOKEN (USDC) ===========")
 	fmt.Println("------------ STEP 0: declaration & initialization --------------")
 
@@ -1505,7 +1507,7 @@ func (tradingSuite *TnTradingTestSuite) Test4DepositAndWithdrwatokenUSDC() {
 	require.Equal(tradingSuite.T(), nil, err)
 	fmt.Println("depositProof ---- : ", ethBlockHash, ethTxIdx, ethDepositProof)
 
-	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	fmt.Printf("Waiting %vs for 15 blocks confirmation\n", confirmWaitTn)
 	time.Sleep(confirmWaitTn * time.Second)
 
 	_, err = tradingSuite.callIssuingETHReq(
@@ -1584,7 +1586,7 @@ func (tradingSuite *TnTradingTestSuite) Test4DepositAndWithdrwatokenUSDC() {
 	require.Equal(tradingSuite.T(), nil, err)
 	fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
 
-	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	fmt.Printf("Waiting %vs for 15 blocks confirmation\n", confirmWaitTn)
 	time.Sleep(confirmWaitTn * time.Second)
 
 	_, err = tradingSuite.callIssuingETHReq(
@@ -1635,7 +1637,7 @@ func (tradingSuite *TnTradingTestSuite) Test4DepositAndWithdrwatokenUSDC() {
 }
 
 func (tradingSuite *TnTradingTestSuite) Test5TradeEthForKNCWithKyber() {
-	// return
+// 	return
 	fmt.Println("============ TEST 5 TRADE ETHER FOR KNC WITH Kyber AGGREGATOR ===========")
 	fmt.Println("------------ STEP 0: declaration & initialization --------------")
 	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
@@ -1696,7 +1698,7 @@ func (tradingSuite *TnTradingTestSuite) Test5TradeEthForKNCWithKyber() {
 	fmt.Println("[INFO] ETH balance remain after deposit : ", balEthAfDep)
 	// TODO : assert ETH balance
 
-	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	fmt.Printf("Waiting %vs for 15 blocks confirmation\n", confirmWaitTn)
 	time.Sleep(confirmWaitTn * time.Second)
 	_, err = tradingSuite.callIssuingETHReq(
 		tradingSuite.IncEtherTokenIDStr,
@@ -1791,7 +1793,7 @@ func (tradingSuite *TnTradingTestSuite) Test5TradeEthForKNCWithKyber() {
 	require.Equal(tradingSuite.T(), nil, err)
 	fmt.Println("depositProof by emitting withdarawal req: ", ethBlockHash, ethTxIdx, ethDepositProof)
 
-	fmt.Println("Waiting 90s for 15 blocks confirmation")
+	fmt.Printf("Waiting %vs for 15 blocks confirmation\n", confirmWaitTn)
 	time.Sleep(confirmWaitTn * time.Second)
 	_, err = tradingSuite.callIssuingETHReq(
 		tradingSuite.IncKNCTokenIDStr,
