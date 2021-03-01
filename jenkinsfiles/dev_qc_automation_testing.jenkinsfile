@@ -538,7 +538,7 @@ pipeline {
       wrap([$class: 'BuildUser']) {
         slackSend(channel: "#incognito-jenkins-dev", attachments: [
           [
-            text : "Build <${BUILD_URL}|*${JOB_NAME} ${BUILD_DISPLAY_NAME}*> is successful\nTriggered by <${env.BUILD_USER_EMAIL}|${env.BUILD_USER}>",
+            text : "Build <${BUILD_URL}|*${JOB_NAME} ${BUILD_DISPLAY_NAME}*> is successful\nTriggered by <mailto:${env.BUILD_USER_EMAIL}|${env.BUILD_USER}>",
             color: '#4caf50',
             type : 'mrkdwn',
           ]
