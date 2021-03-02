@@ -4,15 +4,16 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from Configs.Constants import coin, ChainConfig
 from Helpers.Logging import INFO, STEP, ERROR
 from Helpers.Time import WAIT
-from Objects.AccountObject import COIN_MASTER, Account, AccountGroup
+from Objects.AccountObject import COIN_MASTER, Account
 from Objects.IncognitoTestCase import SUT
 from TestCases.HigwayFork import acc_list_1_shard, get_block_height, calculated_and_create_fork
 
-receiver_same_shard = acc_list_1_shard[0]
-receiver_cross_shard = Account(
+receiver_shard_0 = Account(
     '112t8rnakdKxvk7VMKUB9qmsPY4czwnP24b82BnepcxHLX6kJ1dYQsR8d6xNTzwC9nEhJdocr9u19NAr4iSYXCeTBRu3YET8iADMAP3szdfw')
-sender_list = acc_list_1_shard[1:7]
-COIN_MASTER.top_him_up_prv_to_amount_if(coin(2), coin(5), sender_list)
+receiver_shard_1 = acc_list_1_shard[0]
+senders_from_1_to_0 = acc_list_1_shard[1:4]
+senders_from_1_to_1 = acc_list_1_shard[4:7]
+COIN_MASTER.top_him_up_prv_to_amount_if(coin(2), coin(5), senders_from_1_to_0 + senders_from_1_to_1)
 amount = 10000
 min_blocks_wait_fork = 6  # Chain will be forked after at least {min_blocks_wait_fork} blocks
 time_send_tx = 3  # create & send transaction before and after {time_send_tx} blocks
@@ -36,10 +37,10 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
     bal_b4_receiver = {}
     amount_receiver = {}
     fee_dict = {}
-    for sender in sender_list:
+    for sender in senders_from_1_to_0 + senders_from_1_to_1:
         bal_b4_sender_dict[sender] = sender.get_prv_balance()
         fee_dict[sender] = []
-    for receiver in [receiver_cross_shard, receiver_same_shard]:
+    for receiver in [receiver_shard_0, receiver_shard_1]:
         bal_b4_receiver[receiver] = receiver.get_prv_balance()
         amount_receiver[receiver] = 0
 
@@ -58,12 +59,15 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
     WAIT((real_blocks_wait - time_send_tx) * ChainConfig.BLOCK_TIME)
 
     STEP(2, "Create and send transaction")
-    thread_pool = []
+    thread_tx_cross_shard = []
+    thread_tx_same_shard = []
     thread_pool_view = []
     round_height = {}
     for height in range(height_current, block_fork_list[-1] + time_send_tx + 20):
         round_height[height] = 0
     while height_current < block_fork_list[-1] + time_send_tx:
+        list_thread_same = []
+        list_thread_cross = []
         with ThreadPoolExecutor() as executor:
             thread_height = executor.submit(get_block_height, cID1)
             for cID in [cID1, cID2]:
@@ -75,12 +79,14 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
                     REQ_HANDLER = SUT.shards[cID].get_node()
                     thread_view_detail = executor.submit(REQ_HANDLER.get_all_view_detail, cID)
                     thread_pool_view.append(thread_view_detail)
-            for sender in sender_list[0:3]:
-                thread_send_prv = executor.submit(sender.send_prv_to, receiver_same_shard, amount, privacy=0)
-                thread_pool.append(thread_send_prv)
-            for sender in sender_list[3:6]:
-                thread_send_prv = executor.submit(sender.send_prv_to, receiver_cross_shard, amount, privacy=0)
-                thread_pool.append(thread_send_prv)
+            for sender in senders_from_1_to_1:
+                thread_send_prv = executor.submit(sender.send_prv_to, receiver_shard_1, amount, privacy=0)
+                list_thread_same.append(thread_send_prv)
+            for sender in senders_from_1_to_0:
+                thread_send_prv = executor.submit(sender.send_prv_to, receiver_shard_0, amount, privacy=0)
+                list_thread_cross.append(thread_send_prv)
+        thread_tx_cross_shard.append(list_thread_cross)
+        thread_tx_same_shard.append(list_thread_same)
         height_current = thread_height.result()
         INFO(f'Block_height: {height_current}')
         round_height[height_current] += 1
@@ -90,58 +96,70 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
         else:
             WAIT(ChainConfig.BLOCK_TIME)
 
-    WAIT(15 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update
+    WAIT(10 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update
 
     STEP(3, 'Get all view detail')
     for thread in thread_pool_view:
         result = thread.result()
         INFO(result.num_of_hash_follow_height())
-    for thread in thread_pool:
-        result = thread.result()
-        if result.get_error_msg() is None:
-            INFO(f'Get transaction tx_id = {result.get_tx_id()}')
-            tx_detail = result.get_transaction_by_hash()
-            if not tx_detail.is_none():
-                height = tx_detail.get_block_height()
-                shard = tx_detail.get_shard_id()
-                INFO(f'Shard {shard}-height {height}')
-                if height:
-                    key = tx_detail.get_input_coin_pub_key()
-                    sender = AccountGroup(*sender_list).find_account_by_key(key)
-                    fee_dict[sender].append(tx_detail.get_fee())
-                    output_coin = tx_detail.get_prv_proof_detail().get_output_coins()
-                    for coin in output_coin:
-                        if coin.get_value() == amount:
-                            public_key = coin.get_public_key()
-                            receiver = AccountGroup(*(receiver_same_shard, receiver_cross_shard)).find_account_by_key(
-                                public_key)
-                            amount_receiver[receiver] += amount
-                            break
+    for list_thread in thread_tx_same_shard:
+        for i in range(len(list_thread)):
+            result = list_thread[i].result()
+            if result.get_error_msg() is None:
+                INFO(f'Get transaction tx_id = {result.get_tx_id()}')
+                tx_detail = result.get_transaction_by_hash()
+                if not tx_detail.is_none():
+                    height = tx_detail.get_block_height()
+                    shard = tx_detail.get_shard_id()
+                    INFO(f'Shard {shard}-height {height}')
+                    if height:
+                        fee_dict[senders_from_1_to_1[i]].append(tx_detail.get_fee())
+                else:
+                    msg_error = SUT().transaction().get_tx_by_hash(result.get_tx_id()).get_error_msg()
+                    ERROR(msg_error)
             else:
-                msg_error = SUT().transaction().get_tx_by_hash(result.get_tx_id()).get_error_msg()
-                ERROR(msg_error)
-        else:
-            ERROR(result.get_error_msg())
+                ERROR(result.get_error_msg())
+    for list_thread in thread_tx_cross_shard:
+        for i in range(len(list_thread)):
+            result = list_thread[i].result()
+            if result.get_error_msg() is None:
+                INFO(f'Get transaction tx_id = {result.get_tx_id()}')
+                tx_detail = result.get_transaction_by_hash()
+                if not tx_detail.is_none():
+                    height = tx_detail.get_block_height()
+                    shard = tx_detail.get_shard_id()
+                    INFO(f'Shard {shard}-height {height}')
+                    if height:
+                        fee_dict[senders_from_1_to_0[i]].append(tx_detail.get_fee())
+                else:
+                    msg_error = SUT().transaction().get_tx_by_hash(result.get_tx_id()).get_error_msg()
+                    ERROR(msg_error)
+            else:
+                ERROR(result.get_error_msg())
 
     STEP(4, 'Verify balance')
-    diff_send_same = 0
-    diff_send_cross = 0
-    for sender in sender_list[0:3]:
+    diff_send_same = []
+    diff_send_cross = []
+    amount_send_same = 0
+    amount_send_cross = 0
+    for sender in senders_from_1_to_1:
+        amount_send_same += amount * len(fee_dict[sender])
         diff = sender.get_prv_balance() - (
                 bal_b4_sender_dict[sender] - sum(fee_dict[sender]) - amount * len(fee_dict[sender]))
-        diff_send_same += diff
+        diff_send_same.append(diff)
     INFO(f'Different balance sender same shard: {diff_send_same}')
-    for sender in sender_list[3:6]:
+    for sender in senders_from_1_to_0:
+        amount_send_cross += amount * len(fee_dict[sender])
         diff = sender.get_prv_balance() - (
                 bal_b4_sender_dict[sender] - sum(fee_dict[sender]) - amount * len(fee_dict[sender]))
-        diff_send_cross += diff
+        diff_send_cross.append(diff)
     INFO(f'Different balance sender cross shard: {diff_send_cross}')
-    diff_receiver_same = receiver_same_shard.get_prv_balance() - (
-            bal_b4_receiver[receiver_same_shard] + amount_receiver[receiver_same_shard])
+    diff_receiver_same = receiver_shard_1.get_prv_balance() - (
+            bal_b4_receiver[receiver_shard_1] + amount_send_same)
     INFO(f'Different balance receiver same shard: {diff_receiver_same}')
-    diff_receiver_cross = receiver_cross_shard.get_prv_balance() - (
-            bal_b4_receiver[receiver_cross_shard] + amount_receiver[receiver_cross_shard])
+    diff_receiver_cross = receiver_shard_0.get_prv_balance() - (
+            bal_b4_receiver[receiver_shard_0] + amount_send_cross)
     INFO(f'Different balance receiver cross shard: {diff_receiver_cross}')
 
-    assert diff_send_cross == - diff_receiver_cross
-    assert diff_send_same == - diff_receiver_same
+    assert sum(diff_send_cross) == - diff_receiver_cross
+    assert sum(diff_send_same) == - diff_receiver_same

@@ -174,7 +174,7 @@ class Account:
             self.find_public_key()
         response = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
         last_byte = response.get_result("PublicKeyInBytes")[-1]
-        self.shard = last_byte % ChainConfig.ACTIVE_SHARD
+        self.shard = last_byte % 8
         return self.shard
 
     def __str__(self):

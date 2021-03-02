@@ -10,7 +10,7 @@ from Helpers.TestHelper import l6
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT, ACCOUNTS
-from TestCases.DEX import calculate_trade_order, verify_sum_fee_prv_token, verify_contributor_reward_prv_token
+from TestCases.DEX import calculate_trade_order, verify_contributor_reward_prv_token
 from TestCases.HigwayFork import get_block_height, token_id_1, token_id_2, token_owner, \
     calculated_and_create_fork, verify_trading_prv_token
 
@@ -146,7 +146,7 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
             WAIT(ChainConfig.BLOCK_TIME * 2)
 
     STEP(3, 'Wait for Tx to be confirmed and balance to update')
-    WAIT(15 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update
+    WAIT(10 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update
     INFO('Get all view detail')
     for thread in thread_pool_view:
         result = thread.result()

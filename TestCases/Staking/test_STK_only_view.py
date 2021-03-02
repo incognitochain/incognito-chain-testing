@@ -1,3 +1,4 @@
+from concurrent.futures.thread import ThreadPoolExecutor
 from Configs.Constants import ChainConfig
 from Helpers.Logging import INFO
 from Helpers.Time import WAIT
@@ -6,17 +7,33 @@ from TestCases.Staking import get_staking_info_of_validator
 
 
 def view_dynamic():
-    beacon_bs = SUT().get_beacon_best_state_info()
+    shard_active = ChainConfig.ACTIVE_SHARD
+    shard_bs_list = []
+    pending_validator = {}
+    shard_committees = {}
+    shard_height = {}
+    with ThreadPoolExecutor() as executor:
+        thread_beacon_bs = executor.submit(SUT.beacons.get_node().get_beacon_best_state_info)
+        thread_info = executor.submit(SUT.beacons.get_node().get_block_chain_info)
+        for i in range(shard_active):
+            thread_shard_bs = executor.submit(SUT.shards[i].get_node().get_shard_best_state_info, i)
+            shard_bs_list.append(thread_shard_bs)
+    beacon_bs = thread_beacon_bs.result()
+    block_chain_info = thread_info.result()
+    for i in range(len(shard_bs_list)):
+        shard_bs = shard_bs_list[i].result()
+        shard_bs_list[i] = shard_bs
+        pending_validator[str(i)] = shard_bs.get_shard_pending_validator()
+        shard_committees[str(i)] = shard_bs.get_shard_committee()
+        shard_height[str(i)] = shard_bs.get_shard_height()
     epoch = beacon_bs.get_epoch()
     beacon_height = beacon_bs.get_beacon_height()
     random_number = beacon_bs.get_current_random_number()
     wait_4random = beacon_bs.get_candidate_shard_waiting_next_random()
-    wait_4current_random = beacon_bs.get_candidate_shard_waiting_current_random()
-    pending_validator = beacon_bs.get_shard_pending_validator()
+    wait_current_random = beacon_bs.get_candidate_shard_waiting_current_random()
     beacon_committees = beacon_bs.get_beacon_committee()
-    shard_committees = beacon_bs.get_shard_committees()
-    shard_height = beacon_bs.get_best_shard_height()
-    shard_active = beacon_bs.get_active_shard()
+    remaining_block_poch = block_chain_info.get_beacon_block().get_remaining_block_epoch()
+    current_height_in_epoch = ChainConfig.BLOCK_PER_EPOCH - remaining_block_poch
 
     try:
         missing_sig_list = beacon_bs.get_missing_signature()
@@ -26,23 +43,18 @@ def view_dynamic():
         missing_sig_penalty = beacon_bs.get_missing_signature_penalty()
     except:
         missing_sig_penalty = []
-    current_height_in_epoch = (beacon_height - 5000) % ChainConfig.BLOCK_PER_EPOCH
-    shard_bsd_list = []
-    for i in range(shard_active):
-        shard_bsd = SUT().get_shard_best_state_detail_info(i)
-        shard_bsd_list.append(shard_bsd)
 
     string_wait_4random = '\t--wait4random:\n'
     for j in range(len(wait_4random)):
         is_auto_stk = beacon_bs.is_this_committee_auto_stake(wait_4random[j])
-        staker, validator, receiver_reward, string = get_staking_info_of_validator(wait_4random[j], shard_bsd_list)
+        staker, validator, receiver_reward, string = get_staking_info_of_validator(wait_4random[j], shard_bs_list)
         string_wait_4random += f'\tnode{j}: {string} - auto_stk: {is_auto_stk}\n'
 
-    string_wait_4current_random = '\t--wait4currentRandom:\n'
-    for j in range(len(wait_4current_random)):
-        is_auto_stk = beacon_bs.is_this_committee_auto_stake(wait_4current_random[j])
-        staker, validator, receiver_reward, string = get_staking_info_of_validator(wait_4current_random[j],
-                                                                                   shard_bsd_list)
+    string_wait_4current_random = '\t--waitcurrentRandom:\n'
+    for j in range(len(wait_current_random)):
+        is_auto_stk = beacon_bs.is_this_committee_auto_stake(wait_current_random[j])
+        staker, validator, receiver_reward, string = get_staking_info_of_validator(wait_current_random[j],
+                                                                                   shard_bs_list)
         string_wait_4current_random += f'\tnode{j}: {string} - auto_stk: {is_auto_stk}\n'
 
     string_pending_validator = "\t--PendingValidator:\n"
@@ -50,22 +62,22 @@ def view_dynamic():
         for j in range(len(committee_pub_keys)):
             is_auto_stk = beacon_bs.is_this_committee_auto_stake(committee_pub_keys[j])
             staker, validator, receiver_reward, string = get_staking_info_of_validator(committee_pub_keys[j],
-                                                                                       shard_bsd_list)
+                                                                                       shard_bs_list)
             string_pending_validator += f'\tShard: {shard} - acct{j}: {string} - auto_stk: {is_auto_stk}\n'
 
     string_beacon_committee = f'\t--Beacon- height: {beacon_height}\n'
     for j in range(len(beacon_committees)):
         is_auto_stk = beacon_bs.is_this_committee_auto_stake(beacon_committees[j])
-        staker, validator, receiver_reward, string = get_staking_info_of_validator(beacon_committees[j], shard_bsd_list)
+        staker, validator, receiver_reward, string = get_staking_info_of_validator(beacon_committees[j], shard_bs_list)
         string_beacon_committee += f'\tacct{j}: {string} - auto_stk: {is_auto_stk}\n'
 
     string_shard_committees = '\tShard_committee\n'
     for shard, committee_pub_keys in shard_committees.items():
         string_shard_committees += f'\t--Shard-{shard} height: {shard_height[shard]}:\n'
-        for j in range(4, len(committee_pub_keys)):
+        for j in range(len(committee_pub_keys)):
             is_auto_stk = beacon_bs.is_this_committee_auto_stake(committee_pub_keys[j])
             staker, validator, receiver_reward, string = get_staking_info_of_validator(committee_pub_keys[j],
-                                                                                       shard_bsd_list)
+                                                                                       shard_bs_list)
             string_shard_committees += f'\tacct{j}: {string} - auto_stk: {is_auto_stk}\n'
 
     INFO(f"""
@@ -82,7 +94,7 @@ def view_dynamic():
 
 
 def view_height():
-    chain_info = SUT().get_block_chain_info()
+    chain_info = SUT.beacons.get_node().get_block_chain_info()
     epoch = chain_info.get_beacon_block().get_epoch()
     beacon_height = chain_info.get_beacon_block().get_height()
     shard_0_height = chain_info.get_shard_block(0).get_height()
@@ -97,7 +109,7 @@ def view_height():
     INFO()
 
 
-def _test_view_dynamic():
+def test_view_dynamic():
     for i in range(1000):
         view_dynamic()
         WAIT(ChainConfig.BLOCK_TIME)
@@ -109,7 +121,7 @@ def _test_view_height():
         WAIT(ChainConfig.BLOCK_TIME)
 
 
-def test_view_detail():
+def _test_view_detail():
     for i in range(1000):
         string_beacon = 'Beacon: '
         string_beacon += str(SUT.beacons.get_node().get_all_view_detail(-1).num_of_hash_follow_height())
