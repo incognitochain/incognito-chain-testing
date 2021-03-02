@@ -250,20 +250,22 @@ pipeline {
     stage('Preparing') {
       steps {
         echo "Building chain on branch ${INCOGNITO_CHAIN_BRANCH} and highway on branch ${INCOGNITO_HIGHWAY_BRANCH}"
-        slackSend(channel: "#incognito-jenkins-dev", attachments: [
-          [
-            "blocks": [
-              [
-                "type": "section",
-                "text": [
-                  text: "Start building for <${BUILD_URL}|*${JOB_NAME} ${BUILD_DISPLAY_NAME}*>\nTriggered by <mailto:${env.BUILD_USER_EMAIL}|${env.BUILD_USER}>",
-                  type: 'mrkdwn',
+        wrap([$class: 'BuildUser']) {
+          slackSend(channel: "#incognito-jenkins-dev", attachments: [
+            [
+              "blocks": [
+                [
+                  "type": "section",
+                  "text": [
+                    text: "Start building for <${BUILD_URL}|*${JOB_NAME} ${BUILD_DISPLAY_NAME}*>\nTriggered by <mailto:${env.BUILD_USER_EMAIL}|${env.BUILD_USER}>",
+                    type: 'mrkdwn',
+                  ]
                 ]
-              ]
-            ],
-            color   : '#0d47a1'
-          ]
-        ])
+              ],
+              color   : '#0d47a1'
+            ]
+          ])
+        }
       }
     }
 
@@ -533,13 +535,15 @@ pipeline {
 
   post {
     success {
-      slackSend(channel: "#incognito-jenkins-dev", attachments: [
-        [
-          text : "Build <${BUILD_URL}|*${JOB_NAME} ${BUILD_DISPLAY_NAME}*> is successful\nTriggered by <${env.BUILD_USER_EMAIL}|${env.BUILD_USER}>",
-          color: '#4caf50',
-          type : 'mrkdwn',
-        ]
-      ])
+      wrap([$class: 'BuildUser']) {
+        slackSend(channel: "#incognito-jenkins-dev", attachments: [
+          [
+            text : "Build <${BUILD_URL}|*${JOB_NAME} ${BUILD_DISPLAY_NAME}*> is successful\nTriggered by <mailto:${env.BUILD_USER_EMAIL}|${env.BUILD_USER}>",
+            color: '#4caf50',
+            type : 'mrkdwn',
+          ]
+        ])
+      }
     }
     failure {
       slackSend(channel: "#incognito-jenkins-dev", attachments: [
