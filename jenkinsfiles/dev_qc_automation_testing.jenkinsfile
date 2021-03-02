@@ -48,15 +48,15 @@ pipeline {
       description: ''
     )
     extendedChoice(
-      defaultValue: 'IncognitoChain/TestCases/Transactions',
+      defaultValue: 'TestCases/Transactions',
       description: 'Testcase to run',
-      descriptionPropertyValue: 'IncognitoChain/TestCases/Bridge,IncognitoChain/TestCases/DEX,IncognitoChain/TestCases/Staking,IncognitoChain/TestCases/Transactions',
+      descriptionPropertyValue: 'TestCases/Bridge,TestCases/DEX,TestCases/Staking,TestCases/Transactions',
       multiSelectDelimiter: ' ',
       name: 'TEST_RUNNER_TESTCASES',
       quoteValue: false,
       saveJSONParameterToFile: false,
       type: 'PT_CHECKBOX',
-      value: 'IncognitoChain/TestCases/Bridge,IncognitoChain/TestCases/DEX,IncognitoChain/TestCases/Staking,IncognitoChain/TestCases/Transactions',
+      value: 'TestCases/Bridge,TestCases/DEX,TestCases/Staking,TestCases/Transactions',
       visibleItemCount: 4
     )
     string(
