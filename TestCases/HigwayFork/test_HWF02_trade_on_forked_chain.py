@@ -201,7 +201,7 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
                         real_trade_amounts[i] = 0
                         real_trading_fees[i] = 0
                 else:
-                    msg_error = SUT().transaction().get_tx_by_hash(result.get_tx_id()).get_error_msg()
+                    msg_error = result.get_transaction_by_hash().get_error_msg()
                     ERROR(msg_error)
                     real_trade_amounts[i] = 0
                     real_trading_fees[i] = 0
@@ -255,23 +255,25 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
     STEP(5, 'Verify sum fee')
     sum_trading_fee = sum(sum_trading_fee_list)
     first_half_reward = int(sum_trading_fee / 2)
-    sum_fee_pool_b4 = pde_state_b4.sum_contributor_reward_of_pair(None, token_sell, PRV_ID)
-    sum_fee_pool_af = pde_state_af.sum_contributor_reward_of_pair(None, token_sell, PRV_ID)
+    sum_fee_pool_toks_prv_b4 = pde_state_b4.sum_contributor_reward_of_pair(None, token_sell, PRV_ID)
+    sum_fee_pool_toks_prv_af = pde_state_af.sum_contributor_reward_of_pair(None, token_sell, PRV_ID)
     INFO(f'Verify contributor reward of {l6(token_sell)}-{l6(PRV_ID)}, '
-         f'Expected sum reward = {first_half_reward}, actual sum reward = {sum_fee_pool_af - sum_fee_pool_b4}')
-    different_trading_fee = abs(first_half_reward - (sum_fee_pool_af - sum_fee_pool_b4))
+         f'Expected sum reward = {first_half_reward}, actual sum reward = {sum_fee_pool_toks_prv_af - sum_fee_pool_toks_prv_b4}')
+    different_trading_fee = abs(first_half_reward - (sum_fee_pool_toks_prv_af - sum_fee_pool_toks_prv_b4))
     second_half_reward = sum_trading_fee - first_half_reward
-    sum_fee_pool_b4 = pde_state_b4.sum_contributor_reward_of_pair(None, token_buy, PRV_ID)
-    sum_fee_pool_af = pde_state_af.sum_contributor_reward_of_pair(None, token_buy, PRV_ID)
+    sum_fee_pool_tokb_prv_b4 = pde_state_b4.sum_contributor_reward_of_pair(None, token_buy, PRV_ID)
+    sum_fee_pool_tokb_prv_af = pde_state_af.sum_contributor_reward_of_pair(None, token_buy, PRV_ID)
     INFO(f'Verify contributor reward of {l6(token_buy)}-{l6(PRV_ID)}, '
-         f'Expected sum reward = {second_half_reward}, actual sum reward = {sum_fee_pool_af - sum_fee_pool_b4}')
-    different_trading_fee += abs(second_half_reward - (sum_fee_pool_af - sum_fee_pool_b4))
+         f'Expected sum reward = {second_half_reward}, actual sum reward = {sum_fee_pool_tokb_prv_af - sum_fee_pool_tokb_prv_b4}')
+    different_trading_fee += abs(second_half_reward - (sum_fee_pool_tokb_prv_af - sum_fee_pool_tokb_prv_b4))
 
     STEP(6, 'Verify each contributor reward ')
-    reward_result_1, SUMMARY1 = verify_contributor_reward_prv_token((sum_fee_pool_af - sum_fee_pool_b4), token_sell,
-                                                                    PRV_ID, pde_state_b4, pde_state_af)
-    reward_result_2, SUMMARY2 = verify_contributor_reward_prv_token((sum_fee_pool_af - sum_fee_pool_b4), PRV_ID,
-                                                                    token_buy, pde_state_b4, pde_state_af)
+    reward_result_1, SUMMARY1 = verify_contributor_reward_prv_token(
+        (sum_fee_pool_toks_prv_af - sum_fee_pool_toks_prv_b4), token_sell,
+        PRV_ID, pde_state_b4, pde_state_af)
+    reward_result_2, SUMMARY2 = verify_contributor_reward_prv_token(
+        (sum_fee_pool_tokb_prv_af - sum_fee_pool_tokb_prv_b4), PRV_ID,
+        token_buy, pde_state_b4, pde_state_af)
     SUMMARY = SUMMARY1 + '\n' + SUMMARY2
     final_reward_result = reward_result_1 and reward_result_2
 
@@ -288,9 +290,13 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
             'WRONG: rate prv vs token buy')
 
     STEP(8, 'Verify balance')
-    sum(abs(estimate_bal_sell_after_list[i] - balance_tok_sell_after[i]) for i in range(num_of_traders))
+    diff_bal_tok_sell = sum(
+        abs(estimate_bal_sell_after_list[i] - balance_tok_sell_after[i]) for i in range(num_of_traders))
     different_PRV = sum(
         abs(estimate_bal_prv_sell_after_list[i] - balance_prv_sell_after[i]) for i in range(num_of_traders))
-    sum(abs(estimate_bal_buy_after_list[i] - balance_tok_buy_after[i]) for i in range(num_of_traders))
+    diff_bal_tok_buy = sum(
+        abs(estimate_bal_buy_after_list[i] - balance_tok_buy_after[i]) for i in range(num_of_traders))
 
-    assert abs(different_trading_fee - different_PRV) <= sum(count_tx_success)
+    assert different_trading_fee + different_PRV <= sum(count_tx_success)
+    assert calculated_rate_toks_prv[1] - rate_toks_prv_after[1] + diff_bal_tok_sell <= sum(count_tx_success)
+    assert calculated_rate_prv_tokb[1] - rate_prv_tokb_after[1] + diff_bal_tok_buy <= sum(count_tx_success)
