@@ -53,11 +53,10 @@ acc_list_1_shard = AccountGroup(
 
 
 def get_block_height(chain_id):
-    chain_info = SUT().get_block_chain_info()
-    if chain_id != 255:
-        height = chain_info.get_shard_block(chain_id).get_height()
-    else:
-        height = chain_info.get_beacon_block().get_height()
+    if chain_id == 255 or chain_id == -1:
+        height = SUT.beacons.get_node().get_beacon_best_state_info().get_beacon_height()
+    elif chain_id is not None:
+        height = SUT.shards[chain_id].get_node().get_shard_best_state_info(chain_id).get_shard_height()
     return height
 
 
@@ -77,7 +76,7 @@ def calculated_and_create_fork(chain_id, at_transfer_next_epoch=False, min_block
     beacon_height = chain_info.get_beacon_block().get_height()
     epoch_current = chain_info.get_epoch_number()
     block_per_epoch = chain_info.get_block_per_epoch_number()
-    remain_block_epoch = chain_info.get_num_of_remain_block_of_epoch_()
+    remain_block_epoch = chain_info.get_num_of_remain_block_of_epoch()
     block_fork_list = [0] * num_of_block_fork
     if chain_id != 255 and chain_id != -1:
         height_current = chain_info.get_shard_block(chain_id).get_height()

@@ -18,17 +18,19 @@ min_blocks_wait_fork = 6  # Chain will be forked after at least {min_blocks_wait
 time_send_tx = 3  # create & send transaction before and after {time_send_tx} blocks
 
 
-@pytest.mark.parametrize('cID1, num_of_branch1, cID2, num_of_branch2, at_transfer_next_epoch', [
-    (1, 2, None, None, True),
-    (1, 2, None, None, False),
-    (255, 2, None, None, True),
-    (255, 2, None, None, False),
-    (1, 2, 255, 2, True),
-    (1, 2, 255, 2, False),
-    (1, 2, 0, 2, True),
-    (1, 2, 0, 2, False),
+@pytest.mark.parametrize('cID1, num_of_branch1, cID2, num_of_branch2, at_transfer_next_epoch, num_of_block_fork', [
+    (1, 2, 0, 2, True, 5),
+    (1, 2, 0, 2, False, 5),
+    (1, 2, 255, 2, True, 5),
+    (1, 2, 255, 2, False, 5),
+    (1, 2, None, None, True, 5),
+    (1, 2, None, None, False, 5),
+    (255, 2, None, None, True, 5),
+    (255, 2, None, None, False, 5),
+    (1, 2, 255, 2, True, 30)
 ])
-def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_transfer_next_epoch):
+def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_transfer_next_epoch,
+                                     num_of_block_fork):
     STEP(0, "Balance before")
     bal_b4_sender_dict = {}
     bal_b4_receiver = {}
@@ -45,10 +47,12 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
     with ThreadPoolExecutor() as executor:
         if cID1 is not None:
             thread = executor.submit(calculated_and_create_fork, cID1, at_transfer_next_epoch=at_transfer_next_epoch,
-                                     min_blocks_wait_fork=min_blocks_wait_fork, num_of_branch=num_of_branch1)
+                                     min_blocks_wait_fork=min_blocks_wait_fork, num_of_branch=num_of_branch1,
+                                     num_of_block_fork=num_of_block_fork)
         if cID2 is not None:
             executor.submit(calculated_and_create_fork, cID2, at_transfer_next_epoch=at_transfer_next_epoch,
-                            min_blocks_wait_fork=min_blocks_wait_fork, num_of_branch=num_of_branch2)
+                            min_blocks_wait_fork=min_blocks_wait_fork, num_of_branch=num_of_branch2,
+                            num_of_block_fork=num_of_block_fork)
     height_current, block_fork_list, real_blocks_wait = thread.result()
 
     WAIT((real_blocks_wait - time_send_tx) * ChainConfig.BLOCK_TIME)
@@ -101,17 +105,18 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
                 height = tx_detail.get_block_height()
                 shard = tx_detail.get_shard_id()
                 INFO(f'Shard {shard}-height {height}')
-                key = tx_detail.get_input_coin_pub_key()
-                sender = AccountGroup(*sender_list).find_account_by_key(key)
-                fee_dict[sender].append(tx_detail.get_fee())
-                output_coin = tx_detail.get_prv_proof_detail().get_output_coins()
-                for coin in output_coin:
-                    if coin.get_value() == amount:
-                        public_key = coin.get_public_key()
-                        receiver = AccountGroup(*(receiver_same_shard, receiver_cross_shard)).find_account_by_key(
-                            public_key)
-                        amount_receiver[receiver] += amount
-                        break
+                if height:
+                    key = tx_detail.get_input_coin_pub_key()
+                    sender = AccountGroup(*sender_list).find_account_by_key(key)
+                    fee_dict[sender].append(tx_detail.get_fee())
+                    output_coin = tx_detail.get_prv_proof_detail().get_output_coins()
+                    for coin in output_coin:
+                        if coin.get_value() == amount:
+                            public_key = coin.get_public_key()
+                            receiver = AccountGroup(*(receiver_same_shard, receiver_cross_shard)).find_account_by_key(
+                                public_key)
+                            amount_receiver[receiver] += amount
+                            break
             else:
                 msg_error = SUT().transaction().get_tx_by_hash(result.get_tx_id()).get_error_msg()
                 ERROR(msg_error)
@@ -119,9 +124,24 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
             ERROR(result.get_error_msg())
 
     STEP(4, 'Verify balance')
-    for sender in sender_list:
-        assert sender.get_prv_balance() == bal_b4_sender_dict[sender] - sum(fee_dict[sender]) - amount * len(
-            fee_dict[sender]), ERROR(f'Sender_{sender_list.index(sender)}: WRONG BALANCE')
-    for receiver in [receiver_cross_shard, receiver_same_shard]:
-        assert receiver.get_prv_balance() == bal_b4_receiver[receiver] + amount_receiver[receiver], ERROR(
-            f'Receiver_shard_{receiver.calculate_shard_id}: WRONG BALANCE')
+    diff_send_same = 0
+    diff_send_cross = 0
+    for sender in sender_list[0:3]:
+        diff = sender.get_prv_balance() - (
+                bal_b4_sender_dict[sender] - sum(fee_dict[sender]) - amount * len(fee_dict[sender]))
+        diff_send_same += diff
+    INFO(f'Different balance sender same shard: {diff_send_same}')
+    for sender in sender_list[3:6]:
+        diff = sender.get_prv_balance() - (
+                bal_b4_sender_dict[sender] - sum(fee_dict[sender]) - amount * len(fee_dict[sender]))
+        diff_send_cross += diff
+    INFO(f'Different balance sender cross shard: {diff_send_cross}')
+    diff_receiver_same = receiver_same_shard.get_prv_balance() - (
+            bal_b4_receiver[receiver_same_shard] + amount_receiver[receiver_same_shard])
+    INFO(f'Different balance receiver same shard: {diff_receiver_same}')
+    diff_receiver_cross = receiver_cross_shard.get_prv_balance() - (
+            bal_b4_receiver[receiver_cross_shard] + amount_receiver[receiver_cross_shard])
+    INFO(f'Different balance receiver cross shard: {diff_receiver_cross}')
+
+    assert diff_send_cross == - diff_receiver_cross
+    assert diff_send_same == - diff_receiver_same

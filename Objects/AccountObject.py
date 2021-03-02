@@ -1295,13 +1295,14 @@ class Account:
             sub_receivers = {k: receiver[k] for k in sub_keys}
             send_tx = self.send_prv_to_multi_account(sub_receivers)
             # if 'Wrong input transaction Sum of inputs less than outputs' in send_tx.get_error_trace().get_message():
-            if send_tx.get_error_trace().get_error_codes() == -4001:
-                # coin being used in another tx
-                WAIT(retry_interval)
-                wasted_time += retry_interval
-                if wasted_time >= max_wait:
-                    raise BaseException(f"Waited {wasted_time}s but cannot create send tx, "
-                                        f"out put coins appear to being used use in another tx")
+            if send_tx.get_error_trace() is not None:
+                if send_tx.get_error_trace().get_error_codes() == -4001:
+                    # coin being used in another tx
+                    WAIT(retry_interval)
+                    wasted_time += retry_interval
+                    if wasted_time >= max_wait:
+                        raise BaseException(f"Waited {wasted_time}s but cannot create send tx, "
+                                            f"out put coins appear to being used use in another tx")
 
             else:
                 # tx should be succeed
@@ -1373,7 +1374,7 @@ class AccountGroup:
         INFO(f'Find all accounts in shard {shard_number}')
         accounts_in_shard: List[Account] = []
         for account in self.account_list:
-            if account.shard == shard_number:
+            if account.shard % ChainConfig.ACTIVE_SHARD == shard_number % ChainConfig.ACTIVE_SHARD:
                 accounts_in_shard.append(account)
 
         return AccountGroup(*accounts_in_shard)
