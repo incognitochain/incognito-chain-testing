@@ -1,8 +1,8 @@
 import json
 from typing import Union
 
-from IncognitoChain.Helpers.Logging import ERROR
-from IncognitoChain.Objects.AccountObject import Account, AccountGroup
+from Helpers.Logging import ERROR
+from Objects.AccountObject import Account, AccountGroup
 
 
 class KeyListJson:

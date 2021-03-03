@@ -1,11 +1,11 @@
 import copy
 
-from IncognitoChain.Configs.Constants import coin, PRV_ID
-from IncognitoChain.Helpers.Logging import INFO, INFO_HEADLINE
-from IncognitoChain.Helpers.TestHelper import calculate_actual_trade_received, l6
-from IncognitoChain.Helpers.Time import get_current_date_time
-from IncognitoChain.Objects.AccountObject import Account, COIN_MASTER, AccountGroup
-from IncognitoChain.TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
+from Configs.Constants import coin, PRV_ID
+from Helpers.Logging import INFO, INFO_HEADLINE
+from Helpers.TestHelper import calculate_actual_trade_received, l6
+from Helpers.Time import get_current_date_time
+from Objects.AccountObject import Account, COIN_MASTER, AccountGroup
+from TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 # contributor = ACCOUNTS[0]
 token_owner = Account(

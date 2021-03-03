@@ -32,7 +32,7 @@ class BnbCli:
     _bnb_host = 'data-seed-pre-0-s1.binance.org'
     _bnb_rpc_port = 443
     _bnb_rpc_protocol = 'https'
-    _path = f'{os.getcwd()}/IncognitoChain/bin'
+    _path = f'{os.getcwd()}/bin'
     if sys.platform == 'darwin':
         tbnbcli = f'{_path}/tbnbcli-mac'
     elif sys.platform == 'linux':
@@ -284,11 +284,11 @@ class BnbCli:
 
 class BtcGo:
     if sys.platform == 'darwin':
-        btc_go_path = f'{os.getcwd()}/IncognitoChain/bin/btcGo/mac/'
+        btc_go_path = f'{os.getcwd()}/bin/btcGo/mac/'
     elif sys.platform == 'linux':
-        btc_go_path = f'{os.getcwd()}/IncognitoChain/bin/btcGo/linux/'
+        btc_go_path = f'{os.getcwd()}/bin/btcGo/linux/'
     else:
-        btc_go_path = f'{os.getcwd()}/IncognitoChain/bin/btcGo/win/'
+        btc_go_path = f'{os.getcwd()}/bin/btcGo/win/'
 
     btc_build_proof_cli = btc_go_path + 'buildProof'
     btc_get_tx_cli = btc_go_path + 'getTxBTC'
