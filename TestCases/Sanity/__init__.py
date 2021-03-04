@@ -1,8 +1,9 @@
+from Configs.Constants import PBNB_ID
 from Objects.AccountObject import Account, AccountGroup
 
 account_0 = Account(  # must in SHARD 0
     '112t8rnbNst56EFVhefVgQcJVqASQPevVGmkb2Mdnhm61uyktU5ZuWbZ1KGAp7w7U4fUyz4XZxBVmaUifsjsLxYbkhtkff5YwQptNxELRVcX'). \
-    set_remote_addr('tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss')
+    set_remote_addr({PBNB_ID: 'tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss'})
 account_1 = Account(  # must in SHARD 1
     '112t8rnbqC92JnAE3bqthKUezcaG9oESKoNxawJZJii7q3JUZWVwWHyaKPoWqUmA8QRGiNpY5zg7XpYgQxmBz8LkLQutPh57HqLFQGFKgi7W')
 account_11 = Account(  # must in SHARD 1
