@@ -16,16 +16,11 @@ from Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 
 
 class Account:
-    class RemoteAddress:
-        def __init__(self, data=None):
-            data = {} if data is None else data
-            self.data: dict = data
-
     _cache_custodian_inf = 'custodian_info'
     _cache_bal_prv = 'balance_prv'
     _cache_bal_tok = 'balance_token'
 
-    def set_remote_addr(self, *addresses):
+    def set_remote_addr(self, addresses):
         """
 
         @param addresses:
@@ -33,15 +28,18 @@ class Account:
         @return:
         """
         support_token_list = [PBNB_ID, PBTC_ID]
-        for token, address in zip(support_token_list, addresses):
-            self.remote_addr.data[token] = address
+        for token in support_token_list:
+            self.remote_addr[token] = addresses.get(token)
         return self
 
-    def get_remote_addr(self, token_id):
-        try:
-            return self.remote_addr.data[token_id]
-        except KeyError:
-            return None
+    def get_remote_addr(self, token_id, address_type=None):
+        if address_type is None:
+            return self.remote_addr.get(token_id)
+        else:
+            try:
+                return self.remote_addr.get(token_id).get(address_type)
+            except (AttributeError, KeyError):
+                return None
 
     def is_this_my_key(self, key_to_check):
         """
@@ -54,18 +52,18 @@ class Account:
                     return key_type
         return False
 
-    def __init__(self, private_key=None, payment_k=None, nomad=False, **kwargs):
+    def __init__(self, private_key=None, payment_k=None, handler=None, **kwargs):
         """
 
         @param private_key: private key of this account,
          other keys will be generated automatically if payment_k is not specified
         @param payment_k: payment key of this account, if specified along with private key, other keys will not
          get generated and will be set to None
-        @param nomad: True = not yet tie this account to a Chain.
-            False: tie this account to the configured Chain (from command line arg or from config.py file)
+        @param handler: Node object, specify which chain this account belong to by specifying one node of the chain here
+        (usually full node). If None, account is tied to default full node in specified test bed
         @param kwargs:
         """
-        self.remote_addr = Account.RemoteAddress()
+        self.remote_addr = {}
 
         if private_key is not None:
             if payment_k is not None:
@@ -87,9 +85,8 @@ class Account:
             self.private_key = None
 
         self.cache = {}
-        if nomad:
-            from Objects.NodeObject import Node
-            self.REQ_HANDLER = Node()
+        if handler:
+            self.REQ_HANDLER = handler
         else:
             from Objects import IncognitoTestCase
             self.REQ_HANDLER = IncognitoTestCase.SUT()
@@ -1423,5 +1420,5 @@ def get_accounts_in_shard(shard_number: int, account_list=None):
         return AccountGroup(*account_list).get_accounts_in_shard(shard_number)
 
 
-PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K)
-COIN_MASTER = Account(DAO_PRIVATE_K)
+PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K, handler="nomad")
+COIN_MASTER = Account(DAO_PRIVATE_K, handler="nomad")
