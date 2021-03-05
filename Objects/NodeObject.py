@@ -11,7 +11,7 @@ from APIs.System import SystemRpc
 from APIs.Transaction import TransactionRpc
 from APIs.Utils import UtilsRpc
 from Configs.Constants import ChainConfig, PRV_ID
-from Drivers.Connections import WebSocket, SshSession
+from Drivers.Connections import SshSession
 from Helpers import TestHelper
 from Helpers.Logging import INFO, DEBUG, INFO_HEADLINE
 from Helpers.TestHelper import l6, ChainHelper
@@ -26,12 +26,14 @@ from Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
 from Objects.ViewDetailBlock import AllViewDetail
 
 
-def ssh_function(func):
+def action_over_ssh(func):
     def deco(self):
-        self: Node
-        print(self)
-        if not self._ssh_session.isalive():
-            self._ssh_session.ssh_connect()
+        from Objects.TestBedObject import TestBed
+        try:
+            if not self._ssh_session.isalive():
+                TestBed.ssh_to(self)
+        except AttributeError:
+            TestBed.ssh_to(self)
         return func(self)
 
     return deco
@@ -492,10 +494,14 @@ class Node:
         pattern = re.compile(r"--datadir \w+/(\w+)")
         return re.findall(pattern, full_cmd)[0]
 
+    @action_over_ssh
     def get_mining_key(self):
         command = self.__find_run_command()
         pattern = re.compile(r"--miningkeys \"*(\w+)\"*")
-        return re.findall(pattern, command)[0]
+        try:
+            return re.findall(pattern, command)[0]
+        except IndexError:
+            return None
 
     def __goto_working_dir(self):
         return self._ssh_session.goto_folder(self.__get_working_dir())
@@ -503,6 +509,7 @@ class Node:
     def __goto_data_dir(self):
         return self._ssh_session.goto_folder(f'{self.__get_working_dir()}/{self.__get_data_dir()}')
 
+    @action_over_ssh
     def find_pid(self):
         """
         get process id base on rpc port of the node
@@ -524,29 +531,34 @@ class Node:
 
         return pid
 
+    @action_over_ssh
     def start_node(self):
         cmd = self.__find_run_command()
         folder = self.__get_working_dir()
         self._ssh_session.send_cmd(f'cd {folder}')
         return self._ssh_session.send_cmd(f'{cmd} >> logs/{self.get_log_file()} 2> logs/{self.get_error_log_file()} &')
 
+    @action_over_ssh
     def kill_node(self):
         return self._ssh_session.send_cmd(f'kill {self.find_pid()}')
 
-    @ssh_function
+    @action_over_ssh
     def is_node_alive(self):
         cmd = f'[ -d "/proc/{self.find_pid()}" ] && echo 1 || echo 0'
         return bool(int(self._ssh_session.send_cmd(cmd)[1][0]))
 
+    @action_over_ssh
     def clear_data(self):
         if self.is_node_alive():
             raise IOError(f'Cannot clear data when process is running')
         self.__goto_data_dir()
         return self._ssh_session.send_cmd(f'rm -Rf *')
 
+    @action_over_ssh
     def get_log_folder(self):
         return f"{self.__get_working_dir()}/logs"
 
+    @action_over_ssh
     def get_log_file(self):
         # when build chain, the log file name must be the same as data dir name
         # if encounter problem here, check your build config again
@@ -554,6 +566,7 @@ class Node:
         data_dir_name = data_path.split('/')[-1]
         return f"{data_dir_name}.log"
 
+    @action_over_ssh
     def get_error_log_file(self):
         # when build chain, the log file name must be the same as data dir name
         # if encounter problem here, check your build config again
@@ -561,6 +574,7 @@ class Node:
         data_dir_name = data_path.split('/')[-1]
         return f"{data_dir_name}_error.log"
 
+    @action_over_ssh
     def log_tail_grep(self, grep_pattern, tail_option=''):
         """
         @param grep_pattern:
@@ -570,6 +584,7 @@ class Node:
         tail_cmd = f'tail {tail_option} {self.get_log_file()} | grep {grep_pattern}'
         return self._ssh_session.send_cmd(tail_cmd)
 
+    @action_over_ssh
     def log_cat_grep(self, grep_pattern):
         """
 
@@ -578,3 +593,7 @@ class Node:
         """
         cat_cmd = f'cat {self.get_log_file()} | grep {grep_pattern}'
         return self._ssh_session.send_cmd(cat_cmd)
+
+    @action_over_ssh
+    def shell(self):
+        return self._ssh_session

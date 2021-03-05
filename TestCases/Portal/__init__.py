@@ -25,12 +25,16 @@ TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
 TEST_SETTING_PORTING_AMOUNT = 100
 TEST_SETTING_REDEEM_AMOUNT = 10
 
-self_pick_custodian = ACCOUNTS[6].set_remote_addr(bnb_address_list[0], 'mgdwpAgvYNuJ2MyUimiKdTYsu2vpDZNpAa')
-portal_user = ACCOUNTS[1].set_remote_addr(bnb_address_list[1], 'mhpTRAPdmyB1PUvXR2yqaSBK8ZJhEQ8rEw')
+self_pick_custodian = ACCOUNTS[6].set_remote_addr(
+    {PBNB_ID: bnb_address_list[0], PBTC_ID: 'mgdwpAgvYNuJ2MyUimiKdTYsu2vpDZNpAa'})
+portal_user = ACCOUNTS[1].set_remote_addr({PBNB_ID: bnb_address_list[1], PBTC_ID: 'mhpTRAPdmyB1PUvXR2yqaSBK8ZJhEQ8rEw'})
 all_custodians = AccountGroup(
-    ACCOUNTS[3].set_remote_addr(bnb_address_list[2], 'mg3me76RFFWeRuYqM6epwjMHHMTaouYLDe'),
-    ACCOUNTS[4].set_remote_addr(bnb_address_list[3], 'mkgT1mphBPX1C3tn9yRK7HmVSYkVEn7VzY'),
-    ACCOUNTS[5].set_remote_addr(bnb_address_list[4], 'myo25dPxQNqk94HwFLeFr42cH8VbwTGbBm'),
+    ACCOUNTS[3].set_remote_addr({PBNB_ID: bnb_address_list[2], PBTC_ID: {"P2SH": "mgdwpAgvYNuJ2MyUimiKdTYsu2vpDZNpAa",
+            "P2PKH": "xxxxx",
+            "P2WSH": "yyy",
+            "P2WPKH": "zzzz"}}),
+    ACCOUNTS[4].set_remote_addr({PBNB_ID: bnb_address_list[3], PBTC_ID: 'mkgT1mphBPX1C3tn9yRK7HmVSYkVEn7VzY'}),
+    ACCOUNTS[5].set_remote_addr({PBNB_ID: bnb_address_list[4], PBTC_ID: 'myo25dPxQNqk94HwFLeFr42cH8VbwTGbBm'}),
     self_pick_custodian
 )
 another_bnb_addr = 'tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss'
