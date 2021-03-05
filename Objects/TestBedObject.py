@@ -24,7 +24,7 @@ def load_test_bed(name):
 
 class TestBed:
     REQUEST_HANDLER: Node = Node()
-    SSH_CONNECTION = {}
+    SSH_CONNECTIONS = {}
 
     def __init__(self, test_bed=None):
         if test_bed is not None:
@@ -52,12 +52,17 @@ class TestBed:
     @staticmethod
     def ssh_to(node: Node):
         try:
-            TestBed.SSH_CONNECTION[node._address]
+            TestBed.SSH_CONNECTIONS[node._address]
         except KeyError:
-            TestBed.SSH_CONNECTION[node._address] = SshSession(node._address, node._username, node._password,
-                                                               node._ssh_key).ssh_connect()
-        node.ssh_attach(TestBed.SSH_CONNECTION[node._address])
+            TestBed.SSH_CONNECTIONS[node._address] = SshSession(node._address, node._username, node._password,
+                                                                node._ssh_key).ssh_connect()
+        node.ssh_attach(TestBed.SSH_CONNECTIONS[node._address])
         return node
+
+    @staticmethod
+    def ssh_clean_up():
+        for ip, session in TestBed.SSH_CONNECTIONS.items():
+            session.disconnect()
 
     def __call__(self, *args, **kwargs):
         return TestBed.REQUEST_HANDLER
