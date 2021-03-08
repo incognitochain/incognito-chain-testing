@@ -2,7 +2,7 @@ const axios = require('axios');
 const assert = require('assert').strict;
 
 const RPC_ENDPOINT = 'http://127.0.0.1:8334/';
-const MAXIMUM_WAIT_TIME_MS = 300000;
+const MAXIMUM_WAIT_TIME_MS = 600000;
 const WAIT_INTERVAL_MS = 5000;
 
 function sleep(ms) {
