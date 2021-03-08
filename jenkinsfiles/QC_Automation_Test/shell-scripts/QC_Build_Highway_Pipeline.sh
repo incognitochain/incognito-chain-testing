@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+echo "Script executed from: ${PWD}"
 
 ############# DECLARE #############
 function stop_highway() {
