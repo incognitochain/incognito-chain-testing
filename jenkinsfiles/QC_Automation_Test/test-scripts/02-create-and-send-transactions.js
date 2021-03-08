@@ -41,6 +41,7 @@ async function _createAndSendTransaction() {
     });
 
     if (!createTransactionRPCResult?.data?.Result?.TxID) {
+        console.log('createTransactionRPCResult', JSON.stringify(createTransactionRPCResult, null, 2));
         throw new Error('TxID not found');
     }
     const transactionHash = createTransactionRPCResult?.data?.Result?.TxID;
