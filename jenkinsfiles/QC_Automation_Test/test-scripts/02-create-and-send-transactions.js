@@ -6,9 +6,33 @@ const RPC_ENDPOINT = 'http://127.0.0.1:8334/';
 const MAXIMUM_TRANSACTION_WAIT_MS = 600000;
 const TRANSACTION_WAIT_INTERVAL_MS = 5000;
 
+const TEST_PRIVATE_KEY = '112t8roafGgHL1rhAP9632Yef3sx5k8xgp8cwK4MCJsCL1UWcxXvpzg97N4dwvcD735iKf31Q2ZgrAvKfVjeSUEvnzKJyyJD3GqqSZdxN4or';
 function sleep(ms) {
     console.log(`Sleep for ${ms} milliseconds`);
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function _submitKey() {
+    try {
+        const submitKeyRPCResult = await axios({
+            method: 'POST',
+            url: RPC_ENDPOINT,
+            data:{
+                "jsonrpc": "1.0",
+                "id": 1,
+                "method": "submitkey",
+                "params": [
+                    TEST_PRIVATE_KEY
+                ]
+            }
+        });
+
+        await sleep(30000);
+        return submitKeyRPCResult?.data;
+    }
+    catch (err) {
+        return null;
+    }
 }
 
 async function _createAndSendTransaction() {
@@ -21,7 +45,7 @@ async function _createAndSendTransaction() {
             "jsonrpc": "1.0",
             "method": "createandsendtransaction",
             "params": [
-                "112t8roafGgHL1rhAP9632Yef3sx5k8xgp8cwK4MCJsCL1UWcxXvpzg97N4dwvcD735iKf31Q2ZgrAvKfVjeSUEvnzKJyyJD3GqqSZdxN4or",
+                TEST_PRIVATE_KEY,
                 {
                     "12Rtdi54JhcJsDBYvgCFCb8Dmwhpt5S8AiRD2RQvqJFKUDLA4R2jyM2tnmBir5bRp2w1Ydp1Y85yN86ni9t2GbMNx5LaE3VmwDftjE1": 1750000000100,
                     "12RxERBySmquLtM1R1Dk2s7J4LyPxqHxcZ956kupQX3FPhVo2KtoUYJWKet2nWqWqSh3asWmgGTYsvz3jX73HqD8Jr2LwhjhJfpG756": 1000000000000999,
@@ -100,6 +124,7 @@ async function doCheckGetTransactionByHash(transactionHash) {
 
 
 async function main() {
+    const submitKeyResult = await _submitKey();
 
     const transactionHash = await _createAndSendTransaction();
 
