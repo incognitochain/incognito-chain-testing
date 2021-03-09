@@ -482,7 +482,7 @@ pipeline {
         dir('jenkinsfiles/QC_Automation_Test/test-scripts/') {
           sh 'npm install'
           sh "node 01-get-blockchain-info.js"
-          sh "node 02-create-and-send-transactions.js"
+//          sh "node 02-create-and-send-transactions.js"
         }
 
       }
