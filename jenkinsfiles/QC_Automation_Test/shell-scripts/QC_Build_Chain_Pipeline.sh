@@ -174,6 +174,8 @@ EOF
         --norpcauth \
         --relayshards "all"  \
         --txpoolmaxtx 100000 \
+        --usecoindata \
+        --coindatapre="__coins__" \
         --loglevel debug)
 
     ${command[*]} >> $logFolder/full_node.log 2>&1 &
@@ -226,6 +228,8 @@ EOF
           --miningkeys "$key" \
           --listen "$listenAddress:$((++firstListenPort))" \
           --externaladdress "$listenAddress:$((firstListenPort))" \
+          --usecoindata \
+          --coindatapre="__coins__" \
           --loglevel debug \
           --norpcauth)
 
