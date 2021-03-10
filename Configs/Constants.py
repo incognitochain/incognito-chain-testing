@@ -79,7 +79,7 @@ class ChainConfig:
 
 
 class TestConfig:
-    KEY_VERSION = 1  # payment key version [1 or 2]
+    KEY_VERSION = 2  # payment key version [1 or 2]
 
 
 def coin(amount, nano=True):
