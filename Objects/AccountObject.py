@@ -380,7 +380,7 @@ class Account:
                                                           validator.validator_key)
 
     def stk_stop_auto_stake_me(self):
-        INFO('Un-stake me')
+        INFO('Stop auto stake me')
         return self.stk_stop_auto_staking(self, self)
 
     def stk_un_stake_tx(self, validator=None):
@@ -391,7 +391,7 @@ class Account:
             create_and_send_un_staking_transaction(self.private_key, validator.payment_key, validator.validator_key)
 
     def stk_stop_auto_stake_him(self, him):
-        INFO(f"Un-stake other: {him.validator_key}")
+        INFO(f"Stop auto stake other: {him.validator_key}")
         return self.stk_stop_auto_staking(him, him)
 
     def stk_wait_till_i_am_committee(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):

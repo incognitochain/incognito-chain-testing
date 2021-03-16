@@ -49,10 +49,10 @@ class BeaconBestStateBase(BlockChainInfoBaseClass):
         return self.data["ShardHandle"]
 
     def get_missing_signature(self):
-        return self.data["MissingSignature"]
+        pass
 
     def get_missing_signature_penalty(self):
-        return self.data["MissingSignaturePenalty"]
+        pass
 
     def get_best_shard_height(self, shard_number=None):
         if shard_number is not None:
@@ -97,10 +97,6 @@ class BeaconBestStateBase(BlockChainInfoBaseClass):
 
     @abstractmethod
     def is_he_a_committee(self, account):
-        pass
-
-    @abstractmethod
-    def is_this_committee_auto_stake(self, account):
         pass
 
     @abstractmethod
@@ -265,13 +261,65 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         return auto_staking_objs
 
     def get_staking_tx(self, account=None):
-        acc_pub_key = KeyExtractor.inc_public_k(account) if account is not None else None
-        staking_tx_list = self.data['StakingTx']
-        for key, tx in staking_tx_list.items():
+        """
+        get staking transaction of a user or get list of all user with their staking transaction
+        @param account: optional, Account object or public key (string) or BeaconBestStateDetailInfo.Committee
+        @return:
+        """
+        staking_tx_dict = self.data['StakingTx']
+        if account is None:
+            return staking_tx_dict
+        else:
+            acc_pub_key = KeyExtractor.inc_public_k(account)
+
+        for key, tx in staking_tx_dict.items():
             if key == acc_pub_key:
                 INFO(f"{l6(acc_pub_key)} (public key) staking tx_id is {tx}")
                 return tx
-        return staking_tx_list.values()
+        INFO(f"{l6(acc_pub_key)} (public key) not found staking tx_id")
+        return None
+
+    def get_missing_signature(self, account=None):
+        """
+        get missing signature of a user or get list of all user with their missing signature
+        @param account: optional, Account object or public key (string) or BeaconBestStateDetailInfo.Committee
+        @return:
+        """
+        missing_signature_dict = self.data['MissingSignature']
+        if account is None:
+            return missing_signature_dict
+        else:
+            acc_pub_key = KeyExtractor.inc_public_k(account)
+
+        for key, count_signature in missing_signature_dict.items():
+            if key == acc_pub_key:
+                total = count_signature["Total"]
+                missing = count_signature["Missing"]
+                INFO(f"Count signature of {l6(acc_pub_key)} (public key) - Total: {total} - Missing: {missing}")
+                return total, missing
+        INFO(f"Missing Signature of {l6(acc_pub_key)} (public-key) not found")
+        return None
+
+    def get_missing_signature_penalty(self, account=None):
+        """
+        get missing signature of a user or get list of all user with their missing signature
+        @param account: optional, Account object or public key (string) or BeaconBestStateDetailInfo.Committee
+        @return:
+        """
+        missing_signature_penalty_dict = self.data['MissingSignaturePenalty']
+        if account is None:
+            return missing_signature_penalty_dict
+        else:
+            acc_pub_key = KeyExtractor.inc_public_k(account)
+
+        for key, count_signature in missing_signature_penalty_dict.items():
+            if key == acc_pub_key:
+                total = count_signature["Total"]
+                missing = count_signature["Missing"]
+                INFO(f"Count signature of {l6(acc_pub_key)} (public key) - Total: {total} - Missing: {missing}")
+                return total, missing
+        INFO(f"Missing Signature Penalty of {l6(acc_pub_key)} (public-key) not found")
+        return None
 
     def is_he_a_committee(self, account):
         """
@@ -333,28 +381,6 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         INFO(f"NOT exist in shard waiting next random: pub_key = {public_key}")
         return False
 
-    def is_this_committee_auto_stake(self, account):
-        """
-        Function to check committee auto stake by using Account or public key
-        :param account: Account obj or public key
-        :return: True if it matches, else False
-        """
-        from Objects.AccountObject import Account
-        if type(account) == str:
-            public_key = account
-        elif type(account) == Account:
-            public_key = account.public_key
-        else:
-            public_key = ''
-
-        committees_auto_staking = self.get_auto_staking_committees()
-        for committee in committees_auto_staking:
-            if committee.get_inc_public_key() == public_key:
-                INFO(f'{public_key} : {committee.is_auto_staking()}')
-                return committee.is_auto_staking()
-        INFO(f'cannot found {l6(public_key)} in auto staking list')
-        return
-
     def get_candidate_shard_waiting_current_random(self):
         """
         Function to get candidate shard waiting current random
@@ -406,9 +432,6 @@ class BeaconBestStateInfo(BeaconBestStateBase):
                 return shard_id
         INFO(f'(comm pub k) {l6(account.committee_public_k)} is NOT a committee of any shard')
         return False
-
-    def is_this_committee_auto_stake(self, account):
-        return self.get_auto_staking_committees(account)
 
     def is_in_shard_pending_list(self, account):
         """
@@ -473,14 +496,12 @@ class BeaconBestStateInfo(BeaconBestStateBase):
 
         if account is None:  # get all committee auto staking
             return auto_staking_dict_raw
-        elif type(account) == str:
-            committee_public_k = account
         else:
-            committee_public_k = account.committee_public_k
+            committee_public_k = KeyExtractor.committee_public_k(account)
         # get a committee auto staking
         for key, value in auto_staking_dict_raw.items():
             if committee_public_k == key:
-                INFO(f'(comm pub k) {l6(committee_public_k)} auto staking is {value}')
+                # INFO(f'(comm pub k) {l6(committee_public_k)} auto staking is {value}')
                 return value
         INFO(f'(comm pub k) {l6(committee_public_k)} is not found in auto staking list')
         return None
@@ -508,6 +529,67 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         elif shard_num is None and validator_number is None:  # get all committee in all shard
             committee_public_key_dict = self.data['ShardPendingValidator']
             return committee_public_key_dict
+
+    def get_staking_tx(self, account=None):
+        """
+        get staking transaction of a user or get list of all user with their staking transaction
+        @param account: optional, Account obj or committee_public_k
+        @return:
+        """
+        staking_tx_dict = self.data['StakingTx']
+        if account is None:
+            return staking_tx_dict
+        else:
+            acc_committee_pub_key = KeyExtractor.committee_public_k(account)
+
+        for key, tx in staking_tx_dict.items():
+            if key == acc_committee_pub_key:
+                INFO(f"{l6(acc_committee_pub_key)} (public key) staking tx_id is {tx}")
+                return tx
+        INFO(f"{l6(acc_committee_pub_key)} (public key) not found staking tx_id")
+        return None
+
+    def get_missing_signature(self, account=None):
+        """
+        get missing signature of a user or get list of all user with their missing signature
+        @param account: optional, Account obj or committee_public_k
+        @return:
+        """
+        missing_signature_dict = self.data['MissingSignature']
+        if account is None:
+            return missing_signature_dict
+        else:
+            acc_committee_pub_key = KeyExtractor.committee_public_k(account)
+
+        for key, count_signature in missing_signature_dict.items():
+            if key == acc_committee_pub_key:
+                total = count_signature["Total"]
+                missing = count_signature["Missing"]
+                INFO(f"Count signature of {l6(acc_committee_pub_key)} (public key) - Total: {total} - Missing: {missing}")
+                return total, missing
+        INFO(f"Missing Signature of {l6(acc_committee_pub_key)} (public-key) not found")
+        return None
+
+    def get_missing_signature_penalty(self, account=None):
+        """
+        get missing signature of a user or get list of all user with their missing signature
+        @param account: optional, Account obj or committee_public_k
+        @return:
+        """
+        missing_signature_penalty_dict = self.data['MissingSignaturePenalty']
+        if account is None:
+            return missing_signature_penalty_dict
+        else:
+            acc_committee_pub_key = KeyExtractor.committee_public_k(account)
+
+        for key, count_signature in missing_signature_penalty_dict.items():
+            if key == acc_committee_pub_key:
+                total = count_signature["Total"]
+                missing = count_signature["Missing"]
+                INFO(f"Count signature of {l6(acc_committee_pub_key)} (public key) - Total: {total} - Missing: {missing}")
+                return total, missing
+        INFO(f"Missing Signature Penalty of {l6(acc_committee_pub_key)} (public-key) not found")
+        return None
 
 
 class BeaconBlock(BlockChainInfoBaseClass):
