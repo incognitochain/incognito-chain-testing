@@ -13,7 +13,7 @@ receiver_shard_0 = Account(
 receiver_shard_1 = acc_list_1_shard[0]
 senders_from_1_to_0 = acc_list_1_shard[1:4]
 senders_from_1_to_1 = acc_list_1_shard[4:7]
-COIN_MASTER.top_him_up_prv_to_amount_if(coin(2), coin(5), senders_from_1_to_0 + senders_from_1_to_1)
+COIN_MASTER.top_him_up_prv_to_amount_if(coin(2), coin(5), senders_from_1_to_1 + senders_from_1_to_0)
 amount = 10000
 min_blocks_wait_fork = 6  # Chain will be forked after at least {min_blocks_wait_fork} blocks
 time_send_tx = 3  # create & send transaction before and after {time_send_tx} blocks
@@ -37,10 +37,10 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
     bal_b4_receiver = {}
     amount_receiver = {}
     fee_dict = {}
-    for sender in senders_from_1_to_0 + senders_from_1_to_1:
+    for sender in senders_from_1_to_1 + senders_from_1_to_0:
         bal_b4_sender_dict[sender] = sender.get_prv_balance()
         fee_dict[sender] = []
-    for receiver in [receiver_shard_0, receiver_shard_1]:
+    for receiver in [receiver_shard_1, receiver_shard_0]:
         bal_b4_receiver[receiver] = receiver.get_prv_balance()
         amount_receiver[receiver] = 0
 
@@ -57,7 +57,7 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
     height_current, block_fork_list, real_blocks_wait = thread.result()
 
     WAIT((real_blocks_wait - time_send_tx) * ChainConfig.BLOCK_TIME)
-
+    # WAIT(3000)
     STEP(2, "Create and send transaction")
     thread_tx_cross_shard = []
     thread_tx_same_shard = []
@@ -92,16 +92,24 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
         round_height[height_current] += 1
         assert round_height[height_current] <= num_of_branch1 * 2 + 2, ERROR(f'Chain is stopped at {height_current}')
         if height_current in block_fork_list + [block_fork_list[0] - 1]:
-            WAIT(40)
+            WAIT(ChainConfig.BLOCK_TIME*4)
         else:
-            WAIT(ChainConfig.BLOCK_TIME)
+            WAIT(ChainConfig.BLOCK_TIME*2)
+        # WAIT(ChainConfig.BLOCK_TIME * 4)
 
     WAIT(10 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update
 
     STEP(3, 'Get all view detail')
-    for thread in thread_pool_view:
-        result = thread.result()
-        INFO(result.num_of_hash_follow_height())
+    for i in range(len(thread_pool_view)):
+        result = thread_pool_view[i].result()
+        if cID2 is not None:
+            if i % 2 == 0:
+                INFO(f'Chain ID {cID1}: {result.num_of_hash_follow_height()}')
+            else:
+                INFO(f'Chain ID {cID2}: {result.num_of_hash_follow_height()}')
+        else:
+            INFO(f'Chain ID {cID1}: {result.num_of_hash_follow_height()}')
+    INFO('Transaction same shard')
     for list_thread in thread_tx_same_shard:
         for i in range(len(list_thread)):
             result = list_thread[i].result()
@@ -119,6 +127,7 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
                     ERROR(msg_error)
             else:
                 ERROR(result.get_error_msg())
+    INFO('Transaction cross shard')
     for list_thread in thread_tx_cross_shard:
         for i in range(len(list_thread)):
             result = list_thread[i].result()
@@ -161,5 +170,5 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
             bal_b4_receiver[receiver_shard_0] + amount_send_cross)
     INFO(f'Different balance receiver cross shard: {diff_receiver_cross}')
 
-    assert sum(diff_send_cross) == - diff_receiver_cross
     assert sum(diff_send_same) == - diff_receiver_same
+    assert sum(diff_send_cross) == - diff_receiver_cross

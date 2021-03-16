@@ -140,10 +140,7 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
         INFO(f'Block_height: {height_current}')
         round_height[height_current] += 1
         assert round_height[height_current] <= num_of_branch1 * 2 + 2, ERROR(f'Chain is stopped at {height_current}')
-        if height_current in block_fork_list:
-            WAIT(40)
-        else:
-            WAIT(ChainConfig.BLOCK_TIME * 2)
+        WAIT(ChainConfig.BLOCK_TIME * 4)
 
     STEP(3, 'Wait for Tx to be confirmed and balance to update')
     WAIT(10 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update

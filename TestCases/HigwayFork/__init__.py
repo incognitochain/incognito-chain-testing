@@ -102,7 +102,7 @@ def calculated_and_create_fork(chain_id, at_transfer_next_epoch=False, min_block
             else:
                 for i in range(num_of_block_fork):
                     block_fork_list[i] = height_current + min_blocks_wait_fork + i
-    else:
+    elif at_transfer_next_epoch is False:
         INFO('Create fork not at the time of epoch transfer')
         assert num_of_block_fork < block_per_epoch, ERROR(
             'The number of blocks fork is greater than the number of blocks per epoch')
@@ -122,6 +122,9 @@ def calculated_and_create_fork(chain_id, at_transfer_next_epoch=False, min_block
                 for i in range(num_of_block_fork):
                     block_fork_list[i] = ChainHelper.cal_first_height_of_epoch(epoch_current + 1) \
                                          + 1 + i - difference_height
+    else:
+        for i in range(num_of_block_fork):
+            block_fork_list[i] = height_current + min_blocks_wait_fork + i
     real_blocks_wait = block_fork_list[0] - height_current
     INFO(
         f'Create fork on chain_id_{chain_id} at block_list {block_fork_list}, fork {num_of_branch} branchs, branch {branch_tobe_continue} tobe continue')
