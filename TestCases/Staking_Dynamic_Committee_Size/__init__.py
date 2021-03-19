@@ -2,17 +2,14 @@ from Configs.Constants import coin, ChainConfig
 from Helpers.Logging import INFO, ERROR
 from Helpers.TestHelper import l6
 from Objects.AccountObject import Account, COIN_MASTER
-from Objects.IncognitoTestCase import SUT
+from Objects.IncognitoTestCase import SUT, STAKER_ACCOUNTS, ACCOUNTS
+from Objects.TransactionObjects import TransactionDetail
 
 stake_account = Account(
     "112t8sw4ZAc1wwbKog9NhE6VqpEiPii4reg8Zc5AVGu7BkxtPYv95dXRJtzP9CkepgzfUwTseNzgHXRovo9oDb8XrEpb5EgFhKdZhwjzHTbd")
 
 # Prepare coin to test
-if stake_account.get_prv_balance() < coin(1750):
-    COIN_MASTER.send_prv_to(stake_account, coin(1850) - stake_account.get_prv_balance_cache(),
-                            privacy=0).subscribe_transaction()
-    if stake_account.shard != COIN_MASTER.shard:
-        stake_account.subscribe_cross_output_coin()
+COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), stake_account)
 
 
 def stake_and_check_balance_after_stake(account):
@@ -47,6 +44,12 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
     :param balance_after_staking: balance of account testing
     :param thread_result_beacon: thread result of beacon objs
     :return: None
+    @param account:
+    @param balance_after_staking:
+    @param thread_result_beacon:
+    @param stake_at_epoch:
+    @param stake_at_beacon_height:
+    @return:
     """
     shard_waiting_next_random_bool = False
     shard_waiting_current_random_bool = False
@@ -61,7 +64,7 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
 
     for beacon in thread_result_beacon:
         # Find public key of account stake in candidate shard waiting next random
-        if beacon.get_candidate_shard_waiting_next_random() != []:
+        if beacon.get_candidate_shard_waiting_next_random():
             for candidate_shard_waiting_next_random in beacon.get_candidate_shard_waiting_next_random():
                 if account.public_key == candidate_shard_waiting_next_random.get_inc_public_key() and shard_waiting_next_random_bool == False:
                     shard_waiting_next_random_bool = True
@@ -105,7 +108,7 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
                                 """)
 
         # Find public key of account stake in candidate shard waiting current random
-        if beacon.get_candidate_shard_waiting_current_random() != []:
+        if beacon.get_candidate_shard_waiting_current_random():
             for candidate_shard_waiting_current_random in beacon.get_candidate_shard_waiting_current_random():
                 if account.public_key == candidate_shard_waiting_current_random.get_inc_public_key() and shard_waiting_current_random_bool == False:
                     shard_waiting_current_random_bool = True
@@ -147,7 +150,7 @@ def find_public_key_in_beacon_best_state_detail(account, balance_after_staking, 
 
         # Find public key of account stake in shard pending validator
         for key, value in beacon.get_shard_pending_validator().items():
-            if value != []:
+            if value:
                 for committee in value:
                     if account.public_key == committee.get_inc_public_key() and shard_pending_validator_bool == False:
                         shard_pending_validator_bool = True
@@ -665,3 +668,14 @@ def find_committee_public_key_in_shard_best_state(account, staking_tx_id, thread
                             - BeaconHeight: {shard_id.get_beacon_height()}
                             ****************************************************************    
                                     """)
+
+
+def get_staker_by_tx_id(tx_id):
+    acc_group = ACCOUNTS + STAKER_ACCOUNTS
+    response = TransactionDetail().get_transaction_by_hash(tx_id)
+    try:
+        public_k_staker = response.get_input_coin_pub_key()
+    except:
+        INFO(f'Find staker of transaction by tx_id: {tx_id}: Error')
+    staker = acc_group.find_account_by_key(public_k_staker)
+    return staker

@@ -11,6 +11,7 @@ init_receiver_balance = None
 
 def setup_module():
     global sender_account, receiver_account, init_sender_balance, init_receiver_balance
+    INFO("Set-up")
     sender_account = get_accounts_in_shard(5)[0]
     receiver_account = get_accounts_in_shard(5)[1]
     init_sender_balance = sender_account.get_prv_balance()
@@ -20,6 +21,7 @@ def setup_module():
 
 
 def teardown_module():
+    INFO("Tear-down")
     if init_sender_balance == 0:
         receiver_account.send_prv_to(sender_account, init_sender_balance, privacy=0).subscribe_transaction()
     if receiver_account.shard != sender_account.shard:

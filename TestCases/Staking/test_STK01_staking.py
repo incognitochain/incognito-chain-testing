@@ -99,6 +99,8 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     if not auto_re_stake:
         STEP(5, "Wait for the stake to be swapped out")
         epoch_x = validator.stk_wait_till_i_am_swapped_out_of_committee()
+        beacon_bsd = SUT().get_beacon_best_state_detail_info()
+        assert beacon_bsd.get_auto_staking_committees(validator) is None
     else:
         STEP(5, 'Wait for next epoch')
         epoch_x = ChainHelper.wait_till_next_epoch()
@@ -144,13 +146,11 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
             wait_for_balance_change(token_id, timeout=180, from_balance=token_bal_b4_withdraw_reward,
                                     least_change_amount=token_reward_amount / 2)
         assert prv_bal_b4_withdraw_reward == reward_receiver.get_prv_balance()
-        # assert token_bal_b4_withdraw_reward == token_bal_after_withdraw_reward - token_reward_amount
-        assert token_bal_b4_withdraw_reward == token_bal_after_withdraw_reward  # privacy v2 not support withdraw token
-        assert all_reward_b4 == reward_receiver.stk_get_reward_amount_all_token()
+        assert token_bal_b4_withdraw_reward == token_bal_after_withdraw_reward - token_reward_amount
 
     elif ChainConfig.PRIVACY_VERSION == 2:
         assert token_reward_amount == 0, 'Privacy v2 should not have any token reward, PRV only'
         reward_receiver.stk_withdraw_reward_to_me(token_id).expect_error('Not enough reward')
 
     if auto_re_stake is True:  # clean up
-        the_stake.stk_stop_auto_staking(reward_receiver, validator).expect_error().subscribe_transaction()
+        the_stake.stk_stop_auto_staking(reward_receiver, validator).expect_no_error().subscribe_transaction()

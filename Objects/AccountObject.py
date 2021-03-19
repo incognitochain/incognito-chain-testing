@@ -331,7 +331,7 @@ class Account:
             raise Exception("Validator key is not specified")
 
         INFO(
-            f'{l6(self.private_key)} Stake for {l6(validator.validator_key)} and reward other: {l6(receiver_reward.payment_key)}')
+            f'{l6(self.private_key)} Stake for {l6(validator.validator_key)} and reward: {l6(receiver_reward.payment_key)}')
         return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, validator.payment_key,
                                                 validator.validator_key,

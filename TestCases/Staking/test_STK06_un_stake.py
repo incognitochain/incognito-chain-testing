@@ -1,23 +1,19 @@
 import pytest
 
 from Configs.Constants import coin, ChainConfig
-from Helpers.KeyListJson import KeyListJson
 from Helpers.Logging import INFO, STEP
 from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
-from Objects.IncognitoTestCase import SUT
+from Objects.IncognitoTestCase import SUT, STAKER_ACCOUNTS
 
-key_list_file = KeyListJson()
-
-stake_list = key_list_file.get_staker_accounts()
 index_epoch_change = 499
 block_per_epoch_b4 = 10
 block_per_epoch_af = 20
 
 list_staker_to_test = []
 beacon_bsd = SUT().get_beacon_best_state_detail_info()
-for staker in stake_list[36:]:  # trong file keylist.json, staker số 36 trở đi đã được run node
+for staker in STAKER_ACCOUNTS[36:]:
     if beacon_bsd.get_auto_staking_committees(staker) is None:
         list_staker_to_test.append(staker)
     if len(list_staker_to_test) >= 3:
@@ -57,6 +53,8 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
                                                                  block_per_epoch_af)
     if beacon_height_current < block_height_random:
         ChainHelper.wait_till_beacon_height(block_height_random, timeout=210)
+    elif beacon_height_current > block_height_random + 5:
+        ChainHelper.wait_till_beacon_height(block_height_random + ChainConfig.BLOCK_PER_EPOCH, timeout=210)
 
     STEP(1, 'Staking')
     fee_stk = the_stake.stake(validator, receiver_reward, auto_re_stake=auto_re_stake).subscribe_transaction().get_fee()
@@ -74,16 +72,17 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
 
     STEP(2, 'Un_staking')
     fee_un_stk = the_stake.stk_un_stake_tx(validator).subscribe_transaction().get_fee()
-    bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake,
-                                                        least_change_amount=(ChainConfig.STK_AMOUNT - fee_un_stk),
-                                                        timeout=4000)
-    assert bal_af_un_stake == bal_b4_stake - fee_stk - fee_un_stk
-
     WAIT(60)  # wait to he swap out, is not validator
 
     STEP(3, 'Verify validator swap out')
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
     assert beacon_bsd.get_auto_staking_committees(validator) is None
+
+    STEP(4, 'Verify balance')
+    bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake,
+                                                        least_change_amount=(ChainConfig.STK_AMOUNT - fee_un_stk),
+                                                        timeout=4000)
+    assert bal_af_un_stake == bal_b4_stake - fee_stk - fee_un_stk
 
 
 @pytest.mark.parametrize("the_stake, validator, receiver_reward, auto_re_stake", [

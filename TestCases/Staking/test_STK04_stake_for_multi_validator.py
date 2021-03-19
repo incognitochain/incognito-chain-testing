@@ -9,6 +9,10 @@ from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from TestCases.Staking import account_y, account_a, account_u, account_t
 
+index_epoch_change = 0
+block_per_epoch_b4 = 20
+block_per_epoch_af = ChainConfig.BLOCK_PER_EPOCH
+
 
 def get_epoch_swap_in_out_and_reward_committee(account_stake):
     """
@@ -19,19 +23,23 @@ def get_epoch_swap_in_out_and_reward_committee(account_stake):
     reward = 0
     epoch_in = account_stake.stk_wait_till_i_am_committee()
     bbd_b4 = SUT().get_beacon_best_state_detail_info()
-    shard_committee = bbd_b4.is_he_a_committee(account_stake)
-    assert shard_committee is not False
+    shard_id = bbd_b4.is_he_a_committee(account_stake)
+    assert shard_id is not False
     epoch_out = account_stake.stk_wait_till_i_am_swapped_out_of_committee()
     for epoch in range(epoch_in, epoch_out):
-        instruction_beacon_height = ChainHelper.cal_first_height_of_epoch(epoch + 1)
+        instruction_beacon_height = ChainHelper.cal_first_height_of_epoch(epoch=epoch + 1,
+                                                                          index_epoch_change=index_epoch_change,
+                                                                          block_per_epoch_b4=block_per_epoch_b4,
+                                                                          block_per_epoch_af=block_per_epoch_af)
         # instruction_beacon_height = (5000 + (epoch - 1 - 499) * 20) + 1
         instruction_bb = SUT().get_latest_beacon_block(instruction_beacon_height)
         bb_reward_instruction_prv = instruction_bb.get_transaction_reward_from_instruction()
-        reward += bb_reward_instruction_prv[str(shard_committee)] / ChainConfig.SHARD_COMMITTEE_SIZE
-    return epoch_in, epoch_out, reward, shard_committee
+        shard_committee_size = SUT().get_committee_state(instruction_beacon_height).get_shard_committee_size(shard_id)
+        reward += bb_reward_instruction_prv[str(shard_id)] / shard_committee_size
+    return epoch_in, epoch_out, reward, shard_id
 
 
-def test_staking():
+def test_stake_for_multi_validator():
     COIN_MASTER.top_him_up_prv_to_amount_if(ChainConfig.STK_AMOUNT * 4, ChainConfig.STK_AMOUNT * 5, account_y)
     from TestCases.Staking import token_id
     INFO(f'Run test with token: {token_id}')

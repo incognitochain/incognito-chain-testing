@@ -298,7 +298,6 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
                 INFO(f"Count signature of {l6(acc_pub_key)} (public key) - Total: {total} - Missing: {missing}")
                 return total, missing
         INFO(f"Missing Signature of {l6(acc_pub_key)} (public-key) not found")
-        return None
 
     def get_missing_signature_penalty(self, account=None):
         """
@@ -319,7 +318,6 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
                 INFO(f"Count signature of {l6(acc_pub_key)} (public key) - Total: {total} - Missing: {missing}")
                 return total, missing
         INFO(f"Missing Signature Penalty of {l6(acc_pub_key)} (public-key) not found")
-        return None
 
     def is_he_a_committee(self, account):
         """
@@ -568,7 +566,6 @@ class BeaconBestStateInfo(BeaconBestStateBase):
                 INFO(f"Count signature of {l6(acc_committee_pub_key)} (public key) - Total: {total} - Missing: {missing}")
                 return total, missing
         INFO(f"Missing Signature of {l6(acc_committee_pub_key)} (public-key) not found")
-        return None
 
     def get_missing_signature_penalty(self, account=None):
         """
@@ -589,7 +586,6 @@ class BeaconBestStateInfo(BeaconBestStateBase):
                 INFO(f"Count signature of {l6(acc_committee_pub_key)} (public key) - Total: {total} - Missing: {missing}")
                 return total, missing
         INFO(f"Missing Signature Penalty of {l6(acc_committee_pub_key)} (public-key) not found")
-        return None
 
 
 class BeaconBlock(BlockChainInfoBaseClass):
