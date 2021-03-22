@@ -15,6 +15,16 @@ max_shard_comm_size = ChainConfig.SHARD_COMMITTEE_SIZE
 
 
 def view_dynamic(reward_dict, wait_4random, wait_current_random, pending_validator, shard_committees, beacon_height):
+    """
+    Display dynamic committee size follow each beacon height, verify swap in-out according to staking flow v2
+    @param reward_dict: dict of {public_key: reward}
+    @param wait_4random: a list candidate shard waiting next random: list of BeaconBestStateDetailInfo.Committee
+    @param wait_current_random: a list candidate shard waiting current random: list of BeaconBestStateDetailInfo.Committee
+    @param pending_validator: a dict candidate shard pending: Dict of {shard_num: list of BeaconBestStateDetailInfo.Committee}
+    @param shard_committees: a dict shard committees: dict of {shard_num: list of BeaconBestStateDetailInfo.Committee}
+    @param beacon_height: number
+    @return:
+    """
     reward_b4_dict = copy.deepcopy(reward_dict)
     b4_wait_4random = copy.deepcopy(wait_4random)
     b4_wait_current_random = copy.deepcopy(wait_current_random)
@@ -70,6 +80,7 @@ def view_dynamic(reward_dict, wait_4random, wait_current_random, pending_validat
     pending_validator = beacon_bsd.get_shard_pending_validator()
     beacon_committees = beacon_bsd.get_beacon_committee()
     shard_committees = beacon_bsd.get_shard_committees()
+    missing_signature_penalty = beacon_bsd.get_missing_signature_penalty()
 
     concurrent.futures.wait(thread_pool)
     for pub_k, thread in reward_dict.items():
@@ -124,10 +135,9 @@ def view_dynamic(reward_dict, wait_4random, wait_current_random, pending_validat
         for j in range(len(committees)):
             pub_k = committees[j].get_inc_public_key()
             is_auto_stk = beacon_bsd.get_auto_staking_committees(pub_k)
-            try:
-                total_signature, miss_signature = beacon_bsd.get_missing_signature(pub_k)
-            except NotImplementedError:
-                total_signature, miss_signature = beacon_bsd.get_missing_signature_penalty(pub_k)
+            total_signature, miss_signature = beacon_bsd.get_missing_signature(pub_k)
+            if miss_signature > total_signature/2:
+                assert missing_signature_penalty.get(pub_k) is not None, print(committees[j])
             if reward_b4_dict.get(pub_k) is None:
                 reward_b4_dict[pub_k] = reward_dict[pub_k]
             reward_increase = reward_dict[pub_k] - reward_b4_dict[pub_k]
@@ -136,12 +146,20 @@ def view_dynamic(reward_dict, wait_4random, wait_current_random, pending_validat
             else:
                 string_shard_committees += f'\tacct{j}         : {l3(stakers[pub_k].private_key)}__{l3(pub_k)}__{l3(reward_receiver[pub_k])} - reward: {reward_dict[pub_k]}, rwinc: {reward_increase}, auto_stk: {is_auto_stk} - missing signature: {miss_signature}/{total_signature}\n'
 
+    string_missing_signature_penalty = '\tMissing_Signature_Penalty\n'
+    for key, value in missing_signature_penalty.items():
+        min_percent = value["MinPercent"]
+        time = value["Time"]
+        force_unstake = value["ForceUnstake"]
+        string_missing_signature_penalty += f'\t{key}: {min_percent}_{time}_{force_unstake}'
+
     INFO(f"""
         {string_wait_4random}
         {string_wait_4current_random}
         {string_pending_validator}
         {string_beacon_committee}
         {string_shard_committees}
+        {string_missing_signature_penalty}
                 ================================================================
         """)
 
@@ -173,12 +191,11 @@ def view_dynamic(reward_dict, wait_4random, wait_current_random, pending_validat
         pending_validator_list += committees
 
     if current_height_in_epoch == random_time:
-        if len(b4_wait_4random) <= num_of_assigned_candidates:
-            assert wait_current_random == b4_wait_4random
-            assert wait_4random == []
-        else:
-            assert wait_current_random == b4_wait_4random[:num_of_assigned_candidates]
-            assert wait_4random == b4_wait_4random[num_of_assigned_candidates:]
+        if len(b4_wait_4random) < num_of_assigned_candidates:
+            num_of_assigned_candidates = len(b4_wait_4random)
+        assert wait_current_random == b4_wait_4random[:num_of_assigned_candidates]
+        for committee in b4_wait_4random[num_of_assigned_candidates:]:
+            assert committee in wait_4random, print(committee)
     else:
         assert wait_current_random == []
 
@@ -186,32 +203,36 @@ def view_dynamic(reward_dict, wait_4random, wait_current_random, pending_validat
         for shard, committees in pending_validator.items():
             for committee in committees:
                 if committee not in b4_pending_validator[shard]:
-                    assert committee in b4_wait_current_random
-        assert len(b4_wait_current_random) + b4_pending_validator_size == pending_validator_size
-        assert shard_committees == b4_shard_committees
-
+                    assert committee in b4_wait_current_random, print(committee)
+        assert len(b4_wait_current_random) + b4_pending_validator_size == pending_validator_size, print(
+            f'{len(b4_wait_current_random) + b4_pending_validator_size} == {pending_validator_size}')
+        assert shard_committees == b4_shard_committees, print(f'{shard_committees} = {b4_shard_committees}')
     elif current_height_in_epoch == 1:
         for shard, committees in shard_committees.items():
             if len(b4_pending_validator[shard]) > num_of_swap_in[shard]:
                 swap_in = num_of_swap_in[shard]
             else:
                 swap_in = len(b4_pending_validator[shard])
-            swap_out = num_of_swap_out[shard]
+
+            if len(missing_signature_penalty) >= num_of_swap_out[shard]:
+                swap_out = 0
+            else:
+                swap_out = num_of_swap_out[shard] - len(missing_signature_penalty)
             index_break = fix_node + swap_out
             assert committees == b4_shard_committees[shard][:fix_node] + b4_shard_committees[shard][index_break:] + \
-                   b4_pending_validator[shard][:swap_in]
-
+                   b4_pending_validator[shard][:swap_in], print(
+                f"{committees}={b4_shard_committees[shard][:fix_node] + b4_shard_committees[shard][index_break:] + b4_pending_validator[shard][:swap_in]}")
             assert b4_pending_validator[shard][swap_in:] == pending_validator[shard][
-                                                            :len(b4_pending_validator[shard]) - swap_in]
+                                                            :len(b4_pending_validator[shard]) - swap_in], print(
+                f'{b4_pending_validator[shard][swap_in:]} = {pending_validator[shard][:len(b4_pending_validator[shard]) - swap_in]}')
             for committee in b4_shard_committees[shard][fix_node:index_break]:
                 if beacon_bsd.get_auto_staking_committees(committee) is True:
-                    assert committee in pending_validator_list
+                    assert committee in pending_validator_list, print(committee)
                 else:
                     assert beacon_bsd.get_auto_staking_committees(committee) is None
-
     else:
-        assert b4_pending_validator == pending_validator
-        assert shard_committees == b4_shard_committees
+        assert b4_pending_validator == pending_validator, print(f'{b4_pending_validator} = {pending_validator}')
+        assert shard_committees == b4_shard_committees, print(f'{shard_committees} = {b4_shard_committees}')
 
     return reward_dict, wait_4random, wait_current_random, pending_validator, shard_committees, beacon_height
 
