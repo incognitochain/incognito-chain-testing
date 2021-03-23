@@ -23,7 +23,7 @@ if [ "$test_data" != "-" ]; then
 fi
 
 param4=""
-``
+
 if [ -z "$4" ]; then
   param4=""
 else
