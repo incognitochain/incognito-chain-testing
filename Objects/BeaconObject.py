@@ -563,7 +563,8 @@ class BeaconBestStateInfo(BeaconBestStateBase):
             if key == acc_committee_pub_key:
                 total = count_signature["Total"]
                 missing = count_signature["Missing"]
-                INFO(f"Count signature of {l6(acc_committee_pub_key)} (public key) - Total: {total} - Missing: {missing}")
+                INFO(
+                    f"Count signature of {l6(acc_committee_pub_key)} (public key) - Total: {total} - Missing: {missing}")
                 return total, missing
         INFO(f"Missing Signature of {l6(acc_committee_pub_key)} (public-key) not found")
 
@@ -583,7 +584,8 @@ class BeaconBestStateInfo(BeaconBestStateBase):
             if key == acc_committee_pub_key:
                 total = count_signature["Total"]
                 missing = count_signature["Missing"]
-                INFO(f"Count signature of {l6(acc_committee_pub_key)} (public key) - Total: {total} - Missing: {missing}")
+                INFO(
+                    f"Count signature of {l6(acc_committee_pub_key)} (public key) - Total: {total} - Missing: {missing}")
                 return total, missing
         INFO(f"Missing Signature Penalty of {l6(acc_committee_pub_key)} (public-key) not found")
 
@@ -719,9 +721,16 @@ class BeaconBlock(BlockChainInfoBaseClass):
             return self.data[1]
 
         def get_instruction_type(self):
-            index_2 = self.data[2]
-            if "Inst" in index_2:
-                return self.data[2]
+            try:
+                inst_type = self.data[2]
+                if "Inst" in inst_type:  # beaconRewardInst, devRewardInst, shardRewardInst, portalRewardInst
+                    return inst_type
+            except IndexError:
+                inst_type = self.data[0]
+
+            if type(inst_type) is str:  # unstake, return, swap_shard
+                return inst_type
+
             return ''
 
         def get_instruction_detail(self):
