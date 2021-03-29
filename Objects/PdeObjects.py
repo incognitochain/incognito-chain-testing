@@ -4,7 +4,7 @@ import re
 from Configs.Constants import PRV_ID, ChainConfig
 from Helpers import TestHelper
 from Helpers.Logging import INFO, WARNING, DEBUG, ERROR
-from Helpers.TestHelper import extract_incognito_addr, l6
+from Helpers.TestHelper import l6, KeyExtractor
 from Helpers.Time import WAIT
 from Objects import BlockChainInfoBaseClass
 from Objects.AccountObject import Account
@@ -227,7 +227,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         :return:
         :rtype: List of WaitingContribution obj
         """
-        user_payment_addr = extract_incognito_addr(account)
+        user_payment_addr = KeyExtractor.incognito_addr(account)
         contribution_list = []
 
         INFO(f'Finding pair id {pair_id} of user {l6(user_payment_addr)} in PDE contribution waiting list')
@@ -265,7 +265,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
     def _get_contributor_reward_objects(self, user=None, token1=None, token2=None):
         DEBUG('==================================================================================================')
-        of_user = 'any' if user is None else l6(extract_incognito_addr(user))
+        of_user = 'any' if user is None else l6(KeyExtractor.incognito_addr(user))
         tok1 = 'any' if token1 is None else l6(token1)
         tok2 = 'any' if token1 is None else l6(token2)
         INFO(f'Getting PDE reward of contributor and tokens at beacon height time stamp {self.get_beacon_time_stamp()}:'
@@ -281,7 +281,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             match = True
             debug_msg = ''
             if user is not None:
-                user = extract_incognito_addr(user)
+                user = KeyExtractor.incognito_addr(user)
                 if user == reward_obj.get_payment_k():
                     match = True
                     debug_msg += f'user {of_user} | '
@@ -331,7 +331,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
     def _get_pde_share_objects(self, user=None, token1=None, token2=None):
         # DEBUG('==================================================================================================')
-        inc_addr = 'any' if user is None else l6(extract_incognito_addr(user))
+        inc_addr = 'any' if user is None else l6(KeyExtractor.incognito_addr(user))
         tok1 = 'any' if token1 is None else l6(token1)
         tok2 = 'any' if token1 is None else l6(token2)
         DEBUG(f'Getting share of user and tokens at beacon height time stamp {self.get_beacon_time_stamp()}: '
@@ -347,7 +347,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             match = True
             debug_msg = ''
             if user is not None:
-                user = extract_incognito_addr(user)
+                user = KeyExtractor.incognito_addr(user)
                 if user == pde_share_obj.get_payment_k():
                     match = True
                     debug_msg += f'user {inc_addr} | '
@@ -437,7 +437,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         return contributor_list
 
     def is_contributor(self, account, token1, token2):
-        payment_k = extract_incognito_addr(account)
+        payment_k = KeyExtractor.incognito_addr(account)
         contributors = self.get_contributor_of_pair(token1, token2)
         for contributor in contributors:
             if contributor == payment_k:
@@ -458,7 +458,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         Check if pair exist in pool pair
         :param token1:
         :param token2:
-        :return:
+        :return: True/False
         """
         pairs = self.get_pde_pool_pairs()
         for pair in pairs:

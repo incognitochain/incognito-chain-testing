@@ -5,7 +5,7 @@ from typing import List
 from Configs.Constants import PBNB_ID, PBTC_ID, PRV_ID, Status, ChainConfig
 from Helpers.Logging import INFO, DEBUG, INFO_HEADLINE, ERROR
 from Helpers.PortalHelper import PortalMath
-from Helpers.TestHelper import l6, extract_incognito_addr, KeyExtractor
+from Helpers.TestHelper import l6, KeyExtractor
 from Helpers.Time import WAIT
 from Objects import BlockChainInfoBaseClass
 
@@ -85,7 +85,7 @@ class PortingReqInfo(_PortalInfoBase):
         @param custodian: CustodianInfo or Account or incognito addr
         @return: CustodianInfo or None
         """
-        addr = extract_incognito_addr(custodian)
+        addr = KeyExtractor.incognito_addr(custodian)
 
         custodian_list = self.get_custodians()
         for custodian in custodian_list:
@@ -159,7 +159,7 @@ class RedeemReqInfo(_PortalInfoBase):
         @param custodian: CustodianInfo or Account or incognito addr
         @return:
         """
-        addr = extract_incognito_addr(custodian)
+        addr = KeyExtractor.incognito_addr(custodian)
         custodian_list = self.get_redeem_matching_custodians()
         for custodian in custodian_list:
             if custodian.get_incognito_addr() == addr:
@@ -414,7 +414,7 @@ class PortalStateInfo(_PortalInfoBase):
             my_data_copy = copy.deepcopy(self.data)
             _, my_rates = my_data_copy.popitem()
 
-            other_data_copy = copy.deepcopy(other.data)
+            other_data_copy = copy.deepcopy(other.tok_info_obj_list)
             _, other_rates = other_data_copy.popitem()
             return my_rates == other_rates
 
@@ -524,7 +524,7 @@ class PortalStateInfo(_PortalInfoBase):
         @param custodian_info: incognito address, Account, or CustodianInfo obj
         @return:
         """
-        addr = extract_incognito_addr(custodian_info)
+        addr = KeyExtractor.incognito_addr(custodian_info)
         pool = self.get_custodian_pool()
         for custodian in pool:
             if custodian.get_incognito_addr() == addr:
@@ -648,25 +648,8 @@ class PortalStateInfo(_PortalInfoBase):
         return highest_custodian
 
     def help_sort_custodian_by_holding_token_desc(self, token_id):
-        custodian_pool = copy.deepcopy(self.get_custodian_pool())
-        _len = len(custodian_pool)
-        for i in range(0, _len - 1):
-            index_of_max = i
-            _max = custodian_pool[index_of_max]
-            print(f'i max = {index_of_max}: {_max}')
-            for j in range(i + 1, _len):
-                _next = custodian_pool[j]
-                if _next.get_holding_token_amount(token_id) > _max.get_holding_token_amount(token_id):
-                    print(f'j max = {j}: {_next}')
-                    index_of_max = j
-            # swap
-            if index_of_max != i:
-                print(f'swap {i}-{index_of_max}')
-                temp = custodian_pool[i]
-                custodian_pool[i] = custodian_pool[index_of_max]
-                custodian_pool[index_of_max] = temp
-
-        return custodian_pool
+        return self.get_custodian_pool().sort(key=lambda custodian: self.get_custodian_info_in_pool(
+            custodian).get_holding_token_amount(token_id))
 
     def sum_locked_collateral_of_token(self, token_id):
         sum_locked_collateral = 0
@@ -1034,7 +1017,7 @@ class PortalStateInfo(_PortalInfoBase):
                 f'Expected String or {RedeemReqInfo.__module__}.{RedeemReqInfo.__name__}, got {type(redeem)} instead')
         psi_when_expire: PortalStateInfo
         custodian: PortalStateInfo.CustodianInfo
-        cus_addr_s = l6(extract_incognito_addr(custodian))
+        cus_addr_s = l6(KeyExtractor.incognito_addr(custodian))
         token_id = redeem_info.get_token_id()
         amount_token_redeem = redeem_info.get_custodian(custodian).get_amount()
 

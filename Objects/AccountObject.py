@@ -9,7 +9,7 @@ from Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
 from Helpers.Logging import INFO, INFO_HEADLINE, WARNING
-from Helpers.TestHelper import l6
+from Helpers.TestHelper import l6, KeyExtractor
 from Helpers.Time import WAIT, get_current_date_time
 from Objects.CoinObject import Coin
 from Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
@@ -44,7 +44,7 @@ class Account:
     def is_this_my_key(self, key_to_check):
         """
         @param key_to_check:
-        @return: key type of the {key_key_to_check} or None if not found in this account
+        @return: key type of the {key_key_to_check} or False if not found in this account
         """
         for key_type, value in self.__dict__.items():
             if "key" in key_type or "address" in key_type or "_k" in key_type:
@@ -64,32 +64,27 @@ class Account:
         @param kwargs:
         """
         self.remote_addr = {}
-
-        if private_key is not None:
-            if payment_k is not None:
-                self.private_key = private_key
-                self.payment_key = self.incognito_addr = payment_k
-                self.validator_key = self.public_key = self.read_only_key = self.bls_public_k = self.bridge_public_k = \
-                    self.mining_public_k = self.committee_public_k = self.shard = None
-                try:
-                    self.shard = kwargs['shard']
-                except KeyError:
-                    self.shard = None
-            else:
-                self.private_key, self.payment_key, self.public_key, self.read_only_key, self.validator_key, \
-                self.bls_public_k, self.bridge_public_k, self.mining_public_k, self.committee_public_k, self.shard = \
-                    get_key_set_from_private_k(private_key)
-
-                self.incognito_addr = self.payment_key
-        else:
-            self.private_key = None
-
+        self.private_key = private_key
+        self.payment_key = self.incognito_addr = payment_k
+        self.validator_key = \
+            self.public_key = \
+            self.read_only_key = \
+            self.bls_public_k = \
+            self.bridge_public_k = \
+            self.mining_public_k = \
+            self.committee_public_k = None
+        self.shard = kwargs.get('shard')
         self.cache = {}
         if handler:
             self.REQ_HANDLER = handler
         else:
             from Objects import IncognitoTestCase
             self.REQ_HANDLER = IncognitoTestCase.SUT()
+
+        if private_key and not payment_k:  # generate all key from private key if there's privatekey but not paymentkey
+            self.private_key, self.payment_key, self.public_key, self.read_only_key, self.validator_key, \
+            self.bls_public_k, self.bridge_public_k, self.mining_public_k, self.committee_public_k, self.shard = \
+                get_key_set_from_private_k(private_key)
 
     def is_empty(self):
         if self.private_key is None:
@@ -145,9 +140,7 @@ class Account:
         return False
 
     def __ne__(self, other):
-        if self.__eq__(other):
-            return False
-        return True
+        return not self.__eq__(other)
 
     def __hash__(self):
         # for using Account object as 'key' in dictionary
@@ -165,9 +158,9 @@ class Account:
         return resp.get_created_proof()
 
     def calculate_shard_id(self):
-        if self.payment_key is None:
+        if not self.payment_key:
             self.find_payment_key()
-        if self.public_key is None:
+        if not self.public_key:
             self.find_public_key()
         response = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
         last_byte = response.get_result("PublicKeyInBytes")[-1]
@@ -178,11 +171,11 @@ class Account:
         string = f'Shard = {self.shard}\n' + \
                  f'Private key = {self.private_key}\n' + \
                  f'Payment key = {self.payment_key}'
-        if self.read_only_key is not None:
+        if self.read_only_key:
             string += f'\nRead only key = {self.read_only_key}'
-        if self.validator_key is not None:
+        if self.validator_key:
             string += f'\nValidator key = {self.validator_key}'
-        if self.public_key is not None:
+        if self.public_key:
             string += f'\nPublic key = {self.public_key}'
         try:
             balance_prv = self.cache['balance_prv']
@@ -210,9 +203,8 @@ class Account:
 
         @return:
         """
-        if not force:
-            if self.public_key is not None:
-                return self.public_key
+        if not force and self.public_key:
+            return self.public_key
 
         tx = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
         self.public_key = tx.get_result('PublicKeyInBase58Check')
@@ -234,7 +226,7 @@ class Account:
 
         result = self.REQ_HANDLER.transaction().get_custom_token_balance(self.private_key, token_id). \
             expect_no_error().get_result()
-        balance = result if result is not None else 0
+        balance = result if result else 0
 
         self.cache[f'{Account._cache_bal_tok}_{token_id}'] = balance
         INFO(f"Private k = {l6(self.private_key)}, token id = {l6(token_id)}, bal = {coin(balance, False)} ")
@@ -269,7 +261,7 @@ class Account:
 
     def list_unspent_token(self, token_id=None):
         obj_coins = []
-        if token_id is None:
+        if not token_id:
             for tok_id in self.get_owned_custom_token_list():
                 raw_response = self.REQ_HANDLER.transaction(). \
                     list_unspent_output_tokens(self.private_key, tok_id).expect_no_error()
@@ -290,7 +282,7 @@ class Account:
         @param token_id:
         @return:
         """
-        if token_id is None:
+        if not token_id:
             print_data = PRV_ID
             for c in self.list_unspent_token(PRV_ID):
                 print_data += f'\n{c}'
@@ -321,13 +313,13 @@ class Account:
         @param auto_re_stake: bool
         @return:
         """
-        if validator is None:
+        if not validator:
             validator = self
-        if receiver_reward is None:
+        if not receiver_reward:
             receiver_reward = self
-        if receiver_reward.payment_key is None:
+        if not receiver_reward.payment_key:
             receiver_reward.find_payment_key()
-        if validator.validator_key is None:
+        if not validator.validator_key:
             raise Exception("Validator key is not specified")
 
         INFO(
@@ -343,11 +335,11 @@ class Account:
         @return:
         """
         INFO(f"Stake and reward me: {self.validator_key}")
-        if self.payment_key is None:
+        if not self.payment_key:
             self.find_payment_key()
-        if self.public_key is None:
+        if not self.public_key:
             self.find_public_key()
-        if self.validator_key is None:
+        if not self.validator_key:
             raise Exception("Validator key is not specified")
 
         return self.REQ_HANDLER.transaction(). \
@@ -384,7 +376,7 @@ class Account:
         return self.stk_stop_auto_staking(self, self)
 
     def stk_un_stake_tx(self, validator=None):
-        if validator is None:
+        if not validator:
             validator = self
         INFO(f'Un-stake transaction for validator: {validator.validator_key}')
         return self.REQ_HANDLER.transaction(). \
@@ -650,7 +642,7 @@ class Account:
             self.private_key,
             timeout)
 
-    def init_custom_token_self(self, token_symbol, amount):
+    def init_custom_token_self(self, token_symbol, amount, receiver=None):
         """
         Init custom token to self payment address
 
@@ -658,26 +650,27 @@ class Account:
         @param amount
         @return:
         """
+        receiver = self.payment_key if receiver is None else KeyExtractor.incognito_addr(receiver)
         INFO(f'Init custom token to self: {self.payment_key}')
 
-        return self.REQ_HANDLER.transaction().init_custom_token(self.private_key, self.payment_key,
+        return self.REQ_HANDLER.transaction().init_custom_token(self.private_key, receiver,
                                                                 token_symbol,
                                                                 amount)
 
-    def init_custom_token_to(self, account, symbol, amount):
-        """
-        Init custom token to other account's payment address
+    def init_custom_token_new_flow(self, receiver, amount):
+        pass
 
-        @param account:
-        @param symbol:
-        @param amount
-        @return:
+    def pde_contribute_pair(self, pair_dict):
         """
-        INFO(f'Init custom token to: {account.payment_key}')
-
-        return self.REQ_HANDLER.transaction().init_custom_token(self.private_key, account.payment_key,
-                                                                symbol,
-                                                                amount)
+        @param pair_dict: a dictionary of {token_id: amount}
+        @return: the 2 contribute txs
+        """
+        token1, token2 = list(pair_dict.keys())
+        amount1, amount2 = list(pair_dict.values())
+        pair_id = f'pde_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
+        tx1 = self.pde_contribute(token1, amount1, pair_id).expect_no_error().subscribe_transaction()
+        tx2 = self.pde_contribute(token2, amount2, pair_id).expect_no_error().subscribe_transaction()
+        return tx1, tx2
 
     def pde_contribute(self, token_id, amount, pair_id):
         if token_id == PRV_ID:
@@ -736,13 +729,16 @@ class Account:
         return self.REQ_HANDLER.dex().withdraw_reward_v2(self.private_key, self.payment_key, token_id_1,
                                                          token_id_2, amount)
 
-    def pde_contribute_pair_v2(self, rate_dict: dict):
-        tokens = list(rate_dict.keys())
-        token1 = tokens[0]
-        token2 = tokens[1]
+    def pde_contribute_pair_v2(self, pair_dict: dict):
+        """
+        @param pair_dict: a dictionary of {token_id: amount}
+        @return: the two contribute tx
+        """
+        token1, token2 = list(pair_dict.keys())
+        amount1, amount2 = list(pair_dict.values())
         pair_id = f'pde_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
-        tx1 = self.pde_contribute_v2(token1, tokens[token1], pair_id).expect_no_error().subscribe_transaction()
-        tx2 = self.pde_contribute_v2(token2, tokens[token2], pair_id).expect_no_error().subscribe_transaction()
+        tx1 = self.pde_contribute_v2(token1, amount1, pair_id).expect_no_error().subscribe_transaction()
+        tx2 = self.pde_contribute_v2(token2, amount2, pair_id).expect_no_error().subscribe_transaction()
         return tx1, tx2
 
     def send_token_to(self, receiver, token_id, amount_custom_token,
@@ -1313,9 +1309,10 @@ class Account:
         for acc, amount in receiver.items():
             acc.wait_for_balance_change(from_balance=acc.get_prv_balance_cache())
 
-    def submit_key(self):
+    def submit_key(self, wait=True):
         self.REQ_HANDLER.transaction().submit_key(self.private_key).expect_no_error()
-        WAIT(ChainConfig.BLOCK_TIME)
+        if wait:
+            WAIT(ChainConfig.BLOCK_TIME)
         return self
 
 

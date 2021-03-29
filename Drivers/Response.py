@@ -203,18 +203,21 @@ class Response:
         if tx_hash is None:
             raise ValueError("Tx id must not be none")
 
-        tx_detail = TransactionDetail().get_transaction_by_hash(tx_hash)
+        from Objects.IncognitoTestCase import SUT
+        tx_detail = SUT().transaction().get_tx_by_hash(tx_hash)
 
-        if not retry and not tx_detail.is_none():
-            return tx_detail
-        if not tx_detail.is_none():
-            return tx_detail
+        if not retry:
+            if tx_detail.get_error_msg():
+                return TransactionDetail()
+            else:
+                return TransactionDetail(tx_detail.get_result())
+
         while time_out > 0:
+            if not tx_detail.get_error_msg():
+                return TransactionDetail(tx_detail.get_result())
             time_out -= interval
             WAIT(interval)
-            tx_detail = TransactionDetail().get_transaction_by_hash(tx_hash)
-            if not tx_detail.is_none():
-                return tx_detail
+            tx_detail = SUT().transaction().get_tx_by_hash(tx_hash)
         return TransactionDetail()
 
     def get_mem_pool_transactions_id_list(self) -> list:

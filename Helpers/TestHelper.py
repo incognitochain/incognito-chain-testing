@@ -93,21 +93,6 @@ def format_dict_side_by_side(dict1, dict2):
     return lines
 
 
-def extract_incognito_addr(obj):
-    from Objects.AccountObject import Account
-    from Objects.PortalObjects import PortalStateInfo
-
-    if type(obj) == str:
-        addr = obj
-    elif type(obj) == Account:
-        addr = obj.incognito_addr
-    elif type(obj) == PortalStateInfo.CustodianInfo:
-        addr = obj.get_incognito_addr()
-    else:
-        raise TypeError("Input must be incognito address (string), CustodianInfo or Account object")
-    return addr
-
-
 class KeyExtractor:
     @staticmethod
     def incognito_addr(obj):
@@ -169,7 +154,7 @@ class ChainHelper:
         if block_per_epoch_af is None:
             block_per_epoch_af = ChainConfig.BLOCK_PER_EPOCH
         return ((index_epoch_change + 1) * block_per_epoch_b4 + (
-                    epoch - index_epoch_change - 1) * block_per_epoch_af) + 1
+                epoch - index_epoch_change - 1) * block_per_epoch_af) + 1
 
     @staticmethod
     def cal_last_height_of_epoch(epoch):

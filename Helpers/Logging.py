@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 
 _FMT_WIDTH = 100
-_FMT_STR = '#' * _FMT_WIDTH
+_FMT_CHR = '='
 _STEP_LVL = 12
 
 log_level_console = _STEP_LVL
@@ -51,10 +51,6 @@ def _log():
         pass
     line = {'line': inspect.stack()[2][2]}
     logger = logging.getLogger(logger_name)
-    if logger.hasHandlers():
-        # Logger is already configured, remove all handlers
-        logger.handlers = []
-
     # By default, log all messages
     logger.setLevel(logging.DEBUG)
     logger.addHandler(_file_handler_full)
@@ -72,7 +68,7 @@ def DEBUG(msg):
 
 def INFO(msg=None):
     if msg is None:
-        msg = _FMT_STR
+        msg = _FMT_CHR * _FMT_WIDTH
     _log().info(msg)
     return True
 
@@ -90,7 +86,12 @@ def CRITICAL(msg):
 
 
 def INFO_HEADLINE(msg):
-    new_msg = ('\n{}\n{:>%d}\n{}' % ((_FMT_WIDTH + len(msg)) / 2)).format(_FMT_STR, msg, _FMT_STR)
+    l_msg = len(msg)
+    width = l_msg + 6 if l_msg > _FMT_WIDTH else _FMT_WIDTH
+    mid = int(((width - 6 + l_msg) / 2))
+    end = width - mid - 4
+    fmt_str = _FMT_CHR * width
+    new_msg = ('\n{}\n{} {:>%d} {:>%d}\n{}' % (mid, end)).format(fmt_str, '||', msg, '||', fmt_str)
     INFO(new_msg)
 
 

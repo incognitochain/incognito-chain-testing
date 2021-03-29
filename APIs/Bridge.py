@@ -10,12 +10,6 @@ class BridgeRpc(BaseRpcApi):
             with_params([]). \
             execute()
 
-    def get_all_token_list(self):
-        return self.rpc_connection. \
-            with_method("listprivacycustomtoken"). \
-            with_params([]). \
-            execute()
-
     def get_bridge_request_status(self, tx_id):
         return self.rpc_connection. \
             with_method("getbridgereqwithstatus"). \

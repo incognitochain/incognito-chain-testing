@@ -1,7 +1,6 @@
 from APIs import BaseRpcApi
 from Configs import Constants
 from Configs.Constants import BURNING_ADDR, ChainConfig
-from Drivers import Connections
 
 
 class TransactionRpc(BaseRpcApi):
@@ -37,17 +36,18 @@ class TransactionRpc(BaseRpcApi):
     # TOKEN SECTION
     ###############
 
-    def init_custom_token(self, private_key, payment_address, symbol, amount, prv_fee=-1):
+    def init_custom_token(self, private_key, payment_address, symbol, amount, privacy=True, token_id="",
+                          token_fee=0, token_tx_type=0, prv_fee=-1):
         return self.rpc_connection. \
             with_method("createandsendprivacycustomtokentransaction"). \
             with_params([private_key, None, prv_fee, 1,
                          {
-                             "Privacy": True,
-                             "TokenID": "",
+                             "Privacy": privacy,
+                             "TokenID": token_id,
                              "TokenName": symbol + "_" + symbol,
                              "TokenSymbol": symbol,
-                             "TokenFee": 0,
-                             "TokenTxType": 0,
+                             "TokenFee": token_fee,
+                             "TokenTxType": token_tx_type,
                              "TokenAmount": amount,
                              "TokenReceivers": {
                                  payment_address: amount
@@ -55,6 +55,10 @@ class TransactionRpc(BaseRpcApi):
                          }
                          ]). \
             execute()
+
+    def new_init_p_token(self):
+        # todo: new_init_p_token
+        pass
 
     def send_custom_token_transaction(self, sender_private_key, receiver_payment_address, token_id, amount_custom_token,
                                       prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):

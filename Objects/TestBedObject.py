@@ -30,16 +30,24 @@ class TestBed:
         if test_bed is not None:
             tb = load_test_bed(test_bed)
             self.full_node: Node = tb.full_node
-            self.beacons: Beacon = tb.beacon
-            self.shards: List[Shard] = tb.shard_list
-            self.name = test_bed
+            try:
+                self.beacons: Beacon = tb.beacon
+            except AttributeError:
+                self.beacons: Beacon = []
+            try:
+                self.shards: List[Shard] = tb.shard_list
+            except AttributeError:
+                self.shards: List[Shard] = []
             try:
                 self.stakers: List[Node] = tb.stakers
-                self.highways: List[Node] = tb.highways
             except AttributeError:
                 self.stakers: List[Node] = []
+            try:
+                self.highways: List[Node] = tb.highways
+            except AttributeError:
                 self.highways: List[Node] = []
             TestBed.REQUEST_HANDLER = self.full_node
+            self.name = test_bed
         else:
             self.full_node = Node()
             self.beacons = Beacon()
