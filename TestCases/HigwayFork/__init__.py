@@ -12,18 +12,16 @@ token_id_1 = "f8ac91fe56193f71cb4c86315750dbc0c0f3afcfa798a5455ec90bc783ca3e59" 
 token_id_2 = "08803efd77bfaad73b13af202d2b5d68315a20e5405f1621aab954407944a451"  # local 162
 # token_id_1 = '24a70af11054fe97bdde7f4d56e3a2b1aa6d8df459de370b61c782033d1b029f'  # TestNet2
 # token_id_2 = '6836077e15731d4bffa9753a58cbebe8f5583a7288660fe1543667ad579e78b7'  # TestNet2
-# token_id_1 = None
-# token_id_2 = None
 
 token_owner = Account(
     '112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA')
 COIN_MASTER.top_him_up_prv_to_amount_if(coin(10000), coin(100000), token_owner)
 
-if token_id_1 is None:
+all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
+if token_id_1 not in all_ptoken_in_chain:
     trx008.account_init = token_owner
     token_id_1 = trx008.test_init_ptoken()
-
-if token_id_2 is None:
+if token_id_2 not in all_ptoken_in_chain:
     trx008.custom_token_symbol = get_current_date_time()
     trx008.account_init = token_owner
     token_id_2 = trx008.test_init_ptoken()

@@ -44,8 +44,8 @@ amount_token_fee = 1000000
 token_init_amount = coin(100000)
 token_contribute_amount = coin(10000)
 prv_contribute_amount = coin(10000)
-# token_id = '8c4a05c7dc9cd3949f9bbf41b56198be5478004f739bebbd92368706431d7ee5'
-token_id = None  # if None, the test will automatically mint a new token and use it for testing
+# setup_module function below will check if this token is existed in chain, if not, init new token
+token_id = '8c4a05c7dc9cd3949f9bbf41b56198be5478004f739bebbd92368706431d7ee5'
 tear_down_trx008 = False
 
 
@@ -91,7 +91,8 @@ def setup_module():
             f"shard {shard_id}: {num_committee_in_shard} committees"
 
     global token_id, tear_down_trx008
-    if token_id is None:
+    all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
+    if token_id not in all_ptoken_in_chain:
         token_holder_shard_0.convert_token_to_v2()
         trx008.account_init = token_holder_shard_0
         trx008.prv_contribute_amount = prv_contribute_amount
