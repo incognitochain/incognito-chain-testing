@@ -5,9 +5,9 @@ from concurrent.futures.thread import ThreadPoolExecutor
 import pytest
 
 from Configs.Constants import PRV_ID, coin
-from Helpers.Logging import STEP, INFO, DEBUG, INFO_HEADLINE
+from Helpers.Logging import STEP, INFO, INFO_HEADLINE
 from Helpers.TestHelper import calculate_actual_trade_received, l6
-from Helpers.Time import WAIT, get_current_date_time
+from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from TestCases.DEX import token_id_1, acc_list_1_shard, acc_list_n_shard, token_owner, token_id_2
@@ -24,12 +24,12 @@ def setup_function():
 
 
 @pytest.mark.parametrize('test_mode,token_sell,token_buy', (
-        ["1 shard", token_id_1, PRV_ID],
-        ["n shard", token_id_1, PRV_ID],
-        ["1 shard", token_id_1, token_id_2],
-        ["n shard", token_id_1, token_id_2],
+        # ["1 shard", token_id_1, PRV_ID],
+        # ["n shard", token_id_1, PRV_ID],
+        # ["1 shard", token_id_1, token_id_2],
+        # ["n shard", token_id_1, token_id_2],
         ["1 shard", PRV_ID, token_id_2],
-        ["n shard", PRV_ID, token_id_2],
+        # ["n shard", PRV_ID, token_id_2],
 ))
 def test_bulk_swap(test_mode, token_sell, token_buy):
     if test_mode == '1 shard':
@@ -47,20 +47,17 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     pde_state_b4 = SUT().get_latest_pde_state_info()
 
     if not pde_state_b4.is_pair_existed(token_buy, token_sell):
-        pair_id = f'pde_{l6(token_sell)}_{l6(token_buy)}_{get_current_date_time()}'
-        token_owner.pde_contribute(token_sell, coin(15000), pair_id).expect_no_error().subscribe_transaction()
-        token_owner.pde_contribute(token_buy, coin(21000), pair_id).expect_no_error().subscribe_transaction()
-        WAIT(40)
+        token_owner.pde_contribute_pair({token_sell: coin(15000), token_buy: coin(21000)})
+        WAIT(40)  # wait for pde state to be updated
         pde_state_b4 = SUT().get_latest_pde_state_info()
-
     else:
         INFO('Pair is already existed')
 
     STEP(1, "Checking balance")
-    balance_tok1_before = []
-    balance_tok2_before = []
-    balance_tok1_after = []
-    balance_tok2_after = []
+    bal_tok_sel_before = []
+    bal_tok_buy_before = []
+    bal_tok_sel_after = []
+    bal_tok_buy_after = []
     private_key_alias = []
     trading_fee = [77, 22, 11, 66, 99, 2, 33, 55, 88, 44]
 
@@ -73,15 +70,15 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
                 f"This {l6(trader.private_key)} token {l6(token_sell)} bal: {bal_tok_1} <= {trade_amount},"
                 f"NOT ENOUGH FOR TEST")
 
-        balance_tok1_before.append(bal_tok_1)
-        balance_tok2_before.append(bal_tok_2)
+        bal_tok_sel_before.append(bal_tok_1)
+        bal_tok_buy_before.append(bal_tok_2)
         private_key_alias.append(l6(trader.private_key))
 
     rate_before = pde_state_b4.get_rate_between_token(token_sell, token_buy)
 
     INFO(f"Private key alias                : {str(private_key_alias)}")
-    INFO(f"{token_sell[-6:]} balance before trade      : {str(balance_tok1_before)}")
-    INFO(f"{token_buy[-6:]} balance before trade         : {str(balance_tok2_before)}")
+    INFO(f"{token_sell[-6:]} balance before trade      : {str(bal_tok_sel_before)}")
+    INFO(f"{token_buy[-6:]} balance before trade         : {str(bal_tok_buy_before)}")
     INFO(f"Rate {token_sell[-6:]} vs {token_buy[-6:]} - Before Trade : {str(rate_before)}")
 
     STEP(2, f"trade {token_sell[-6:]} at the same time")
@@ -101,33 +98,24 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     STEP(3, "Wait for Tx to be confirmed")
     tx_fee_list = []
     for tx in tx_list:
-        tx_is_confirmed = False
         print(f'          checking tx id: {l6(tx.get_tx_id())}')
-        for i in range(0, 10):  # check 10 times each Tx
-            tx_confirm = tx.get_transaction_by_hash()
-            if tx_confirm.get_block_hash() != "":
-                tx_is_confirmed = True
-                tx_fee_list.append(tx_confirm.get_fee())
-                DEBUG("the " + tx.get_tx_id() + " is confirmed")
-                break
-            else:
-                print(f"shard id: {tx_confirm.get_shard_id()}")
-                WAIT(10)
-        assert tx_is_confirmed, f"The {tx.get_tx_id()} is NOT yet confirmed"
+        tx_detail = tx.get_transaction_by_hash()
+        assert tx_detail.get_block_height() != 0, f"The {tx.get_tx_id()} is NOT yet confirmed"
+        tx_fee_list.append(tx_detail.get_fee())
 
     STEP(4, "CHECK BALANCE AFTER")
     for i in range(0, len(traders)):
         trader = traders[i]
-        balance_tok_2 = trader.wait_for_balance_change(token_buy, balance_tok2_before[i], 100)
+        balance_tok_2 = trader.wait_for_balance_change(token_buy, bal_tok_buy_before[i], 100)
         if balance_tok_2 is not False:
-            balance_tok2_after.append(balance_tok_2)
-            balance_tok1 = trader.wait_for_balance_change(token_sell, balance_tok1_before[i], -100)
-            balance_tok1_after.append(balance_tok1)
+            bal_tok_buy_after.append(balance_tok_2)
+            balance_tok1 = trader.wait_for_balance_change(token_sell, bal_tok_sel_before[i], -100)
+            bal_tok_sel_after.append(balance_tok1)
         else:
             assert False, "Wait time expired, {token2[-6:]} did NOT increase"
     INFO(f"Private key alias                 : {str(private_key_alias)}")
-    INFO(f"{token_sell[-6:]} balance after trade        : {balance_tok1_after}")
-    INFO(f"{token_buy[-6:]}    balance after trade        : {balance_tok2_after}")
+    INFO(f"{token_sell[-6:]} balance after trade        : {bal_tok_sel_after}")
+    INFO(f"{token_buy[-6:]}    balance after trade        : {bal_tok_buy_after}")
 
     STEP(5, f"Check rate {token_sell[-6:]}  vs {token_buy[-6:]}")
     pde_state_af = SUT().get_latest_pde_state_info()
@@ -151,42 +139,35 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
 
     for order in sort_order:
         print(str(order) + "--")
-        received_amount = calculate_actual_trade_received(trade_amount, calculated_rate[0],
-                                                              calculated_rate[1])
+        received_amount_estimated_without_tx_fee = calculate_actual_trade_received(trade_amount, calculated_rate[0],
+                                                                                   calculated_rate[1])
         if token_buy == PRV_ID:
-            if received_amount == balance_tok2_after[order] - balance_tok2_before[order] + tx_fee_list[order]:
-                result_buy.append(str(order) + "Received_True")
-            else:
-                result_buy.append(str(order) + "Received_False")
-                buy_false.append(order)
-            INFO(f'received_amount_calculate: {received_amount}')
-            INFO(f'Actual received: {balance_tok2_after[order] - balance_tok2_before[order] + tx_fee_list[order]}')
+            received_amount_estimated = received_amount_estimated_without_tx_fee - tx_fee_list[order]
+
+        received_amount_actual = bal_tok_buy_after[order] - bal_tok_buy_before[order]
+
+        if received_amount_estimated == received_amount_actual:
+            result_buy.append(str(order) + "Received_True")
         else:
-            if received_amount == balance_tok2_after[order] - balance_tok2_before[order]:
-                result_buy.append(str(order) + "Received_True")
-            else:
-                result_buy.append(str(order) + "Received_False")
-                buy_false.append(order)
-            INFO(f'Received_amount_calculate: {received_amount}')
-            INFO(f'Actual received: {balance_tok2_after[order] - balance_tok2_before[order]}')
+            result_buy.append(str(order) + "Received_False")
+        INFO(f'Received calculate/actual: {received_amount_estimated} - {received_amount_actual}')
+
+        bal_after_sel_estimate = bal_tok_sel_before[order] - trading_fee[order] - trade_amount
         if token_sell == PRV_ID:
-            if trade_amount == balance_tok1_before[order] - balance_tok1_after[order] - trading_fee[order] - tx_fee_list[order]:
-                result_sell.append(str(order) + "Trade_True")
-            else:
-                result_sell.append(str(order) + "Trade_False")
-                sell_false.append(order)
+            bal_after_sel_estimate = bal_tok_sel_before[order] - trading_fee[order] - trade_amount - tx_fee_list[order]
+
+        INFO(f" estimate vs real: {bal_after_sel_estimate}-{bal_tok_sel_after[order]}")
+        if bal_after_sel_estimate == bal_tok_sel_after[order]:  # todo double check this
+            result_sell.append(str(order) + "Trade_True")
         else:
-            if trade_amount == balance_tok1_before[order] - balance_tok1_after[order] - trading_fee[order]:
-                result_sell.append(str(order) + "Trade_True")
-            else:
-                result_sell.append(str(order) + "Trade_False")
-                sell_false.append(order)
+            result_sell.append(str(order) + "Trade_False")
+            sell_false.append(order)
 
         print("  Actual Trade amount: %d " % (
-                balance_tok1_before[order] - balance_tok1_after[order] - trading_fee[order]))
+                bal_tok_sel_before[order] - bal_tok_sel_after[order] - trading_fee[order]))
 
-        calculated_rate[1] = calculated_rate[1] - received_amount
         calculated_rate[0] = calculated_rate[0] + trade_amount + trading_fee[order]
+        calculated_rate[1] = calculated_rate[1] - received_amount_estimated_without_tx_fee
 
     # sort result before print
     result_sell.sort()
