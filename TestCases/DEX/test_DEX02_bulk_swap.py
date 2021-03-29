@@ -24,12 +24,12 @@ def setup_function():
 
 
 @pytest.mark.parametrize('test_mode,token_sell,token_buy', (
-        # ["1 shard", token_id_1, PRV_ID],
-        # ["n shard", token_id_1, PRV_ID],
-        # ["1 shard", token_id_1, token_id_2],
-        # ["n shard", token_id_1, token_id_2],
+        ["1 shard", token_id_1, PRV_ID],
+        ["n shard", token_id_1, PRV_ID],
+        ["1 shard", token_id_1, token_id_2],
+        ["n shard", token_id_1, token_id_2],
         ["1 shard", PRV_ID, token_id_2],
-        # ["n shard", PRV_ID, token_id_2],
+        ["n shard", PRV_ID, token_id_2],
 ))
 def test_bulk_swap(test_mode, token_sell, token_buy):
     if test_mode == '1 shard':
