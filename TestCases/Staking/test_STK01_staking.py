@@ -40,7 +40,6 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), the_stake)
     from TestCases.Staking import token_id
     INFO(f'Run test with token: {token_id}')
-    the_stake.convert_token_to_v2()
     STEP(1, 'Stake and check balance after stake')
     bal_before_stake = the_stake.get_prv_balance()
     bal_before_validator = validator.get_prv_balance()
@@ -150,6 +149,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
 
     elif ChainConfig.PRIVACY_VERSION == 2:
         assert token_reward_amount == 0, 'Privacy v2 should not have any token reward, PRV only'
+        assert all_reward_b4 == reward_receiver.stk_get_reward_amount_all_token()
         reward_receiver.stk_withdraw_reward_to_me(token_id).expect_error('Not enough reward')
 
     if auto_re_stake is True:  # clean up

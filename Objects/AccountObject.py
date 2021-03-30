@@ -8,6 +8,7 @@ from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVAT
 from Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
+from Helpers import TestHelper
 from Helpers.Logging import INFO, INFO_HEADLINE, WARNING
 from Helpers.TestHelper import l6, KeyExtractor
 from Helpers.Time import WAIT, get_current_date_time
@@ -657,8 +658,17 @@ class Account:
                                                                 token_symbol,
                                                                 amount)
 
-    def init_custom_token_new_flow(self, receiver, amount):
-        pass
+    def init_custom_token_new_flow(self, amount, token_name=None, token_symbol=None):
+        """
+        init token with new flow
+        @param amount:
+        @param token_name:
+        @param token_symbol:
+        @return:
+        """
+        token_name = f"random_{TestHelper.make_random_word()}" if not token_name else token_name
+        token_symbol = f"random_{TestHelper.make_random_word()}" if not token_symbol else token_symbol
+        return self.REQ_HANDLER.transaction().new_init_p_token(self.private_key, amount, token_name, token_symbol)
 
     def pde_contribute_pair(self, pair_dict):
         """
@@ -1204,8 +1214,6 @@ class Account:
         else:
             convert_tx = self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_tx_token(self.private_key,
                                                                                                   token_id)
-        if convert_tx.get_error_msg() is None:
-            return convert_tx.subscribe_transaction()
         return convert_tx
 
     def top_him_up_token_to_amount_if(self, token_id, if_lower_than, top_up_to_amount, accounts_list):

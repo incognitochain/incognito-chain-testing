@@ -175,7 +175,8 @@ class Response:
         except WebSocketTimeoutException:
             WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
             return self.get_transaction_by_hash(tx_id, retry=False)
-        except WebSocketBadStatusException as status_err:  # in case full node does not have web socket enabled
+        except (WebSocketBadStatusException,
+                ConnectionRefusedError) as status_err:  # in case full node does not have web socket enabled
             WARNING(f"Encounter web socket bad status exception: {status_err}. Now get transaction by hash instead")
             return self.get_transaction_by_hash(tx_id, retry=True)
 
@@ -193,7 +194,7 @@ class Response:
                                 time_out=120) -> TransactionDetail:
         """
         @param tx_hash:
-        @param retry:
+        @param retry: if True, try when got error in Response or block height = 0
         @param interval:
         @param time_out:
         @return: TransactionDetail, use TransactionDetail.is_none() to check if it's an empty object
@@ -205,7 +206,6 @@ class Response:
 
         from Objects.IncognitoTestCase import SUT
         tx_detail = SUT().transaction().get_tx_by_hash(tx_hash)
-
         if not retry:
             if tx_detail.get_error_msg():
                 return TransactionDetail()
@@ -213,7 +213,7 @@ class Response:
                 return TransactionDetail(tx_detail.get_result())
 
         while time_out > 0:
-            if not tx_detail.get_error_msg():
+            if not tx_detail.get_error_msg() and tx_detail.get_result('BlockHeight'):
                 return TransactionDetail(tx_detail.get_result())
             time_out -= interval
             WAIT(interval)
