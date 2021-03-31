@@ -6,6 +6,7 @@ from APIs.Bridge import BridgeRpc
 from APIs.DEX import DexRpc
 from APIs.Explore import ExploreRpc
 from APIs.Portal import PortalRpc
+from APIs.PortalV4 import Portalv4Rpc
 from APIs.Subscription import SubscriptionWs
 from APIs.System import SystemRpc
 from APIs.Transaction import TransactionRpc
@@ -21,6 +22,7 @@ from Objects.BlockChainObjects import BlockChainCore
 from Objects.CommitteeState import CommitteeState
 from Objects.PdeObjects import PDEStateInfo
 from Objects.PortalObjects import PortalStateInfo
+from Objects.Portalv4Objects import Portalv4StateInfo
 from Objects.ShardBlock import ShardBlock
 from Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
 from Objects.ViewDetailBlock import AllViewDetail
@@ -120,6 +122,9 @@ class Node:
 
     def portal(self) -> PortalRpc:
         return PortalRpc(self._get_rpc_url())
+
+    def portalv4(self) -> Portalv4Rpc:
+        return Portalv4Rpc(self._get_rpc_url())
 
     def subscription(self) -> SubscriptionWs:
         """
@@ -272,6 +277,16 @@ class Node:
 
         portal_state_raw = self.portal().get_portal_state(beacon_height).expect_no_error()
         return PortalStateInfo(portal_state_raw.get_result())
+
+    def get_latest_portal_v4_state_info(self, beacon_height=None):
+        if beacon_height is None:
+            beacon_height = self.help_get_beacon_height()
+            INFO(f'Get LATEST portal state at beacon height: {beacon_height}')
+        else:
+            INFO(f'Get portal state at beacon height: {beacon_height}')
+
+        portal_state_raw = self.portalv4().get_portal_v4_state(beacon_height).expect_no_error()
+        return Portalv4StateInfo(portal_state_raw.get_result())
 
     def cal_transaction_reward_from_beacon_block_info(self, epoch=None, token=None, shard_txs_fee_list=None, dcz=False):
         """

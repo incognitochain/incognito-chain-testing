@@ -16,32 +16,29 @@ from Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 
 
 class Account:
-    class RemoteAddress:
-        def __init__(self, data=None):
-            data = {} if data is None else data
-            self.data: dict = data
-
     _cache_custodian_inf = 'custodian_info'
     _cache_bal_prv = 'balance_prv'
     _cache_bal_tok = 'balance_token'
 
-    def set_remote_addr(self, *addresses):
+    def set_remote_addr(self, addresses):
         """
-
         @param addresses:
             address list with following order: BNB, BTC. Set to None if you wish to leave the address empty
         @return:
         """
         support_token_list = [PBNB_ID, PBTC_ID]
-        for token, address in zip(support_token_list, addresses):
-            self.remote_addr.data[token] = address
+        for token in support_token_list:
+            self.remote_addr[token] = addresses.get(token)
         return self
 
-    def get_remote_addr(self, token_id):
-        try:
-            return self.remote_addr.data[token_id]
-        except KeyError:
-            return None
+    def get_remote_addr(self, token_id, address_type=None):
+        if address_type is None:
+            return self.remote_addr.get(token_id)
+        else:
+            try:
+                return self.remote_addr.get(token_id).get(address_type)
+            except (AttributeError, KeyError):
+                return None
 
     def is_this_my_key(self, key_to_check):
         """
@@ -65,7 +62,7 @@ class Account:
             False: tie this account to the configured Chain (from command line arg or from config.py file)
         @param kwargs:
         """
-        self.remote_addr = Account.RemoteAddress()
+        self.remote_addr = {}
 
         if private_key is not None:
             if payment_k is not None:
@@ -174,7 +171,7 @@ class Account:
             self.find_public_key()
         response = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
         last_byte = response.get_result("PublicKeyInBytes")[-1]
-        self.shard = last_byte % ChainConfig.ACTIVE_SHARD
+        self.shard = last_byte % 8
         return self.shard
 
     def __str__(self):
@@ -1315,6 +1312,44 @@ class Account:
         # thread_pool = []
         for acc, amount in receiver.items():
             acc.wait_for_balance_change(from_balance=acc.get_prv_balance_cache())
+
+    #######
+    # Portal v4
+    #######
+    def portal_v4_shield_req(self, token_id, private_key, proof):
+        """
+        @param token_id:
+        @param amount:
+        @param proof:
+        @return:
+        """
+        INFO()
+        INFO(f'Portal | User {l6(self.payment_key)} | shield req for ptoken')
+        return self.REQ_HANDLER.portalv4().create_n_send_tx_shield_req(private_key, self.payment_key, token_id, proof)
+
+    def portal_v4_unshield_req(self, token_id, unsheild_amount, remote_address):
+        """
+        @param token_id:
+        @param amount:
+        @param proof:
+        @return:
+        """
+        INFO()
+        INFO(f'Portal | User {l6(self.payment_key)} | unshield req for ptoken')
+        return self.REQ_HANDLER.portalv4().create_n_send_tx_with_unshield_req(self.private_key, self.payment_key,
+                                                                              remote_address, token_id, unsheild_amount)
+
+    def submit_proof_confirm_unshield(self, unshield_proof, token_id, batch_id):
+        INFO()
+        INFO(f'Portal | User {l6(self.payment_key)} | Sumbit proof confirm, batch_id = {batch_id} ')
+        return self.REQ_HANDLER.portalv4().create_n_send_tx_portal_submit_confirmtx(self.private_key, unshield_proof,
+                                                                                    token_id, batch_id)
+
+    def replace_fee(self, token_id, batch_id, fee):
+        INFO()
+        INFO(f"Replace Fee for batch ID = {batch_id} with fee = {fee}")
+        return self.REQ_HANDLER.portalv4().create_n_send_tx_portal_replace_fee(DAO_PRIVATE_K, token_id, batch_id,
+                                                                               fee)
 
     def submit_key(self):
         self.REQ_HANDLER.transaction().submit_key(self.private_key).expect_no_error()
