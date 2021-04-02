@@ -52,13 +52,18 @@ class TransactionRpc(BaseRpcApi):
                              "TokenReceivers": {
                                  payment_address: amount
                              }
-                         }
-                         ]). \
-            execute()
+                         }]).execute()
 
-    def new_init_p_token(self):
-        # todo: new_init_p_token
-        pass
+    def new_init_p_token(self, private_k, amount, token_name, token_symbol):
+        return self.rpc_connection.with_method('createandsendtokeninittransaction'). \
+            with_params([
+            {
+                "PrivateKey": private_k,
+                "TokenName": token_name,
+                "TokenSymbol": token_symbol,
+                "Amount": amount
+            }
+        ]).execute()
 
     def send_custom_token_transaction(self, sender_private_key, receiver_payment_address, token_id, amount_custom_token,
                                       prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
@@ -183,7 +188,7 @@ class TransactionRpc(BaseRpcApi):
     def withdraw_reward(self, private_key, payment_address, token_id, version=1):
         return self.rpc_connection. \
             with_method("withdrawreward"). \
-            with_params([private_key, 0, 0, 0,
+            with_params([private_key, {}, 0, 0,
                          {
                              "PaymentAddress": payment_address,
                              "TokenID": token_id,

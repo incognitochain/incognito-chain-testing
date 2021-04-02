@@ -74,6 +74,7 @@ def test_init_ptoken():
     STEP(3, "Get custom token balance")
     token_balance = account_init.get_token_balance(custom_token_id)
     INFO(f"Token balance: {token_balance}")
+    assert token_balance == token_init_amount
 
     STEP(4, "contribute token & PRV")
     # Contribute TOKEN:

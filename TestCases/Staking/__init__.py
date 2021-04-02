@@ -93,7 +93,6 @@ def setup_module():
     global token_id, tear_down_trx008
     all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
     if token_id not in all_ptoken_in_chain:
-        token_holder_shard_0.convert_token_to_v2()
         trx008.account_init = token_holder_shard_0
         trx008.prv_contribute_amount = prv_contribute_amount
         trx008.token_contribute_amount = token_contribute_amount
