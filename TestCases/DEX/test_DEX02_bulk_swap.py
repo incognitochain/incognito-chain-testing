@@ -17,9 +17,8 @@ trade_amount = random.randrange(9900000, 10000000)
 
 def setup_function():
     INFO_HEADLINE("SETUP TEST DEX 02")
-    COIN_MASTER.top_him_up_prv_to_amount_if(trade_amount, 2 * trade_amount, acc_list_1_shard + acc_list_n_shard)
-    token_owner.top_him_up_token_to_amount_if(token_id_1, trade_amount, 2 * trade_amount,
-                                              acc_list_1_shard + acc_list_n_shard)
+    COIN_MASTER.top_up_if_lower_than(acc_list_1_shard + acc_list_n_shard, trade_amount, 2 * trade_amount)
+    token_owner.top_up_if_lower_than(acc_list_1_shard + acc_list_n_shard, trade_amount, 2 * trade_amount, token_id_1)
     INFO_HEADLINE("DONE SETUP DEX 02")
 
 
@@ -139,8 +138,8 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
 
     for order in sort_order:
         print(str(order) + "--")
-        received_amount_estimated_without_tx_fee = calculate_actual_trade_received(trade_amount, calculated_rate[0],
-                                                                                   calculated_rate[1])
+        received_amount_estimated = received_amount_estimated_without_tx_fee = \
+            calculate_actual_trade_received(trade_amount, calculated_rate[0], calculated_rate[1])
         if token_buy == PRV_ID:
             received_amount_estimated = received_amount_estimated_without_tx_fee - tx_fee_list[order]
 
