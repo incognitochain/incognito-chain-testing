@@ -14,7 +14,7 @@ class BlockChainInfoBaseClass(ABC):
         return self.data != other.data
 
     def is_none(self):
-        return self.data is None or self.data == ''
+        return bool(self.data)
 
     def pretty_format(self):
         return json.dumps(self.data, indent=3)
