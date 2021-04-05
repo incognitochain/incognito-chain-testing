@@ -28,7 +28,8 @@ class BridgeRpc(BaseRpcApi):
                              "DepositedAmount": amount,
                              "TokenID": token_id,
                              "TokenName":
-                                 token_name
+                                 token_name,
+                             "TxVersion": 1
                          }]). \
             execute()
 
@@ -49,7 +50,8 @@ class BridgeRpc(BaseRpcApi):
                                  Constants.BURNING_ADDR: amount
                              },
                              "Privacy": True,
-                             "TokenFee": 0
+                             "TokenFee": 0,
+                             "TxVersion": 1
                          },
                          "withdrawal description", 0
                          ]). \

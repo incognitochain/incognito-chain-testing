@@ -64,29 +64,22 @@ def test_init_centralize_token():
         f"receiver balance: {receiver_balance_after}"), "receiver balance is not correct"
 
     STEP(4, "check new token in getallbridgetokens")
-    bridge_token_list = SUT().bridge().get_bridge_token_list().get_result()
-    found_token_id = False
-    for token in bridge_token_list:
-        if token['tokenId'] == token_id:
-            assert token['amount'] == token_amount and INFO(
-                f"the getallbridgetokens has found TokenId with correct token amount: {token_amount}")
-            assert token['externalTokenId'] is None
-            assert token['network'] == ""
-            assert token['isCentralized'] is True
-            found_token_id = True
-            break
-    assert found_token_id, f"tokenId {token_id} not found in getallbridgetokens"
+    bridge_token_list = SUT().get_bridge_token_list()
+    assert token_id in bridge_token_list, f"tokenId {token_id} not found in getallbridgetokens"
+    token_info = bridge_token_list.get_info_by_token_id(token_id)
+    assert token_info.get_token_amount() == token_amount and INFO(
+        f"the getallbridgetokens has found TokenId with correct token amount: {token_amount}")
+    assert token_info.get_external_token_id() is None
+    assert token_info.get_network() == ""
+    assert token_info.is_centralized()
 
     STEP(5, "check new token in listprivacycustomtoken")
-    all_token_list = SUT().bridge().get_all_token_list().get_result()
-    found_token_id = False
-    for token in all_token_list['ListCustomToken']:
-        if token['ID'] == token_id:
-            assert token['Amount'] == token_amount and INFO(
-                f"the listprivacycustomtoken has found TokenId with correct token amount: {token_amount}")
-            found_token_id = True
-            break
-    assert found_token_id, f"tokenId {token_id} not found in listprivacycustomtoken"
+    all_token_list = SUT().get_all_token_in_chain_list()
+    assert token_id in all_token_list, f"tokenId {token_id} not found in listprivacycustomtoken"
+
+    token_info = all_token_list.get_info_by_token_id(token_id)
+    assert token_info.get_token_amount() == token_amount and INFO(
+        f"the listprivacycustomtoken has found TokenId with correct token amount: {token_amount}")
 
 
 def test_burn_centralize_token():
@@ -98,13 +91,10 @@ def test_burn_centralize_token():
     assert user_balance_before != 0, "user balance = 0, nothing to burn"
 
     STEP(2, "check total token amount before burn")
-    bridge_token_list = SUT().bridge().get_bridge_token_list().get_result()
-    total_token_amount = 0
-    for token in bridge_token_list:
-        if token['tokenId'] == token_id:
-            total_token_amount = token['amount']
-            break
-    assert total_token_amount != 0, f"total token amount = 0, something went wrong"
+    bridge_token_list = SUT().get_bridge_token_list()
+    token_info = bridge_token_list.get_info_by_token_id(token_id)
+    token_amount_b4_burn = token_info.get_token_amount()
+    assert token_amount_b4_burn != 0, f"total token amount = 0, something went wrong"
 
     STEP(3, f"burning {burning_amount} token")
     receiver_account.burn_token(token_id, burning_amount).subscribe_transaction()
@@ -116,26 +106,17 @@ def test_burn_centralize_token():
     assert user_balance_before - user_balance_after == burning_amount, "user balance after burn is NOT correct"
 
     STEP(5, "check total token amount in getallbridgetokens")
-    bridge_token_list = SUT().bridge().get_bridge_token_list().get_result()
-    total_token_amount_after_burn = 0
-    for token in bridge_token_list:
-        if token['tokenId'] == token_id:
-            total_token_amount_after_burn = token['amount']
-            break
-    assert total_token_amount_after_burn == total_token_amount and INFO(
+    bridge_token_list = SUT().get_bridge_token_list()
+    token_info = bridge_token_list.get_info_by_token_id(token_id)
+    total_token_amount_after_burn = token_info.get_token_amount()
+    assert total_token_amount_after_burn == token_amount_b4_burn and INFO(
         f"total token amount after burn: {total_token_amount_after_burn}"), f"total token amount after burn is NOT " \
                                                                             f"correct"
 
     STEP(6, "check token in listprivacycustomtoken")
-    all_token_list = SUT().bridge().get_all_token_list().get_result()
-    found_token_id = False
-    for token in all_token_list['ListCustomToken']:
-        if token['ID'] == token_id:
-            assert token['Amount'] == total_token_amount and INFO(
-                f"the listprivacycustomtoken has found TokenId with correct token amount: {total_token_amount}")
-            found_token_id = True
-            break
-    assert found_token_id, f"tokenId {token_id} not found in listprivacycustomtoken"
+    all_token_list = SUT().get_bridge_token_list()
+    assert token_id in all_token_list and INFO(
+        f"the listprivacycustomtoken has found TokenId with correct token amount: {token_amount_b4_burn}"), f"tokenId {token_id} not found in listprivacycustomtoken"
 
 
 def test_send_decentralize_token():
@@ -151,12 +132,9 @@ def test_withdraw_centralize_token():
     assert user_balance_before != 0, "user balance = 0, nothing to withdraw"
 
     STEP(2, "check total token amount before withdraw")
-    bridge_token_list = SUT().bridge().get_bridge_token_list().get_result()
-    total_token_amount_before = 0
-    for token in bridge_token_list:
-        if token['tokenId'] == token_id:
-            total_token_amount_before = token['amount']
-            break
+    bridge_token_list = SUT().get_bridge_token_list()
+    brd_tok_info = bridge_token_list.get_info_by_token_id(token_id)
+    total_token_amount_before = brd_tok_info.get_token_amount()
     assert total_token_amount_before != 0, f"total token amount = 0, something went wrong"
 
     STEP(3, f"withdraw {withdraw_amount} token")
@@ -169,26 +147,20 @@ def test_withdraw_centralize_token():
     assert user_balance_before - user_balance_after == withdraw_amount, "user balance after withdraw is NOT correct"
 
     STEP(5, "check total token amount in getallbridgetokens")
-    bridge_token_list = SUT().bridge().get_bridge_token_list().get_result()
-    total_token_amount_after_withdraw = 0
-    for token in bridge_token_list:
-        if token['tokenId'] == token_id:
-            total_token_amount_after_withdraw = token['amount']
-            break
+    bridge_token_list = SUT().get_bridge_token_list()
+    brd_tok_info = bridge_token_list.get_info_by_token_id(token_id)
+    total_token_amount_after_withdraw = brd_tok_info.get_token_amount()
     assert total_token_amount_after_withdraw + withdraw_amount == total_token_amount_before and INFO(
         f"total token amount after burn: {total_token_amount_after_withdraw}"), f"total token amount after burn is " \
                                                                                 f"NOT " \
                                                                                 f"correct"
 
     STEP(6, "check token in listprivacycustomtoken")
-    all_token_list = SUT().bridge().get_all_token_list().get_result()
-    found_token_id = False
-    for token in all_token_list['ListCustomToken']:
-        if token['ID'] == token_id:
-            assert token['Amount'] == total_token_amount_after_withdraw and INFO(
-                f"the listprivacycustomtoken has found TokenId with correct token amount: "
-                f"{total_token_amount_after_withdraw}"), \
-                f"token amount in listprivvacycustomtoken is NOT correct: {token['Amount']}"
-            found_token_id = True
-            break
-    assert found_token_id, f"tokenId {token_id} not found in listprivacycustomtoken"
+    all_token_list = SUT().get_all_token_in_chain_list()
+    assert token_id in all_token_list, f"tokenId {token_id} not found in listprivacycustomtoken"
+
+    in_chain_token_info = all_token_list.get_info_by_token_id(token_id)
+    assert in_chain_token_info.get_token_amount() == total_token_amount_after_withdraw and INFO(
+        f"the listprivacycustomtoken has found TokenId with correct token amount: "
+        f"{total_token_amount_after_withdraw}"), \
+        f"token amount in listprivvacycustomtoken is NOT correct: {in_chain_token_info.get_token_amount()}"
