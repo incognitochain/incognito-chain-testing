@@ -2,18 +2,13 @@ import re
 
 import pytest
 
-from Configs import Constants
 from Configs.Constants import coin
 from Helpers.Logging import STEP, INFO
-from Helpers.Time import WAIT
+from Helpers.TestHelper import ChainHelper
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from TestCases.Staking import account_x, amount_stake_under_1750, \
     amount_stake_over_1750, account_y, account_t
-
-
-def setup_function():
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), account_y)
 
 
 @pytest.mark.parametrize('amount_prv_stake', [
@@ -40,17 +35,13 @@ def test_stake_under_over_1750_prv(amount_prv_stake):
     (account_x, account_y, account_t),  # 2 different acc, stake for the same validator
 ])
 def test_stake_same_validator(staker1, staker2, validator):
-    STEP(1, 'Get epoch number')
-    beacon_state = SUT().get_beacon_best_state_info()
-    beacon_height = beacon_state.get_beacon_height()
-    epoch_number = beacon_state.get_epoch()
-    while beacon_height % Constants.ChainConfig.BLOCK_PER_EPOCH >= (Constants.ChainConfig.BLOCK_PER_EPOCH / 2) - 1:
-        # -1 just to be sure that staking will be successful
-        INFO(f'block height % block per epoch = {beacon_height % Constants.ChainConfig.BLOCK_PER_EPOCH}')
-        WAIT((Constants.ChainConfig.BLOCK_PER_EPOCH - (beacon_height % Constants.ChainConfig.BLOCK_PER_EPOCH)) * 10)
-        beacon_state = SUT().get_beacon_best_state_info()
-        beacon_height = beacon_state.get_beacon_height()
-        epoch_number = beacon_state.get_epoch()
+    # top up use dictionary of receivers, if staker1=staker2 then it will top up one time only,
+    # hence using 2 top up as below instead of top_up_if_lower_than([staker1,staker2], coin(1750), coin(1850))
+    COIN_MASTER.top_up_if_lower_than(staker1, coin(1750), coin(1850))
+    COIN_MASTER.top_up_if_lower_than(staker2, coin(1750), coin(1850))
+
+    STEP(1, 'Wait and stake at the first block of epoch')
+    epoch_number, beacon_height = ChainHelper.wait_till_next_epoch(1, block_of_epoch=1)
     INFO(f'Ready to stake at epoch: {epoch_number}, beacon height: {beacon_height}')
 
     STEP(2, 'Check if validator is already staked')
@@ -63,7 +54,7 @@ def test_stake_same_validator(staker1, staker2, validator):
         else:
             topup_amount = coin(1751)
 
-        COIN_MASTER.top_him_up_prv_to_amount_if(topup_amount, topup_amount, staker1)
+        COIN_MASTER.top_up_if_lower_than(staker1, topup_amount, topup_amount)
 
         balance_before_stake_first = staker1.get_prv_balance()
         stake_response = staker1.stake(validator=validator, auto_re_stake=False).subscribe_transaction()

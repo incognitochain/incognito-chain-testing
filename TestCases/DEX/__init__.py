@@ -22,18 +22,33 @@ token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff" 
 need_withdraw_contribution_1 = False
 need_withdraw_contribution_2 = False
 
-COIN_MASTER.top_him_up_prv_to_amount_if(coin(10000), coin(100000), token_owner)
 
-all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
-if token_id_1 not in all_ptoken_in_chain:
-    trx008.account_init = token_owner
-    token_id_1 = trx008.test_init_ptoken()
-    need_withdraw_contribution_1 = True
-if token_id_2 not in all_ptoken_in_chain:
-    trx008.custom_token_symbol = get_current_date_time()
-    trx008.account_init = token_owner
-    token_id_2 = trx008.test_init_ptoken()
-    need_withdraw_contribution_2 = True
+def setup_module():
+    global token_id_1, token_id_2
+    COIN_MASTER.top_him_up_prv_to_amount_if(coin(10000), coin(100000), token_owner)
+
+    all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
+    if token_id_1 not in all_ptoken_in_chain:
+        tok1_symbol = get_current_date_time()
+        res = token_owner.init_custom_token_self(tok1_symbol, coin(2000000))
+        res.subscribe_transaction()
+        token_id_1 = res.get_token_id()
+        INFO(f" +++ token 1 = {token_id_1}")
+        # trx008.account_init = token_owner
+        # token_id_1 = trx008.test_init_ptoken()
+        # need_withdraw_contribution_1 = True
+    if token_id_2 not in all_ptoken_in_chain:
+        tok2_symbol = get_current_date_time()
+        res = token_owner.init_custom_token_self(tok2_symbol, coin(2000000))
+        res.subscribe_transaction()
+        token_id_2 = res.get_token_id()
+        INFO(f" +++ token 2 = {token_id_2}")
+
+        # trx008.custom_token_symbol = get_current_date_time()
+        # trx008.account_init = token_owner
+        # token_id_2 = trx008.test_init_ptoken()
+        # need_withdraw_contribution_2 = True
+
 
 acc_list_1_shard = AccountGroup(
     Account(

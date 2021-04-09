@@ -16,7 +16,6 @@ token_id = "0000000000000000000000000000000000000000000000000000" + token_name
 token_amount = int(token_name)
 burning_amount = 21012
 withdraw_amount = 12343
-time_out = 90
 
 
 def setup_function():
@@ -49,19 +48,18 @@ def test_init_centralize_token():
     INFO("Initialize a completely new centralize token")
 
     STEP(1, "check receiver balance before init token")
-    receiver_balance_before = receiver_account.get_token_balance(token_id)
-    INFO(f"receiver balance: {receiver_balance_before}")
-    assert receiver_balance_before == 0, "receiver balance is <> 0"
+    receiver_bal_b4 = receiver_account.get_token_balance(token_id)
+    INFO(f"receiver balance: {receiver_bal_b4}")
+    assert receiver_bal_b4 == 0, "receiver balance is <> 0"
 
     STEP(2, "init new token")
     receiver_account.issue_centralize_token(token_id, token_name, token_amount).subscribe_transaction()
     INFO(f"new token id: {token_id} initialized")
 
     STEP(3, "check receiver balance after init token")
-    WAIT(time_out)
-    receiver_balance_after = receiver_account.get_token_balance(token_id)
-    assert receiver_balance_after == token_amount and INFO(
-        f"receiver balance: {receiver_balance_after}"), "receiver balance is not correct"
+    receiver_bal_af = receiver_account.wait_for_balance_change(token_id, from_balance=receiver_bal_b4)
+    assert receiver_bal_af == token_amount and INFO(
+        f"receiver balance: {receiver_bal_af}"), "receiver balance is not correct"
 
     STEP(4, "check new token in getallbridgetokens")
     bridge_token_list = SUT().get_bridge_token_list()
@@ -86,9 +84,9 @@ def test_burn_centralize_token():
     INFO("burn centralize token")
 
     STEP(1, "check user balance before burn token")
-    user_balance_before = receiver_account.get_token_balance(token_id)
-    INFO(f"user balance: {user_balance_before}")
-    assert user_balance_before != 0, "user balance = 0, nothing to burn"
+    user_bal_b4 = receiver_account.get_token_balance(token_id)
+    INFO(f"user balance: {user_bal_b4}")
+    assert user_bal_b4 != 0, "user balance = 0, nothing to burn"
 
     STEP(2, "check total token amount before burn")
     bridge_token_list = SUT().get_bridge_token_list()
@@ -100,10 +98,9 @@ def test_burn_centralize_token():
     receiver_account.burn_token(token_id, burning_amount).subscribe_transaction()
 
     STEP(4, "check user balance after burn token")
-    WAIT(time_out)
-    user_balance_after = receiver_account.get_token_balance(token_id)
-    INFO(f"user balance: {user_balance_after}")
-    assert user_balance_before - user_balance_after == burning_amount, "user balance after burn is NOT correct"
+    user_bal_af = receiver_account.wait_for_balance_change(token_id,from_balance=user_bal_b4)
+    INFO(f"user balance: {user_bal_af}")
+    assert user_bal_b4 - user_bal_af == burning_amount, "user balance after burn is NOT correct"
 
     STEP(5, "check total token amount in getallbridgetokens")
     bridge_token_list = SUT().get_bridge_token_list()
@@ -127,9 +124,9 @@ def test_withdraw_centralize_token():
     INFO("withdraw centralize token")
 
     STEP(1, "check user balance before withdraw token")
-    user_balance_before = receiver_account.get_token_balance(token_id)
-    INFO(f"user balance: {user_balance_before}")
-    assert user_balance_before != 0, "user balance = 0, nothing to withdraw"
+    user_bal_b4 = receiver_account.get_token_balance(token_id)
+    INFO(f"user balance: {user_bal_b4}")
+    assert user_bal_b4 != 0, "user balance = 0, nothing to withdraw"
 
     STEP(2, "check total token amount before withdraw")
     bridge_token_list = SUT().get_bridge_token_list()
@@ -141,10 +138,9 @@ def test_withdraw_centralize_token():
     receiver_account.withdraw_centralize_token(token_id, withdraw_amount).subscribe_transaction()
 
     STEP(4, "check user balance after withdraw token")
-    WAIT(time_out)
-    user_balance_after = receiver_account.get_token_balance(token_id)
-    INFO(f"user balance: {user_balance_after}")
-    assert user_balance_before - user_balance_after == withdraw_amount, "user balance after withdraw is NOT correct"
+    user_bal_af = receiver_account.wait_for_balance_change(token_id,from_balance=user_bal_b4)
+    INFO(f"user balance: {user_bal_af}")
+    assert user_bal_b4 - user_bal_af == withdraw_amount, "user balance after withdraw is NOT correct"
 
     STEP(5, "check total token amount in getallbridgetokens")
     bridge_token_list = SUT().get_bridge_token_list()

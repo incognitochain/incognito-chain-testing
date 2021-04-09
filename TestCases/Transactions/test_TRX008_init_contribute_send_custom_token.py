@@ -168,22 +168,18 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
     STEP(2, f"send token: {token_amount_to_send}. Fee {fee}:{fee_type}. Privacy {privacy}:{privacy_type}")
     if fee_type == 'prv':
         if privacy_type == 'prv':
-            sending_token_transaction = sender.send_token_to(receiver, custom_token_id,
-                                                             token_amount_to_send, prv_fee=fee,
-                                                             prv_privacy=privacy)
+            sending_token_transaction = sender.send_token_to(receiver, custom_token_id, token_amount_to_send,
+                                                             prv_fee=fee, prv_privacy=privacy)
         else:
-            sending_token_transaction = sender.send_token_to(receiver, custom_token_id,
-                                                             token_amount_to_send, prv_fee=fee,
-                                                             token_privacy=privacy)
+            sending_token_transaction = sender.send_token_to(receiver, custom_token_id, token_amount_to_send,
+                                                             prv_fee=fee, token_privacy=privacy)
     else:  # fee_type = 'token'
         if privacy_type == 'prv':
-            sending_token_transaction = sender.send_token_to(receiver, custom_token_id,
-                                                             token_amount_to_send, token_fee=fee,
-                                                             prv_privacy=privacy)
+            sending_token_transaction = sender.send_token_to(receiver, custom_token_id, token_amount_to_send,
+                                                             token_fee=fee, prv_privacy=privacy)
         else:
-            sending_token_transaction = sender.send_token_to(receiver, custom_token_id,
-                                                             token_amount_to_send, token_fee=fee,
-                                                             token_privacy=privacy)
+            sending_token_transaction = sender.send_token_to(receiver, custom_token_id, token_amount_to_send,
+                                                             token_fee=fee, token_privacy=privacy)
         if sending_token_transaction.is_transaction_v2_error_appears():
             pytest.skip("Privacy v2 no longer allow using token as tx fee")
 

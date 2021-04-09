@@ -1,4 +1,5 @@
 import copy
+import datetime
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
@@ -10,7 +11,7 @@ from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
 from Helpers import TestHelper
 from Helpers.Logging import INFO, INFO_HEADLINE, WARNING
-from Helpers.TestHelper import l6, KeyExtractor
+from Helpers.TestHelper import l6, KeyExtractor, ChainHelper
 from Helpers.Time import WAIT, get_current_date_time
 from Objects.BlockChainObjects import OwnedTokenList
 from Objects.CoinObject import Coin
@@ -383,21 +384,22 @@ class Account:
         INFO(f"Stop auto stake other: {him.validator_key}")
         return self.stk_stop_auto_staking(him, him)
 
-    def stk_wait_till_i_am_committee(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
-        t = timeout
-        INFO(f"Wait until {self.validator_key} become a committee, check every {check_cycle}s, timeout: {timeout}s")
-        while timeout > check_cycle:
+    def stk_wait_till_i_am_committee(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+        INFO(f"Wait until {self.validator_key} become a committee, timeout: {timeout}s")
+        time_start = datetime.datetime.now()
+        time_spent = 0
+        while timeout > time_spent:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             staked_shard = beacon_bsd.is_he_a_committee(self)
             if staked_shard is False:
-                WAIT(check_cycle)
-                timeout -= check_cycle
+                ChainHelper.wait_till_next_epoch(1,block_of_epoch=5)
             else:
                 e2 = beacon_bsd.get_epoch()
                 h = beacon_bsd.get_beacon_height()
                 INFO(f"Already a committee at epoch {e2}, block height {h}")
                 return e2
-        INFO(f"Waited {t}s but still not yet become committee")
+            time_spent = (datetime.datetime.now() - time_start).seconds
+        INFO(f"Waited {time_spent}s but still not yet become committee")
         return None
 
     def stk_wait_till_i_am_in_waiting_next_random(self, check_cycle=ChainConfig.BLOCK_TIME,
@@ -454,20 +456,21 @@ class Account:
         INFO(f"Waited {t}s but still exist in the autostaking list")
         return None
 
-    def stk_wait_till_i_am_swapped_out_of_committee(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
-        t = timeout
-        INFO(f"Wait until {self.validator_key} no longer a committee, check every {check_cycle}s, timeout: {timeout}s")
-        while timeout > check_cycle:
+    def stk_wait_till_i_am_swapped_out_of_committee(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+        INFO(f"Wait until {self.validator_key} no longer a committee, timeout: {timeout}s")
+        time_start = datetime.datetime.now()
+        time_spent = 0
+        while timeout > time_spent:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             if not (beacon_bsd.is_he_a_committee(self) is False):  # is_he_a_committee returns False or shard number
-                # (number which is not False) so must use this comparision to cover the cases
-                WAIT(check_cycle)
-                timeout -= check_cycle
+                # (number which is not False) so must use this comparison to cover the case shard =0
+                ChainHelper.wait_till_next_epoch(1,block_of_epoch=5)
             else:
                 e2 = beacon_bsd.get_epoch()
                 INFO(f"Swapped out of committee at epoch {e2}")
                 return e2
-        INFO(f"Waited {t}s but still a committee")
+            time_spent = (datetime.datetime.now() - time_start).seconds
+        INFO(f"Waited {time_spent}s but still a committee")
         return None
 
     def stk_wait_till_i_have_reward(self, token_id=None, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
@@ -733,8 +736,7 @@ class Account:
 
     def pde_withdraw_contribution_v2(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw PDE contribution v2 {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
-        return self.REQ_HANDLER.dex().withdrawal_contribution_v2(self.private_key, self.payment_key,
-                                                                 token_id_1,
+        return self.REQ_HANDLER.dex().withdrawal_contribution_v2(self.private_key, self.payment_key, token_id_1,
                                                                  token_id_2, amount)
 
     def pde_withdraw_reward_v2(self, token_id_1, token_id_2, amount):

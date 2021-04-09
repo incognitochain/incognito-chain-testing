@@ -48,7 +48,7 @@ class Response:
             error_msg = self.get_error_msg()
             INFO(trace_msg)
             assert (expecting_error in error_msg or expecting_error in trace_msg), \
-                f'Found no error while expecting: {expecting_error}'
+                f'Expecting: {expecting_error}. Instead got: {error_msg} | {trace_msg}'
         return self
 
     def data(self):
