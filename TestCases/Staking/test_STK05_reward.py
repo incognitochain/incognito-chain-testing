@@ -76,7 +76,7 @@ def test_verify_reward_received(dcz):
     INFO(f'Current epoch = {current_epoch}')
 
     STEP(2, "Wait till next epoch")
-    epoch_reward = ChainHelper.wait_till_next_epoch(current_epoch + 1, 10)
+    epoch_reward = ChainHelper.wait_till_next_epoch(current_epoch + 1)
 
     INFO('Create transaction send PRV')
     fee_shard_0_tx1 = COIN_MASTER.send_prv_to(ACCOUNTS[3], coin(5), coin(1)).subscribe_transaction().get_fee()
@@ -138,7 +138,7 @@ def test_verify_reward_received(dcz):
     dao_earned_reward_b4_prv = COIN_MASTER.stk_get_reward_amount()
     dao_earned_reward_b4_ptoken = COIN_MASTER.stk_get_reward_amount(token_id)
 
-    ChainHelper.wait_till_next_epoch(epoch_reward + 1, 10)
+    ChainHelper.wait_till_next_epoch(epoch_reward + 1)
 
     STEP(4.1, 'Get reward instruction from beacon')
     instruction_beacon_height = ChainHelper.cal_first_height_of_epoch(epoch_reward + 1)

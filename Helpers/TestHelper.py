@@ -243,34 +243,28 @@ class ChainHelper:
         return current_shard_h
 
     @staticmethod
-    def wait_till_next_epoch(epoch_wait=None, check_interval=None, timeout=180):
+    def wait_till_next_epoch(epoch_to_wait=1, block_of_epoch=1, node=None):
         f"""
-        Wait till {epoch_wait} to come, if {epoch_wait} is None, just wait till next epoch
-        @param epoch_wait: 
-        @param check_interval: 
-        @param timeout: 
-        @return: 
+        Wait till {epoch_to_wait} to come, if {epoch_to_wait} is None, just wait till next epoch
+        @param epoch_to_wait: number of epoch to wait
+        @param block_of_epoch: the n(th) block of epoch, default is the first block
+        @param node: Node object, node to get info from to wait
+        @return: current epoch number and beacon height
         """
         from Objects.IncognitoTestCase import SUT
-        check_interval = ChainConfig.get_epoch_time() if check_interval is None else check_interval
-        blk_chain_info = SUT().get_block_chain_info()
+        from Objects.NodeObject import Node
+        node: Node = SUT() if not node else node
+        blk_chain_info = node.get_block_chain_info()
         current_epoch = blk_chain_info.get_beacon_block().get_epoch()
-        epoch_wait = current_epoch + 1 if epoch_wait is None else epoch_wait
-        INFO(f'Wait until epoch {epoch_wait}, check every {check_interval}s, timeout {timeout}s')
-        if current_epoch >= epoch_wait:
-            return current_epoch
-        time_start = time.perf_counter()
-        while current_epoch < epoch_wait:
-            WAIT(check_interval)
-            blk_chain_info = SUT().get_block_chain_info()
-            current_epoch = blk_chain_info.get_beacon_block().get_epoch()
-            if current_epoch == epoch_wait:
-                INFO(f"Now epoch = {current_epoch}")
-                return current_epoch
-            time_current = time.perf_counter()
-            if time_current - time_start > timeout:
-                INFO('Timeout')
-                return None
+        current_height = blk_chain_info.get_beacon_block().get_height()
+        time_till_next_epoch = ChainConfig.get_block_time(
+            blk_chain_info.get_beacon_block().get_remaining_block_epoch() + block_of_epoch)
+        time_to_wait = ChainConfig.get_epoch_time(epoch_to_wait - 1) + time_till_next_epoch
+        INFO(f'Current height = {current_height} @ epoch = {current_epoch}. '
+             f'Wait {time_to_wait}s until epoch {current_epoch + epoch_to_wait}')
+        WAIT(time_to_wait)
+        blk_chain_info = node.get_block_chain_info()
+        return blk_chain_info.get_epoch_number(), blk_chain_info.get_beacon_block().get_height()
 
 
 def calculate_contribution(token_1_contribute_amount, token_2_contribute_amount, current_rate: list):

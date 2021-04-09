@@ -4,4 +4,4 @@ How to config: check the __init__.py file in this folder
 
 How to run:
     cd incognito-chain-testing
-    pytest --show-capture=no -s -v --html="$html_report" SpecialTests/TxSpamer/[test_script_name.py]
+    pytest --show-capture=stderr --capture=tee-sys -v --html="$html_report" SpecialTests/TxSpammer/[test_script_name.py]

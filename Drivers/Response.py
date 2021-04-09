@@ -11,16 +11,24 @@ from Objects.TransactionObjects import TransactionDetail
 
 
 class Response:
-    def __init__(self, response=None, more_info=None):
+    def __init__(self, response=None, more_info=None, handler=None):
         self.response = response
         self.more_info = more_info
         if more_info is not None:
             Log.DEBUG(more_info)
         if response is not None:
             Log.DEBUG(self.__str__())
+        if handler:
+            self.__handler = handler
+        else:
+            from Objects.IncognitoTestCase import SUT
+            self.__handler = SUT()
 
     def __str__(self):
         return f'\n{json.dumps(self.data(), indent=3)}'
+
+    def req_to(self, node):
+        self.__handler = node
 
     def expect_no_error(self, additional_msg_if_fail=''):
         """
@@ -40,7 +48,7 @@ class Response:
             error_msg = self.get_error_msg()
             INFO(trace_msg)
             assert (expecting_error in error_msg or expecting_error in trace_msg), \
-                f'Found no error while expecting: {expecting_error}'
+                f'Expecting: {expecting_error}. Instead got: {error_msg} | {trace_msg}'
         return self
 
     def data(self):
@@ -167,10 +175,9 @@ class Response:
         if tx_id is None:
             raise ValueError("Tx id must not be none")
         INFO(f'Subscribe to transaction tx_id = {tx_id}')
-        from Objects.IncognitoTestCase import SUT
         from Objects.TransactionObjects import TransactionDetail
         try:
-            res = SUT().subscription().subscribe_pending_transaction(tx_id).get_result('Result')
+            res = self.__handler.subscription().subscribe_pending_transaction(tx_id).get_result('Result')
             return TransactionDetail(res)
         except WebSocketTimeoutException:
             WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
@@ -204,8 +211,7 @@ class Response:
         if tx_hash is None:
             raise ValueError("Tx id must not be none")
 
-        from Objects.IncognitoTestCase import SUT
-        tx_detail = SUT().transaction().get_tx_by_hash(tx_hash)
+        tx_detail = self.__handler.transaction().get_tx_by_hash(tx_hash)
         if not retry:
             if tx_detail.get_error_msg():
                 return TransactionDetail()
@@ -217,7 +223,7 @@ class Response:
                 return TransactionDetail(tx_detail.get_result())
             time_out -= interval
             WAIT(interval)
-            tx_detail = SUT().transaction().get_tx_by_hash(tx_hash)
+            tx_detail = self.__handler.transaction().get_tx_by_hash(tx_hash)
         return TransactionDetail()
 
     def get_mem_pool_transactions_id_list(self) -> list:

@@ -81,7 +81,7 @@ def setup_module():
 
     with ThreadPoolExecutor() as executor:
         for acc in wait_list:
-            executor.submit(acc.stk_wait_till_i_am_committee, check_cycle=ChainConfig.get_epoch_time())
+            executor.submit(acc.stk_wait_till_i_am_committee)
 
     STEP(0.4, "Verify environment, 6 node per shard")
     committee_state = SUT().get_committee_state()

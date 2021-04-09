@@ -4,6 +4,7 @@ from Configs.Constants import PRV_ID, coin, Status
 from Helpers.Logging import INFO, STEP
 from Helpers.TestHelper import calculate_contribution, l6
 from Helpers.Time import get_current_date_time
+from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from Objects.PdeObjects import PDEContributeInfo
 from TestCases.DEX import token_id_1, token_owner, token_id_2
@@ -15,10 +16,14 @@ from TestCases.DEX import token_id_1, token_owner, token_id_2
         [token_id_2, token_id_1],  # contribute token
         [token_id_1, token_id_2],  # contribute token reverse
 ))
+@pytest.mark.dependency(scope='session')
 def test_contribute(token1, token2):
     pair_id = f'{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
     tok1_contrib_amount = coin(1234)
     tok2_contrib_amount = coin(2134)
+    for tok, amount in zip((token1, token2), (tok1_contrib_amount, tok2_contrib_amount)):
+        if tok == PRV_ID:
+            COIN_MASTER.top_up_if_lower_than(token_owner, amount, amount + 1000)
     pde_state_b4_test = SUT().get_latest_pde_state_info()
     is_first_time_contrib = not pde_state_b4_test.is_pair_existed(token1, token2)
     INFO(f"""

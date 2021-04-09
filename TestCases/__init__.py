@@ -42,6 +42,6 @@ if ChainConfig.PRIVACY_VERSION == 2:
     PORTAL_FEEDER.submit_key()
 
 if isinstance(ACCOUNTS, AccountGroup) or isinstance(ACCOUNTS, list):
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(2), coin(5), ACCOUNTS)
+    COIN_MASTER.top_up_if_lower_than(ACCOUNTS, coin(2), coin(5))
 
 INFO_HEADLINE("END setup from Testcase init")

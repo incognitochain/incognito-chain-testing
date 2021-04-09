@@ -17,7 +17,7 @@ from Helpers.Logging import INFO, DEBUG, INFO_HEADLINE
 from Helpers.TestHelper import l6, ChainHelper
 from Helpers.Time import WAIT
 from Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock, BeaconBestStateInfo
-from Objects.BlockChainObjects import BlockChainCore, InChainTokenList
+from Objects.BlockChainObjects import BlockChainCore, InChainTokenList, InChainBridgeTokenList
 from Objects.CommitteeState import CommitteeState
 from Objects.PdeObjects import PDEStateInfo
 from Objects.PortalObjects import PortalStateInfo
@@ -80,7 +80,11 @@ class Node:
             raise SyntaxError(f'Url {url} is not in correct format')
 
         self._address = url.split(':')[1].lstrip('//')
-        self._rpc_port = int(url.split(':')[2].split('/')[0])
+        try:
+            self._rpc_port = int(url.split(':')[2].split('/')[0])
+        except IndexError:
+            self._rpc_port = 80
+
         return self
 
     def set_web_socket_port(self, port):
@@ -439,10 +443,14 @@ class Node:
         response = self.system_rpc().retrieve_block_by_height(height, shard_id)
         return ShardBlock(response.get_result()[0])
 
-    def get_all_token_in_chain_list(self):
+    def get_all_token_in_chain_list(self) -> InChainTokenList:
         res = self.explore_rpc().list_privacy_custom_token().expect_no_error()
         obj_list = InChainTokenList(res)
         return obj_list
+
+    def get_bridge_token_list(self):
+        res = self.bridge().get_bridge_token_list()
+        return InChainBridgeTokenList(res)
 
     def does_chain_have_this_token(self, token_id):
         return token_id in self.get_all_token_in_chain_list()

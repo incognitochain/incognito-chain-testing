@@ -232,7 +232,7 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
     assert staked_shard is not False
 
     STEP(4, "Calculate avg PRV reward per epoch")
-    epoch_x = ChainHelper.wait_till_next_epoch()
+    epoch_x, _ = ChainHelper.wait_till_next_epoch()
     prv_reward = the_staked.stk_get_reward_amount()
     avg_prv_reward = prv_reward / (epoch_x - epoch_plus_n)
     INFO(f'AVG prv reward = {avg_prv_reward}')
