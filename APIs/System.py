@@ -7,16 +7,15 @@ class SystemRpc(BaseRpcApi):
         return self.rpc_connection.with_method('retrievebeaconblockbyheight').with_params(
             [beacon_height, level]).execute()
 
-    def retrieve_block_by_height(self, block_height, shard_id):
+    def retrieve_block_by_height(self, block_height, shard_id, level=1):
         """
 
         :param block_height:
         :param shard_id: shard id to retrieve data from
         :return:
         """
-        level = '1'
         return self.rpc_connection.with_method('retrieveblockbyheight').with_params(
-            [block_height, shard_id, level]).execute()
+            [block_height, shard_id, str(level)]).execute()
 
     def get_all_view_detail(self, chain_id):
         return self.rpc_connection.with_method('getallviewdetail').with_params([chain_id]).execute()

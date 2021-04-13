@@ -1,9 +1,10 @@
 import json
 import re
+from abc import ABC
 
-import Helpers.Logging as Log
 from websocket import WebSocketTimeoutException, WebSocketBadStatusException
 
+import Helpers.Logging as Log
 from Configs.Constants import ChainConfig
 from Helpers.Logging import INFO, WARNING
 from Helpers.Time import WAIT
@@ -288,3 +289,42 @@ class Response:
 
         def get_portal_redeem_fee(self):
             return int(self.data[4]['RedeemFee'])
+
+
+class ResponseExtractor(ABC):
+    def __init__(self, response):
+        if type(response) is not Response:
+            raise TypeError(f'Input must be a Drivers.Response.Response, not {type(response)}')
+        self.info_obj_list = []
+
+    def __len__(self):
+        return len(self.info_obj_list)
+
+    def __iter__(self):
+        self.__current_index = 0
+        return iter(self.info_obj_list)
+
+    def __next__(self):
+        if self.__current_index >= len(self.info_obj_list):
+            raise StopIteration
+        else:
+            self.__current_index += 1
+            return self[self.__current_index]
+
+    def __getitem__(self, item):
+        return self.info_obj_list[item]
+
+    def _extract_dict_info_obj(self, response, key_to_extract, Class):
+        """
+        Extract info in Response result into a list of Objects, this method will take pieces of info from Response
+        object to convert info object
+        this method only works when Response.get_result(key_to_extract) return a list
+        @param response: Input Response to extract
+        @param key_to_extract: assume Response's result is dict, this key is the field of the dict which you want to
+        extract info from
+        @param Class: Class of which each element of the object list belong to
+        @return:
+        """
+        for raw_tok_info in response.get_result(key_to_extract):
+            obj = Class(raw_tok_info)
+            self.info_obj_list.append(obj)

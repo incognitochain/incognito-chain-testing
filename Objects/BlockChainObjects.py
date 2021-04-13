@@ -1,6 +1,6 @@
 import json
 
-from Objects import BlockChainInfoBaseClass, TokenListInfoBase, InChainPtokenInfo
+from Objects import BlockChainInfoBaseClass
 
 """
 Sample raw data:
@@ -192,41 +192,3 @@ class BlockChainCore(BlockChainInfoBaseClass):
         def __str__(self):
             return f'epoch: {self.get_epoch()} | height: {self.get_height()} | ' \
                    f'time: {self.get_time()} | hash: {self.get_hash()}'
-
-
-class InChainTokenList(TokenListInfoBase):
-    def __init__(self, response):
-        """
-        @param response: Response object
-        from "listprivacycustomtoken" RPC
-        """
-        super().__init__(response)
-        obj_list = []
-        for raw_tok_info in response.get_result('ListCustomToken'):
-            obj = InChainPtokenInfo(raw_tok_info)
-            obj_list.append(obj)
-        self.tok_info_obj_list = obj_list
-
-
-class OwnedTokenList(TokenListInfoBase):
-    """
-    from  "getlistprivacycustomtokenbalance" RPC
-    """
-
-    def __init__(self, response):
-        super().__init__(response)
-        obj_list = []
-        for raw_tok_info in response.get_result('ListCustomTokenBalance'):
-            obj = InChainPtokenInfo(raw_tok_info)
-            obj_list.append(obj)
-        self.tok_info_obj_list = obj_list
-
-
-class InChainBridgeTokenList(TokenListInfoBase):
-    def __init__(self, response):
-        super().__init__(response)
-        obj_list = []
-        for raw_tok_info in response.get_result():
-            obj = InChainPtokenInfo(raw_tok_info)
-            obj_list.append(obj)
-        self.tok_info_obj_list = obj_list

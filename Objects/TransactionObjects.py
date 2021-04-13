@@ -3,7 +3,6 @@ import json
 from Configs.Constants import ChainConfig
 from Helpers.Logging import INFO
 from Objects import BlockChainInfoBaseClass
-from Objects.CoinObject import Coin
 
 
 class TransactionDetail(BlockChainInfoBaseClass):
@@ -125,13 +124,14 @@ class TransactionDetail(BlockChainInfoBaseClass):
             @param coin_list_name: "InputCoins" or "OutputCoins"
             @return:
             """
+            from Objects.CoinObject import TxOutPut
             raw_coins = self.data[coin_list_name]
             list_coin_obj = []
             for raw in raw_coins:
                 try:
-                    coin_obj = Coin(raw['CoinDetails'])
+                    coin_obj = TxOutPut(raw['CoinDetails'])
                 except KeyError:
-                    coin_obj = Coin(raw)
+                    coin_obj = TxOutPut(raw)
                 try:
                     coin_obj.data['CoinDetailsEncrypted'] = raw['CoinDetailsEncrypted']
                 except KeyError:

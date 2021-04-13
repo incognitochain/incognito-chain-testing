@@ -54,8 +54,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         assert bal_before_receiver == reward_receiver.get_prv_balance()
 
     STEP(2, f'Wait until the stake become a committee')
-    epoch_plus_n = validator.stk_wait_till_i_am_committee(
-        (ChainConfig.BLOCK_PER_EPOCH / 2 + 7) * ChainConfig.BLOCK_TIME)
+    epoch_plus_n = validator.stk_wait_till_i_am_committee()
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
     staked_shard = beacon_bsd.is_he_a_committee(validator)
     assert staked_shard is not False
