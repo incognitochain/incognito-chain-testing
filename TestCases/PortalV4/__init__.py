@@ -1,29 +1,28 @@
-from Drivers.NeighborChainCli import BtcGo
 from Helpers.Logging import INFO, INFO_HEADLINE
 from Objects.AccountObject import AccountGroup, COIN_MASTER
-from Objects.IncognitoTestCase import ACCOUNTS, SUT
-from Helpers.TestHelper import ChainHelper
-from Configs.Constants import PBTC_ID, PBNB_ID, PRV_ID, coin
+from Objects.IncognitoTestCase import ACCOUNTS
+from Configs.Constants import PBTC_ID, coin
 from bitcoincli import Bitcoin
 
 TEST_SETTING_DEPOSIT_AMOUNT = coin(5)
 TEST_SETTING_SHIELD_AMOUNT = 100
 TEST_SETTING_UNSHIELD_AMOUNT = 500000
 TINY_UTXO_AMT = 100000
+MULTISIG_ADDRESS = "bcrt1qfgzhddwenekk573slpmqdutrd568ej89k37lmjr43tm9nhhulu0s4twm8c"
 
-MULTISIG_ADDRESS = "2NGFTTKNj59NGmjQpajsEXGxwf9SP8gvJiv"
 host = "127.0.0.1"
 port = "18443"
 username = "admin"
 password = "123123AZ"
-buildProofPath = "/Users/admin/Desktop/txBtcPortal/buildBTCMerkleProof/buildProof"
-bitcoin = Bitcoin(username, password, host, port)
+buildProofPath = "/Users/admin/Documents/source/txBtcPortal/buildBTCMerkleProof/buildProof"
+genOTMPath = "/Users/admin/Documents/source/genOTMultisigAddress/generateOTM"
+bitcoinCLI = Bitcoin(username, password, host, port)
 
 # create new wallet only run once
-newWallet = bitcoin.createwallet("test")
+newWallet = bitcoinCLI.createwallet("test")
 print(newWallet)
 
-bitcoin.importaddress(MULTISIG_ADDRESS)
+
 
 multisig_account = ACCOUNTS[0].set_remote_addr(
     {PBTC_ID: {"prikey": "236bdb27e4cf3ae2eeb9603e623e8476d3c2d86bcc1a26e551907aa66025c758",

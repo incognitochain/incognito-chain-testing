@@ -76,7 +76,7 @@ class Portalv4Rpc(BaseRpcApi):
 
     # request replacement fee
     def create_n_send_tx_portal_replace_fee(self, private_key, token_id, batch_id, replace_fee):
-        return self.rpc_connection.with_method("createandsendtxwithportalreplacementfee").with_params([
+        return self.rpc_connection.with_method("createandsendtxwithportalreplacebyfee").with_params([
             private_key,
             None,
             -1,
@@ -90,12 +90,12 @@ class Portalv4Rpc(BaseRpcApi):
 
     # get status replace fee tx
     def get_replace_fee_status(self, txhash):
-        return self.rpc_connection.with_method("getportalreplacementfeestatus").with_params(
+        return self.rpc_connection.with_method("getportalreplacebyfeestatus").with_params(
             [{"ReqTxID": txhash}]).execute()
 
     # get raw transaction replace fee
     def get_signed_raw_replace_fee_transaction(self,txhash_rpl_fee):
-        return self.rpc_connection.with_method("getporalsignedrawreplacefeetransaction").with_params(
+        return self.rpc_connection.with_method("getporalsignedrawreplacebyfeetransaction").with_params(
             [{"TxID": txhash_rpl_fee}]).execute()
 
     # get state #

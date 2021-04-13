@@ -22,7 +22,7 @@ from Objects.BlockChainObjects import BlockChainCore
 from Objects.CommitteeState import CommitteeState
 from Objects.PdeObjects import PDEStateInfo
 from Objects.PortalObjects import PortalStateInfo
-from Objects.Portalv4Objects import Portalv4StateInfo
+from Objects.Portalv4Objects import Portalv4StateInfo,PortalV3Unshield
 from Objects.ShardBlock import ShardBlock
 from Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
 from Objects.ViewDetailBlock import AllViewDetail
@@ -593,3 +593,9 @@ class Node:
         """
         cat_cmd = f'cat {self.get_log_file()} | grep {grep_pattern}'
         return self._ssh_session.send_cmd(cat_cmd)
+
+
+    def get_portalV4_unshield_info(self, unshield_id):
+        INFO(f'Get unshield Info ID = {unshield_id}')
+        unshield_info = self.portalv4().get_unsheild_status(unshield_id)
+        return PortalV3Unshield(unshield_info.get_result())
