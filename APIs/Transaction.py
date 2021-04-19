@@ -162,7 +162,7 @@ class TransactionRpc(BaseRpcApi):
                          ]). \
             execute()
 
-    def withdraw_centralize_token(self, private_key, token_id, amount_custom_token):
+    def withdraw_centralize_token(self, private_key, token_id, amount_custom_token, tx_ver=1):
         return self.rpc_connection. \
             with_method("createandsendcontractingrequest"). \
             with_params([private_key, None, -1, 0,
@@ -176,7 +176,8 @@ class TransactionRpc(BaseRpcApi):
                              "TokenReceivers": {
                                  Constants.BURNING_ADDR: amount_custom_token
                              },
-                             "TokenFee": 0
+                             "TokenFee": 0,
+                             "TxVersion": tx_ver  # only mater with privacy v2, backward compatible with privacy v1
                          },
                          "", 0
                          ]). \
@@ -185,19 +186,20 @@ class TransactionRpc(BaseRpcApi):
     ###############
     # WITHDRAW REWARD
     ###############
-    def withdraw_reward(self, private_key, payment_address, token_id, version=1):
+    def withdraw_reward(self, private_key, payment_address, token_id, version=1, tx_ver=1):
         return self.rpc_connection. \
             with_method("withdrawreward"). \
             with_params([private_key, {}, 0, 0,
                          {
                              "PaymentAddress": payment_address,
                              "TokenID": token_id,
-                             "Version": version
+                             "Version": version,
+                             "TxVersion": tx_ver  # only mater with privacy v2, backward compatible with privacy v1
                          }
                          ]). \
             execute()
 
-    def withdraw_reward_privacy_v2(self, private_key, payment_address, token_id):
+    def withdraw_reward_privacy_v2(self, private_key, payment_address, token_id, tx_ver=1):
         tx_fee = 1
         return self.rpc_connection. \
             with_method("withdrawreward"). \
@@ -205,6 +207,7 @@ class TransactionRpc(BaseRpcApi):
                          {
                              "PaymentAddress": payment_address,
                              "TokenID": token_id,
+                             "TxVersion": tx_ver  # only mater with privacy v2, backward compatible with privacy v1
                          }
                          ]). \
             execute()
@@ -268,6 +271,14 @@ class TransactionRpc(BaseRpcApi):
             with_method('listunspentoutputcoins'). \
             with_params(param_v2). \
             execute()
+
+    def list_output_coin(self, payment_k, read_only_k, token_id, ):
+        return self.rpc_connection.with_method("listoutputcoins"). \
+            with_params([0, 999999,
+                         [{
+                             "PaymentAddress": payment_k,
+                             "ReadonlyKey": read_only_k
+                         }], token_id]).execute()
 
     def list_unspent_output_tokens(self, private_k, token_id):
         return self.rpc_connection. \

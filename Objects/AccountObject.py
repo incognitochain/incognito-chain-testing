@@ -13,8 +13,7 @@ from Helpers import TestHelper
 from Helpers.Logging import INFO, INFO_HEADLINE, WARNING
 from Helpers.TestHelper import l6, KeyExtractor, ChainHelper
 from Helpers.Time import WAIT, get_current_date_time
-from Objects.BlockChainObjects import OwnedTokenList
-from Objects.CoinObject import Coin
+from Objects.CoinObject import TxOutPut, ListOwnedToken, ListPrvTXO
 from Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 
 
@@ -254,15 +253,20 @@ class Account:
         @return: OwnedTokenListInfo
         """
         response = self.REQ_HANDLER.transaction().list_custom_token_balance(self.private_key)
-        return OwnedTokenList(response)
+        return ListOwnedToken(response)
+
+    def list_all_tx_output(self, token_id=PRV_ID):
+        """
+
+        @param token_id:
+        @return:
+        """
+        response = self.REQ_HANDLER.transaction().list_output_coin(self.payment_key, self.read_only_key, token_id)
+        return ListPrvTXO(response)
 
     def list_unspent_coin(self):
         raw_response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key)
-        raw_coins = raw_response.get_result('Outputs')[self.private_key]
-        obj_coins = []
-        for raw_coin in raw_coins:
-            obj_coins.append(Coin(raw_coin))
-        return obj_coins
+        return ListPrvTXO(raw_response)
 
     def list_unspent_token(self, token_id=None):
         obj_coins = []
@@ -272,13 +276,13 @@ class Account:
                     list_unspent_output_tokens(self.private_key, token_info.get_token_id()).expect_no_error()
                 raw_coins = raw_response.get_result('Outputs')[self.private_key]
                 for raw_coin in raw_coins:
-                    obj_coins.append(Coin(raw_coin))
+                    obj_coins.append(TxOutPut(raw_coin))
         else:
             raw_response = self.REQ_HANDLER.transaction(). \
                 list_unspent_output_tokens(self.private_key, token_id).expect_no_error()
             raw_coins = raw_response.get_result('Outputs')[self.private_key]
             for raw_coin in raw_coins:
-                obj_coins.append(Coin(raw_coin))
+                obj_coins.append(TxOutPut(raw_coin))
         return obj_coins
 
     def print_all_unspent_coin(self, token_id=None):
@@ -392,7 +396,7 @@ class Account:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             staked_shard = beacon_bsd.is_he_a_committee(self)
             if staked_shard is False:
-                ChainHelper.wait_till_next_epoch(1,block_of_epoch=5)
+                ChainHelper.wait_till_next_epoch(1, block_of_epoch=5)
             else:
                 e2 = beacon_bsd.get_epoch()
                 h = beacon_bsd.get_beacon_height()
@@ -464,7 +468,7 @@ class Account:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             if not (beacon_bsd.is_he_a_committee(self) is False):  # is_he_a_committee returns False or shard number
                 # (number which is not False) so must use this comparison to cover the case shard =0
-                ChainHelper.wait_till_next_epoch(1,block_of_epoch=5)
+                ChainHelper.wait_till_next_epoch(1, block_of_epoch=5)
             else:
                 e2 = beacon_bsd.get_epoch()
                 INFO(f"Swapped out of committee at epoch {e2}")

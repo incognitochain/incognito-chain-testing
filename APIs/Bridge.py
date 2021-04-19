@@ -18,7 +18,7 @@ class BridgeRpc(BaseRpcApi):
         }]). \
             execute()
 
-    def issue_centralized_bridge_token(self, receiver, token_id, token_name, amount):
+    def issue_centralized_bridge_token(self, receiver, token_id, token_name, amount, tx_ver=1):
         return self.rpc_connection. \
             with_method("createandsendissuingrequest"). \
             with_params([Constants.DAO_PRIVATE_K,
@@ -29,11 +29,11 @@ class BridgeRpc(BaseRpcApi):
                              "TokenID": token_id,
                              "TokenName":
                                  token_name,
-                             "TxVersion": 1
+                             "TxVersion": tx_ver  # only mater with privacy v2, backward compatible with privacy v1
                          }]). \
             execute()
 
-    def withdraw_centralized_bridge_token(self, withdrawer_private_key, token_id, amount):
+    def withdraw_centralized_bridge_token(self, withdrawer_private_key, token_id, amount, tx_ver=1):
         return self.rpc_connection. \
             with_method("createandsendissuingrequest"). \
             with_params([withdrawer_private_key,
@@ -51,7 +51,7 @@ class BridgeRpc(BaseRpcApi):
                              },
                              "Privacy": True,
                              "TokenFee": 0,
-                             "TxVersion": 1
+                             "TxVersion": tx_ver  # only mater with privacy v2, backward compatible with privacy v1
                          },
                          "withdrawal description", 0
                          ]). \
