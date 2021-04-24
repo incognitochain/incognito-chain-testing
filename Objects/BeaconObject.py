@@ -692,10 +692,16 @@ class BeaconBlock(BlockChainInfoBaseClass):
                 return token_list
 
             def get_reward_amount(self, token_id=None):
-                # return amount reward of a token, or a dict of {token: reward amount ...}
+                """
+                @param token_id: default = PRV_ID
+                @return: return reward amount of token_id, 0 if not found
+                """
                 if token_id is None:
                     token_id = PRV_ID
-                return self._get_reward_dict()[token_id]
+                try:
+                    return self._get_reward_dict()[token_id]
+                except KeyError:
+                    return 0
 
             def get_public_k_to_pay_to(self):
                 return self.data['PayToPublicKey']

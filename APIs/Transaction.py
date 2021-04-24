@@ -162,7 +162,7 @@ class TransactionRpc(BaseRpcApi):
                          ]). \
             execute()
 
-    def withdraw_centralize_token(self, private_key, token_id, amount_custom_token, tx_ver=1):
+    def withdraw_centralize_token(self, private_key, token_id, amount_custom_token, tx_ver):
         return self.rpc_connection. \
             with_method("createandsendcontractingrequest"). \
             with_params([private_key, None, -1, 0,
@@ -186,7 +186,7 @@ class TransactionRpc(BaseRpcApi):
     ###############
     # WITHDRAW REWARD
     ###############
-    def withdraw_reward(self, private_key, payment_address, token_id, version=1, tx_ver=1):
+    def withdraw_reward(self, private_key, payment_address, token_id, tx_ver, version=1):
         return self.rpc_connection. \
             with_method("withdrawreward"). \
             with_params([private_key, {}, 0, 0,
@@ -199,7 +199,7 @@ class TransactionRpc(BaseRpcApi):
                          ]). \
             execute()
 
-    def withdraw_reward_privacy_v2(self, private_key, payment_address, token_id, tx_ver=1):
+    def withdraw_reward_privacy_v2(self, private_key, payment_address, token_id, tx_ver):
         tx_fee = 1
         return self.rpc_connection. \
             with_method("withdrawreward"). \
@@ -350,10 +350,10 @@ class TransactionRpc(BaseRpcApi):
             with_params([private_key, -1]). \
             execute()
 
-    def create_convert_coin_ver1_to_ver2_tx_token(self, private_key, token_id):
+    def create_convert_coin_ver1_to_ver2_tx_token(self, private_key, token_id, tx_fee=-1):
         return self.rpc_connection. \
             with_method('createconvertcoinver1tover2txtoken'). \
-            with_params([private_key, token_id, -1]). \
+            with_params([private_key, token_id, tx_fee]). \
             execute()
 
     def get_transaction_by_receiver(self, payment_k, read_only_k):

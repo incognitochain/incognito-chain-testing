@@ -1,11 +1,12 @@
 import copy
 import datetime
+import re
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
 from Configs import Constants
 from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, \
-    ChainConfig
+    ChainConfig, TestConfig
 from Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
@@ -232,8 +233,8 @@ class Account:
         while True:
             try:
                 error_msg = result.get_error_trace().get_message()
-                if 'Subscribed to OTA key to view all coins' in error_msg or \
-                        "OTA Key indexing is in progress" in error_msg:
+                if re.search("View Key \{.*\} not synced", error_msg):
+                    self.submit_key()
                     WARNING(f'{error_msg}. Wait for {ChainConfig.BLOCK_TIME}s and retry')
                     WAIT(ChainConfig.BLOCK_TIME)
                     result = self.REQ_HANDLER.transaction().get_custom_token_balance(self.private_key, token_id)
@@ -270,16 +271,14 @@ class Account:
 
     def list_unspent_token(self, token_id=None):
         obj_coins = []
+        token_list = [] if token_id is None else [token_id]
         if not token_id:
             for token_info in self.list_owned_custom_token():
-                raw_response = self.REQ_HANDLER.transaction(). \
-                    list_unspent_output_tokens(self.private_key, token_info.get_token_id()).expect_no_error()
-                raw_coins = raw_response.get_result('Outputs')[self.private_key]
-                for raw_coin in raw_coins:
-                    obj_coins.append(TxOutPut(raw_coin))
-        else:
+                token_list.append(token_info.get_token_id())
+
+        for token in token_list:
             raw_response = self.REQ_HANDLER.transaction(). \
-                list_unspent_output_tokens(self.private_key, token_id).expect_no_error()
+                list_unspent_output_tokens(self.private_key, token).expect_no_error()
             raw_coins = raw_response.get_result('Outputs')[self.private_key]
             for raw_coin in raw_coins:
                 obj_coins.append(TxOutPut(raw_coin))
@@ -514,9 +513,8 @@ class Account:
         while True:
             if get_bal_res.get_error_trace():
                 error_msg = get_bal_res.get_error_trace().get_message()
-                if 'Subscribed to OTA key to view all coins' in error_msg or \
-                        "OTA Key indexing is in progress" in error_msg:
-                    WARNING(f'{error_msg}. Wait for {ChainConfig.BLOCK_TIME}s and retry')
+                if re.search("View Key \{.*\} not synced", error_msg):
+                    self.submit_key()
                     WAIT(ChainConfig.BLOCK_TIME)
                     get_bal_res = self.REQ_HANDLER.transaction().get_balance(self.private_key)
                 else:
@@ -855,7 +853,7 @@ class Account:
         """
         INFO(f'Withdraw centralize token')
         return self.REQ_HANDLER.transaction().withdraw_centralize_token(self.private_key, token_id,
-                                                                        amount_custom_token)
+                                                                        amount_custom_token, TestConfig.TX_VER)
 
     ########
     # Stake
@@ -890,10 +888,10 @@ class Account:
         INFO(f"Withdraw token reward {token_id} to {l6(reward_receiver.payment_key)}")
         if ChainConfig.PRIVACY_VERSION == 1:
             return self.REQ_HANDLER.transaction().withdraw_reward(self.private_key, reward_receiver.payment_key,
-                                                                  token_id)
+                                                                  token_id, TestConfig.TX_VER)
         if ChainConfig.PRIVACY_VERSION == 2:
-            return self.REQ_HANDLER.transaction().withdraw_reward_privacy_v2(self.private_key,
-                                                                             reward_receiver.payment_key, token_id)
+            return self.REQ_HANDLER.transaction(). \
+                withdraw_reward_privacy_v2(self.private_key, reward_receiver.payment_key, token_id, TestConfig.TX_VER)
         raise BaseException('Can not detect privacy version to use the correct withdraw rpc')
 
     def stk_withdraw_reward_to_me(self, token_id=PRV_ID):
@@ -965,13 +963,15 @@ class Account:
 
     def pde_trade_prv_v2(self, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         INFO(f'User {l6(self.payment_key)}: '
-             f'Trade {amount_to_sell} of PRV for {l6(token_to_buy)} trading fee={trading_fee}')
+             f'Trade {amount_to_sell} PRV for {l6(token_to_buy)} trading fee={trading_fee}, '
+             f'min acceptable={min_amount_to_buy}')
         return self.REQ_HANDLER.dex().trade_prv_v2(self.private_key, self.payment_key, amount_to_sell,
                                                    token_to_buy, trading_fee, min_amount_to_buy)
 
     def pde_trade_token_v2(self, token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         INFO(f'User {l6(self.payment_key)}: '
-             f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]} trading fee={trading_fee}')
+             f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]} trading fee={trading_fee} '
+             f'min acceptable={min_amount_to_buy}')
         return self.REQ_HANDLER.dex().trade_token_v2(self.private_key, self.payment_key, token_to_sell,
                                                      amount_to_sell,
                                                      token_to_buy, trading_fee, min_amount_to_buy)
@@ -1222,7 +1222,7 @@ class Account:
             convert_tx = self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_transaction(self.private_key)
         else:
             convert_tx = self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_tx_token(self.private_key,
-                                                                                                  token_id)
+                                                                                                  token_id, 10)
         return convert_tx
 
     def top_up_if_lower_than(self, account, lower, upper, token_id=PRV_ID, retry_interval=30, max_wait=180):
@@ -1387,10 +1387,9 @@ class Account:
         for acc, amount in receiver.items():
             acc.wait_for_balance_change(from_balance=bal_receiver_b4_dict[acc])
 
-    def submit_key(self, wait=True):
+    def submit_key(self):
+        INFO(f'Submit private key for indexing coin {l6(self.private_key)}')
         self.REQ_HANDLER.transaction().submit_key(self.private_key).expect_no_error()
-        if wait:
-            WAIT(ChainConfig.BLOCK_TIME)
         return self
 
 
@@ -1465,6 +1464,10 @@ class AccountGroup:
             return AccountGroup(*(self.account_list + other.account_list))
         elif type(other) is list:  # add AccountGroup with list of accounts
             return AccountGroup(*(self.account_list + other))
+        elif type(other) is Account:
+            self.account_list.append(other)
+            return AccountGroup(*self.account_list)
+        raise TypeError(f'Not support adding type {type(other)} with {__class__} ')
 
     def change_req_handler(self, HANDLER):
         for acc in self:

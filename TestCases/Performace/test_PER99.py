@@ -12,8 +12,8 @@ from Helpers.Time import WAIT
 from Objects.AccountObject import Account, COIN_MASTER
 from Objects.IncognitoTestCase import ACCOUNTS, SUT
 
-LOOP = 4
-TX_PER_LOOP = 40
+LOOP = 1
+TX_PER_LOOP = 200
 GAP_BETWEEN_LOOP = 1
 SEND_AMOUNT = random.randrange(1000, 100000)
 
@@ -43,7 +43,10 @@ def prepare_proof_1_shard_self_send(fee, privacy):
         raise IndexError(f"Need {num_o_proof} Account to create tx, "
                          f"but there's only {num_of_acc} Account in shard {shard}")
     senders = ACCOUNTS[shard][:num_of_proofs()]
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(3), coin(5), senders)
+    # for acc in senders:
+    #     SUT().transaction().submit_key(acc.private_key)
+    # breakpoint()
+    # COIN_MASTER.top_him_up_prv_to_amount_if(coin(3), coin(5), senders)
     INFO_HEADLINE(f' PREPARE TEST DATA, 1 SHARD TX, SHARD {shard}')
     return create_proofs(senders, senders, fee, privacy)
 

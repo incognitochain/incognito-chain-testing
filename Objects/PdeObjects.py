@@ -1,8 +1,10 @@
 import copy
+import json
 import re
+from typing import List
 
 from Configs.Constants import PRV_ID, ChainConfig
-from Helpers import TestHelper
+from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import INFO, WARNING, DEBUG, ERROR
 from Helpers.TestHelper import l6, KeyExtractor
 from Helpers.Time import WAIT
@@ -329,8 +331,13 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             return list_amount
         return 0
 
-    def _get_pde_share_objects(self, user=None, token1=None, token2=None):
-        # DEBUG('==================================================================================================')
+    def _get_pde_share_objects(self, user=None, token1=None, token2=None) -> List[PdeShare]:
+        """
+        @param user:
+        @param token1:
+        @param token2:
+        @return: list of PdeShare
+        """
         inc_addr = 'any' if user is None else l6(KeyExtractor.incognito_addr(user))
         tok1 = 'any' if token1 is None else l6(token1)
         tok2 = 'any' if token1 is None else l6(token2)
@@ -354,7 +361,6 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 else:
                     # DEBUG(f'NOT Match user {of_user}')
                     continue
-            # breakpoint()
             if token1 is not None and token2 is not None:
                 if token1 == pde_share_obj.get_token1_id() and token2 == pde_share_obj.get_token2_id():
                     debug_msg += f'token 1->1, 2->2 {tok1}-{tok2} | '
@@ -483,23 +489,15 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             return self.is_trade_able_v1(token1, token2)
 
     def cal_trade_receive_v1(self, token_sell, token_buy, amount_sell):
-        rate = self.get_rate_between_token(token_sell, token_buy)
-        pool_token_sell = rate[0]
-        pool_token_buy = rate[1]
-        pool_token_buy_remain = (pool_token_buy * pool_token_sell) / (amount_sell + pool_token_sell)
-        # print("-remain before mod: " + str(remain))
-        if (pool_token_buy * pool_token_sell) % (amount_sell + pool_token_sell) != 0:
-            pool_token_buy_remain = int(pool_token_buy_remain) + 1
-            # print("-remain after mod: " + str(remain))
-
-        received_amount = pool_token_buy - pool_token_buy_remain
+        pool_token_sell, pool_token_buy = self.get_rate_between_token(token_sell, token_buy)
+        received_amount = PdeMath.cal_trade_receive(amount_sell, pool_token_sell, pool_token_buy)
         print("-expecting received amount: " + str(received_amount))
         return received_amount
 
     def cal_trade_receive_v2(self, token_sell, token_buy, amount_sell):
-        if token_buy == PRV_ID or token_sell == PRV_ID:
+        if PRV_ID in [token_buy, token_sell]:
             return self.cal_trade_receive_v1(token_sell, token_buy, amount_sell)
-
+        # cross trade via PRV pool
         prv_receive = self.cal_trade_receive_v1(token_sell, PRV_ID, amount_sell)
         return self.cal_trade_receive_v1(PRV_ID, token_buy, prv_receive)
 
@@ -529,13 +527,36 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         amount1 = contributed_amount_dict[token1]
         amount2 = contributed_amount_dict[token2]
         rate = self.get_rate_between_token(token1, token2)
-        return TestHelper.calculate_contribution(amount1, amount2, rate)
+        return PdeMath.cal_contribution(amount1, amount2, rate)
 
     def verify_contribute_status(self, pair_id, expected_status, token1_contributed, token1_expected_return,
                                  token2_contributed, token2_expected_return):
         # todo implement later:
         # get PDEContributeInfo, verify status, contributed amount, return amount ...
         pass
+
+    def cal_share_withdrawal(self, contributor, withdraw_amount, token1, token2):
+        """
+        @param contributor: Account obj or payment addr
+        @param withdraw_amount:
+        @param token1:
+        @param token2:
+        @return: dict of {token id:amount}
+        """
+        all_my_share = self.get_pde_shares_amount(contributor, token1, token2)
+        pool = self.get_rate_between_token(token1, token2)
+        sum_share_of_pair = self.sum_share_pool_of_pair(None, token1, token2)
+        receive_amount_token1, receive_amount_token2 = \
+            PdeMath.cal_withdraw_share(withdraw_amount, all_my_share, sum_share_of_pair, pool)
+        result = {token1: receive_amount_token1, token2: receive_amount_token2}
+        INFO(f'''
+                Sum share of pair                 : {sum_share_of_pair}
+                My share                          : {all_my_share}
+                Withdraw amount                   : {withdraw_amount}
+                Rate before withdraw              : {pool}
+                Withdraw receive amounts          : {json.dumps(result, indent=3)}       
+            ''')
+        return result
 
 
 class PDEContributeInfo(BlockChainInfoBaseClass):
