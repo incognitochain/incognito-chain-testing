@@ -24,7 +24,7 @@ class ChainConfig:
     BEACON_COMMITTEE_SIZE = 4
     FIX_BLOCK_VALIDATOR = 4
     SHARD_COMMITTEE_SIZE = 6
-    PRIVACY_VERSION = 1
+    PRIVACY_VERSION = 2
     STK_AMOUNT = 1750000000000
     STK_WAIT_TIME_OUT = 4000  # seconds
     ONE_COIN = 1000000000
@@ -37,7 +37,8 @@ class ChainConfig:
         COLLATERAL_LIQUIDATE_TO_POOL_PERCENT = 1.05
         REQ_TIME_OUT = 15  # minutes
         # REQ_TIME_OUT = 60  # minutes, TestNet
-        FEEDER_PRIVATE_K = '112t8roezimTQwKbmsoxY9h494xhMZNBe94ux6hCH4SaFYBFnFXS9JoNbUjmeFLQiFWHeFP9MLPcy1sEiDasdW4ZkzEDzXDLG3wmwMU551tv'
+        FEEDER_PRIVATE_K = '112t8roezimTQwKbmsoxY9h494xhMZNBe94ux6hCH4SaFYBFnFXS9J' \
+                           'oNbUjmeFLQiFWHeFP9MLPcy1sEiDasdW4ZkzEDzXDLG3wmwMU551tv'
 
     class Dex:
         MIN_PRV_IN_POOL_FOR_TOKEN_FEE = 10000000000000
@@ -51,20 +52,17 @@ class ChainConfig:
         return height % ChainConfig.BLOCK_PER_EPOCH == 1
 
     @staticmethod
-    def get_epoch_time(num_of_epoch=1):
+    def get_epoch_n_block_time(num_of_epoch=1, number_of_block=0):
         """
         @param num_of_epoch: default = 1
-        @return: time (second) for {num_of_epoch} epoch to complete
+        @param number_of_block:
+        @return: int (seconds) for {num_of_epoch} + {number_of_block} epoch to complete
         """
-        return ChainConfig.BLOCK_PER_EPOCH * ChainConfig.BLOCK_TIME * num_of_epoch
-
-    @staticmethod
-    def get_block_time(num_of_block=1):
-        """
-        @param num_of_block: default =1
-        @return: time (second) for num_of_block to be recorded
-        """
-        return num_of_block * ChainConfig.BLOCK_TIME
+        num_of_epoch = max(0, num_of_epoch)  # make sure epoch and block must always >=0
+        number_of_block = max(0, number_of_block)
+        block_time = ChainConfig.BLOCK_TIME * number_of_block
+        epoch_time = ChainConfig.BLOCK_PER_EPOCH * ChainConfig.BLOCK_TIME * num_of_epoch
+        return epoch_time + block_time
 
     @staticmethod
     def get_running_config():
@@ -76,10 +74,14 @@ class ChainConfig:
         ChainConfig.SHARD_COMMITTEE_SIZE = bbs.get_max_shard_committee_size()
         chain_info = SUT().get_block_chain_info()
         ChainConfig.BLOCK_PER_EPOCH = chain_info.get_block_per_epoch_number()
+        block_3 = SUT().get_shard_block_by_height(0, 3)
+        block_4 = SUT().get_shard_block_by_height(0, 4)
+        ChainConfig.BLOCK_TIME = block_4.get_time() - block_3.get_time()
 
 
 class TestConfig:
-    KEY_VERSION = 1  # payment key version [1 or 2]
+    KEY_VERSION = 2  # payment key version [1 or 2]
+    TX_VER = 2
 
 
 def coin(amount, nano=True):
