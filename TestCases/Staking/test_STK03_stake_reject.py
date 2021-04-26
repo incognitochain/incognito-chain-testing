@@ -35,8 +35,6 @@ def test_stake_under_over_1750_prv(amount_prv_stake):
     (account_x, account_y, account_t),  # 2 different acc, stake for the same validator
 ])
 def test_stake_same_validator(staker1, staker2, validator):
-    # top up use dictionary of receivers, if staker1=staker2 then it will top up one time only,
-    # hence using 2 top up as below instead of top_up_if_lower_than([staker1,staker2], coin(1750), coin(1850))
     COIN_MASTER.top_up_if_lower_than(staker1, coin(1750), coin(1850))
     COIN_MASTER.top_up_if_lower_than(staker2, coin(1750), coin(1850))
 
@@ -49,13 +47,6 @@ def test_stake_same_validator(staker1, staker2, validator):
     staking_state = bbsd.get_auto_staking_committees(validator)
     if staking_state is None:
         STEP(2.1, 'Stake the first time and check balance after staking')
-        if staker1 == staker2:
-            topup_amount = coin(1750.5) * 2
-        else:
-            topup_amount = coin(1751)
-
-        COIN_MASTER.top_up_if_lower_than(staker1, topup_amount, topup_amount)
-
         balance_before_stake_first = staker1.get_prv_balance()
         stake_response = staker1.stake(validator=validator, auto_re_stake=False).subscribe_transaction()
         stake_fee = stake_response.get_fee()
@@ -68,7 +59,7 @@ def test_stake_same_validator(staker1, staker2, validator):
         staked_shard = beacon_bsd.is_he_a_committee(validator)
         assert staked_shard is not False
     else:
-        assert False, 'Staker already staked, this test must be run again with another account'
+        pytest.skip(f'Validator_key: {validator.validator_key} already staked, this test must be run again with another account')
 
     STEP(3, 'Stake the second time')
     balance_before_stake_second = staker2.get_prv_balance()
@@ -80,7 +71,7 @@ def test_stake_same_validator(staker1, staker2, validator):
     assert balance_before_stake_second == staker2.get_prv_balance()
 
     STEP(5, "Wait for the stake to be swapped out")
-    epoch_x = validator.stk_wait_till_i_am_swapped_out_of_committee()
+    epoch_x = validator.stk_wait_till_i_am_out_of_autostaking_list()
 
     STEP(6, "Calculate avg PRV reward per epoch")
     prv_reward = staker1.stk_get_reward_amount()
@@ -96,7 +87,7 @@ def test_stake_same_validator(staker1, staker2, validator):
     prv_bal_b4_withdraw = staker1.get_prv_balance()
     prv_reward_amount = staker1.stk_get_reward_amount()
     withdraw_fee = staker1.stk_withdraw_reward_to_me().subscribe_transaction().get_fee()
-    prv_bal_after_withdraw = staker1.wait_for_balance_change(from_balance=prv_bal_b4_withdraw, timeout=180)
+    prv_bal_after_withdraw = staker1.wait_for_balance_change(from_balance=prv_bal_b4_withdraw)
     INFO(f'Expect reward amount to received: {prv_reward_amount}')
     assert prv_bal_b4_withdraw + prv_reward_amount - withdraw_fee == prv_bal_after_withdraw, \
         f'bal b4={prv_bal_b4_withdraw}, reward amount={prv_reward_amount}, withdraw fee={withdraw_fee} ' \

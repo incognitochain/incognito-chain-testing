@@ -212,30 +212,6 @@ class TransactionRpc(BaseRpcApi):
                          ]). \
             execute()
 
-    def get_reward_prv(self, payment_address):
-        return self.rpc_connection. \
-            with_method("getrewardamount"). \
-            with_params([payment_address]). \
-            execute()
-
-    def get_reward_token(self, payment_address):
-        return self.rpc_connection. \
-            with_method("getrewardamount"). \
-            with_params([payment_address]). \
-            execute()
-
-    def get_reward_specific_token(self, payment_address):
-        return self.rpc_connection. \
-            with_method("getrewardamount"). \
-            with_params([payment_address]). \
-            execute()
-
-    def check_reward_specific_token(self, payment_address):
-        return self.rpc_connection. \
-            with_method("getrewardamount"). \
-            with_params([payment_address]). \
-            execute()
-
     def de_fragment_prv(self, private_key, min_bill=1000000000000000):
         return self.rpc_connection. \
             with_method("defragmentaccount"). \

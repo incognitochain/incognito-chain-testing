@@ -9,10 +9,6 @@ from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from TestCases.Staking import account_y, account_a, account_u, account_t
 
-index_epoch_change = 0
-block_per_epoch_b4 = 20
-block_per_epoch_af = ChainConfig.BLOCK_PER_EPOCH
-
 
 def get_epoch_swap_in_out_and_reward_committee(account_stake):
     """
@@ -21,20 +17,17 @@ def get_epoch_swap_in_out_and_reward_committee(account_stake):
     @return:
     """
     reward = 0
-    epoch_in = account_stake.stk_wait_till_i_am_committee()
+    epoch_in = account_stake.stk_wait_till_i_am_committee(timeout=ChainConfig.get_epoch_n_block_time(10))
     bbd_b4 = SUT().get_beacon_best_state_detail_info()
     shard_id = bbd_b4.is_he_a_committee(account_stake)
     assert shard_id is not False
-    epoch_out = account_stake.stk_wait_till_i_am_swapped_out_of_committee()
+    epoch_out = account_stake.stk_wait_till_i_am_swapped_out_of_committee(timeout=ChainConfig.get_epoch_n_block_time(10))
     for epoch in range(epoch_in, epoch_out):
-        instruction_beacon_height = ChainHelper.cal_first_height_of_epoch(epoch=epoch + 1,
-                                                                          index_epoch_change=index_epoch_change,
-                                                                          block_per_epoch_b4=block_per_epoch_b4,
-                                                                          block_per_epoch_af=block_per_epoch_af)
-        # instruction_beacon_height = (5000 + (epoch - 1 - 499) * 20) + 1
+        instruction_beacon_height = ChainHelper.cal_first_height_of_epoch(epoch=epoch + 1)
         instruction_bb = SUT().get_latest_beacon_block(instruction_beacon_height)
         bb_reward_instruction_prv = instruction_bb.get_transaction_reward_from_instruction()
-        shard_committee_size = SUT().get_committee_state(instruction_beacon_height).get_shard_committee_size(shard_id)
+        shard_committee_size = SUT().get_committee_state(instruction_beacon_height-1).get_shard_committee_size(shard_id)
+        print(f"Beacon_height: {instruction_beacon_height}, Shard {shard_id}, shard_committee_size: {shard_committee_size}")
         reward += bb_reward_instruction_prv[str(shard_id)] / shard_committee_size
     return epoch_in, epoch_out, reward, shard_id
 
@@ -43,12 +36,13 @@ def test_stake_for_multi_validator():
     COIN_MASTER.top_him_up_prv_to_amount_if(ChainConfig.STK_AMOUNT * 4, ChainConfig.STK_AMOUNT * 5, account_y)
     from TestCases.Staking import token_id
     INFO(f'Run test with token: {token_id}')
-    reward_b4 = account_y.stk_get_reward_amount()
-    if reward_b4 != 0:
+    reward = account_y.stk_get_reward_amount()
+    if reward != 0:
+        bal_b4_withdraw = account_y.get_prv_balance()
         account_y.stk_withdraw_reward_to_me().subscribe_transaction()
         WAIT(40)
-        reward_b4 = account_y.stk_get_reward_amount()
-    assert reward_b4 == 0
+        assert account_y.stk_get_reward_amount() == 0
+        assert account_y.get_prv_balance() == bal_b4_withdraw + reward
 
     thread_pool = []
     executor = ThreadPoolExecutor()
@@ -76,10 +70,11 @@ def test_stake_for_multi_validator():
     assert bal_af_stake == bal_b4_stake - stake_sum_fee_tx - ChainConfig.STK_AMOUNT * 4
 
     concurrent.futures.wait(thread_pool)
+    executor.shutdown()
     instruction_reward = 0
     for thread in thread_pool:
         epoch_in, epoch_out, reward, shard_committee = thread.result()
         instruction_reward += reward
-
-    reward_receive = account_y.stk_get_reward_amount()
-    assert reward_receive == instruction_reward
+    WAIT(ChainConfig.get_epoch_n_block_time(num_of_epoch=0, number_of_block=5))
+    reward_receive = account_y.stk_get_reward_amount()  # Wait receive reward
+    assert reward_receive == instruction_reward, f'{reward_receive} == {instruction_reward}'

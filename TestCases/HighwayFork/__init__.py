@@ -83,10 +83,10 @@ def calculated_and_create_fork(chain_id, at_transfer_next_epoch=False, min_block
         height_current = beacon_height
     difference_height = beacon_height - height_current
     INFO(f'Beacon height current {beacon_height}')
-    if at_transfer_next_epoch:
+    if at_transfer_next_epoch is True:
         INFO('Create fork right at the time of epoch transfer')
         if remain_block_epoch <= min_blocks_wait_fork:
-            if num_of_block_fork <= block_per_epoch - (min_blocks_wait_fork - remain_block_epoch):
+            if block_per_epoch - (min_blocks_wait_fork - remain_block_epoch) >= num_of_block_fork:
                 for i in range(num_of_block_fork):
                     block_fork_list[i] = ChainHelper.cal_first_height_of_epoch(epoch_current + 2) - int(
                         num_of_block_fork / 2) + i - difference_height
@@ -106,7 +106,7 @@ def calculated_and_create_fork(chain_id, at_transfer_next_epoch=False, min_block
         assert num_of_block_fork < block_per_epoch, ERROR(
             'The number of blocks fork is greater than the number of blocks per epoch')
         if remain_block_epoch <= min_blocks_wait_fork:
-            if num_of_block_fork <= block_per_epoch - (min_blocks_wait_fork - remain_block_epoch):
+            if block_per_epoch - (min_blocks_wait_fork - remain_block_epoch) >= num_of_block_fork:
                 for i in range(num_of_block_fork):
                     block_fork_list[i] = height_current + min_blocks_wait_fork + i
             else:
@@ -121,6 +121,26 @@ def calculated_and_create_fork(chain_id, at_transfer_next_epoch=False, min_block
                 for i in range(num_of_block_fork):
                     block_fork_list[i] = ChainHelper.cal_first_height_of_epoch(epoch_current + 1) \
                                          + 1 + i - difference_height
+    elif at_transfer_next_epoch == 'random':
+        INFO('Create fork at random time')
+        random_block = int(ChainHelper.cal_random_height_of_epoch(epoch_current))
+        if beacon_height + min_blocks_wait_fork < random_block:
+            if (random_block - (beacon_height + min_blocks_wait_fork)) >= num_of_block_fork:
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = random_block - int(num_of_block_fork / 2) + i - difference_height
+            else:
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = height_current + min_blocks_wait_fork + i
+        else:
+            random_block_next_epoch = int(ChainHelper.cal_random_height_of_epoch(epoch_current + 1))
+            if (random_block_next_epoch - (beacon_height + min_blocks_wait_fork)) >= num_of_block_fork:
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = random_block_next_epoch - int(num_of_block_fork / 2) + i - difference_height
+            else:
+                assert random_block_next_epoch - (beacon_height + min_blocks_wait_fork) > 0, ERROR(
+                    'The number of blocks to wait is too large')
+                for i in range(num_of_block_fork):
+                    block_fork_list[i] = height_current + min_blocks_wait_fork + i
     else:
         for i in range(num_of_block_fork):
             block_fork_list[i] = height_current + min_blocks_wait_fork + i

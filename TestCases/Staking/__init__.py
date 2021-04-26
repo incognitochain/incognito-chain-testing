@@ -8,13 +8,11 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
-from Configs.Constants import coin, ChainConfig, BURNING_ADDR
+from Configs.Constants import coin, ChainConfig
 from Helpers.KeyListJson import KeyListJson
-from Helpers.Logging import INFO, STEP, ERROR
-from Helpers.TestHelper import l3
+from Helpers.Logging import INFO, STEP
 from Objects.AccountObject import Account, AccountGroup, COIN_MASTER
-from Objects.IncognitoTestCase import SUT, ACCOUNTS, STAKER_ACCOUNTS, COMMITTEE_ACCOUNTS, BEACON_ACCOUNTS
-from Objects.TransactionObjects import TransactionDetail
+from Objects.IncognitoTestCase import SUT, ACCOUNTS
 from TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
 
 key_list_file = KeyListJson()
@@ -31,11 +29,15 @@ try:
 except IndexError:
     raise EnvironmentError(f'Not enough staker in keylist file for the test. '
                            f'Check the file, and make sure nodes are run or else chain will be stuck')
-
-token_holder_shard_0 = Account(
-    "112t8rnX6USJnBzswUeuuanesuEEUGsxE8Pj3kkxkqvGRedUUPyocmtsqETX2WMBSvfBCwwsmMpxonhfQm2N5wy3SrNk11eYxEyDtwuGxw2E")
-token_holder_shard_1 = Account(
-    "112t8rnXoEWG5H8x1odKxSj6sbLXowTBsVVkAxNWr5WnsbSTDkRiVrSdPy8QfMujntKRYBqywKMJCyhMpdr93T3XiUD5QJR1QFtTpYKpjBEx")
+token_receiver = Account(
+    '112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA')
+list_acc_x_shard = {}
+for i in range(ChainConfig.ACTIVE_SHARD):
+    try:
+        acc = ACCOUNTS.get_accounts_in_shard(i)[0]
+        list_acc_x_shard[i] = acc
+    except IndexError:
+        INFO(f'Not found account in shard {i}')
 
 amount_stake_under_1750 = random.randint(coin(1), coin(1749))
 amount_stake_over_1750 = random.randint(coin(1751), coin(1850))
@@ -93,51 +95,19 @@ def setup_module():
     global token_id, tear_down_trx008
     all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
     if token_id not in all_ptoken_in_chain:
-        trx008.account_init = token_holder_shard_0
+        trx008.account_init = list_acc_x_shard[0]
         trx008.prv_contribute_amount = prv_contribute_amount
         trx008.token_contribute_amount = token_contribute_amount
         trx008.token_init_amount = token_init_amount
         trx008.setup_module()
         token_id = trx008.test_init_ptoken()
         INFO(f'Setup module: new token: {token_id}')
-        # send token to other shard and burn 1 nano as a work-around for privacy v2 issue when token init on one shard
-        # but the token info does not get forwarded to other shards
-        # which cause the case that accounts on other shards have that token but cannot use.
-        burn_acc = Account('gasoline', BURNING_ADDR)
-        token_holder_shard_0. \
-            send_token_multi_output({token_holder_shard_1: token_contribute_amount / 2, burn_acc: 1}, token_id, -1). \
-            expect_no_error().subscribe_transaction()
+        receiver_dict = {}
+        for acc in list_acc_x_shard.values():
+            if acc != list_acc_x_shard[0]:
+                receiver_dict[acc] = token_contribute_amount / 2
+        list_acc_x_shard[0].send_token_multi_output(receiver_dict, token_id,
+                                                    -1).expect_no_error().subscribe_transaction()
         tear_down_trx008 = True
     else:
         INFO(f'Setup module: use existing token: {token_id}')
-
-
-def get_staking_info_of_validator(committee_pub_k, shard_bsd_list=None):
-    """
-
-    @param committee_pub_k: string: committee public key
-    @param shard_bsd_list: List[ShardBestStateDetailInfo obj]
-    @return: staker - Account obj, validator - Account obj, receiver_reward - Account obj, string
-    """
-    acc_group = ACCOUNTS + STAKER_ACCOUNTS + COMMITTEE_ACCOUNTS + BEACON_ACCOUNTS
-    string = ''
-    validator = acc_group.find_account_by_key(committee_pub_k)
-    receiver_reward = validator
-    staker = validator
-    if shard_bsd_list is None:
-        string += f'{l3(staker.private_key)}__{l3(validator.public_key)}__{l3(receiver_reward.payment_key)}'
-        return staker, validator, receiver_reward, string
-    for shard_bsd in shard_bsd_list:
-        tx_id = shard_bsd.get_staking_tx(committee_pub_k)
-        if tx_id:
-            response = TransactionDetail().get_transaction_by_hash(tx_id)
-            payment_receiver_reward = response.get_meta_data().get_payment_address_reward_receiver()
-            receiver_reward = acc_group.find_account_by_key(payment_receiver_reward)
-            public_k_staker = response.get_input_coin_pub_key()
-            staker = acc_group.find_account_by_key(public_k_staker)
-            break
-    for acc in [staker, validator, receiver_reward]:
-        assert acc, ERROR(f'committee_pub_k not found: {committee_pub_k}')
-
-    string += f'{l3(staker.private_key)}__{l3(validator.public_key)}__{l3(receiver_reward.payment_key)}'
-    return staker, validator, receiver_reward, string

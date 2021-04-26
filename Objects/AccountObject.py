@@ -442,21 +442,20 @@ class Account:
         INFO(f"Waited {t}s but still not yet exist in shard pending")
         return None
 
-    def stk_wait_till_i_am_out_of_autostaking_list(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
-        t = timeout
-        INFO(
-            f"Wait until {self.validator_key} does not exist in the autostaking list, check every {check_cycle}s, timeout: {timeout}s")
-        while timeout > check_cycle:
+    def stk_wait_till_i_am_out_of_autostaking_list(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+        INFO(f"Wait until {self.validator_key} does not exist in the autostaking list, timeout: {timeout}s")
+        time_start = datetime.datetime.now()
+        time_spent = 0
+        while timeout > time_spent:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             if beacon_bsd.get_auto_staking_committees(self) is None:
                 e2 = beacon_bsd.get_epoch()
                 h = beacon_bsd.get_beacon_height()
                 INFO(f"Validator is out of autostaking list at epoch {e2}, block height {h}")
                 return e2
-            WAIT(check_cycle)
-            timeout -= check_cycle
-
-        INFO(f"Waited {t}s but still exist in the autostaking list")
+            ChainHelper.wait_till_next_epoch(1, block_of_epoch=5)
+            time_spent = (datetime.datetime.now() - time_start).seconds
+        INFO(f"Waited {time_spent}s but still exist in the autostaking list")
         return None
 
     def stk_wait_till_i_am_swapped_out_of_committee(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
@@ -864,15 +863,13 @@ class Account:
         @return: reward amount of token
         """
         result = self.REQ_HANDLER.transaction().get_reward_amount(self.payment_key)
-        try:
-            if token_id == PRV_ID:
-                reward = result.get_result("PRV")
-            else:
-                reward = result.get_result(token_id)
-            reward = 0 if reward is None else reward
-            return reward
-        except KeyError:
-            return 0
+        if token_id == PRV_ID:
+            reward = result.get_result("PRV")
+        else:
+            reward = result.get_result(token_id)
+        reward = 0 if reward is None else reward
+        INFO(f"Payment key = {l6(self.payment_key)}, prv reward = {coin(reward, False)}")
+        return reward
 
     def stk_get_reward_amount_all_token(self):
         """

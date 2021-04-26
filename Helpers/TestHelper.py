@@ -184,15 +184,15 @@ class ChainHelper:
             return current_beacon_h
 
         while beacon_height > current_beacon_h:
+            if timeout <= 0:
+                INFO(f'Time out and current beacon height is {current_beacon_h}')
+                return current_beacon_h
             if interval is None:
                 block_remain = beacon_height - current_beacon_h
                 interval = block_remain * ChainConfig.BLOCK_TIME
             WAIT(interval)
             timeout -= interval
             current_beacon_h = SUT().help_get_beacon_height()
-            if timeout <= 0:
-                INFO(f'Time out and current beacon height is {current_beacon_h}')
-                return current_beacon_h
 
         INFO(f'Beacon height {beacon_height} is passed already')
         return current_beacon_h

@@ -1,7 +1,5 @@
 """
-1. Precondition: chain committee, min 4, max 6, full committee (4 nodes each shard by default, stake 4 more node with
-    auto-staking = true). Epoch = 40 beacon blocks. AccountT of shard-0, Create tokenT,
-    contribute 10000PRV vs 10000tokenT, Considering this is the default env config.
+1. Precondition: Create tokenT, contribute 10000PRV vs 10000tokenT, Considering this is the default env config.
 2. get current epoch number (n). stake 1 more node (A) auto-staking = false. Verify accountA balance (-1750PRV - tx_fee)
 3. at epoch (n+1). verify that node (A) become shard committee. Eg. committee of shard-0. From AccountT, send 10 tokenT
     to another account (B) in shard-1, use 1000000 tokenT as tx_fee. Verify (B) received tokenT.
@@ -18,10 +16,10 @@ import pytest
 from Configs.Constants import coin, ChainConfig
 from Helpers.Logging import STEP, INFO
 from Helpers.TestHelper import ChainHelper
+from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
-from TestCases.Staking import account_x, token_holder_shard_1, \
-    amount_token_send, amount_token_fee, token_holder_shard_0, account_y, account_t
+from TestCases.Staking import account_x, amount_token_send, amount_token_fee, account_y, account_t, list_acc_x_shard, token_receiver
 
 
 @pytest.mark.parametrize("the_stake, validator, reward_receiver, auto_re_stake", [
@@ -40,6 +38,16 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), the_stake)
     from TestCases.Staking import token_id
     INFO(f'Run test with token: {token_id}')
+    reward_PRV = reward_receiver.stk_get_reward_amount()
+    if reward_PRV != 0:
+        reward_receiver.stk_withdraw_reward_to_me().subscribe_transaction()
+        WAIT(40)
+        assert reward_receiver.stk_get_reward_amount() == 0
+    reward_ptoken = reward_receiver.stk_get_reward_amount(token_id)
+    if reward_ptoken != 0:
+        reward_receiver.stk_withdraw_reward_to_me(token_id).subscribe_transaction()
+        WAIT(40)
+        assert reward_receiver.stk_get_reward_amount(token_id) == 0
     STEP(1, 'Stake and check balance after stake')
     bal_before_stake = the_stake.get_prv_balance()
     bal_before_validator = validator.get_prv_balance()
@@ -77,12 +85,10 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
 
     STEP(4, "Sending token")
     # sending from staked shard, so that the committee will have ptoken reward
-    if staked_shard == 0:
-        token_sender = token_holder_shard_0
-        token_receiver = token_holder_shard_1
-    else:
-        token_sender = token_holder_shard_1
-        token_receiver = token_holder_shard_0
+    try:
+        token_sender = list_acc_x_shard[staked_shard]
+    except KeyError:
+        pytest.skip(f'Test Data not exist account in shard {staked_shard}')
 
     token_bal_b4_withdraw_reward = token_receiver.get_token_balance(token_id)
     if ChainConfig.PRIVACY_VERSION == 1:
@@ -96,12 +102,12 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
 
     if not auto_re_stake:
         STEP(5, "Wait for the stake to be swapped out")
-        epoch_x = validator.stk_wait_till_i_am_swapped_out_of_committee()
+        epoch_x = validator.stk_wait_till_i_am_out_of_autostaking_list(timeout=ChainConfig.get_epoch_n_block_time(6))
         beacon_bsd = SUT().get_beacon_best_state_detail_info()
         assert beacon_bsd.get_auto_staking_committees(validator) is None
     else:
         STEP(5, 'Wait for next epoch')
-        epoch_x, _ = ChainHelper.wait_till_next_epoch()
+        epoch_x, _ = ChainHelper.wait_till_next_epoch(1, block_of_epoch=5)
 
     STEP(6.1, "Calculate avg PRV reward per epoch")
     prv_reward = reward_receiver.stk_get_reward_amount()
@@ -124,12 +130,10 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     prv_bal_b4_withdraw_reward = reward_receiver.get_prv_balance()
     prv_reward_amount = reward_receiver.stk_get_reward_amount()
     assert prv_reward_amount > 0, 'User has no PRV reward while expecting some'
-    withdraw_fee = reward_receiver.stk_withdraw_reward_to_me().subscribe_transaction().get_fee()
-    prv_bal_after_withdraw_reward = reward_receiver. \
-        wait_for_balance_change(from_balance=prv_bal_b4_withdraw_reward, least_change_amount=prv_reward_amount / 2,
-                                timeout=180)
+    reward_receiver.stk_withdraw_reward_to_me().subscribe_transaction()
+    prv_bal_after_withdraw_reward = reward_receiver.wait_for_balance_change(from_balance=prv_bal_b4_withdraw_reward)
     INFO(f'Expect reward amount to received {prv_reward_amount}')
-    assert prv_bal_b4_withdraw_reward + prv_reward_amount - withdraw_fee == prv_bal_after_withdraw_reward
+    assert prv_bal_b4_withdraw_reward + prv_reward_amount == prv_bal_after_withdraw_reward
 
     STEP(8.2, 'Withdraw token reward and verify balance')
     all_reward_b4 = reward_receiver.stk_get_reward_amount_all_token()
@@ -140,9 +144,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         INFO(f'Expect reward amount to received {token_reward_amount}')
         assert token_reward_amount > 0, 'User has no token reward while expecting some'
         reward_receiver.stk_withdraw_reward_to_me(token_id).subscribe_transaction()
-        token_bal_after_withdraw_reward = reward_receiver. \
-            wait_for_balance_change(token_id, timeout=180, from_balance=token_bal_b4_withdraw_reward,
-                                    least_change_amount=token_reward_amount / 2)
+        token_bal_after_withdraw_reward = reward_receiver.wait_for_balance_change(token_id, from_balance=token_bal_b4_withdraw_reward)
         assert prv_bal_b4_withdraw_reward == reward_receiver.get_prv_balance()
         assert token_bal_b4_withdraw_reward == token_bal_after_withdraw_reward - token_reward_amount
 
@@ -150,6 +152,3 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         assert token_reward_amount == 0, 'Privacy v2 should not have any token reward, PRV only'
         assert all_reward_b4 == reward_receiver.stk_get_reward_amount_all_token()
         reward_receiver.stk_withdraw_reward_to_me(token_id).expect_error('Not enough reward')
-
-    if auto_re_stake is True:  # clean up
-        the_stake.stk_stop_auto_staking(reward_receiver, validator).expect_no_error().subscribe_transaction()

@@ -1,3 +1,5 @@
+"This testscript only use for staking flow V2."
+
 import pytest
 
 from Configs.Constants import coin, ChainConfig
@@ -5,23 +7,8 @@ from Helpers.Logging import INFO, STEP
 from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
-from Objects.IncognitoTestCase import SUT, STAKER_ACCOUNTS
-
-index_epoch_change = 499
-block_per_epoch_b4 = 10
-block_per_epoch_af = 20
-
-list_staker_to_test = []
-beacon_bsd = SUT().get_beacon_best_state_detail_info()
-for staker in STAKER_ACCOUNTS[36:]:
-    if beacon_bsd.get_auto_staking_committees(staker) is None:
-        list_staker_to_test.append(staker)
-    if len(list_staker_to_test) >= 3:
-        break
-
-account_y = list_staker_to_test[0]
-account_x = list_staker_to_test[1]
-account_t = list_staker_to_test[2]
+from Objects.IncognitoTestCase import SUT
+from TestCases.Staking import account_x, account_y, account_t
 
 
 @pytest.mark.parametrize("the_stake, validator, receiver_reward, auto_re_stake", [
@@ -46,15 +33,13 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
     COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1850), the_stake)
     bal_b4_stake = the_stake.get_prv_balance()
 
-    INFO('Wait until after random')
-    beacon_height_current = beacon_bsd.get_beacon_height()
-    epoch = beacon_bsd.get_epoch()
-    block_height_random = ChainHelper.cal_random_height_of_epoch(epoch, index_epoch_change, block_per_epoch_b4,
-                                                                 block_per_epoch_af)
-    if beacon_height_current < block_height_random:
-        ChainHelper.wait_till_beacon_height(block_height_random, timeout=210)
-    elif beacon_height_current > block_height_random + 5:
-        ChainHelper.wait_till_beacon_height(block_height_random + ChainConfig.BLOCK_PER_EPOCH, timeout=210)
+    INFO('Calculate & wait to execute test at block that after random time 0-5 block')
+    chain_info = SUT().get_block_chain_info()
+    remaining_block_epoch = chain_info.get_beacon_block().get_remaining_block_epoch()
+    if remaining_block_epoch >= ChainConfig.RANDOM_TIME:
+        ChainHelper.wait_till_next_beacon_height(remaining_block_epoch - ChainConfig.RANDOM_TIME)
+    elif remaining_block_epoch < 5:
+        ChainHelper.wait_till_next_epoch(1, ChainConfig.RANDOM_TIME)
 
     STEP(1, 'Staking')
     fee_stk = the_stake.stake(validator, receiver_reward, auto_re_stake=auto_re_stake).subscribe_transaction().get_fee()
