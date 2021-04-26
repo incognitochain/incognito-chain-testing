@@ -54,7 +54,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     INFO(f"""
        Test bulk swap {test_mode}:
         - token {l6(token_sell)} vs {l6(token_buy)}
-        - 10 address make trading at same time
+        - 10 address do trading at same time
         - difference trading fee
         - highest trading fee get better price
        """)
@@ -66,16 +66,7 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     balance_tok_buy_after = []
     private_key_alias = []
     # trading_fees = [7700000, 2200000, 1100000, 6600000, 9900000, 200000, 3300000, 5500000, 8800000, 4400000]
-    trading_fees = [random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    0]
+    trading_fees = [random.randrange(190000, 200000) for x in range(9)] + [0]
 
     for i in range(0, len(traders)):
         trader = traders[i]
@@ -180,9 +171,9 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
 
         estimate_bal_buy_after_list = [bal + receive for (bal, receive) in
                                        zip(balance_tok_buy_before, estimate_amount_received_list)]
-    INFO(f"""::: estimated after vs real after
-    {estimate_bal_buy_after_list}
-    {balance_tok_buy_after}""")
+    INFO(f"""::: Token buy - estimated after vs real after
+        {estimate_bal_buy_after_list}
+        {balance_tok_buy_after}""")
     assert estimate_bal_sell_after_list == balance_tok_sell_after
     assert estimate_bal_buy_after_list == balance_tok_buy_after
 

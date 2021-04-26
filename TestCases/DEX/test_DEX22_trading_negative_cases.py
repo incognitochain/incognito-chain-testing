@@ -4,9 +4,10 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
-from Configs.Constants import PRV_ID, coin
-from Helpers.Logging import STEP, INFO, DEBUG
-from Helpers.TestHelper import l6, calculate_actual_trade_received, ChainHelper
+from Configs.Constants import PRV_ID, coin, Status
+from Helpers.BlockChainMath import PdeMath
+from Helpers.Logging import STEP, INFO, DEBUG, INFO_HEADLINE
+from Helpers.TestHelper import l6, ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
@@ -114,8 +115,8 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
         ["1 shard", PRV_ID, token_id_1],
         ["n shard", token_id_1, PRV_ID],
         ["n shard", PRV_ID, token_id_1],
-        # tests belows are hard to predict the min-acceptable value since they're cross pool trading
-        # just list it here to acknowledge their existence
+        # tests below are hard to predict the min-acceptable value since they're cross pool trading
+        # just list them here to acknowledge their existence
         # don't enable them since the test script cannot handle those cases just yet
         # ["1 shard", token_id_2, token_id_1],
         # ["n shard", token_id_2, token_id_1],
@@ -123,24 +124,15 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
         # ["n shard", token_id_1, token_id_2],
 ))
 def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell, token_buy):
-    trade_amounts = [2234900] * 10
+    num_of_trade_tx = 10
+    trade_amounts = [2234900] * num_of_trade_tx
     top = max(trade_amounts)
     COIN_MASTER.top_him_up_prv_to_amount_if(1.5 * top, 2 * top, acc_list_1_shard + acc_list_n_shard)
     token_owner.top_him_up_token_to_amount_if(token_id_1, 1.5 * top, 2 * top,
                                               acc_list_1_shard + acc_list_n_shard)
     token_owner.top_him_up_token_to_amount_if(token_id_2, 1.5 * top, 2 * top,
                                               acc_list_1_shard + acc_list_n_shard)
-
-    trading_fees = [random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    random.randrange(190000, 200000),
-                    0]
+    trading_fees = [random.randrange(190000, 200000) for x in range(num_of_trade_tx - 1)] + [0]
     trade_order = calculate_trade_order(trading_fees, trade_amounts)
 
     if test_mode == '1 shard':
@@ -153,7 +145,7 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
     print(f"""
        Test bulk swap {test_mode}:
         - token {l6(token_sell)} vs {l6(token_buy)}
-        - 10 address make trading at same time
+        - {num_of_trade_tx} address make trading at same time
         - difference trading fee
         - highest trading fee get better price
        """)
@@ -169,7 +161,7 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
         trade_amount = trade_amounts[order_index]
 
         current_rate = copy.deepcopy(calculated_rate_latest)
-        received_amount_token_buy = calculate_actual_trade_received(trade_amount, current_rate[0], current_rate[1])
+        received_amount_token_buy = PdeMath.cal_trade_receive(trade_amount, current_rate[0], current_rate[1])
         estimated_rate_each_trade[order_index] = current_rate
         estimated_receive_amount_each_trade[order_index] = received_amount_token_buy
         calculated_rate_latest[0] += trade_amount
@@ -215,7 +207,7 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
         INFO(f"Rate {l6(PRV_ID)} vs {l6(token_buy)} - Before Trade : {str(rate_before_token_buy)}")
         INFO(f"Rate {l6(token_sell)} vs {l6(PRV_ID)} - Before Trade : {str(rate_before_token_sell)}")
     STEP(2, f"trade {l6(token_sell)} at the same time: amount: {trade_amounts[0]}. Min acceptable: {min_acceptable}")
-    tx_list = []
+    trade_tx_list = []
     trade_threads = []
     with ThreadPoolExecutor() as executor:
         for i in range(0, len(traders)):
@@ -227,12 +219,12 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
     INFO(f"Transaction id list")
     for thread in trade_threads:
         tx = thread.result()
-        tx_list.append(tx)
+        trade_tx_list.append(tx)
         INFO(f'    {tx.get_tx_id()}')
 
     STEP(3, "Wait for Tx to be confirmed")
     tx_fee_list = []
-    for tx in tx_list:
+    for tx in trade_tx_list:
         tx_is_confirmed = False
         print(f'          checking tx id: {l6(tx.get_tx_id())}')
         for i in range(0, 10):  # check 10 times each Tx
@@ -260,15 +252,15 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
 
     STEP(4.2, "Balance summary after trade tx accept")
 
-    for i in range(0, len(traders)):
+    for i in range(len(traders)):
         trader = traders[i]
         bal_tok_sell_af_tx.append(threads_sell[trader].result())
         bal_tok_buy_af_tx.append(threads_buy[trader].result())
-
-    INFO(f"Private key alias                 : {str(private_key_alias)}")
-    INFO(f"{l6(token_sell)} balance token sell after tx accepted        : {bal_tok_sell_af_tx}")
-    INFO(f"{l6(token_buy)}  balance token buy after tx accepted        : {bal_tok_buy_af_tx}")
-
+    if token_buy == PRV_ID:
+        actual_buy_token_received = [bal2 - bal1 + trading_fee + tx_fee for bal2, bal1, trading_fee, tx_fee in
+                                     zip(bal_tok_buy_af_tx, bal_tok_buy_b4, trading_fees, tx_fee_list)]
+    else:
+        actual_buy_token_received = [bal2 - bal1 for bal2, bal1 in zip(bal_tok_buy_af_tx, bal_tok_buy_b4)]
     ##
     STEP(4.3, "Wait for balance of traders to update after trade returned")
     threads_buy = {}
@@ -282,30 +274,43 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
             threads_sell[trader] = future_sell
 
     STEP(4.4, "Balance summary after trade returned")
-
     for i in range(0, len(traders)):
         trader = traders[i]
         bal_tok_sell_af_ret.append(threads_sell[trader].result())
         bal_tok_buy_af_ret.append(threads_buy[trader].result())
 
-    INFO(f"Private key alias                 : {str(private_key_alias)}")
-    INFO(f"{l6(token_sell)} balance token sell before trade       : {str(bal_tok_sell_b4)}")
-    INFO(f"{l6(token_sell)} balance token sell after trade return : {bal_tok_sell_af_ret}")
-    INFO(f"{l6(token_buy)} balance token buy before trade       : {str(bal_tok_buy_b4)}")
-    INFO(f"{l6(token_buy)} balance token buy after trade return : {bal_tok_buy_af_ret}")
-    INFO(f'Min acceptable = {min_acceptable}')
-    INFO(f'Trading order  : {trade_order}')
-    INFO(f'Trading fee    : {trading_fees}')
-    INFO(f'Trade receive  : {estimated_receive_amount_each_trade}')
     # todo: verify algorithm later, for now there's seem a bug here that does not match with trading priority
     real_trade_pass_count = 0
-    for bal_b4, bal_af, trade_amount, tx_fee, trading_fee in \
-            zip(bal_tok_sell_b4, bal_tok_sell_af_ret, trade_amounts, tx_fee_list, trading_fees):
-        cost = tx_fee + trading_fee if token_sell == PRV_ID else 0
-        if bal_b4 - trade_amount - cost == bal_af:
+    for tx in trade_tx_list:
+        trade_status = tx.get_trade_tx_status()
+        if trade_status == Status.Dex.Trading.ACCEPTED:
+            INFO(f'trade tx ACCEPTED: {tx.get_tx_id()}, status {trade_status}')
             real_trade_pass_count += 1
+        else:
+            INFO(f'trade tx RETURNED: {tx.get_tx_id()}, status {trade_status}')
+
     estimated_trade_pass_count = 0
     for amount in estimated_receive_amount_each_trade:
         if amount >= min_acceptable:
             estimated_trade_pass_count += 1
+    compare_min_acceptable_with_actual_received_result = [x >= min_acceptable for x in actual_buy_token_received]
+
+    INFO_HEADLINE('Summary !')
+    INFO(f"Private key alias                 : {str(private_key_alias)}")
+    INFO(f'Min acceptable = {min_acceptable}')
+    INFO(f'Trading order  : {trade_order}')
+    INFO(f'Trading fee    : {trading_fees}')
+    INFO(f'Transaction fee: {tx_fee_list}')
+    INFO(f"Private key alias                 : {str(private_key_alias)}")
+    INFO(f"{l6(token_sell)} balance token sell before trade       : {str(bal_tok_sell_b4)}")
+    INFO(f"{l6(token_buy)} balance token buy  before trade       : {str(bal_tok_buy_b4)}")
+    INFO(f"{l6(token_sell)} balance token sell after  tx accepted : {bal_tok_sell_af_tx}")
+    INFO(f"{l6(token_buy)} balance token buy  after  tx accepted : {bal_tok_buy_af_tx}")
+    INFO(f"{l6(token_sell)} balance token sell after  trade return: {bal_tok_sell_af_ret}")
+    INFO(f"{l6(token_buy)} balance token buy  after  trade return: {bal_tok_buy_af_ret}")
+    INFO(f"{l6(token_buy)}  actual received : {actual_buy_token_received}")
+    INFO(f'Estimated trade receive    : {estimated_receive_amount_each_trade}')
+    INFO(f"Compare to min acceptable: {compare_min_acceptable_with_actual_received_result}")
+    INFO(f'Num of trade success estimated/reality: {estimated_trade_pass_count}/{real_trade_pass_count}')
+
     assert real_trade_pass_count == estimated_trade_pass_count

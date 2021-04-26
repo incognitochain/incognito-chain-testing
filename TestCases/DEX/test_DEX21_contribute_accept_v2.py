@@ -2,7 +2,7 @@ import pytest
 
 from Configs.Constants import PRV_ID, coin
 from Helpers.Logging import INFO, STEP
-from Helpers.TestHelper import calculate_contribution, l6, ChainHelper
+from Helpers.TestHelper import l6, ChainHelper
 from Helpers.Time import get_current_date_time
 from Objects import PdeObjects
 from Objects.AccountObject import COIN_MASTER
@@ -87,7 +87,7 @@ def test_contribute_prv(contributor, token1, token2):
     INFO(f'Sum share amount after contribution  : {all_share_amount_after}')
     INFO(f'Owner share amount after contribution: {owner_share_amount_after}')
     expect_token1_contribution, expect_token2_contribution, refund_token1, refund_token2 = \
-        calculate_contribution(tok2_contrib_amount, tok1_contrib_amount, rate_after)
+        pde_state_af.cal_contribution({token2: tok2_contrib_amount, token1: tok1_contrib_amount})
 
     INFO(f'Now wait for contribution refund')
     if refund_token1 > 0:

@@ -227,6 +227,17 @@ class Response:
             tx_detail = self.__handler.transaction().get_tx_by_hash(tx_hash)
         return TransactionDetail()
 
+    def get_trade_tx_status(self, tx_hash=None):
+        """
+        @param tx_hash: tx hash of trade request tx
+        @return: Status.Dex.Trading.ACCEPTED
+        """
+        tx_hash = self.expect_no_error().get_tx_id() if tx_hash is None else tx_hash
+        try:
+            return self.__handler.dex().get_trade_status(tx_hash).get_result()
+        except KeyError:
+            pass
+
     def get_mem_pool_transactions_id_list(self) -> list:
         hashes = self.get_list_txs()
         if hashes is None:

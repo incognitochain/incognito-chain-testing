@@ -5,8 +5,9 @@ from concurrent.futures.thread import ThreadPoolExecutor
 import pytest
 
 from Configs.Constants import PRV_ID, coin
+from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import STEP, INFO, INFO_HEADLINE
-from Helpers.TestHelper import calculate_actual_trade_received, l6
+from Helpers.TestHelper import l6
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
@@ -139,7 +140,7 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     for order in sort_order:
         print(str(order) + "--")
         received_amount_estimated = received_amount_estimated_without_tx_fee = \
-            calculate_actual_trade_received(trade_amount, calculated_rate[0], calculated_rate[1])
+            PdeMath.cal_trade_receive(trade_amount, calculated_rate[0], calculated_rate[1])
         if token_buy == PRV_ID:
             received_amount_estimated = received_amount_estimated_without_tx_fee - tx_fee_list[order]
 

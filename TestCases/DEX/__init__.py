@@ -1,12 +1,12 @@
 import copy
 
 from Configs.Constants import coin, PRV_ID
+from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import INFO, INFO_HEADLINE
-from Helpers.TestHelper import calculate_actual_trade_received, l6
+from Helpers.TestHelper import l6
 from Helpers.Time import get_current_date_time
 from Objects.AccountObject import Account, COIN_MASTER, AccountGroup
-from Objects.IncognitoTestCase import SUT
-from TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
+from Objects.IncognitoTestCase import SUT, ACCOUNTS
 
 token_owner = Account(
     '112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA')
@@ -15,40 +15,33 @@ token_owner = Account(
 # otherwise, use specified token id for the test without initializing new token
 # token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
 # token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
-token_id_1 = "64f1539586983b9799d4819874e2635174c227c572f1fbf3649819c770f30e27"  # local
-token_id_2 = "d38cee5c53f2bdb5f31e77ed45e27d1db26f7d0043ce69d22b560aee1e496444"  # local
+token_id_1 = "010dc3e4637823b5d3c7c71b8448132e225ebb059f12e697a1acaee2901cfe41"  # local
+token_id_2 = "276f89a92613b9a09c5af6dc0bf42dff70b4f1247fa4ba9118c3bfaf1b08323f"  # local
 token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff"  # token not yet added to PDE
 
 need_withdraw_contribution_1 = False
 need_withdraw_contribution_2 = False
 
+COIN_MASTER.top_him_up_prv_to_amount_if(coin(10000), coin(100000), token_owner)
 
-def setup_module():
-    global token_id_1, token_id_2
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(10000), coin(100000), token_owner)
+all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
+if token_id_1 not in all_ptoken_in_chain:
+    tok1_symbol = get_current_date_time()
+    # res = token_owner.init_custom_token_self(tok1_symbol, coin(2000000))
+    res = token_owner.init_custom_token_new_flow(coin(2000000))
+    res.subscribe_transaction()
+    token_id_1 = res.get_token_id()
+    token_owner.wait_for_balance_change(token_id_1, 0)
+    INFO(f" +++ token 1 = {token_id_1}")
 
-    all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
-    if token_id_1 not in all_ptoken_in_chain:
-        tok1_symbol = get_current_date_time()
-        res = token_owner.init_custom_token_self(tok1_symbol, coin(2000000))
-        res.subscribe_transaction()
-        token_id_1 = res.get_token_id()
-        INFO(f" +++ token 1 = {token_id_1}")
-        # trx008.account_init = token_owner
-        # token_id_1 = trx008.test_init_ptoken()
-        # need_withdraw_contribution_1 = True
-    if token_id_2 not in all_ptoken_in_chain:
-        tok2_symbol = get_current_date_time()
-        res = token_owner.init_custom_token_self(tok2_symbol, coin(2000000))
-        res.subscribe_transaction()
-        token_id_2 = res.get_token_id()
-        INFO(f" +++ token 2 = {token_id_2}")
-
-        # trx008.custom_token_symbol = get_current_date_time()
-        # trx008.account_init = token_owner
-        # token_id_2 = trx008.test_init_ptoken()
-        # need_withdraw_contribution_2 = True
-
+if token_id_2 not in all_ptoken_in_chain:
+    tok2_symbol = get_current_date_time()
+    # res = token_owner.init_custom_token_self(tok2_symbol, coin(2000000))
+    res = token_owner.init_custom_token_new_flow(coin(2000000))
+    res.subscribe_transaction()
+    token_id_2 = res.get_token_id()
+    token_owner.wait_for_balance_change(token_id_2, 0)
+    INFO(f" +++ token 2 = {token_id_2}")
 
 acc_list_1_shard = AccountGroup(
     Account(
@@ -95,15 +88,6 @@ acc_list_n_shard = AccountGroup(
     Account(
         "112t8ro3VxLStVFoFiZ2Grose15tyCXCbc9VR2YtHbZCd2GZQPYBMafmXws2DDNd8VKQqKhvw6wW51xyxvrTzLE5prRAjcWJiDWiU4EL3TUT")
 )
-
-
-def no_teardown_module():
-    if need_withdraw_contribution_1:
-        trx008.custom_token_id = token_id_1
-        trx008.teardown_module()
-    if need_withdraw_contribution_2:
-        trx008.custom_token_id = token_id_2
-        trx008.teardown_module()
 
 
 def verify_sum_fee_prv_token(sum_fee_expected, token1, token2, pde_state_b4, pde_state_af):
@@ -174,8 +158,8 @@ def verify_trading_prv_token(trade_amount_list, trading_fees_list, trade_order, 
         trading_fee = trading_fees_list[order]
         bal_tok_sell_b4 = balance_tok_sell_before[order]
         print(str(order) + "--")
-        received_amount_token_buy = calculate_actual_trade_received(trade_amount, calculated_rate[0],
-                                                                    calculated_rate[1])
+        received_amount_token_buy = PdeMath.cal_trade_receive(trade_amount, calculated_rate[0],
+                                                              calculated_rate[1])
         calculated_rate[0] += trade_amount
         calculated_rate[1] -= received_amount_token_buy
 
@@ -205,6 +189,7 @@ def calculate_trade_order(trading_fees_list, amount_list):
     sort_order = sorted(range(len(trade_priority)), key=lambda k: trade_priority[k], reverse=True)
     INFO("Sort order: " + str(sort_order))
     return sort_order
+
 
 # work around for privacy v2 "invalid token" bug, if not testing privacy v2, just comment these lines
 # if ChainConfig.PRIVACY_VERSION == 2:

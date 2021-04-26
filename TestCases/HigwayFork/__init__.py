@@ -1,8 +1,9 @@
 import copy
 
 from Configs.Constants import coin
+from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import INFO, ERROR
-from Helpers.TestHelper import ChainHelper, calculate_actual_trade_received
+from Helpers.TestHelper import ChainHelper
 from Helpers.Time import get_current_date_time
 from Objects.AccountObject import AccountGroup, Account, COIN_MASTER
 from Objects.IncognitoTestCase import SUT
@@ -138,8 +139,8 @@ def verify_trading_prv_token(trade_amount_list, trade_order, rate_before):
     for order in trade_order:
         trade_amount = trade_amount_list[order]
         print(str(order) + "--")
-        received_amount_token_buy = calculate_actual_trade_received(trade_amount, calculated_rate[0],
-                                                                    calculated_rate[1])
+        received_amount_token_buy = PdeMath.cal_trade_receive(trade_amount, calculated_rate[0],
+                                                              calculated_rate[1])
         calculated_rate[0] += trade_amount
         calculated_rate[1] -= received_amount_token_buy
 
