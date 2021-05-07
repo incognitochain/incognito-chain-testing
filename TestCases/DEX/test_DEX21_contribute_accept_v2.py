@@ -41,12 +41,12 @@ def test_contribute_prv(contributor, token1, token2):
     bal_tok2_be4_contrib = contributor.get_token_balance(token2)
     all_share_amount_b4 = pde_state_b4.get_pde_shares_amount(None, token1, token2)
     owner_share_amount_b4 = pde_state_b4.get_pde_shares_amount(contributor, token1, token2)
-    rate_b4 = pde_state_b4.get_rate_between_token(token2, token1)
+    rate_b4 = pde_state_b4.get_rate_between_token(token1, token2)
     INFO(f'{l6(token1)} balance before contribution: {bal_tok1_be4_contrib}')
     INFO(f'{l6(token2)} balance before contribution: {bal_tok2_be4_contrib}')
     INFO(f'Sum share amount before contribution  : {all_share_amount_b4}')
     INFO(f'Owner share amount before contribution: {owner_share_amount_b4}')
-    INFO(f'Rate before contribution: {l6(token2)}:{l6(token1)} is {rate_b4}')
+    INFO(f'Rate before contribution: {l6(token1)}:{l6(token2)} is {rate_b4}')
     # breakpoint()
     STEP(1, f"Contribute {l6(token1)}")
     contribute_token1_result = contributor.pde_contribute_v2(token1, tok1_contrib_amount, pair_id).expect_no_error()
@@ -77,17 +77,14 @@ def test_contribute_prv(contributor, token1, token2):
         assert bal_tok1_be4_contrib == bal_tok1_aft_contrib + tok1_contrib_amount
         assert bal_tok2_be4_contrib == bal_tok2_aft_contrib + tok2_contrib_amount
 
-    STEP(5, f'Check rate {l6(token1)} vs {l6(token2)}')
+    STEP(5, f'Verify contribution pair {l6(token1)} vs {l6(token2)}')
     ChainHelper.wait_till_next_beacon_height(2)
     pde_state_af = SUT().get_latest_pde_state_info()
-    rate_after = pde_state_af.get_rate_between_token(token2, token1)
-    INFO(f'rate {l6(token1)} vs {l6(token2)} = {rate_after}')
-    owner_share_amount_after = pde_state_af.get_pde_shares_amount(contributor, token2, token1)
-    all_share_amount_after = pde_state_af.get_pde_shares_amount(None, token2, token1)
-    INFO(f'Sum share amount after contribution  : {all_share_amount_after}')
-    INFO(f'Owner share amount after contribution: {owner_share_amount_after}')
+    rate_after = pde_state_af.get_rate_between_token(token1, token2)
+    owner_share_amount_after = pde_state_af.get_pde_shares_amount(contributor, token1, token2)
+    all_share_amount_after = pde_state_af.get_pde_shares_amount(None, token1, token2)
     expect_token1_contribution, expect_token2_contribution, refund_token1, refund_token2 = \
-        pde_state_af.cal_contribution({token2: tok2_contrib_amount, token1: tok1_contrib_amount})
+        pde_state_af.cal_contribution({token1: tok1_contrib_amount, token2: tok2_contrib_amount})
 
     INFO(f'Now wait for contribution refund')
     if refund_token1 > 0:
@@ -135,7 +132,7 @@ def test_contribute_prv(contributor, token1, token2):
     INFO(f"{l6(token2)} balance after contribution (after refund): {bal_tok2_aft_refund}")
 
     if rate_b4 != 0:
-        calculated_owner_share_amount_after = round((api_contrib_tok2 * sum(all_share_amount_b4)) / rate_b4[0]) + \
+        calculated_owner_share_amount_after = round((api_contrib_tok1 * sum(all_share_amount_b4)) / rate_b4[0]) + \
                                               owner_share_amount_b4
         assert abs(calculated_owner_share_amount_after - owner_share_amount_after) <= 1 and INFO(
             f"Calculated vs Actual share : {calculated_owner_share_amount_after}-{owner_share_amount_after}"), \
@@ -150,3 +147,11 @@ def test_contribute_prv(contributor, token1, token2):
     else:
         assert bal_tok1_be4_contrib == bal_tok1_aft_refund + api_contrib_tok1
         assert bal_tok2_be4_contrib == bal_tok2_aft_refund + api_contrib_tok2
+
+    INFO('Check amount contribute by api vs expect')
+    assert api_contrib_tok1 - expect_token1_contribution <= 1
+    assert api_contrib_tok2 - expect_token2_contribution <= 1
+
+    INFO('Check rate')
+    assert rate_after[0] == rate_b4[0] + api_contrib_tok1
+    assert rate_after[1] == rate_b4[1] + api_contrib_tok2
