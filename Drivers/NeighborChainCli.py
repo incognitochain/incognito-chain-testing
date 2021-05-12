@@ -284,11 +284,11 @@ class BnbCli:
 
 class BtcGo:
     if sys.platform == 'darwin':
-        btc_go_path = f'{os.getcwd()}/IncognitoChain/bin/btcGo/mac/'
+        btc_go_path = f'{os.getcwd()}/bin/btcGo/mac/'
     elif sys.platform == 'linux':
-        btc_go_path = f'{os.getcwd()}/IncognitoChain/bin/btcGo/linux/'
+        btc_go_path = f'{os.getcwd()}/bin/btcGo/linux/'
     else:
-        btc_go_path = f'{os.getcwd()}/IncognitoChain/bin/btcGo/win/'
+        btc_go_path = f'{os.getcwd()}/bin/btcGo/win/'
 
     btc_build_proof_cli = btc_go_path + 'buildProof'
     btc_get_tx_cli = btc_go_path + 'getTxBTC'

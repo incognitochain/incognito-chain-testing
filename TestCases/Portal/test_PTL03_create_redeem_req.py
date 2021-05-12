@@ -27,20 +27,20 @@ expire_one_send = 'expire because only one custodian send public token'
     # fee = none means auto get min fee
     # BNB
     # 1 custodian
-    (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, auto_matching, valid),
-    (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, 1, 1, auto_matching, invalid),
+    # (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, auto_matching, valid),
+    # (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, 1, 1, auto_matching, invalid),
     (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, manual_matching, valid),
-    (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, 1, 1, manual_matching, invalid),
-    (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, manual_matching, expire_not_send),  # Test case 23
-    (PBNB_ID, full_holding, None, 1, manual_matching, valid),  # test case 20
-    (PBNB_ID, full_holding, None, 1, auto_matching, valid),  # test case 20
+    # (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, 1, 1, manual_matching, invalid),
+    # (PBNB_ID, TEST_SETTING_REDEEM_AMOUNT, None, 1, manual_matching, expire_not_send),  # Test case 23
+    # (PBNB_ID, full_holding, None, 1, manual_matching, valid),  # test case 20
+    # (PBNB_ID, full_holding, None, 1, auto_matching, valid),  # test case 20
     # n custodian
-    (PBNB_ID, any_, None, n, auto_matching, valid),
-    (PBNB_ID, any_, None, n, manual_matching, valid),  # test case 22
-    (PBNB_ID, any_, None, n, auto_matching, expire_not_send),  # test case 24
-    (PBNB_ID, any_, None, n, manual_matching, expire_not_send),  # test case 24
-    (PBNB_ID, any_, None, n, auto_matching, expire_one_send),  # test case 25
-    (PBNB_ID, any_, None, n, manual_matching, expire_one_send),  # test case 25
+    # (PBNB_ID, any_, None, n, auto_matching, valid),
+    # (PBNB_ID, any_, None, n, manual_matching, valid),  # test case 22
+    # (PBNB_ID, any_, None, n, auto_matching, expire_not_send),  # test case 24
+    # (PBNB_ID, any_, None, n, manual_matching, expire_not_send),  # test case 24
+    # (PBNB_ID, any_, None, n, auto_matching, expire_one_send),  # test case 25
+    # (PBNB_ID, any_, None, n, manual_matching, expire_one_send),  # test case 25
 
     #
     # # BTC
@@ -114,8 +114,9 @@ def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, c
         assert tok_bal_be4 - redeem_amount == portal_user.get_token_balance(token)
 
         matching_custodian(custodian_matching, num_of_custodian, token, redeem_id, PSI_before_test)
+        psi_after_match = SUT().get_latest_portal_state_info()
         if expected == valid:
-            verify_valid_redeem(PSI_before_test, redeem_id, redeem_amount, token, custodian_matching)
+            verify_valid_redeem(PSI_before_test,psi_after_match, redeem_id, redeem_amount, token, custodian_matching)
         elif expected == expire_not_send:
             verify_expired_redeem_0_custodian_sent(redeem_id, tok_bal_be4, prv_bal_be4, tx_fee, redeem_fee,
                                                    PSI_before_test)
@@ -129,7 +130,7 @@ def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, c
         assert prv_bal_be4 - tx_fee - redeem_fee == portal_user.get_prv_balance()
 
 
-def verify_valid_redeem(psi_b4, redeem_id, redeem_amount, token, matching):
+def verify_valid_redeem(psi_b4,psi_after_matching, redeem_id, redeem_amount, token, matching):
     redeem_info = RedeemReqInfo()
     STEP(3.3, 'Verify that the request move on to Matched redeem list')
     WAIT(40)
@@ -173,7 +174,7 @@ def verify_valid_redeem(psi_b4, redeem_id, redeem_amount, token, matching):
         sum_waiting_porting_req_lock_collateral = PSI_after_req.sum_collateral_porting_waiting(token, custodian_acc)
         sum_waiting_redeem_req_holding_tok = PSI_after_req.sum_holding_token_matched_redeem_req(token, custodian_acc)
         estimated_unlock_collateral_of_1_custodian = \
-            psi_b4.estimate_custodian_collateral_unlock(custodian_info, redeem_amount_of_this_custodian, token)
+            psi_after_matching.estimate_custodian_collateral_unlock(custodian_info, redeem_amount_of_this_custodian, token)
 
         INFO(f"""Status before req unlock collateral:
                                 redeem amount     = {redeem_amount_of_this_custodian}

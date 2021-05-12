@@ -1,17 +1,21 @@
+
 import copy
+import datetime
+import re
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
 from Configs import Constants
 from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, \
-    ChainConfig
+    ChainConfig, TestConfig
 from Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
+from Helpers import TestHelper
 from Helpers.Logging import INFO, INFO_HEADLINE, WARNING
-from Helpers.TestHelper import l6
+from Helpers.TestHelper import l6, KeyExtractor, ChainHelper
 from Helpers.Time import WAIT, get_current_date_time
-from Objects.CoinObject import Coin
+from Objects.CoinObject import TxOutPut, ListOwnedToken, ListPrvTXO
 from Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 
 
@@ -43,7 +47,7 @@ class Account:
     def is_this_my_key(self, key_to_check):
         """
         @param key_to_check:
-        @return: key type of the {key_key_to_check} or None if not found in this account
+        @return: key type of the {key_key_to_check} or False if not found in this account
         """
         for key_type, value in self.__dict__.items():
             if "key" in key_type or "address" in key_type or "_k" in key_type:
@@ -51,45 +55,42 @@ class Account:
                     return key_type
         return False
 
-    def __init__(self, private_key=None, payment_k=None, nomad=False, **kwargs):
+    def __init__(self, private_key=None, payment_k=None, handler=None, **kwargs):
         """
-
         @param private_key: private key of this account,
          other keys will be generated automatically if payment_k is not specified
         @param payment_k: payment key of this account, if specified along with private key, other keys will not
          get generated and will be set to None
-        @param nomad: True = not yet tie this account to a Chain.
-            False: tie this account to the configured Chain (from command line arg or from config.py file)
+        @param handler: Node object, specify which chain this account belong to by specifying one node of the chain here
+        (usually full node). If None, account is tied to default full node in specified test bed
         @param kwargs:
         """
         self.remote_addr = {}
-
-        if private_key is not None:
-            if payment_k is not None:
-                self.private_key = private_key
-                self.payment_key = self.incognito_addr = payment_k
-                self.validator_key = self.public_key = self.read_only_key = self.bls_public_k = self.bridge_public_k = \
-                    self.mining_public_k = self.committee_public_k = self.shard = None
-                try:
-                    self.shard = kwargs['shard']
-                except KeyError:
-                    self.shard = None
-            else:
-                self.private_key, self.payment_key, self.public_key, self.read_only_key, self.validator_key, \
-                self.bls_public_k, self.bridge_public_k, self.mining_public_k, self.committee_public_k, self.shard = \
-                    get_key_set_from_private_k(private_key)
-
-                self.incognito_addr = self.payment_key
-        else:
-            self.private_key = None
-
+        self.private_key = private_key
+        self.payment_key = payment_k
+        self.validator_key = \
+            self.public_key = \
+            self.read_only_key = \
+            self.bls_public_k = \
+            self.bridge_public_k = \
+            self.mining_public_k = \
+            self.committee_public_k = None
+        self.shard = kwargs.get('shard')
         self.cache = {}
-        if nomad:
-            from Objects.NodeObject import Node
-            self.REQ_HANDLER = Node()
+        if handler:
+            self.REQ_HANDLER = handler
         else:
             from Objects import IncognitoTestCase
             self.REQ_HANDLER = IncognitoTestCase.SUT()
+
+        if private_key and not payment_k:  # generate all key from private key if there's privatekey but not paymentkey
+            self.private_key, self.payment_key, self.public_key, self.read_only_key, self.validator_key, \
+            self.bls_public_k, self.bridge_public_k, self.mining_public_k, self.committee_public_k, self.shard = \
+                get_key_set_from_private_k(private_key)
+
+    @property
+    def incognito_addr(self):  # just an alias for payment key
+        return self.payment_key
 
     def is_empty(self):
         if self.private_key is None:
@@ -111,7 +112,6 @@ class Account:
         copy_obj.private_key = self.private_key
         copy_obj.validator_key = self.validator_key
         copy_obj.payment_key = self.payment_key
-        copy_obj.incognito_addr = self.incognito_addr
         copy_obj.public_key = self.public_key
         copy_obj.read_only_key = self.read_only_key
         copy_obj.bls_public_k = self.bls_public_k
@@ -128,7 +128,6 @@ class Account:
         copy_obj.private_key = copy.deepcopy(self.private_key)
         copy_obj.validator_key = copy.deepcopy(self.validator_key)
         copy_obj.payment_key = copy.deepcopy(self.payment_key)
-        copy_obj.incognito_addr = copy.deepcopy(self.incognito_addr)
         copy_obj.public_key = copy.deepcopy(self.public_key)
         copy_obj.read_only_key = copy.deepcopy(self.read_only_key)
         copy_obj.bls_public_k = copy.deepcopy(self.bls_public_k)
@@ -145,9 +144,7 @@ class Account:
         return False
 
     def __ne__(self, other):
-        if self.__eq__(other):
-            return False
-        return True
+        return not self.__eq__(other)
 
     def __hash__(self):
         # for using Account object as 'key' in dictionary
@@ -165,9 +162,9 @@ class Account:
         return resp.get_created_proof()
 
     def calculate_shard_id(self):
-        if self.payment_key is None:
+        if not self.payment_key:
             self.find_payment_key()
-        if self.public_key is None:
+        if not self.public_key:
             self.find_public_key()
         response = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
         last_byte = response.get_result("PublicKeyInBytes")[-1]
@@ -178,11 +175,11 @@ class Account:
         string = f'Shard = {self.shard}\n' + \
                  f'Private key = {self.private_key}\n' + \
                  f'Payment key = {self.payment_key}'
-        if self.read_only_key is not None:
+        if self.read_only_key:
             string += f'\nRead only key = {self.read_only_key}'
-        if self.validator_key is not None:
+        if self.validator_key:
             string += f'\nValidator key = {self.validator_key}'
-        if self.public_key is not None:
+        if self.public_key:
             string += f'\nPublic key = {self.public_key}'
         try:
             balance_prv = self.cache['balance_prv']
@@ -194,7 +191,6 @@ class Account:
     def find_payment_key(self, force=False):
         """
         find payment address from private key
-
         @return:
         """
         if not force:
@@ -207,12 +203,10 @@ class Account:
 
     def find_public_key(self, force=False):
         """
-
         @return:
         """
-        if not force:
-            if self.public_key is not None:
-                return self.public_key
+        if not force and self.public_key:
+            return self.public_key
 
         tx = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
         self.public_key = tx.get_result('PublicKeyInBase58Check')
@@ -224,64 +218,65 @@ class Account:
         estimate_txsize_inKb = int(r.get_result('EstimateTxSizeInKb'))
         return estimate_fee_coin_perkb, estimate_txsize_inKb
 
-    def get_token_balance(self, token_id):
+    def get_token_balance(self, token_id=PRV_ID):
         """
         get balance by token_id
-
-        @param token_id:
+        @param token_id: default is PRV id
         @return:
         """
 
-        result = self.REQ_HANDLER.transaction().get_custom_token_balance(self.private_key, token_id). \
-            expect_no_error().get_result()
-        balance = result if result is not None else 0
+        result = self.REQ_HANDLER.transaction().get_custom_token_balance(self.private_key, token_id)
+        while True:
+            try:
+                error_msg = result.get_error_trace().get_message()
+                if re.search("View Key \{.*\} not synced", error_msg):
+                    self.submit_key()
+                    WARNING(f'{error_msg}. Wait for {ChainConfig.BLOCK_TIME}s and retry')
+                    WAIT(ChainConfig.BLOCK_TIME)
+                    result = self.REQ_HANDLER.transaction().get_custom_token_balance(self.private_key, token_id)
+                else:
+                    break
+            except:
+                break
+
+        balance = result.get_result() if result.get_result() else 0
 
         self.cache[f'{Account._cache_bal_tok}_{token_id}'] = balance
         INFO(f"Private k = {l6(self.private_key)}, token id = {l6(token_id)}, bal = {coin(balance, False)} ")
         return balance
 
-    def get_all_custom_token_balance(self):
+    def list_owned_custom_token(self):
         """
+        @return: OwnedTokenListInfo
+        """
+        response = self.REQ_HANDLER.transaction().list_custom_token_balance(self.private_key)
+        return ListOwnedToken(response)
 
-        @return: example
-        [
-            {
-                "Name": "",
-                "Symbol": "",
-                "Amount": 430,
-                "TokenID": "6abd698ea7ddd1f98b1ecaaddab5db0453b8363ff092f0d8d7d4c6b1155fb693",
-                "TokenImage": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkAQMAAABEgsN2AAAABlBMVEXw8PBwrhrnsOZhAAAAn0lEQVR4nOzaOwoCMRSGUa1cRpaqS3UZqVS4WFxMEDGZB8P5qhkmZ+q/yEmSJK3R+Rnd4qXEc6UoiqIoiqKopVT++Fa52v6OoiiKoiiKouaoTtc4cv92hKIoiqIoiqLGVUlz9dGqS56zn7uXoiiKoiiKokaUJEmStFWdBZv7ffdSFEVRFEVR1F9qzzdaKYqiKIqiqKMqSZI0uVcAAAD//xeb0J2XU8SMAAAAAElFTkSuQmCC",
-                "IsPrivacy": true,
-                "IsBridgeToken": true
-            }
-        ]
+    def list_all_tx_output(self, token_id=PRV_ID):
         """
-        return self.REQ_HANDLER.transaction().list_custom_token_balance(self.private_key). \
-            get_result('ListCustomTokenBalance')
+        @param token_id:
+        @return:
+        """
+        response = self.REQ_HANDLER.transaction().list_output_coin(self.payment_key, self.read_only_key, token_id)
+        return ListPrvTXO(response)
 
     def list_unspent_coin(self):
         raw_response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key)
-        raw_coins = raw_response.get_result('Outputs')[self.private_key]
-        obj_coins = []
-        for raw_coin in raw_coins:
-            obj_coins.append(Coin(raw_coin))
-        return obj_coins
+        return ListPrvTXO(raw_response)
 
     def list_unspent_token(self, token_id=None):
         obj_coins = []
-        if token_id is None:
-            for tok_id in self.get_owned_custom_token_list():
-                raw_response = self.REQ_HANDLER.transaction(). \
-                    list_unspent_output_tokens(self.private_key, tok_id).expect_no_error()
-                raw_coins = raw_response.get_result('Outputs')[self.private_key]
-                for raw_coin in raw_coins:
-                    obj_coins.append(Coin(raw_coin))
-        else:
+        token_list = [] if token_id is None else [token_id]
+        if not token_id:
+            for token_info in self.list_owned_custom_token():
+                token_list.append(token_info.get_token_id())
+
+        for token in token_list:
             raw_response = self.REQ_HANDLER.transaction(). \
-                list_unspent_output_tokens(self.private_key, token_id).expect_no_error()
+                list_unspent_output_tokens(self.private_key, token).expect_no_error()
             raw_coins = raw_response.get_result('Outputs')[self.private_key]
             for raw_coin in raw_coins:
-                obj_coins.append(Coin(raw_coin))
+                obj_coins.append(TxOutPut(raw_coin))
         return obj_coins
 
     def print_all_unspent_coin(self, token_id=None):
@@ -290,12 +285,12 @@ class Account:
         @param token_id:
         @return:
         """
-        if token_id is None:
+        if not token_id:
             print_data = PRV_ID
             for c in self.list_unspent_token(PRV_ID):
                 print_data += f'\n{c}'
 
-            for token in self.get_owned_custom_token_list():
+            for token in self.list_owned_custom_token():
                 print_data += f'\n{token}'
                 for c in self.list_unspent_token(token):
                     print_data += f'\n{c}'
@@ -305,33 +300,25 @@ class Account:
                 print_data += f'\n{c}'
         print(print_data)
 
-    def get_owned_custom_token_list(self):
-        token_id_list = []
-        custom_token_bal_raw = self.get_all_custom_token_balance()
-        for bal in custom_token_bal_raw:
-            token_id_list.append(bal['TokenID'])
-        return token_id_list
-
     def stake(self, validator=None, receiver_reward=None, stake_amount=None, auto_re_stake=True):
         """
-
         @param validator: account_object. if None then validator = the stake
         @param receiver_reward: account_object. if None then receiver_reward = the stake
         @param stake_amount: str. if None then stake_amount = 1750PRV
         @param auto_re_stake: bool
         @return:
         """
-        if validator is None:
+        if not validator:
             validator = self
-        if receiver_reward is None:
+        if not receiver_reward:
             receiver_reward = self
-        if receiver_reward.payment_key is None:
+        if not receiver_reward.payment_key:
             receiver_reward.find_payment_key()
-        if validator.validator_key is None:
+        if not validator.validator_key:
             raise Exception("Validator key is not specified")
 
         INFO(
-            f'{l6(self.private_key)} Stake for {l6(validator.validator_key)} and reward other: {l6(receiver_reward.payment_key)}')
+            f'{l6(self.private_key)} Stake for {l6(validator.validator_key)} and reward: {l6(receiver_reward.payment_key)}')
         return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, validator.payment_key,
                                                 validator.validator_key,
@@ -339,15 +326,14 @@ class Account:
 
     def stake_and_reward_me(self, stake_amount=None, auto_re_stake=True):
         """
-
         @return:
         """
         INFO(f"Stake and reward me: {self.validator_key}")
-        if self.payment_key is None:
+        if not self.payment_key:
             self.find_payment_key()
-        if self.public_key is None:
+        if not self.public_key:
             self.find_public_key()
-        if self.validator_key is None:
+        if not self.validator_key:
             raise Exception("Validator key is not specified")
 
         return self.REQ_HANDLER.transaction(). \
@@ -356,7 +342,6 @@ class Account:
 
     def stake_someone_reward_me(self, someone, stake_amount=None):
         """
-
         @return:
         """
         INFO(f'Stake {someone.validator_key} but reward me')
@@ -366,7 +351,6 @@ class Account:
 
     def stake_someone_reward_him(self, someone, stake_amount=None, auto_re_stake=True):
         """
-
         @return:
         """
         INFO(f'Stake and reward other: f{someone.validator_key}')
@@ -380,35 +364,36 @@ class Account:
                                                           validator.validator_key)
 
     def stk_stop_auto_stake_me(self):
-        INFO('Un-stake me')
+        INFO('Stop auto stake me')
         return self.stk_stop_auto_staking(self, self)
 
     def stk_un_stake_tx(self, validator=None):
-        if validator is None:
+        if not validator:
             validator = self
         INFO(f'Un-stake transaction for validator: {validator.validator_key}')
         return self.REQ_HANDLER.transaction(). \
             create_and_send_un_staking_transaction(self.private_key, validator.payment_key, validator.validator_key)
 
     def stk_stop_auto_stake_him(self, him):
-        INFO(f"Un-stake other: {him.validator_key}")
+        INFO(f"Stop auto stake other: {him.validator_key}")
         return self.stk_stop_auto_staking(him, him)
 
-    def stk_wait_till_i_am_committee(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
-        t = timeout
-        INFO(f"Wait until {self.validator_key} become a committee, check every {check_cycle}s, timeout: {timeout}s")
-        while timeout > check_cycle:
+    def stk_wait_till_i_am_committee(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+        INFO(f"Wait until {self.validator_key} become a committee, timeout: {timeout}s")
+        time_start = datetime.datetime.now()
+        time_spent = 0
+        while timeout > time_spent:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             staked_shard = beacon_bsd.is_he_a_committee(self)
             if staked_shard is False:
-                WAIT(check_cycle)
-                timeout -= check_cycle
+                ChainHelper.wait_till_next_epoch(1, block_of_epoch=5)
             else:
                 e2 = beacon_bsd.get_epoch()
                 h = beacon_bsd.get_beacon_height()
                 INFO(f"Already a committee at epoch {e2}, block height {h}")
                 return e2
-        INFO(f"Waited {t}s but still not yet become committee")
+            time_spent = (datetime.datetime.now() - time_start).seconds
+        INFO(f"Waited {time_spent}s but still not yet become committee")
         return None
 
     def stk_wait_till_i_am_in_waiting_next_random(self, check_cycle=ChainConfig.BLOCK_TIME,
@@ -448,37 +433,37 @@ class Account:
         INFO(f"Waited {t}s but still not yet exist in shard pending")
         return None
 
-    def stk_wait_till_i_am_out_of_autostaking_list(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
-        t = timeout
-        INFO(
-            f"Wait until {self.validator_key} does not exist in the autostaking list, check every {check_cycle}s, timeout: {timeout}s")
-        while timeout > check_cycle:
+    def stk_wait_till_i_am_out_of_autostaking_list(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+        INFO(f"Wait until {self.validator_key} does not exist in the autostaking list, timeout: {timeout}s")
+        time_start = datetime.datetime.now()
+        time_spent = 0
+        while timeout > time_spent:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             if beacon_bsd.get_auto_staking_committees(self) is None:
                 e2 = beacon_bsd.get_epoch()
                 h = beacon_bsd.get_beacon_height()
                 INFO(f"Validator is out of autostaking list at epoch {e2}, block height {h}")
                 return e2
-            WAIT(check_cycle)
-            timeout -= check_cycle
-
-        INFO(f"Waited {t}s but still exist in the autostaking list")
+            ChainHelper.wait_till_next_epoch(1, block_of_epoch=5)
+            time_spent = (datetime.datetime.now() - time_start).seconds
+        INFO(f"Waited {time_spent}s but still exist in the autostaking list")
         return None
 
-    def stk_wait_till_i_am_swapped_out_of_committee(self, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
-        t = timeout
-        INFO(f"Wait until {self.validator_key} no longer a committee, check every {check_cycle}s, timeout: {timeout}s")
-        while timeout > check_cycle:
+    def stk_wait_till_i_am_swapped_out_of_committee(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+        INFO(f"Wait until {self.validator_key} no longer a committee, timeout: {timeout}s")
+        time_start = datetime.datetime.now()
+        time_spent = 0
+        while timeout > time_spent:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             if not (beacon_bsd.is_he_a_committee(self) is False):  # is_he_a_committee returns False or shard number
-                # (number which is not False) so must use this comparision to cover the cases
-                WAIT(check_cycle)
-                timeout -= check_cycle
+                # (number which is not False) so must use this comparison to cover the case shard =0
+                ChainHelper.wait_till_next_epoch(1, block_of_epoch=5)
             else:
                 e2 = beacon_bsd.get_epoch()
                 INFO(f"Swapped out of committee at epoch {e2}")
                 return e2
-        INFO(f"Waited {t}s but still a committee")
+            time_spent = (datetime.datetime.now() - time_start).seconds
+        INFO(f"Waited {time_spent}s but still a committee")
         return None
 
     def stk_wait_till_i_have_reward(self, token_id=None, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
@@ -509,7 +494,6 @@ class Account:
         get account's prv balance, by default it will ask the full node.
         when the shard_id is specify, then it will on that shard
         if shard if = -1, it will ask for the balance on it own shard
-
         @return:
         """
 
@@ -518,9 +502,8 @@ class Account:
         while True:
             if get_bal_res.get_error_trace():
                 error_msg = get_bal_res.get_error_trace().get_message()
-                if 'Subscribed to OTA key to view all coins' in error_msg or \
-                        "OTA Key indexing is in progress" in error_msg:
-                    WARNING(f'{error_msg}. Wait for {ChainConfig.BLOCK_TIME}s and retry')
+                if re.search("View Key \{.*\} not synced", error_msg):
+                    self.submit_key()
                     WAIT(ChainConfig.BLOCK_TIME)
                     get_bal_res = self.REQ_HANDLER.transaction().get_balance(self.private_key)
                 else:
@@ -541,7 +524,6 @@ class Account:
 
     def send_public_token(self, token_id, amount, receiver, password=None, memo=None):
         """
-
         @param token_id:
         @param amount:
         @param receiver: Account or remote address
@@ -561,7 +543,6 @@ class Account:
     def send_prv_to(self, receiver_account, amount, fee=-1, privacy=1) -> Response:
         """
         send amount_prv of prv to to_account. by default fee=-1 and privacy=1
-
         @param receiver_account:
         @param amount:
         @param fee: default = auto
@@ -573,19 +554,24 @@ class Account:
         return self.REQ_HANDLER.transaction(). \
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
 
+    def send_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1, token_id=PRV_ID):
+        if token_id == PRV_ID:
+            return self.send_prv_to_multi_account(dict_to_account_and_amount, fee, privacy)
+        else:
+            return self.send_token_multi_output(dict_to_account_and_amount, token_id, prv_fee=fee, prv_privacy=privacy)
+
     def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1):
         """
-
-        @param dict_to_account_and_amount: a dictionary of {receiver account : amount}
+        @param dict_to_account_and_amount: a dictionary of {receiver Account : amount}
         @param fee:
         @param privacy:
         @return:
         """
         send_param = dict()
         INFO(f"{l6(self.private_key)} sending prv to multiple accounts: --------------------------------------------- ")
-        for account, amount in dict_to_account_and_amount.items():
-            INFO(f'{amount} prv to {account}')
-            send_param[account.payment_key] = amount
+        for acc, amount in dict_to_account_and_amount.items():
+            INFO(f'{amount} prv to (shard|private_k|payment_k) {acc.shard}|{l6(acc.private_key)}|{l6(acc.payment_key)}')
+            send_param[acc.payment_key] = amount
         INFO("---------------------------------------------------------------------------------- ")
 
         return self.REQ_HANDLER.transaction(). \
@@ -594,7 +580,6 @@ class Account:
     def send_all_prv_to(self, to_account, privacy=1):
         """
         send all prv to another account
-
         @param to_account:
         @param privacy:
         @return:
@@ -615,7 +600,6 @@ class Account:
     def count_unspent_output_coins(self):
         """
         count number of unspent coin
-
         @return: int
         """
         INFO('Count unspent coin')
@@ -628,7 +612,6 @@ class Account:
         """
         check if account need to be defrag by count unspent coin,
             if count > 1 then defrag
-
         @return: Response object if need to defrag, None if not to
         """
         INFO('Defrag account')
@@ -650,34 +633,44 @@ class Account:
             self.private_key,
             timeout)
 
-    def init_custom_token_self(self, token_symbol, amount):
+    def init_custom_token_self(self, token_symbol, amount, receiver=None):
         """
         Init custom token to self payment address
-
         @param token_symbol:
         @param amount
         @return:
         """
+        receiver = self.payment_key if receiver is None else KeyExtractor.incognito_addr(receiver)
         INFO(f'Init custom token to self: {self.payment_key}')
 
-        return self.REQ_HANDLER.transaction().init_custom_token(self.private_key, self.payment_key,
+        return self.REQ_HANDLER.transaction().init_custom_token(self.private_key, receiver,
                                                                 token_symbol,
                                                                 amount)
 
-    def init_custom_token_to(self, account, symbol, amount):
+    def init_custom_token_new_flow(self, amount, token_name=None, token_symbol=None):
         """
-        Init custom token to other account's payment address
-
-        @param account:
-        @param symbol:
-        @param amount
+        init token with new flow
+        @param amount:
+        @param token_name:
+        @param token_symbol:
         @return:
         """
-        INFO(f'Init custom token to: {account.payment_key}')
+        token_name = f"random_{TestHelper.make_random_word()}" if not token_name else token_name
+        token_symbol = f"random_{TestHelper.make_random_word()}" if not token_symbol else token_symbol
+        INFO(f'Init new token with name {token_name}')
+        return self.REQ_HANDLER.transaction().new_init_p_token(self.private_key, amount, token_name, token_symbol)
 
-        return self.REQ_HANDLER.transaction().init_custom_token(self.private_key, account.payment_key,
-                                                                symbol,
-                                                                amount)
+    def pde_contribute_pair(self, pair_dict):
+        """
+        @param pair_dict: a dictionary of {token_id: amount}
+        @return: the 2 contribute txs
+        """
+        token1, token2 = list(pair_dict.keys())
+        amount1, amount2 = list(pair_dict.values())
+        pair_id = f'pde_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
+        tx1 = self.pde_contribute(token1, amount1, pair_id).expect_no_error().subscribe_transaction()
+        tx2 = self.pde_contribute(token2, amount2, pair_id).expect_no_error().subscribe_transaction()
+        return tx1, tx2
 
     def pde_contribute(self, token_id, amount, pair_id):
         if token_id == PRV_ID:
@@ -727,8 +720,7 @@ class Account:
 
     def pde_withdraw_contribution_v2(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw PDE contribution v2 {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
-        return self.REQ_HANDLER.dex().withdrawal_contribution_v2(self.private_key, self.payment_key,
-                                                                 token_id_1,
+        return self.REQ_HANDLER.dex().withdrawal_contribution_v2(self.private_key, self.payment_key, token_id_1,
                                                                  token_id_2, amount)
 
     def pde_withdraw_reward_v2(self, token_id_1, token_id_2, amount):
@@ -736,20 +728,22 @@ class Account:
         return self.REQ_HANDLER.dex().withdraw_reward_v2(self.private_key, self.payment_key, token_id_1,
                                                          token_id_2, amount)
 
-    def pde_contribute_pair_v2(self, rate_dict: dict):
-        tokens = list(rate_dict.keys())
-        token1 = tokens[0]
-        token2 = tokens[1]
+    def pde_contribute_pair_v2(self, pair_dict: dict):
+        """
+        @param pair_dict: a dictionary of {token_id: amount}
+        @return: the two contribute tx
+        """
+        token1, token2 = list(pair_dict.keys())
+        amount1, amount2 = list(pair_dict.values())
         pair_id = f'pde_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
-        tx1 = self.pde_contribute_v2(token1, tokens[token1], pair_id).expect_no_error().subscribe_transaction()
-        tx2 = self.pde_contribute_v2(token2, tokens[token2], pair_id).expect_no_error().subscribe_transaction()
+        tx1 = self.pde_contribute_v2(token1, amount1, pair_id).expect_no_error().subscribe_transaction()
+        tx2 = self.pde_contribute_v2(token2, amount2, pair_id).expect_no_error().subscribe_transaction()
         return tx1, tx2
 
     def send_token_to(self, receiver, token_id, amount_custom_token,
                       prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
         """
         Send token to receiver (custom token only, not prv)
-
         @param prv_privacy:
         @param prv_amount:
         @param receiver: Account
@@ -833,14 +827,13 @@ class Account:
                                                                                 token_fee=0, prv_amount=0,
                                                                                 prv_privacy=0,
                                                                                 token_privacy=0)
-
         @param token_id: Token ID
         @param amount_custom_token: amount to withdraw
         @return: Response object
         """
         INFO(f'Withdraw centralize token')
         return self.REQ_HANDLER.transaction().withdraw_centralize_token(self.private_key, token_id,
-                                                                        amount_custom_token)
+                                                                        amount_custom_token, TestConfig.TX_VER)
 
     ########
     # Stake
@@ -851,19 +844,16 @@ class Account:
         @return: reward amount of token
         """
         result = self.REQ_HANDLER.transaction().get_reward_amount(self.payment_key)
-        try:
-            if token_id == PRV_ID:
-                reward = result.get_result("PRV")
-            else:
-                reward = result.get_result(token_id)
-            reward = 0 if reward is None else reward
-            return reward
-        except KeyError:
-            return 0
+        if token_id == PRV_ID:
+            reward = result.get_result("PRV")
+        else:
+            reward = result.get_result(token_id)
+        reward = 0 if reward is None else reward
+        INFO(f"Payment key = {l6(self.payment_key)}, prv reward = {coin(reward, False)}")
+        return reward
 
     def stk_get_reward_amount_all_token(self):
         """
-
         @return:
         """
         try:
@@ -875,10 +865,10 @@ class Account:
         INFO(f"Withdraw token reward {token_id} to {l6(reward_receiver.payment_key)}")
         if ChainConfig.PRIVACY_VERSION == 1:
             return self.REQ_HANDLER.transaction().withdraw_reward(self.private_key, reward_receiver.payment_key,
-                                                                  token_id)
+                                                                  token_id, TestConfig.TX_VER)
         if ChainConfig.PRIVACY_VERSION == 2:
-            return self.REQ_HANDLER.transaction().withdraw_reward_privacy_v2(self.private_key,
-                                                                             reward_receiver.payment_key, token_id)
+            return self.REQ_HANDLER.transaction(). \
+                withdraw_reward_privacy_v2(self.private_key, reward_receiver.payment_key, token_id, TestConfig.TX_VER)
         raise BaseException('Can not detect privacy version to use the correct withdraw rpc')
 
     def stk_withdraw_reward_to_me(self, token_id=PRV_ID):
@@ -950,13 +940,15 @@ class Account:
 
     def pde_trade_prv_v2(self, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         INFO(f'User {l6(self.payment_key)}: '
-             f'Trade {amount_to_sell} of PRV for {l6(token_to_buy)} trading fee={trading_fee}')
+             f'Trade {amount_to_sell} PRV for {l6(token_to_buy)} trading fee={trading_fee}, '
+             f'min acceptable={min_amount_to_buy}')
         return self.REQ_HANDLER.dex().trade_prv_v2(self.private_key, self.payment_key, amount_to_sell,
                                                    token_to_buy, trading_fee, min_amount_to_buy)
 
     def pde_trade_token_v2(self, token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         INFO(f'User {l6(self.payment_key)}: '
-             f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]} trading fee={trading_fee}')
+             f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]} trading fee={trading_fee} '
+             f'min acceptable={min_amount_to_buy}')
         return self.REQ_HANDLER.dex().trade_token_v2(self.private_key, self.payment_key, token_to_sell,
                                                      amount_to_sell,
                                                      token_to_buy, trading_fee, min_amount_to_buy)
@@ -970,7 +962,6 @@ class Account:
     def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=1, check_interval=10,
                                 timeout=100):
         """
-
         @param token_id:
         @param from_balance:
         @param least_change_amount: change at least this amount of token
@@ -978,12 +969,12 @@ class Account:
         @param timeout:
         @return: new balance
         """
-        INFO(f'Wait for token {l6(token_id)} of {l6(self.private_key)} '
-             f'balance to change at least: {least_change_amount}. From {from_balance}')
         if from_balance is None:
             from_balance = self.get_token_balance(token_id)
             WAIT(check_interval)
             timeout -= check_interval
+        INFO(f'Wait for token {l6(token_id)} of {l6(self.private_key)} '
+             f'balance to change at least: {least_change_amount}. From {from_balance}')
         bal_new = None
         while timeout >= 0:
             bal_new = self.get_token_balance(token_id)
@@ -1086,7 +1077,6 @@ class Account:
 
     def portal_withdraw_my_all_free_collateral(self, psi=None):
         """
-
         @param psi: PortalStateInfo
         @return: Response if current total collateral > 0, None if = 0
         """
@@ -1105,7 +1095,6 @@ class Account:
 
     def portal_req_ported_ptoken(self, porting_id, token_id, amount, proof):
         """
-
         @param porting_id:
         @param token_id:
         @param amount:
@@ -1121,7 +1110,6 @@ class Account:
 
     def portal_get_my_custodian_info(self, psi: PortalStateInfo = None):
         """
-
         @param psi: PortalStateInfo
         @return CustodianInfo or None:
         """
@@ -1207,14 +1195,74 @@ class Account:
             convert_tx = self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_transaction(self.private_key)
         else:
             convert_tx = self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_tx_token(self.private_key,
-                                                                                                  token_id)
-        if convert_tx.get_error_msg() is None:
-            return convert_tx.subscribe_transaction()
+                                                                                                  token_id, 10)
         return convert_tx
+
+    def top_up_if_lower_than(self, account, lower, upper, token_id=PRV_ID, retry_interval=30, max_wait=180):
+        """
+        todo: under construction
+        @param max_wait:
+        @param retry_interval:
+        @param account: Account or list of Account or AccountGroup
+        @param upper: desired balance of receivers
+        @param lower: top up if lower than this
+        @param token_id: default: PRV
+        @param retry_interval: amount of time to wait (in each tx)
+                to retry in case out put coin is being used in another transaction
+        @param max_wait: max time to wait (in each tx) if retry keep failing
+        @return:
+        """
+        if type(account) is Account:
+            account = AccountGroup(account)
+        elif type(account) is list:
+            account = AccountGroup(*account)
+
+        receiver = {}
+        bal_receiver_b4_dict = account.get_balance(token_id)
+
+        for acc, balance in bal_receiver_b4_dict.items():
+            if balance <= lower:
+                top_up_amount = upper - balance
+                if top_up_amount > 0:
+                    receiver[acc] = top_up_amount
+        if len(receiver) == 0:
+            return None
+
+        INFO_HEADLINE(f"TOP UP OTHERS'({len(receiver)} acc) TO {lower} ({(l6(token_id))})")
+
+        # there's a max number of output in "createandsendtransaction" rpc, so must split into small batch of output
+        each, length, start = 20, len(receiver), 0
+        mid = each
+        keys = list(receiver.keys())
+        wasted_time = 0
+        while start < length:
+            sub_keys = keys[start:mid]
+            INFO(f'Batch: {start}->{len(sub_keys)}')
+            sub_receivers = {k: receiver[k] for k in sub_keys}
+            send_tx = self.send_to_multi_account(sub_receivers, token_id=token_id)
+            if send_tx.get_error_msg():
+                # ideally should only retry if coin being used in another tx, but for now, just retry if there's any err
+                INFO(f'{send_tx.get_error_trace().get_message()}. Wait then retry')
+                WAIT(retry_interval)
+                wasted_time += retry_interval
+                if wasted_time >= max_wait:
+                    raise BaseException(f"Waited {wasted_time}s but cannot create send tx, "
+                                        f"out put coins appear to being used use in another tx")
+
+            else:
+                # tx should be succeed
+                send_tx.expect_no_error().subscribe_transaction()
+                start = mid
+                mid += each
+                wasted_time = 0
+
+        # thread_pool = []
+        for acc, amount in receiver.items():
+            acc.wait_for_balance_change(token_id, from_balance=bal_receiver_b4_dict[acc])
 
     def top_him_up_token_to_amount_if(self, token_id, if_lower_than, top_up_to_amount, accounts_list):
         """
-
+        @deprecated should not be used, consider using "top_up_if_lower_than" instead
         @param token_id:
         @param if_lower_than: top up if current balance is equal or lower this number
         @param top_up_to_amount:
@@ -1254,33 +1302,32 @@ class Account:
     def top_him_up_prv_to_amount_if(self, if_lower_than, top_up_to_amount, accounts_list,
                                     retry_interval=30, max_wait=180):
         """
+        @deprecated should not be used, consider using "top_up_if_lower_than" instead
         @param if_lower_than: top up if current balance is equal or lower this number
         @param top_up_to_amount:
-        @param accounts_list: Account or list of Account
+        @param accounts_list: Account or list of Account or AccountGroup
         @param retry_interval: amount of time to wait (in each tx)
                 to retry in case out put coin is being used in another transaction
         @param max_wait: max time to wait (in each tx) if retry keep failing
         @return:
         """
         if type(accounts_list) is Account:
-            accounts_list = [accounts_list]
-        receiver = {}
-        threads = {}
-        with ThreadPoolExecutor() as exc:
-            for acc in accounts_list:
-                thread = exc.submit(acc.get_prv_balance)
-                threads[acc] = thread
+            accounts_list = AccountGroup(accounts_list)
+        elif type(accounts_list) is list:
+            accounts_list = AccountGroup(*accounts_list)
 
-        for acc, thread in threads.items():
-            bal = thread.result()
-            if bal <= if_lower_than:
-                top_up_amount = top_up_to_amount - bal
+        receiver = {}
+        bal_receiver_b4_dict = accounts_list.get_balance()
+
+        for acc, balance in bal_receiver_b4_dict.items():
+            if balance <= if_lower_than:
+                top_up_amount = top_up_to_amount - balance
                 if top_up_amount > 0:
                     receiver[acc] = top_up_amount
         if len(receiver) == 0:
             return None
 
-        INFO_HEADLINE(f"TOP UP OTHERS' PRV TO {top_up_to_amount}")
+        INFO_HEADLINE(f"TOP UP OTHERS'({len(receiver)} acc) TO {top_up_to_amount} PRV")
 
         # there's a max number of output in "createandsendtransaction" rpc, so must split into small batch of output
         each, length, start = 20, len(receiver), 0
@@ -1289,30 +1336,34 @@ class Account:
         wasted_time = 0
         while start < length:
             sub_keys = keys[start:mid]
+            INFO(f'Batch: {start}->{len(sub_keys)}')
             sub_receivers = {k: receiver[k] for k in sub_keys}
             send_tx = self.send_prv_to_multi_account(sub_receivers)
             # if 'Wrong input transaction Sum of inputs less than outputs' in send_tx.get_error_trace().get_message():
-            if send_tx.get_error_trace() is not None:
-                if send_tx.get_error_trace().get_error_codes() == -4001:
-                    # coin being used in another tx
-                    WAIT(retry_interval)
-                    wasted_time += retry_interval
-                    if wasted_time >= max_wait:
-                        raise BaseException(f"Waited {wasted_time}s but cannot create send tx, "
-                                            f"out put coins appear to being used use in another tx")
+            if send_tx.get_error_msg():
+                # coin being used in another tx
+                INFO(f'{send_tx.get_error_trace().get_message()}. Wait then retry')
+                WAIT(retry_interval)
+                wasted_time += retry_interval
+                if wasted_time >= max_wait:
+                    raise BaseException(f"Waited {wasted_time}s but cannot create send tx, "
+                                        f"out put coins appear to being used use in another tx")
 
             else:
                 # tx should be succeed
-                send_tx.expect_no_error()
-                send_tx.subscribe_transaction()
+                send_tx.expect_no_error().subscribe_transaction()
                 start = mid
                 mid += each
                 wasted_time = 0
 
         # thread_pool = []
         for acc, amount in receiver.items():
-            acc.wait_for_balance_change(from_balance=acc.get_prv_balance_cache())
+            acc.wait_for_balance_change(from_balance=bal_receiver_b4_dict[acc])
 
+    def submit_key(self):
+        INFO(f'Submit private key for indexing coin {l6(self.private_key)}')
+        self.REQ_HANDLER.transaction().submit_key(self.private_key).expect_no_error()
+        return self
     #######
     # Portal v4
     #######
@@ -1402,7 +1453,6 @@ class AccountGroup:
     def get_accounts_in_shard(self, shard_number: int):
         """
         iterate through accounts in account_list, check if they're in the same shard_number
-
         @param shard_number: shard id to check
         @return: list of Account which is in the same shard_number
         """
@@ -1428,6 +1478,10 @@ class AccountGroup:
             return AccountGroup(*(self.account_list + other.account_list))
         elif type(other) is list:  # add AccountGroup with list of accounts
             return AccountGroup(*(self.account_list + other))
+        elif type(other) is Account:
+            self.account_list.append(other)
+            return AccountGroup(*self.account_list)
+        raise TypeError(f'Not support adding type {type(other)} with {__class__} ')
 
     def change_req_handler(self, HANDLER):
         for acc in self:
@@ -1440,11 +1494,24 @@ class AccountGroup:
                 the_richest = acc
         return the_richest
 
+    def get_balance(self, token_id=PRV_ID):
+        """
+        @param token_id:
+        @return: dict of {Account: balance(int)}
+        """
+        balance_result = {}
+        with ThreadPoolExecutor() as executor:
+            for acc in self.account_list:
+                thread = executor.submit(acc.get_token_balance, token_id)
+                balance_result[acc] = thread
+        for acc, thread in balance_result.items():
+            balance_result[acc] = thread.result()
+        return balance_result
+
 
 def get_accounts_in_shard(shard_number: int, account_list=None):
     """ @deprecated
     iterate through accounts in account_list, check if they're in the same shard_number
-
     @param shard_number: shard id to check
     @param account_list: account list to check, by default it's TestData
     @return: list of Account which is in the same shard_number
@@ -1458,5 +1525,5 @@ def get_accounts_in_shard(shard_number: int, account_list=None):
         return AccountGroup(*account_list).get_accounts_in_shard(shard_number)
 
 
-PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K)
-COIN_MASTER = Account(DAO_PRIVATE_K)
+PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K, handler="nomad")
+COIN_MASTER = Account(DAO_PRIVATE_K, handler="nomad")

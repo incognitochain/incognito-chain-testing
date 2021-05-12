@@ -4,7 +4,7 @@ import re
 from Configs.Constants import PRV_ID, ChainConfig
 from Helpers import TestHelper
 from Helpers.Logging import INFO, WARNING, DEBUG, ERROR
-from Helpers.TestHelper import extract_incognito_addr, l6
+from Helpers.TestHelper import  l6
 from Helpers.Time import WAIT
 from Objects import BlockChainInfoBaseClass
 from Objects.AccountObject import Account

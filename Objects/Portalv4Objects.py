@@ -257,34 +257,57 @@ class Portalv4StateInfo(PortalV4InfoBase):
         from TestCases.PortalV4 import TINY_UTXO_AMT
         list_utxo = self.get_list_utxo(token_id)
         if list_utxo is None:
-            return
+            return None
         list_utxo.sort(key=lambda utxo: (-utxo.get_output_amt(), utxo.get_key()))
 
         list_unshield = self.get_list_unshield_waiting(token_id)
         if list_unshield is None:
-            return
-        list_unshield.sort(key=lambda shield: (shield.get_beacon_height(), shield.get_key()))
-
-
-
-        tmp_amount = int(total_unshield / 10)
-        list_result = []
-        list_utxo = self.get_list_utxo(token_id)
-        if list_utxo is None:
             return None
-        list_utxo.sort(key=lambda utxo: (-utxo.get_output_amt(), utxo.get_key()))
+        list_unshield.sort(key=lambda shield: (shield.get_beacon_height(), shield.get_key()))
+        amount_unshield_in_pToken = int(self.sum_amount_unshield_waiting(token_id) / 10)
+        total_amout_utxo = self.sum_output_amount_all_utxo(token_id)
+        if amount_unshield_in_pToken == 0 or total_amout_utxo == 0:
+            return None
+        list_batch = set()
+        list_batch_utxo = []
+        list_batch_unshield = []
         for i in list_utxo:
-            tmp_amount -= i.get_output_amt()
-            if tmp_amount <= 0:
-                list_result.append(i)
-                break
+            amount_i = i.get_output_amt()
+            list_batch.add(i.get_tx_hash())
+            list_unshield_per_batch =[]
+            list_utxo_per_batch =[]
+            for n in list_unshield:
+                if amount_i >= int(n.get_amount()/10) and  self.is_max_size_btc_tx(len(list_utxo_tmp),len(list_unshield_per_batch) + 2,500) == True:
+                    amount_i -= int(n.get_amount()/10)
+                    list_unshield_per_batch.append(n)
+                    list_unshield.remove(n)
+                elif amount_i >= int(n.get_amount()/10) and  self.is_max_size_btc_tx(len(list_utxo_tmp),len(list_unshield_per_batch) + 2,500) == False:
+                    continue
+                else:
+                    pass
+
+
+
+
+
+
+            if amount_i >= amount_unshield_in_pToken:
+                data_batch_unshield = {i.get_tx_hash(): self.get_list_unshield_id_waiting()}
+                list_batch_unshield.append(data_batch_unshield)
+                list_utxo_tmp =[]
+                list_utxo_tmp.append(i)
+                if len(list_utxo) > 2 and len(list_utxo) > len(list_utxo_tmp) and list_utxo[
+                    -1].get_output_amt() <= TINY_UTXO_AMT:
+                    list_utxo_tmp.append(list_utxo[-1])
+                data_batch_utxo = {i.get_tx_hash(): list_utxo_tmp}
+                list_batch_utxo.append(data_batch_utxo)
+
             else:
-                list_result.append(i)
-        if len(list_utxo) > 2 and len(list_utxo) > len(list_result) and list_utxo[-1].get_output_amt() <= TINY_UTXO_AMT:
-            list_result.append(list_utxo[-1])
-            return list_result
-        else:
-            return list_result
+                pass
+
+
+
+        return list_batch, list_batch_utxo,list_batch_unshield
 
     def get_list_unshield_waiting(self, token_id) -> List[UnshieldRequest]:
         list_unshield = []
@@ -297,6 +320,22 @@ class Portalv4StateInfo(PortalV4InfoBase):
                 req = Portalv4StateInfo.UnshieldRequest(data_)
                 list_unshield.append(req)
         return list_unshield
+
+    def get_list_unshield_id_waiting(self, token_id):
+        list_unshield_id = []
+        list_unshield = self.get_list_unshield_waiting(token_id)
+        if list_unshield is None:
+            return None
+        for i in list_unshield:
+            list_unshield_id.append(i.get_unshield_id())
+        return list_unshield_id
+
+    def sum_amount_unshield_waiting(self, token_id):
+        result = 0
+        list_unshield = self.get_list_unshield_waiting(token_id)
+        for i in list_unshield:
+            result += i.get_amount()
+        return result
 
     def find_unshield_in_waiting_by_id(self, token_id, unshield_id):
         result = False

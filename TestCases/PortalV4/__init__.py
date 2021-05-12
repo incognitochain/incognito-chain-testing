@@ -58,16 +58,10 @@ all_users = AccountGroup(
 def setup_module():
     INFO()
     INFO('SETUP TEST MODULE, TOP UP PRV FOR USER')
-    COIN_MASTER.top_him_up_prv_to_amount_if(TEST_SETTING_DEPOSIT_AMOUNT * 4, TEST_SETTING_DEPOSIT_AMOUNT * 4 + coin(1),
-                                            all_users)
-
+    COIN_MASTER.top_up_if_lower_than(all_users, TEST_SETTING_DEPOSIT_AMOUNT * 4, TEST_SETTING_DEPOSIT_AMOUNT * 4 + coin(1))
 
 def noteardown_module():
     INFO_HEADLINE(f'TEST MODULE TEAR DOWN ')
-
-
-#     send back btc to main wallet
-
 
 def setup_function():
     INFO_HEADLINE('Portal v4 Info before test')

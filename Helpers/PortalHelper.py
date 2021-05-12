@@ -151,62 +151,39 @@ class PortalV3Math:
     """
 
     @staticmethod
-    def cal_lock_collateral(token_amount, token_rate, token_base_rate):
-        pass
+    def cal_lock_collateral(token_amount, token_rate):
+        token_amount, token_rate= to_num(token_amount, token_rate)
+        return int(int(token_amount * ChainConfig.Portal.COLLATERAL_PERCENT) * token_rate // ChainConfig.Portal.BASE_RATE)
+
 
     @staticmethod
-    def cal_portal_exchange_tok_to_base_tok(token_amount, token_rate, token_base_rate):
-        pass
+    def cal_portal_exchange_tok_to_base_tok(token_amount, token_rate):
+        token_amount, token_rate = to_num(token_amount, token_rate)
+        return int((token_amount * token_rate) // ChainConfig.Portal.BASE_RATE)
 
     @staticmethod
-    def cal_portal_exchange_base_tok_to_tok(prv_amount, token_base_rate, token_rate):
-        pass
+    def cal_portal_exchange_base_tok_to_tok(amount,token_rate):
+        amount, token_rate = to_num(amount, token_rate)
+        return int((amount * ChainConfig.Portal.BASE_RATE) // token_rate)
 
     @staticmethod
-    def cal_portal_portal_fee(token_amount, token_rate, token_base_rate, fee_rate=ChainConfig.Portal.FEE_RATE):
-        pass
+    def cal_portal_portal_fee(token_amount, token_rate, token_dest_rate):
+        token_amount, token_rate, token_dest_rate = to_num(token_amount, token_rate,token_dest_rate)
+        return round(((token_amount * token_rate) // token_dest_rate) * ChainConfig.Portal.FEE_RATE) # fee = 0.01%
 
     @staticmethod
-    def cal_liquidate_rate(percent, token_rate, token_base_rate, change_token_rate=False):
+    def cal_liquidate_rate(percent, portal_ojbect_info, mode_rate):
         """
         @param percent:
-        @param token_rate:
-        @param token_base_rate:
-        @param change_token_rate: if true, return new token rate. otherwise , return new prv rate
-        @return:
+        @param portal_ojbect_info:
+        @param mode_rate 0;1;2;3,4,5: if 0, return new token rate; if 1 , return new prv rate ; if 2 , return new eth rate ;
+        if 3 , return new usdt rate ;if 4 , return new usdc rate ;  if 5 , return new token, prv, eth, usdt, usdc rate
+        @return rate (token, prv , eth, usdt ,usdc):
         """
+
+
         pass
 
-    @staticmethod
-    def cal_rate_to_match_collateral_percent(percent, token_holding, collateral_amount, current_tok_rate,
-                                             current_tok_base_rate, rate_return='token'):
-        """
-
-        @param current_tok_rate:
-        @param current_tok_base_rate:
-        @param percent:
-        @param token_holding:
-        @param collateral_amount:
-        @param rate_return: select new rate to return, base (token) or token
-        @return:
-        """
-        pass
-
-    @staticmethod
-    def cal_rate_to_liquidate_collateral(token_holding, collateral_amount,
-                                         current_tok_rate, current_tok_base_rate, new_rate='token',
-                                         liquidate_percent=ChainConfig.Portal.COLLATERAL_LIQUIDATE_PERCENT):
-        """
-
-        @param liquidate_percent:
-        @param token_holding:
-        @param collateral_amount:
-        @param current_tok_rate:
-        @param current_tok_base_rate:
-        @param new_rate: 'token' or 'base', to indicate which of the new rate you want to get
-        @return:
-        """
-        pass
 
     @staticmethod
     def cal_liquidation_amount_of_collateral(holding_token, holding_token_of_waiting_redeem, rate_token,

@@ -5,7 +5,7 @@ from typing import List
 from Configs.Constants import PBNB_ID, PBTC_ID, PRV_ID, Status, ChainConfig
 from Helpers.Logging import INFO, DEBUG, INFO_HEADLINE, ERROR
 from Helpers.PortalHelper import PortalMath
-from Helpers.TestHelper import l6, extract_incognito_addr, KeyExtractor
+from Helpers.TestHelper import l6, KeyExtractor
 from Helpers.Time import WAIT
 from Objects import BlockChainInfoBaseClass
 

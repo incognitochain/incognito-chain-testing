@@ -7,7 +7,7 @@ from Configs import Constants
 
 if sys.platform == 'darwin':
     get_key = {1: f'{os.getcwd()}/bin/getKey-mac',
-               2: f''}
+               2: f'{os.getcwd()}/bin/getKeyV2-mac'}
 elif sys.platform == 'linux':
     get_key = {1: f'{os.getcwd()}/bin/getKey-linux',
                2: f'{os.getcwd()}/bin/getKeyV2-linux'}

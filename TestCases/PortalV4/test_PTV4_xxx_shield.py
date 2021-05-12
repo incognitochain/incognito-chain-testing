@@ -6,7 +6,7 @@ from Helpers.Logging import STEP, INFO
 from Helpers.Time import WAIT
 from Objects.IncognitoTestCase import SUT
 from Objects.Portalv4Objects import PortalV4InfoBase
-from TestCases.PortalV4 import TEST_SETTING_SHIELD_AMOUNT, all_users, bitcoin, \
+from TestCases.PortalV4 import TEST_SETTING_SHIELD_AMOUNT, all_users, bitcoinCLI, \
     MULTISIG_ADDRESS, buildProofPath, username, password, host, port
 
 BTC_ADDRESS_TYPE = {"P2SH": "legacy", "P2PKH": "p2sh-segwit", "P2WSH": "bech32", "P2WPKH": "bech32"}
@@ -16,26 +16,26 @@ def createAndSendRawTx(accountaddress, inputs, outputs, memo):
     if memo != "":
         outputs.append({"data": memo.encode('utf-8').hex()})
     # print(outputs)
-    rawtx = bitcoin.createrawtransaction(inputs, outputs)
+    rawtx = bitcoinCLI.createrawtransaction(inputs, outputs)
     # print('\n' + rawtx + '\n')
 
     # extract private key by address
-    dumpprivatekey = bitcoin.dumpprivkey(accountaddress)
+    dumpprivatekey = bitcoinCLI.dumpprivkey(accountaddress)
     # print('dumpprivatekey :' + dumpprivatekey + '\n')
 
     # sign raw tx
-    rawtxsigned = bitcoin.signrawtransactionwithkey(rawtx, [dumpprivatekey])
+    rawtxsigned = bitcoinCLI.signrawtransactionwithkey(rawtx, [dumpprivatekey])
     INFO(f"Raw transaction (HEX) = {rawtxsigned['hex']}")
     # print(rawtxsigned['hex'])
 
     # broadcast raw transaction
-    txid = bitcoin.sendrawtransaction(rawtxsigned['hex'])
+    txid = bitcoinCLI.sendrawtransaction(rawtxsigned['hex'])
     return txid
 
 
 def balanceBaseInputs(inputs):
     for x in inputs:
-        tx = bitcoin.gettransaction(x["txid"])
+        tx = bitcoinCLI.gettransaction(x["txid"])
         print(tx)
 
 
@@ -61,30 +61,30 @@ def test_shield(token, shield_amount, user, payment_mode, desired_status):
     total_output_amt_init = PSI_before_test.sum_output_amount_all_utxo(token)
 
     # create new account for gen new block
-    account = bitcoin.getnewaddress("acc", BTC_ADDRESS_TYPE[payment_mode])
+    account = bitcoinCLI.getnewaddress("acc", BTC_ADDRESS_TYPE[payment_mode])
     # print(account)
 
     # one more account for testing
-    account1 = bitcoin.getnewaddress("acc1", BTC_ADDRESS_TYPE[payment_mode])
+    account1 = bitcoinCLI.getnewaddress("acc1", BTC_ADDRESS_TYPE[payment_mode])
     print(account1)
 
     # generate 200 block first to enable transfer feature only run once
     # only for regtest
     for i in range(2):
         WAIT(2)
-        bitcoin.generatetoaddress(1, account)
+        bitcoinCLI.generatetoaddress(1, account)
 
     # send to an address
-    txid = bitcoin.sendtoaddress(account1, 10)
+    txid = bitcoinCLI.sendtoaddress(account1, 10)
     for i in range(6):
         WAIT(2)
-        bitcoin.generatetoaddress(1, account)
+        bitcoinCLI.generatetoaddress(1, account)
 
     STEP(1, "Send BTC ")
 
     # send BTC
     # transfer token to an address
-    listUTXOs = bitcoin.listunspent(6, 9999999, [account1], True)
+    listUTXOs = bitcoinCLI.listunspent(6, 9999999, [account1], True)
     # print(listUTXOs)
     inputs = []
     for x in listUTXOs:
@@ -101,7 +101,7 @@ def test_shield(token, shield_amount, user, payment_mode, desired_status):
     btc_txid = createAndSendRawTx(account1, inputs, outputs, memo)
     for i in range(7):
         WAIT(2)
-        bitcoin.generatetoaddress(1, account)
+        bitcoinCLI.generatetoaddress(1, account)
     # print(newtxid)
     INFO(f"BTC txhash = {btc_txid}")
 
@@ -148,17 +148,12 @@ def test_shield(token, shield_amount, user, payment_mode, desired_status):
         assert total_output_amt_init + int(amt_btc_shield * 1e8) == total_output_amt_af_shield
         assert PSI_af_shield.find_utxo_by_txHash_amount(token, btc_txid, int(amt_btc_shield * 1e8)) == True
 
-# def test_mint_pToken_cross_shard():
-#     Pass
-#
+
+
 # def test_shield_n_output_btc():
 #     Pass
 #
 # def test_shield_with_n_input_to_m_output_btc():
 #     Pass
 #
-# def test_shield_wait_confirmation_block():
-#     Pass
-#
-# def test_shield_double_submit_proof():
-#     Pass
+

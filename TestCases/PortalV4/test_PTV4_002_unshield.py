@@ -11,7 +11,7 @@ from TestCases.PortalV4 import TEST_SETTING_UNSHIELD_AMOUNT, all_users, bitcoinC
 
 BTC_ADDRESS_TYPE = {"P2SH": "legacy", "P2PKH": "p2sh-segwit", "P2WSH": "bech32", "P2WPKH": "bech32"}
 FEE_BTC = 50000
-TEST_SETTING_UNSHIELD_AMOUNT = int(0.01 * 1e9)
+TEST_SETTING_UNSHIELD_AMOUNT = int(0.1 * 1e9)
 TEST_SETTING_UNSHIELD_AMOUNT_REFUND = 50000
 MAX_REPLACE_FEE_PERCENT = 20
 PROOF_SUBMIT_UTXO_INVALID = "eyJNZXJrbGVQcm9vZnMiOlt7IlByb29mSGFzaCI6WzExNSwwLDgxLDE5OCwxMjksMTg2LDQzLDE0LDEwNiwyNCwxMjIsMTY5LDE1NCwxMDgsNDQsMTIyLDEwNSwxMSwxNTYsMjYsMjAsMzQsMTk0LDEzMCwzNSwyNDYsNjEsMjI4LDU1LDcwLDE2NCwxMzNdLCJJc0xlZnQiOnRydWV9XSwiQlRDVHgiOnsiVmVyc2lvbiI6MiwiVHhJbiI6W3siUHJldmlvdXNPdXRQb2ludCI6eyJIYXNoIjpbMTQ5LDI1LDI0Myw1MSwxNTMsMTcsMjI0LDE0MCwxMjQsMTkwLDI0NSw4NCwyMiwyNDcsMzksMTE0LDIxNSwxNjYsMywxOTEsNSwyMzAsMzIsMTgwLDIyMSwyMjMsMjIzLDY5LDEyNiwxMTEsNTYsMjQ4XSwiSW5kZXgiOjB9LCJTaWduYXR1cmVTY3JpcHQiOiJSekJFQWlCSHg2dEZkVjdUUE5kTWZBdSttVWdwdTIzM0Z2czZJOFlmOWVDdTVvVmU3QUlnY0JGdDkxYTRRRU1IVlNRdHhFYmE0OUs3VHFndlM3VUloRFo0aG83Y3doa0JJUUphYUlFTW9JVE9CaG9nODU2NWQvZE04ZDZ2eGI0Ylc5NEp1NllhMGw2L3N3PT0iLCJXaXRuZXNzIjpudWxsLCJTZXF1ZW5jZSI6NDI5NDk2NzI5NX1dLCJUeE91dCI6W3siVmFsdWUiOjEwMDAwMDAwLCJQa1NjcmlwdCI6IkFDQUVBU0I0bWhaaktGeVk0c3lPTlJicXdmTk9qTkZGTDU3WEhmaVR1RWdZZ0E9PSJ9LHsiVmFsdWUiOjk4OTUwMDAwMCwiUGtTY3JpcHQiOiJkcWtVd1VYK29wYVdvN0pRTkxqZmhPZGU4V1VGMWRHSXJBPT0ifV0sIkxvY2tUaW1lIjowfSwiQmxvY2tIYXNoIjpbNDYsMzksMzksMjI1LDE2NCwxMzIsNTMsNDEsMzAsOCwyNywyMzcsMTA3LDE0OSw0MCwxOTUsNDksMTg4LDIzLDIzNywxNDksMjEsMTgxLDc4LDE3NSw1NywxNzYsMTg0LDIwNywzNCwxMTMsNjJdfQ=="
@@ -38,18 +38,18 @@ def setup_module():
 
 @pytest.mark.parametrize("token, unshield_amount, user, payment_mode, desired_status, replace_fee, n_unshield",
                          [
-                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[2], "P2SH", "valid","no_replace_fee", 2),
-                             # (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[2], "P2SH", "invalid", "no_replace_fee",1),
-                             # (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[2], "P2SH", "DoubleSubmitProof", "no_replace_fee", 2),
-                             # (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[0], "P2SH", "SubmitInvalidProof","no_replace_fee", 1),
+                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[1], "P2SH", "valid","no_replace_fee", 1),
+                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[2], "P2SH", "invalid", "no_replace_fee",1),
+                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[2], "P2SH", "DoubleSubmitProof", "no_replace_fee", 2),
+                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[0], "P2SH", "SubmitInvalidProof","no_replace_fee", 1),
 
-                             # (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[0], "P2SH", "valid", "replace_fee", 1),
-                             # (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[1], "P2SH", "valid", "replace_fee", 2),
-                             # (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[1], "P2SH", "DoubleSubmitProof", "replace_fee", 2),
-                             # (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[0], "P2SH", "underMinFee", "replace_fee", 1),
-                             # (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[0], "P2SH", "overMaxFee", "replace_fee", 1),
-                             # (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[0], "P2SH", "LimitTime", "replace_fee",2), # n_unshield must be greater 1
-                             # (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[0], "P2SH", "afterBtcConfirmed","replace_fee", 2),
+                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[1], "P2SH", "valid", "replace_fee", 1),
+                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[1], "P2SH", "valid", "replace_fee", 2),
+                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[1], "P2SH", "DoubleSubmitProof", "replace_fee", 2),
+                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[0], "P2SH", "underMinFee", "replace_fee", 1),
+                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[0], "P2SH", "overMaxFee", "replace_fee", 1),
+                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[0], "P2SH", "LimitTime", "replace_fee",2), # n_unshield must be greater 1
+                             (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT, all_users[0], "P2SH", "afterBtcConfirmed","replace_fee", 2),
 
                              # (PBTC_ID, TEST_SETTING_UNSHIELD_AMOUNT_REFUND, all_users[1], "P2SH", "refund", False)
 
@@ -197,7 +197,7 @@ def test_shield(token, unshield_amount, user, payment_mode, desired_status, repl
             # breakpoint()
             #   call rpc replace fee
             replace_fee_req = user.replace_fee(token, batch_id, int(fee))
-            assert replace_fee_req.get_transaction_by_hash(replace_fee_req.get_tx_id(), time_out=20).is_none() == False
+            assert replace_fee_req.get_transaction_by_hash(replace_fee_req.get_tx_id()).is_none() == False
 
             #   check replace fee status
             if desired_status == "underMinFee" or desired_status == "overMaxFee" or (
@@ -251,7 +251,7 @@ def test_shield(token, unshield_amount, user, payment_mode, desired_status, repl
         return
     else:
         submit_proof_req = user.submit_proof_confirm_unshield(proof_btc, token, batch_id)
-        assert submit_proof_req.get_transaction_by_hash(submit_proof_req.get_tx_id(), time_out=20).is_none() == False
+        assert submit_proof_req.get_transaction_by_hash(submit_proof_req.get_tx_id()).is_none() == False
         WAIT(30)
         assert PortalV4InfoBase().get_submit_proof_confirm_status(submit_proof_req.get_tx_id()) == 1
         for unshield_id_tmp in unshield_id_list:

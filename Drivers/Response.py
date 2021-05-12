@@ -1,9 +1,10 @@
 import json
 import re
+from abc import ABC
 
-import Helpers.Logging as Log
 from websocket import WebSocketTimeoutException, WebSocketBadStatusException
 
+import Helpers.Logging as Log
 from Configs.Constants import ChainConfig
 from Helpers.Logging import INFO, WARNING
 from Helpers.Time import WAIT
@@ -11,16 +12,24 @@ from Objects.TransactionObjects import TransactionDetail
 
 
 class Response:
-    def __init__(self, response=None, more_info=None):
+    def __init__(self, response=None, more_info=None, handler=None):
         self.response = response
         self.more_info = more_info
         if more_info is not None:
             Log.DEBUG(more_info)
         if response is not None:
             Log.DEBUG(self.__str__())
+        if handler:
+            self.__handler = handler
+        else:
+            from Objects.IncognitoTestCase import SUT
+            self.__handler = SUT()
 
     def __str__(self):
         return f'\n{json.dumps(self.data(), indent=3)}'
+
+    def req_to(self, node):
+        self.__handler = node
 
     def expect_no_error(self, additional_msg_if_fail=''):
         """
@@ -40,7 +49,7 @@ class Response:
             error_msg = self.get_error_msg()
             INFO(trace_msg)
             assert (expecting_error in error_msg or expecting_error in trace_msg), \
-                f'Found no error while expecting: {expecting_error}'
+                f'Expecting: {expecting_error}. Instead got: {error_msg} | {trace_msg}'
         return self
 
     def data(self):
@@ -167,15 +176,15 @@ class Response:
         if tx_id is None:
             raise ValueError("Tx id must not be none")
         INFO(f'Subscribe to transaction tx_id = {tx_id}')
-        from Objects.IncognitoTestCase import SUT
         from Objects.TransactionObjects import TransactionDetail
         try:
-            res = SUT().subscription().subscribe_pending_transaction(tx_id).get_result('Result')
+            res = self.__handler.subscription().subscribe_pending_transaction(tx_id).get_result('Result')
             return TransactionDetail(res)
         except WebSocketTimeoutException:
             WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
             return self.get_transaction_by_hash(tx_id, retry=False)
-        except WebSocketBadStatusException as status_err:  # in case full node does not have web socket enabled
+        except (WebSocketBadStatusException,
+                ConnectionRefusedError) as status_err:  # in case full node does not have web socket enabled
             WARNING(f"Encounter web socket bad status exception: {status_err}. Now get transaction by hash instead")
             return self.get_transaction_by_hash(tx_id, retry=True)
 
@@ -193,7 +202,7 @@ class Response:
                                 time_out=120) -> TransactionDetail:
         """
         @param tx_hash:
-        @param retry:
+        @param retry: if True, try when got error in Response or block height = 0
         @param interval:
         @param time_out:
         @return: TransactionDetail, use TransactionDetail.is_none() to check if it's an empty object
@@ -203,19 +212,31 @@ class Response:
         if tx_hash is None:
             raise ValueError("Tx id must not be none")
 
-        tx_detail = TransactionDetail().get_transaction_by_hash(tx_hash)
+        tx_detail = self.__handler.transaction().get_tx_by_hash(tx_hash)
+        if not retry:
+            if tx_detail.get_error_msg():
+                return TransactionDetail()
+            else:
+                return TransactionDetail(tx_detail.get_result())
 
-        if not retry and not tx_detail.is_none():
-            return tx_detail
-        if not tx_detail.is_none():
-            return tx_detail
         while time_out > 0:
+            if not tx_detail.get_error_msg() and tx_detail.get_result('BlockHeight'):
+                return TransactionDetail(tx_detail.get_result())
             time_out -= interval
             WAIT(interval)
-            tx_detail = TransactionDetail().get_transaction_by_hash(tx_hash)
-            if not tx_detail.is_none():
-                return tx_detail
+            tx_detail = self.__handler.transaction().get_tx_by_hash(tx_hash)
         return TransactionDetail()
+
+    def get_trade_tx_status(self, tx_hash=None):
+        """
+        @param tx_hash: tx hash of trade request tx
+        @return: Status.Dex.Trading.ACCEPTED
+        """
+        tx_hash = self.expect_no_error().get_tx_id() if tx_hash is None else tx_hash
+        try:
+            return self.__handler.dex().get_trade_status(tx_hash).get_result()
+        except KeyError:
+            pass
 
     def get_mem_pool_transactions_id_list(self) -> list:
         hashes = self.get_list_txs()
@@ -279,3 +300,42 @@ class Response:
 
         def get_portal_redeem_fee(self):
             return int(self.data[4]['RedeemFee'])
+
+
+class ResponseExtractor(ABC):
+    def __init__(self, response):
+        if type(response) is not Response:
+            raise TypeError(f'Input must be a Drivers.Response.Response, not {type(response)}')
+        self.info_obj_list = []
+
+    def __len__(self):
+        return len(self.info_obj_list)
+
+    def __iter__(self):
+        self.__current_index = 0
+        return iter(self.info_obj_list)
+
+    def __next__(self):
+        if self.__current_index >= len(self.info_obj_list):
+            raise StopIteration
+        else:
+            self.__current_index += 1
+            return self[self.__current_index]
+
+    def __getitem__(self, item):
+        return self.info_obj_list[item]
+
+    def _extract_dict_info_obj(self, response, key_to_extract, Class):
+        """
+        Extract info in Response result into a list of Objects, this method will take pieces of info from Response
+        object to convert info object
+        this method only works when Response.get_result(key_to_extract) return a list
+        @param response: Input Response to extract
+        @param key_to_extract: assume Response's result is dict, this key is the field of the dict which you want to
+        extract info from
+        @param Class: Class of which each element of the object list belong to
+        @return:
+        """
+        for raw_tok_info in response.get_result(key_to_extract):
+            obj = Class(raw_tok_info)
+            self.info_obj_list.append(obj)

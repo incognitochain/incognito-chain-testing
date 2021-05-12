@@ -95,7 +95,7 @@ class Portalv4Rpc(BaseRpcApi):
 
     # get raw transaction replace fee
     def get_signed_raw_replace_fee_transaction(self,txhash_rpl_fee):
-        return self.rpc_connection.with_method("getporalsignedrawreplacebyfeetransaction").with_params(
+        return self.rpc_connection.with_method("getportalsignedrawreplacebyfeetransaction").with_params(
             [{"TxID": txhash_rpl_fee}]).execute()
 
     # get state #

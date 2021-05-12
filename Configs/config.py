@@ -3,7 +3,7 @@
 # test_bed = 'local_adung'
 # test_bed = 'TestNet2'
 # test_bed = 'TestNet'
-test_bed = 'local55_124'
+test_bed = 'local162'
 # test_bed = 'MainNet'
 # test_bed = 'BMNet'
 # test_bed = 'local134'

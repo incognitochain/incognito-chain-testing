@@ -1,7 +1,6 @@
 import json
 import random
 import string
-import time
 from json.decoder import JSONDecodeError
 
 from Configs.Constants import ChainConfig
@@ -93,21 +92,6 @@ def format_dict_side_by_side(dict1, dict2):
     return lines
 
 
-def extract_incognito_addr(obj):
-    from Objects.AccountObject import Account
-    from Objects.PortalObjects import PortalStateInfo
-
-    if type(obj) == str:
-        addr = obj
-    elif type(obj) == Account:
-        addr = obj.incognito_addr
-    elif type(obj) == PortalStateInfo.CustodianInfo:
-        addr = obj.get_incognito_addr()
-    else:
-        raise TypeError("Input must be incognito address (string), CustodianInfo or Account object")
-    return addr
-
-
 class KeyExtractor:
     @staticmethod
     def incognito_addr(obj):
@@ -169,7 +153,7 @@ class ChainHelper:
         if block_per_epoch_af is None:
             block_per_epoch_af = ChainConfig.BLOCK_PER_EPOCH
         return ((index_epoch_change + 1) * block_per_epoch_b4 + (
-                    epoch - index_epoch_change - 1) * block_per_epoch_af) + 1
+                epoch - index_epoch_change - 1) * block_per_epoch_af) + 1
 
     @staticmethod
     def cal_last_height_of_epoch(epoch):
@@ -200,15 +184,15 @@ class ChainHelper:
             return current_beacon_h
 
         while beacon_height > current_beacon_h:
+            if timeout <= 0:
+                INFO(f'Time out and current beacon height is {current_beacon_h}')
+                return current_beacon_h
             if interval is None:
                 block_remain = beacon_height - current_beacon_h
                 interval = block_remain * ChainConfig.BLOCK_TIME
             WAIT(interval)
             timeout -= interval
             current_beacon_h = SUT().help_get_beacon_height()
-            if timeout <= 0:
-                INFO(f'Time out and current beacon height is {current_beacon_h}')
-                return current_beacon_h
 
         INFO(f'Beacon height {beacon_height} is passed already')
         return current_beacon_h
@@ -258,119 +242,28 @@ class ChainHelper:
         return current_shard_h
 
     @staticmethod
-    def wait_till_next_epoch(epoch_wait=None, check_interval=None, timeout=180):
+    def wait_till_next_epoch(epoch_to_wait=1, block_of_epoch=1, node=None):
         f"""
-        Wait till {epoch_wait} to come, if {epoch_wait} is None, just wait till next epoch
-        @param epoch_wait: 
-        @param check_interval: 
-        @param timeout: 
-        @return: 
+        Wait till {epoch_to_wait} to come, if {epoch_to_wait} is None, just wait till next epoch
+        @param epoch_to_wait: number of epoch to wait
+        @param block_of_epoch: the n(th) block of epoch, default is the first block
+        @param node: Node object, node to get info from to wait
+        @return: current epoch number and beacon height
         """
         from Objects.IncognitoTestCase import SUT
-        check_interval = ChainConfig.get_epoch_time() if check_interval is None else check_interval
-        blk_chain_info = SUT().get_block_chain_info()
+        from Objects.NodeObject import Node
+        node: Node = SUT() if not node else node
+        blk_chain_info = node.get_block_chain_info()
         current_epoch = blk_chain_info.get_beacon_block().get_epoch()
-        epoch_wait = current_epoch + 1 if epoch_wait is None else epoch_wait
-        INFO(f'Wait until epoch {epoch_wait}, check every {check_interval}s, timeout {timeout}s')
-        if current_epoch >= epoch_wait:
-            return current_epoch
-        time_start = time.perf_counter()
-        while current_epoch < epoch_wait:
-            WAIT(check_interval)
-            blk_chain_info = SUT().get_block_chain_info()
-            current_epoch = blk_chain_info.get_beacon_block().get_epoch()
-            if current_epoch == epoch_wait:
-                INFO(f"Now epoch = {current_epoch}")
-                return current_epoch
-            time_current = time.perf_counter()
-            if time_current - time_start > timeout:
-                INFO('Timeout')
-                return None
-
-
-def calculate_contribution(token_1_contribute_amount, token_2_contribute_amount, current_rate: list):
-    """
-
-    @param token_1_contribute_amount:
-    @param token_2_contribute_amount:
-    @param current_rate: [token1_pool, token2_pool]
-    @return: (actual_contrib_amount1,  actual_contrib_amount2, refund_amount1, refund_amount2)
-    """
-    pool_token_1 = current_rate[0]
-    pool_token_2 = current_rate[1]
-    if current_rate != [0, 0]:
-        actual_contribution_token1 = min(token_1_contribute_amount,
-                                         int(token_2_contribute_amount * pool_token_1 / pool_token_2))
-        print(f"actual_contribution_token1 in min: {actual_contribution_token1}")
-
-        actual_contribution_token2 = int(actual_contribution_token1 * pool_token_2 / pool_token_1)
-        print(f"actual_contribution_token2 in mul: {actual_contribution_token2}")
-
-        if actual_contribution_token1 == token_1_contribute_amount:
-            actual_contribution_token1 = int(actual_contribution_token2 * pool_token_1 / pool_token_2)
-            print(f"actual_contribution_token1 in iff: {actual_contribution_token1}")
-
-        refund_token1 = token_1_contribute_amount - actual_contribution_token1
-        refund_token2 = token_2_contribute_amount - actual_contribution_token2
-        return actual_contribution_token1, actual_contribution_token2, refund_token1, refund_token2
-    else:
-        print('Current rate is [0:0], first time contribute, take all, return none of it')
-        return token_1_contribute_amount, token_2_contribute_amount, 0, 0
-
-
-def calculate_actual_trade_received(trade_amount, pool_token_sell, pool_token_buy):
-    """
-    @param trade_amount:
-    @param pool_token_sell:
-    @param pool_token_buy:
-    @return:
-    """
-    print(f'amount, pool sell-buy: {trade_amount}, {pool_token_sell} - {pool_token_buy}')
-    remain = (pool_token_buy * pool_token_sell) / (trade_amount + pool_token_sell)
-    print("-remain before mod: " + str(remain))
-    if (pool_token_buy * pool_token_sell) % (trade_amount + pool_token_sell) != 0:
-        remain = int(remain) + 1
-        print("-remain after mod: " + str(remain))
-
-    received_amount = pool_token_buy - remain
-    print("-expecting received amount: " + str(received_amount))
-    return received_amount
-
-
-def calculate_actual_reward(total_tx_fee, block_on_epoch, max_shard_committee, number_active_shard, number_of_beacon,
-                            basic_reward=400000000):
-    """
-    Function to calculate reward on a node and DAO
-
-    @param total_tx_fee:
-    @param block_on_epoch: block on epoch
-    @param basic_reward: basic reward by default is 400000000 nanoPRV
-    @param max_shard_committee: max shard committee
-    @param number_active_shard: number active of shard
-    @param number_of_beacon: number of beacon
-    @return: reward_dao_receive, reward_on_node_in_shard, reward_of_beacon
-    """
-    total_reward_on_epoch = block_on_epoch * basic_reward + total_tx_fee
-    print(f"Total reward received on a epoch: {total_reward_on_epoch}")
-
-    reward_dao = (total_reward_on_epoch * 10) / 100  # 10% of total reward received on a epoch
-    print(f"Total reward of DAO: {reward_dao}")
-
-    total_reward_remain = total_reward_on_epoch - reward_dao
-
-    reward_of_all_beacons = (2 * total_reward_remain) / (number_active_shard + 2)
-    print(f"The reward of all beacons: {reward_of_all_beacons}")
-
-    reward_a_shard = total_reward_remain - reward_of_all_beacons
-    print(f"The reward of a shard: {reward_a_shard}")
-
-    reward_on_node_in_shard = reward_a_shard / max_shard_committee
-    print(f"The reward of a node in shard: {reward_on_node_in_shard}")
-
-    reward_of_a_beacon = reward_of_all_beacons / number_of_beacon
-    print(f"The reward of a beacon: {reward_of_a_beacon}")
-
-    return reward_dao, reward_on_node_in_shard, reward_of_a_beacon
+        current_height = blk_chain_info.get_beacon_block().get_height()
+        num_o_block_till_next_stop = blk_chain_info.get_beacon_block().get_remaining_block_epoch() + block_of_epoch
+        time_till_next_epoch = ChainConfig.get_epoch_n_block_time(0, num_o_block_till_next_stop)
+        time_to_wait = ChainConfig.get_epoch_n_block_time(epoch_to_wait - 1) + time_till_next_epoch
+        INFO(f'Current height = {current_height} @ epoch = {current_epoch}. '
+             f'Wait {time_to_wait}s until epoch {current_epoch + epoch_to_wait} and B height {block_of_epoch}')
+        WAIT(time_to_wait)
+        blk_chain_info = node.get_block_chain_info()
+        return blk_chain_info.get_epoch_number(), blk_chain_info.get_beacon_block().get_height()
 
 
 def get_beacon_best_state_detail(number_of_beacon_height_to_get=100, wait=5, timeout=50):

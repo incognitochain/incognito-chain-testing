@@ -23,12 +23,12 @@ def setup_function():
 
 @pytest.mark.parametrize("token, percent, waiting_redeem, expected", [
     # BNB
-    (PBNB_ID, 1.6, False, 'ok'),
-    (PBNB_ID, 1.7, False, 'ok'),
-    (PBNB_ID, 1.4, False, 'ok'),
-    (PBNB_ID, 1.21, False, 'ok'),
-    (PBNB_ID, 1.2, False, 'liquidated'),
-    (PBNB_ID, 0.99, False, 'liquidated'),
+    # (PBNB_ID, 1.6, False, 'ok'),
+    # (PBNB_ID, 1.7, False, 'ok'),
+    # (PBNB_ID, 1.4, False, 'ok'),
+    # (PBNB_ID, 1.21, False, 'ok'),
+    # (PBNB_ID, 1.2, False, 'liquidated'),
+    (PBNB_ID, 0.97, False, 'liquidated'),
 
     # BTC, not yet support testing, just list the cases here. Also need to check setup_function when do the tests
     # (PBTC_ID, 1.6, False, 'ok'),
