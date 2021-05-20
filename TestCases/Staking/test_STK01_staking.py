@@ -19,7 +19,8 @@ from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
-from TestCases.Staking import account_x, amount_token_send, amount_token_fee, account_y, account_t, list_acc_x_shard, token_receiver
+from TestCases.Staking import account_x, amount_token_send, amount_token_fee, account_y, account_t, list_acc_x_shard, \
+    token_receiver
 
 
 @pytest.mark.parametrize("the_stake, validator, reward_receiver, auto_re_stake", [
@@ -130,10 +131,10 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     prv_bal_b4_withdraw_reward = reward_receiver.get_prv_balance()
     prv_reward_amount = reward_receiver.stk_get_reward_amount()
     assert prv_reward_amount > 0, 'User has no PRV reward while expecting some'
-    reward_receiver.stk_withdraw_reward_to_me().subscribe_transaction()
+    fee = reward_receiver.stk_withdraw_reward_to_me().subscribe_transaction().get_fee()
     prv_bal_after_withdraw_reward = reward_receiver.wait_for_balance_change(from_balance=prv_bal_b4_withdraw_reward)
     INFO(f'Expect reward amount to received {prv_reward_amount}')
-    assert prv_bal_b4_withdraw_reward + prv_reward_amount == prv_bal_after_withdraw_reward
+    assert prv_bal_b4_withdraw_reward + prv_reward_amount - fee == prv_bal_after_withdraw_reward
 
     STEP(8.2, 'Withdraw token reward and verify balance')
     all_reward_b4 = reward_receiver.stk_get_reward_amount_all_token()
@@ -144,7 +145,8 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         INFO(f'Expect reward amount to received {token_reward_amount}')
         assert token_reward_amount > 0, 'User has no token reward while expecting some'
         reward_receiver.stk_withdraw_reward_to_me(token_id).subscribe_transaction()
-        token_bal_after_withdraw_reward = reward_receiver.wait_for_balance_change(token_id, from_balance=token_bal_b4_withdraw_reward)
+        token_bal_after_withdraw_reward = reward_receiver. \
+            wait_for_balance_change(token_id, from_balance=token_bal_b4_withdraw_reward)
         assert prv_bal_b4_withdraw_reward == reward_receiver.get_prv_balance()
         assert token_bal_b4_withdraw_reward == token_bal_after_withdraw_reward - token_reward_amount
 

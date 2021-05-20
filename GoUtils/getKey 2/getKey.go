@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 
 	"github.com/incognitochain/incognito-chain/incognitokey"
 
@@ -52,19 +52,21 @@ func main() {
 	privateSeedStr := base58.Base58Check{}.Encode(privateSeedBytes, common.Base58Version)
 	miningKey, _ := committeePubKey.GetMiningKey(common.BlsConsensus)
 	miningKeyStr := base58.Base58Check{}.Encode(miningKey, common.Base58Version)
-
-	shardID := common.GetShardIDFromLastByte(keyWallet.KeySet.PaymentAddress.Pk[len(keyWallet.KeySet.PaymentAddress.Pk) - 1])
+	viewingKeyStr := keyWallet.Base58CheckSerialize(wallet.ReadonlyKeyType)
+	otaKeyStr := keyWallet.Base58CheckSerialize(wallet.OTAKeyType)
+	shardID := common.GetShardIDFromLastByte(keyWallet.KeySet.PaymentAddress.Pk[len(keyWallet.KeySet.PaymentAddress.Pk)-1])
 
 	fmt.Println("Incognito Private Key: ", privateKeyStr)
 	fmt.Println("Incognito Public Key: ", publicKey)
 	fmt.Println("Incognito Payment Address: ", paymentAddrStr)
 	fmt.Println("Incognito Viewing Key (ReadOnlykey): ", readOnlyKeyStr)
 	fmt.Println("ShardID of Incognito account: ", shardID)
-
 	fmt.Println("Private Seed (Validatorkey):         ", privateSeedStr)
 	fmt.Println("BLS public key:       ", committeePubKey.GetMiningKeyBase58(common.BlsConsensus))
 	fmt.Println("Bridge public key:    ", committeePubKey.GetMiningKeyBase58(common.BridgeConsensus))
 	fmt.Println("Mining Public Key (BLS+DSA): ", miningKeyStr)
 	fmt.Println("Committee Public Key: ", committeeKeyStr)
+	fmt.Println("View Key: ", viewingKeyStr)
+	fmt.Println("OTA Key: ", otaKeyStr)
 
 }

@@ -31,7 +31,7 @@ _sys_out_handler.setLevel(log_level_console)
 LOGGERS = {}
 
 
-def _log():
+def _log(logger_name=None):
     """
     Level       Numeric value
     ----------------------------
@@ -42,57 +42,54 @@ def _log():
     DEBUG       10
     NOTSET      0
     """
-
-    # Gets the name of the class / method from where this method is called
-    logger_name = os.path.basename(inspect.stack()[2][1])[:20]
-    try:
-        return LOGGERS[logger_name]
-    except (KeyError, AttributeError):
-        pass
+    if not logger_name:
+        # Gets the name of the class / method from where this method is called
+        logger_name = os.path.basename(inspect.stack()[2][1])[:20]
     line = {'line': inspect.stack()[2][2]}
-    logger = logging.getLogger(logger_name)
-    # By default, log all messages
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(_file_handler_full)
-    logger.addHandler(_file_handler_short)
-    logger.addHandler(_sys_out_handler)
-
-    logger = logging.LoggerAdapter(logger, line)
-    LOGGERS[logger_name] = logger
-    return logger
-
-
-def DEBUG(msg):
-    _log().debug(msg)
+    try:
+        logger = LOGGERS[logger_name]
+    except (KeyError, AttributeError):
+        logger = logging.getLogger(logger_name)
+        # By default, log all messages
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(_file_handler_full)
+        logger.addHandler(_file_handler_short)
+        logger.addHandler(_sys_out_handler)
+        LOGGERS[logger_name] = logger
+    return logging.LoggerAdapter(logger, line)
 
 
-def INFO(msg=None):
+def DEBUG(msg, logger_name=None):
+    _log(logger_name).debug(msg)
+
+
+def INFO(msg=None, logger_name=None):
     if msg is None:
         msg = _FMT_CHR * _FMT_WIDTH
-    _log().info(msg)
+    _log(logger_name).info(msg)
     return True
 
 
-def WARNING(msg):
-    _log().warning(msg)
+def WARNING(msg, logger_name=None):
+    _log(logger_name).warning(msg)
 
 
-def ERROR(msg):
-    _log().error(msg)
+def ERROR(msg, logger_name=None):
+    _log(logger_name).error(msg)
 
 
-def CRITICAL(msg):
-    _log().critical(msg)
+def CRITICAL(msg, logger_name=None):
+    _log(logger_name).critical(msg)
 
 
-def INFO_HEADLINE(msg):
+def INFO_HEADLINE(msg, logger_name=None):
     l_msg = len(msg)
     width = l_msg + 6 if l_msg > _FMT_WIDTH else _FMT_WIDTH
     mid = int(((width - 6 + l_msg) / 2))
     end = width - mid - 4
     fmt_str = _FMT_CHR * width
     new_msg = ('\n{}\n{} {:>%d} {:>%d}\n{}' % (mid, end)).format(fmt_str, '||', msg, '||', fmt_str)
-    INFO(new_msg)
+    _log(logger_name).info(new_msg)
 
 
 def STEP(num, msg, *args, **kws):

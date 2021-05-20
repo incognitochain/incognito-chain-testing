@@ -60,8 +60,8 @@ def test_init_ptoken():
     pair_id = f"token_prv_{random.randrange(1000, 10000)}"
 
     STEP(1, "Initial new token")
-    step1_result = account_init.init_custom_token_self(custom_token_symbol, token_init_amount)
-
+    step1_result = account_init.init_custom_token_new_flow(token_init_amount)
+    # step1_result = account_init.init_custom_token(token_init_amount, custom_token_symbol)
     step1_result.expect_no_error()
 
     global custom_token_id
@@ -72,7 +72,7 @@ def test_init_ptoken():
     step1_result.subscribe_transaction()
 
     STEP(3, "Get custom token balance")
-    token_balance = account_init.get_token_balance(custom_token_id)
+    token_balance = account_init.wait_for_balance_change(custom_token_id)
     INFO(f"Token balance: {token_balance}")
     assert token_balance == token_init_amount
 

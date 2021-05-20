@@ -30,6 +30,8 @@ def get_key_set_from_private_k(private_k, version=Constants.TestConfig.KEY_VERSI
                 bridge_public_k,
                 mining_public_k,
                 committee_public_k,
+                view_k,
+                ota_k,
                 shard_id)
     """
     try:
@@ -53,7 +55,10 @@ def get_key_set_from_private_k(private_k, version=Constants.TestConfig.KEY_VERSI
         __get_key_from_output(stdout, 'Bridge public key'),
         __get_key_from_output(stdout, 'Mining Public Key'),
         __get_key_from_output(stdout, 'Committee Public Key'),
-        int(__get_key_from_output(stdout, 'ShardID'))
+        __get_key_from_output(stdout, 'View Key'),
+        __get_key_from_output(stdout, 'OTA Key'),
+        int(__get_key_from_output(stdout, 'ShardID')),
+
     )
 
 

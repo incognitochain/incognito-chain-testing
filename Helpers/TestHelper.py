@@ -342,9 +342,7 @@ def get_shard_best_state(shard_id, number_of_shard_height_to_get=100, wait=5, ti
     return list_shard_best_state_objs
 
 
-def make_random_word(word_min_len=None, word_max_len=None):
-    word_min_len = 3 if word_min_len is None else word_min_len
-    word_max_len = 8 if word_max_len is None else word_max_len
+def make_random_word(word_min_len=3, word_max_len=8):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=random.randint(word_min_len, word_max_len)))
 
 

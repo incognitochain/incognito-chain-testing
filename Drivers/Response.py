@@ -1,32 +1,23 @@
-import json
 import re
 from abc import ABC
 
 from websocket import WebSocketTimeoutException, WebSocketBadStatusException
 
-import Helpers.Logging as Log
 from Configs.Constants import ChainConfig
+from Drivers import ResponseBase
 from Helpers.Logging import INFO, WARNING
 from Helpers.Time import WAIT
 from Objects.TransactionObjects import TransactionDetail
 
 
-class Response:
+class Response(ResponseBase):
     def __init__(self, response=None, more_info=None, handler=None):
-        self.response = response
-        self.more_info = more_info
-        if more_info is not None:
-            Log.DEBUG(more_info)
-        if response is not None:
-            Log.DEBUG(self.__str__())
+        super().__init__(response, more_info)
         if handler:
             self.__handler = handler
         else:
             from Objects.IncognitoTestCase import SUT
             self.__handler = SUT()
-
-    def __str__(self):
-        return f'\n{json.dumps(self.data(), indent=3)}'
 
     def req_to(self, node):
         self.__handler = node
@@ -51,14 +42,6 @@ class Response:
             assert (expecting_error in error_msg or expecting_error in trace_msg), \
                 f'Expecting: {expecting_error}. Instead got: {error_msg} | {trace_msg}'
         return self
-
-    def data(self):
-        try:
-            if type(self.response) is str:
-                return json.loads(self.response)  # response from WebSocket
-            return json.loads(self.response.text)  # response from rpc
-        except Exception as e:
-            print(f'+++ {self.response.text} \n {e}')
 
     def params(self):
         return Response.Params(self.data()["Params"])
@@ -88,14 +71,6 @@ class Response:
             if k == str(string):
                 return True
         return False
-
-    def get_result(self, string=None):
-        try:
-            if string is None:
-                return self.data()['Result']
-            return self.data()['Result'][string]
-        except(KeyError, TypeError):
-            return None
 
     def get_tx_id(self):
         return self.get_result("TxID")
@@ -256,20 +231,20 @@ class Response:
 
     class StackTrace:
         def __init__(self, stack_string):
-            self.stack_string = stack_string
+            self.stack_string = stack_string.strip()
 
         def __str__(self):
             return self.stack_string
 
         def get_error_codes(self):
-            code_list = re.findall("(-[0-9]\\w+: )", self.stack_string)
-            return ''.join([str(elem) for elem in code_list])
+            code_list = re.findall("(-[0-9]+: )", self.stack_string)
+            return (''.join([str(elem) for elem in code_list])).strip()
 
         def get_message(self):
             try:
                 i_start = len(self.get_error_codes())
                 i_end = str.index(self.stack_string, 'github.com')
-                return str(self.stack_string[i_start:i_end])
+                return str(self.stack_string[i_start:i_end]).strip()
             except ValueError:
                 return str(self.stack_string)
 

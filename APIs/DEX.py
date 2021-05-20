@@ -4,43 +4,37 @@ from Configs.Constants import PRV_ID, BURNING_ADDR
 
 
 class DexRpc(BaseRpcApi):
-    def contribute_prv(self, private_key, payment_address, amount_to_contribute, contribution_pair_id):
+    def contribute_prv(self, private_key, payment_address, amount_to_contribute, contribution_pair_id, tx_ver):
         return self.rpc_connection.with_method("createandsendtxwithprvcontribution"). \
             with_params([private_key,
-                         {
-                             Const.BURNING_ADDR: amount_to_contribute
-                         },
-                         100, -1,
+                         {Const.BURNING_ADDR: amount_to_contribute}, 100, -1,
                          {
                              "PDEContributionPairID": contribution_pair_id,
-                             "ContributorAddressStr":
-                                 payment_address,
+                             "ContributorAddressStr": payment_address,
                              "ContributedAmount": amount_to_contribute,
-                             "TokenIDStr": Const.PRV_ID
+                             "TokenIDStr": Const.PRV_ID,
+                             "TxVersion": tx_ver
                          }
                          ]). \
             execute()
 
-    def contribute_prv_v2(self, private_key, payment_address, amount_to_contribute, contribution_pair_id):
+    def contribute_prv_v2(self, private_key, payment_address, amount_to_contribute, contribution_pair_id, tx_ver=2):
         amount_to_contribute = str(amount_to_contribute)
         return self.rpc_connection.with_method("createandsendtxwithprvcontributionv2"). \
             with_params([private_key,
-                         {
-                             Const.BURNING_ADDR: amount_to_contribute
-                         },
-                         100, 0,
+                         {Const.BURNING_ADDR: amount_to_contribute}, 100, 0,
                          {
                              "PDEContributionPairID": contribution_pair_id,
-                             "ContributorAddressStr":
-                                 payment_address,
+                             "ContributorAddressStr": payment_address,
                              "ContributedAmount": amount_to_contribute,
-                             "TokenIDStr": Const.PRV_ID
+                             "TokenIDStr": Const.PRV_ID,
+                             "TxVersion": tx_ver
                          }
                          ]). \
             execute()
 
     def contribute_token(self, private_key, payment_address, token_id_to_contribute, amount_to_contribute,
-                         contribution_pair_id):
+                         contribution_pair_id, tx_ver=2):
         return self.rpc_connection. \
             with_method("createandsendtxwithptokencontribution"). \
             with_params([private_key,
@@ -59,14 +53,15 @@ class DexRpc(BaseRpcApi):
                              "PDEContributionPairID": contribution_pair_id,
                              "ContributorAddressStr": payment_address,
                              "ContributedAmount": amount_to_contribute,
-                             "TokenIDStr": token_id_to_contribute
+                             "TokenIDStr": token_id_to_contribute,
+                             "TxVersion": tx_ver
                          },
                          "", 0
                          ]). \
             execute()
 
     def contribute_token_v2(self, private_key, payment_address, token_id_to_contribute, amount_to_contribute,
-                            contribution_pair_id):
+                            contribution_pair_id, tx_ver):
         amount_to_contribute = str(amount_to_contribute)
         return self.rpc_connection. \
             with_method("createandsendtxwithptokencontributionv2"). \
@@ -86,21 +81,19 @@ class DexRpc(BaseRpcApi):
                              "PDEContributionPairID": contribution_pair_id,
                              "ContributorAddressStr": payment_address,
                              "ContributedAmount": amount_to_contribute,
-                             "TokenIDStr": token_id_to_contribute
+                             "TokenIDStr": token_id_to_contribute,
+                             "TxVersion": tx_ver
                          },
                          "", 0
                          ]). \
             execute()
 
     def trade_token(self, private_key, payment_address, token_id_to_sell, amount_to_sell, token_id_to_buy,
-                    min_amount_to_buy, trading_fee=0):
+                    min_amount_to_buy, trading_fee=0, tx_ver=2):
         total_amount = amount_to_sell + trading_fee
         return self.rpc_connection. \
             with_method("createandsendtxwithptokentradereq"). \
-            with_params([private_key,
-                         None,
-                         2,
-                         -1,
+            with_params([private_key, None, 2, -1,
                          {
                              "Privacy": True,
                              "TokenID": token_id_to_sell,
@@ -118,16 +111,12 @@ class DexRpc(BaseRpcApi):
                              "SellAmount": amount_to_sell,
                              "MinAcceptableAmount": min_amount_to_buy,
                              "TradingFee": trading_fee,
-                             "TraderAddressStr":
-                                 payment_address
-                         },
-                         "",
-                         0
-                         ]). \
-            execute()
+                             "TraderAddressStr": payment_address,
+                             "TxVersion": tx_ver
+                         }, "", 0]).execute()
 
     def trade_token_v2(self, private_k, payment_k, token_to_sell, amount_to_sell, token_to_buy, trading_fee,
-                       min_acceptable_amount=1):
+                       min_acceptable_amount=1, tx_ver=2):
         return self.rpc_connection.with_method('createandsendtxwithptokencrosspooltradereq').with_params([
             private_k,
             {
@@ -149,30 +138,29 @@ class DexRpc(BaseRpcApi):
                 "SellAmount": str(amount_to_sell),
                 "MinAcceptableAmount": str(min_acceptable_amount),
                 "TradingFee": str(trading_fee),
-                "TraderAddressStr": payment_k
+                "TraderAddressStr": payment_k,
+                "TxVersion": tx_ver,
             }, "", 0
         ]).execute()
 
-    def trade_prv(self, private_key, payment_address, amount_to_sell, token_id_to_buy, min_amount_to_buy, trading_fee):
+    def trade_prv(self, private_key, payment_address, amount_to_sell, token_id_to_buy, min_amount_to_buy, trading_fee,
+                  tx_ver=2):
         return self.rpc_connection. \
             with_method("createandsendtxwithprvtradereq"). \
             with_params([private_key,
-                         {
-                             Const.BURNING_ADDR: amount_to_sell + trading_fee
-                         }, -1, -1,
+                         {Const.BURNING_ADDR: amount_to_sell + trading_fee}, -1, -1,
                          {
                              "TokenIDToBuyStr": token_id_to_buy,
                              "TokenIDToSellStr": Const.PRV_ID,
                              "SellAmount": amount_to_sell,
                              "MinAcceptableAmount": min_amount_to_buy,
                              "TraderAddressStr": payment_address,
-                             "TradingFee": trading_fee
-                         }
-                         ]). \
-            execute()
+                             "TradingFee": trading_fee,
+                             "TxVersion": tx_ver
+                         }]).execute()
 
     def trade_prv_v2(self, private_k, payment_k, amount_to_sell, token_to_buy, trading_fee, acceptable_amount=1,
-                     burn_amount=None):
+                     burn_amount=None, tx_ver=2):
         if burn_amount is None:
             burn_amount = amount_to_sell + trading_fee
         return self.rpc_connection.with_method('createandsendtxwithprvcrosspooltradereq').with_params([
@@ -186,11 +174,13 @@ class DexRpc(BaseRpcApi):
                 "SellAmount": str(amount_to_sell),
                 "MinAcceptableAmount": str(acceptable_amount),
                 "TradingFee": str(trading_fee),
-                "TraderAddressStr": payment_k
+                "TraderAddressStr": payment_k,
+                "TxVersion": tx_ver
             }
         ]).execute()
 
-    def withdrawal_contribution(self, private_key, payment_address, token_id_1, token_id_2, amount_withdrawal):
+    def withdrawal_contribution(self, private_key, payment_address, token_id_1, token_id_2, amount_withdrawal,
+                                tx_ver=2):
         return self.rpc_connection. \
             with_method("createandsendtxwithwithdrawalreq"). \
             with_params([private_key,
@@ -201,7 +191,8 @@ class DexRpc(BaseRpcApi):
                              "WithdrawerAddressStr": payment_address,
                              "WithdrawalToken1IDStr": token_id_1,
                              "WithdrawalToken2IDStr": token_id_2,
-                             "WithdrawalShareAmt": amount_withdrawal
+                             "WithdrawalShareAmt": amount_withdrawal,
+                             "TxVersion": tx_ver
                          }
                          ]). \
             execute()
@@ -237,7 +228,7 @@ class DexRpc(BaseRpcApi):
                          }]). \
             execute()
 
-    def withdraw_reward_v2(self, private_k, payment_k, token1, token2, amount):
+    def withdraw_reward_v2(self, private_k, payment_k, token1, token2, amount, tx_ver=2):
         return self.rpc_connection. \
             with_method('createandsendtxwithpdefeewithdrawalreq'). \
             with_params([private_k, None, -1, 0,
@@ -245,7 +236,8 @@ class DexRpc(BaseRpcApi):
                              "WithdrawerAddressStr": payment_k,
                              "WithdrawalToken1IDStr": token1,
                              "WithdrawalToken2IDStr": token2,
-                             "WithdrawalFeeAmt": str(amount)
+                             "WithdrawalFeeAmt": str(amount),
+                             "TxVersion": tx_ver
                          }
                          ]). \
             execute()

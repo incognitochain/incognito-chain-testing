@@ -29,6 +29,8 @@ try:
 except IndexError:
     raise EnvironmentError(f'Not enough staker in keylist file for the test. '
                            f'Check the file, and make sure nodes are run or else chain will be stuck')
+
+COIN_MASTER.top_up_if_lower_than([account_x, account_y, account_a, account_u, account_t], coin(1), coin(5))
 token_receiver = Account(
     '112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA')
 list_acc_x_shard = {}
@@ -47,7 +49,7 @@ token_init_amount = coin(100000)
 token_contribute_amount = coin(10000)
 prv_contribute_amount = coin(10000)
 # setup_module function below will check if this token is existed in chain, if not, init new token
-token_id = '8c4a05c7dc9cd3949f9bbf41b56198be5478004f739bebbd92368706431d7ee5'
+token_id = 'f56eea68d0c1f356a5bf83d58fd755fddf51a15716901ecf97828896d8081f4f_'
 tear_down_trx008 = False
 
 

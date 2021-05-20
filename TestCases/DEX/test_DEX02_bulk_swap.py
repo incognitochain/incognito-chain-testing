@@ -179,6 +179,8 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     INFO(f"rate {l6(token_sell)} vs {token_buy[-6:]} - Before Trade    : {str(rate_before)}")
     INFO(f"rate {l6(token_sell)} vs {token_buy[-6:]} - After Trade     : {str(rate_after)}")
     INFO(f"rate {l6(token_sell)} vs {token_buy[-6:]} - Calculated Trade: {str(calculated_rate)}")
-    assert calculated_rate == rate_after and INFO("Pair Rate is correct"), "Pair Rate is WRONG after Trade"
+    for pool1, pool2 in zip(calculated_rate, rate_after):
+        assert abs(pool1 - pool2) <= 1 and INFO("Pair Rate is correct"), \
+            f"Pair Rate is WRONG after Trade"
     assert buy_false == [], f'Received_False at {buy_false}'
     assert sell_false == [], f'Trade_False at {sell_false}'

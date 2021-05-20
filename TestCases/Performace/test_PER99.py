@@ -13,7 +13,7 @@ from Objects.AccountObject import Account, COIN_MASTER
 from Objects.IncognitoTestCase import ACCOUNTS, SUT
 
 LOOP = 1
-TX_PER_LOOP = 200
+TX_PER_LOOP = 400
 GAP_BETWEEN_LOOP = 1
 SEND_AMOUNT = random.randrange(1000, 100000)
 
@@ -45,8 +45,7 @@ def prepare_proof_1_shard_self_send(fee, privacy):
     senders = ACCOUNTS[shard][:num_of_proofs()]
     # for acc in senders:
     #     SUT().transaction().submit_key(acc.private_key)
-    # breakpoint()
-    # COIN_MASTER.top_him_up_prv_to_amount_if(coin(3), coin(5), senders)
+    # COIN_MASTER.top_up_if_lower_than(senders, coin(3), coin(5))
     INFO_HEADLINE(f' PREPARE TEST DATA, 1 SHARD TX, SHARD {shard}')
     return create_proofs(senders, senders, fee, privacy)
 
@@ -61,7 +60,7 @@ def prepare_proof_1_shard_in_1_shard(fee, privacy):
                          f"but there's only {num_of_acc} Account in shard {shard}")
     senders__ = ACCOUNTS[shard][:num_of_proofs()]
     receivers = ACCOUNTS[shard][-num_of_proofs():]
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(3), coin(5), senders__)
+    COIN_MASTER.top_up_if_lower_than(senders__, coin(3), coin(5))
     INFO_HEADLINE(f' PREPARE TEST DATA, 1 SHARD TX, SHARD {shard}')
     return create_proofs(senders__, receivers, fee, privacy)
 
@@ -80,7 +79,7 @@ def prepare_proof_x_shard_from_1_shard(fee, privacy):
                          f"but there's only {num_of_acc_send} Account send and {num_of_acc_rece} Account receive")
     senders__ = ACCOUNTS[send____shard][:num_of_proofs()]
     receivers = ACCOUNTS[receive_shard][:num_of_proofs()]
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(3), coin(5), senders__)
+    COIN_MASTER.top_up_if_lower_than(senders__, coin(3), coin(5))
     INFO_HEADLINE(f' PREPARE TEST DATA, X SHARD TX, from SHARD {send____shard} -> {receive_shard}')
     return create_proofs(senders__, receivers, fee, privacy)
 

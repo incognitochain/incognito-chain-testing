@@ -57,7 +57,6 @@ class Account:
 
     def __init__(self, private_key=None, payment_k=None, handler=None, **kwargs):
         """
-
         @param private_key: private key of this account,
          other keys will be generated automatically if payment_k is not specified
         @param payment_k: payment key of this account, if specified along with private key, other keys will not
@@ -75,6 +74,8 @@ class Account:
             self.bls_public_k = \
             self.bridge_public_k = \
             self.mining_public_k = \
+            self.ota_k = \
+            self.view_k = \
             self.committee_public_k = None
         self.shard = kwargs.get('shard')
         self.cache = {}
@@ -86,7 +87,8 @@ class Account:
 
         if private_key and not payment_k:  # generate all key from private key if there's privatekey but not paymentkey
             self.private_key, self.payment_key, self.public_key, self.read_only_key, self.validator_key, \
-            self.bls_public_k, self.bridge_public_k, self.mining_public_k, self.committee_public_k, self.shard = \
+            self.bls_public_k, self.bridge_public_k, self.mining_public_k, self.committee_public_k, \
+            self.view_k, self.ota_k, self.shard = \
                 get_key_set_from_private_k(private_key)
 
     @property
@@ -326,9 +328,9 @@ class Account:
         INFO(
             f'{l6(self.private_key)} Stake for {l6(validator.validator_key)} and reward: {l6(receiver_reward.payment_key)}')
         return self.REQ_HANDLER.transaction(). \
-            create_and_send_staking_transaction(self.private_key, validator.payment_key,
-                                                validator.validator_key,
-                                                receiver_reward.payment_key, stake_amount, auto_re_stake)
+            create_and_send_staking_transaction(self.private_key, validator.payment_key, validator.validator_key,
+                                                receiver_reward.payment_key, stake_amount, auto_re_stake,
+                                                TestConfig.TX_VER)
 
     def stake_and_reward_me(self, stake_amount=None, auto_re_stake=True):
         """
@@ -345,7 +347,7 @@ class Account:
 
         return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, self.payment_key, self.validator_key,
-                                                self.payment_key, stake_amount, auto_re_stake)
+                                                self.payment_key, stake_amount, auto_re_stake, TestConfig.TX_VER)
 
     def stake_someone_reward_me(self, someone, stake_amount=None):
         """
@@ -649,20 +651,20 @@ class Account:
             self.private_key,
             timeout)
 
-    def init_custom_token_self(self, token_symbol, amount, receiver=None):
+    def init_custom_token(self, amount, token_symbol=None, receiver=None):
         """
         Init custom token to self payment address
 
+        @param receiver:
         @param token_symbol:
         @param amount
         @return:
         """
         receiver = self.payment_key if receiver is None else KeyExtractor.incognito_addr(receiver)
+        token_symbol = TestHelper.make_random_word(15, 20) if not token_symbol else token_symbol
         INFO(f'Init custom token to self: {self.payment_key}')
 
-        return self.REQ_HANDLER.transaction().init_custom_token(self.private_key, receiver,
-                                                                token_symbol,
-                                                                amount)
+        return self.REQ_HANDLER.transaction().init_custom_token(self.private_key, receiver, token_symbol, amount)
 
     def init_custom_token_new_flow(self, amount, token_name=None, token_symbol=None):
         """
@@ -705,35 +707,32 @@ class Account:
         INFO(f'{l6(self.private_key)} Contribute token: {l6(contribute_token_id)}, amount = {amount}, '
              f'pair id = {contribution_pair_id}')
 
-        return self.REQ_HANDLER.dex().contribute_token(self.private_key, self.payment_key,
-                                                       contribute_token_id,
-                                                       amount, contribution_pair_id)
+        return self.REQ_HANDLER.dex().contribute_token(self.private_key, self.payment_key, contribute_token_id, amount,
+                                                       contribution_pair_id, TestConfig.TX_VER)
 
     def pde_contribute_token_v2(self, contribute_token_id, amount, contribution_pair_id):
         INFO(f'{l6(self.private_key)} Contribute token V2: {l6(contribute_token_id)}, amount = {amount}, '
              f'pair id = {contribution_pair_id}')
 
-        return self.REQ_HANDLER.dex().contribute_token_v2(self.private_key, self.payment_key,
-                                                          contribute_token_id,
-                                                          amount, contribution_pair_id)
+        return self.REQ_HANDLER.dex().contribute_token_v2(self.private_key, self.payment_key, contribute_token_id,
+                                                          amount, contribution_pair_id, TestConfig.TX_VER)
 
     def pde_contribute_prv(self, amount, contribution_pair_id):
         INFO(f'{l6(self.private_key)} Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
 
         return self.REQ_HANDLER.dex().contribute_prv(self.private_key, self.payment_key, amount,
-                                                     contribution_pair_id)
+                                                     contribution_pair_id, TestConfig.TX_VER)
 
     def pde_contribute_prv_v2(self, amount, contribution_pair_id):
         INFO(f'{l6(self.private_key)} Contribute PRV V2, amount: {amount}, pair id = {contribution_pair_id}')
 
         return self.REQ_HANDLER.dex().contribute_prv_v2(self.private_key, self.payment_key, amount,
-                                                        contribution_pair_id)
+                                                        contribution_pair_id, TestConfig.TX_VER)
 
     def pde_withdraw_contribution(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw PDE contribution {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
         return self.REQ_HANDLER.dex().withdrawal_contribution(self.private_key, self.payment_key,
-                                                              token_id_1,
-                                                              token_id_2, amount)
+                                                              token_id_1, token_id_2, amount, TestConfig.TX_VER)
 
     def pde_withdraw_contribution_v2(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw PDE contribution v2 {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
@@ -743,7 +742,7 @@ class Account:
     def pde_withdraw_reward_v2(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw PDE reward v2 {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
         return self.REQ_HANDLER.dex().withdraw_reward_v2(self.private_key, self.payment_key, token_id_1,
-                                                         token_id_2, amount)
+                                                         token_id_2, amount, TestConfig.TX_VER)
 
     def pde_contribute_pair_v2(self, pair_dict: dict):
         """
@@ -942,15 +941,14 @@ class Account:
              f'Trade {sell_amount} of token {token_id_to_sell[-6:]} for {token_id_to_buy[-6:]} '
              f'trading fee={trading_fee}')
         return self.REQ_HANDLER.dex().trade_token(self.private_key, self.payment_key, token_id_to_sell,
-                                                  sell_amount,
-                                                  token_id_to_buy, min_amount_to_buy, trading_fee)
+                                                  sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee,
+                                                  tx_ver=TestConfig.TX_VER)
 
     def pde_trade_prv(self, amount_to_sell, token_id_to_buy, min_amount_to_buy, trading_fee=0):
         INFO(f'User {l6(self.payment_key)}: '
              f'Trade {amount_to_sell} of PRV for {token_id_to_buy[-6:]}')
         return self.REQ_HANDLER.dex().trade_prv(self.private_key, self.payment_key, amount_to_sell,
-                                                token_id_to_buy,
-                                                min_amount_to_buy, trading_fee)
+                                                token_id_to_buy, min_amount_to_buy, trading_fee, TestConfig.TX_VER)
 
     def pde_trade(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
         if token_id_to_sell == PRV_ID:
@@ -963,15 +961,16 @@ class Account:
              f'Trade {amount_to_sell} PRV for {l6(token_to_buy)} trading fee={trading_fee}, '
              f'min acceptable={min_amount_to_buy}')
         return self.REQ_HANDLER.dex().trade_prv_v2(self.private_key, self.payment_key, amount_to_sell,
-                                                   token_to_buy, trading_fee, min_amount_to_buy)
+                                                   token_to_buy, trading_fee, min_amount_to_buy,
+                                                   tx_ver=TestConfig.TX_VER)
 
     def pde_trade_token_v2(self, token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         INFO(f'User {l6(self.payment_key)}: '
              f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]} trading fee={trading_fee} '
              f'min acceptable={min_amount_to_buy}')
         return self.REQ_HANDLER.dex().trade_token_v2(self.private_key, self.payment_key, token_to_sell,
-                                                     amount_to_sell,
-                                                     token_to_buy, trading_fee, min_amount_to_buy)
+                                                     amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy,
+                                                     tx_ver=TestConfig.TX_VER)
 
     def pde_trade_v2(self, token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         if token_to_sell == PRV_ID:

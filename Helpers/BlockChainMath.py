@@ -57,8 +57,7 @@ class PdeMath:
 class RewardMath:
     @staticmethod
     def calculate_actual_reward(total_tx_fee, block_on_epoch, max_shard_committee, number_active_shard,
-                                number_of_beacon,
-                                basic_reward=400000000):
+                                number_of_beacon, basic_reward=400000000):
         """
         Function to calculate reward on a node and DAO
 

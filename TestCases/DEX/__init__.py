@@ -4,7 +4,7 @@ from Configs.Constants import coin, PRV_ID
 from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import INFO, INFO_HEADLINE
 from Helpers.TestHelper import l6
-from Helpers.Time import get_current_date_time
+from Helpers.Time import get_current_date_time, WAIT
 from Objects.AccountObject import Account, COIN_MASTER, AccountGroup
 from Objects.IncognitoTestCase import SUT, ACCOUNTS
 
@@ -13,10 +13,10 @@ token_owner = Account(
 
 # when token_id_* is not existed in chain, new token will be inited
 # otherwise, use specified token id for the test without initializing new token
-# token_id_1 = "4129f4ca2b2eba286a3bd1b96716d64e0bc02bd2cc1837776b66f67eb5797d79"  # testnet
-# token_id_2 = "57f634b0d50e0ca8fb11c2d2f2989953e313b6b6c5c3393984adf13b26562f2b"  # testnet
-token_id_1 = "010dc3e4637823b5d3c7c71b8448132e225ebb059f12e697a1acaee2901cfe41"  # local
-token_id_2 = "276f89a92613b9a09c5af6dc0bf42dff70b4f1247fa4ba9118c3bfaf1b08323f"  # local
+token_id_1 = "ef80ac984c6367c9c45f8e3b89011d00e76a6f17bd782e939f649fcf95a05b74_"  # testnet
+token_id_2 = "d221245f42a29c405b0b1d60cd2932befc4e10c14116de8690cf65e9c577e216_"  # testnet
+# token_id_1 = "730a20b67112f5290cc2dfe60b06c7003f63dcd9e8ad255f7cccd2126e41fabc"  # local v1
+# token_id_2 = "f89631735938d5fb762017538279cb78f2831b1aa668e87b3c69d33403a9f785"  # local v1
 token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff"  # token not yet added to PDE
 
 need_withdraw_contribution_1 = False
@@ -26,8 +26,7 @@ COIN_MASTER.top_him_up_prv_to_amount_if(coin(10000), coin(100000), token_owner)
 
 all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
 if token_id_1 not in all_ptoken_in_chain:
-    tok1_symbol = get_current_date_time()
-    # res = token_owner.init_custom_token_self(tok1_symbol, coin(2000000))
+    # res = token_owner.init_custom_token(coin(2000000))
     res = token_owner.init_custom_token_new_flow(coin(2000000))
     res.subscribe_transaction()
     token_id_1 = res.get_token_id()
@@ -36,7 +35,7 @@ if token_id_1 not in all_ptoken_in_chain:
 
 if token_id_2 not in all_ptoken_in_chain:
     tok2_symbol = get_current_date_time()
-    # res = token_owner.init_custom_token_self(tok2_symbol, coin(2000000))
+    # res = token_owner.init_custom_token(coin(2000000))
     res = token_owner.init_custom_token_new_flow(coin(2000000))
     res.subscribe_transaction()
     token_id_2 = res.get_token_id()
@@ -190,7 +189,6 @@ def calculate_trade_order(trading_fees_list, amount_list):
     INFO("Sort order: " + str(sort_order))
     return sort_order
 
-
 # work around for privacy v2 "invalid token" bug, if not testing privacy v2, just comment these lines
 # if ChainConfig.PRIVACY_VERSION == 2:
 #     COIN_MASTER.top_him_up_prv_to_amount_if(1000, coin(1), acc_list_n_shard)
@@ -200,6 +198,11 @@ def calculate_trade_order(trading_fees_list, amount_list):
 #         pde_trade_prv(10, token_id_2, 1).expect_no_error().subscribe_transaction()
 
 # for acc in ACCOUNTS + acc_list_n_shard + acc_list_1_shard:
+#     try:
+#         acc.convert_token_to_v2().subscribe_transaction()
+#     except:
+#         pass
+
+# WAIT(60)
 #     acc.convert_token_to_v2(token_id_1)
 #     acc.convert_token_to_v2(token_id_2)
-#     acc.convert_token_to_v2()

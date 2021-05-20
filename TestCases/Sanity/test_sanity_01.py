@@ -244,9 +244,8 @@ def test_05_init_token_privacy_n_bridge():
     global P___TOKEN
 
     STEP(1.1, "Initial new token")
-    custom_token_symbol = f'token_symbol_{random.randrange(1, 10000)}'
     bal_prv_b4 = COIN_MASTER.get_prv_balance()
-    tx_init = COIN_MASTER.init_custom_token_self(custom_token_symbol, P_TOKEN_INIT_AMOUNT).expect_no_error()
+    tx_init = COIN_MASTER.init_custom_token(P_TOKEN_INIT_AMOUNT).expect_no_error()
     P___TOKEN = tx_init.get_token_id()
     INFO(f"Token id: {P___TOKEN}")
     tx_init = tx_init.subscribe_transaction()
@@ -437,8 +436,7 @@ def test_07_dex_v2():
            == bal_tok_af_trade
 
     STEP(5.1, "init new token")
-    tok_symbol = f'tok_sym_{get_current_date_time()}'
-    init_tx = COIN_MASTER.init_custom_token_self(tok_symbol, coin(20000)).expect_no_error()
+    init_tx = COIN_MASTER.init_custom_token(coin(20000)).expect_no_error()
     custom_token_id = init_tx.get_token_id()
     INFO(f"Token id: {custom_token_id}")
     init_tx.subscribe_transaction()

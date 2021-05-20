@@ -44,7 +44,7 @@ class TransactionRpc(BaseRpcApi):
                          {
                              "Privacy": privacy,
                              "TokenID": token_id,
-                             "TokenName": symbol + "_" + symbol,
+                             "TokenName": f'{symbol}_{symbol}',
                              "TokenSymbol": symbol,
                              "TokenFee": token_fee,
                              "TokenTxType": token_tx_type,
@@ -272,7 +272,8 @@ class TransactionRpc(BaseRpcApi):
 
     # stake
     def create_and_send_staking_transaction(self, candidate_private_key, candidate_payment_key, candidate_validator_key,
-                                            reward_receiver_payment_key, stake_amount=None, auto_re_stake=True):
+                                            reward_receiver_payment_key, stake_amount=None, auto_re_stake=True,
+                                            tx_version=2):
         if stake_amount is None:
             stake_amount = ChainConfig.STK_AMOUNT
         return self.rpc_connection. \
@@ -285,7 +286,8 @@ class TransactionRpc(BaseRpcApi):
                              "CandidatePaymentAddress": candidate_payment_key,
                              "PrivateSeed": candidate_validator_key,
                              "RewardReceiverPaymentAddress": reward_receiver_payment_key,
-                             "AutoReStaking": auto_re_stake
+                             "AutoReStaking": auto_re_stake,
+                             "TxVersion": tx_version
                          }
                          ]). \
             execute()

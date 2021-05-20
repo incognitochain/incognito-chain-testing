@@ -2,11 +2,13 @@ import sys
 
 from Configs.Constants import coin, ChainConfig
 from Helpers.Logging import INFO_HEADLINE, INFO
+from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER, PORTAL_FEEDER, AccountGroup
 from Objects.IncognitoTestCase import ACCOUNTS, SUT
 from Objects.NodeObject import Node
 from Objects.TestBedObject import TestBed
 
+logger = "Test Init"
 # -----------------------------------------
 # this block of codes is for bypassing the testbed loading procedure in IncognitoTestCase for Sanity test module
 try:
@@ -24,10 +26,13 @@ except:
 PORTAL_FEEDER.req_to(SUT())
 COIN_MASTER.req_to(SUT())
 # -----------------------------------------
+INFO_HEADLINE("Setup from Testcase init", logger)
 
-INFO_HEADLINE("Setup from Testcase init")
+if ChainConfig.PRIVACY_VERSION == 2:
+    COIN_MASTER.submit_key()
+    PORTAL_FEEDER.submit_key()
 
-INFO("CONVERT to COIN V2")
+INFO("CONVERT to COIN V2", logger)
 convert_tx = COIN_MASTER.convert_token_to_v2()
 if convert_tx.get_error_msg() == "Method not found":
     ChainConfig.PRIVACY_VERSION = 1
@@ -37,11 +42,10 @@ else:
     ChainConfig.PRIVACY_VERSION = 2
     convert_tx.subscribe_transaction()
 
-if ChainConfig.PRIVACY_VERSION == 2:
-    COIN_MASTER.submit_key()
-    PORTAL_FEEDER.submit_key()
-
 if isinstance(ACCOUNTS, AccountGroup) or isinstance(ACCOUNTS, list):
     COIN_MASTER.top_up_if_lower_than(ACCOUNTS, coin(2), coin(5))
 
-INFO_HEADLINE("END setup from Testcase init")
+for acc in ACCOUNTS:
+    acc.submit_key()
+
+INFO_HEADLINE("END setup from Testcase init",logger)
