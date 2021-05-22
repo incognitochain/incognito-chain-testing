@@ -1,4 +1,3 @@
-import copy
 import json
 from abc import abstractmethod
 
@@ -122,25 +121,18 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
          }
         """
 
-        def __init__(self, raw_data):
-            super(BeaconBestStateDetailInfo.Committee, self).__init__(raw_data)
-            raw_data = copy.copy(self.data)
-            self._inc_public_key = raw_data['IncPubKey']
-            self._bls = raw_data['MiningPubKey']['bls']
-            self._dsa = raw_data['MiningPubKey']['dsa']
-            self._auto_staking = raw_data['IsAutoStake'] if "IsAutoStake" in raw_data else None
-
         def get_inc_public_key(self):
-            return self._inc_public_key
+            return self.data['IncPubKey']
 
         def get_bls(self):
-            return self._bls
+            return self.data['MiningPubKey']['bls']
 
         def get_dsa(self):
-            return self._dsa
+            return self.data['MiningPubKey']['dsa']
 
         def is_auto_staking(self):
-            return self._auto_staking
+            auto_staking = self.data['IsAutoStake'] if "IsAutoStake" in self.data else None
+            return auto_staking
 
     def print_committees(self):
         all_committee_in_all_shard_dict = self.get_shard_committees()
@@ -185,31 +177,30 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         Return list of BeaconBestStateDetailInfo.Committee obj if only shard_num is specify
         Return dict of {shard_num: BeaconBestStateDetailInfo.Committee} obj if only shard_num and validator_num are specify
         """
-        obj_list = []
         committee_dict_raw = self.data['ShardCommittee']  # get all committee in all shard
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
             committee_raw = committee_dict_raw[str(shard_num)][validator_number]
             committee_obj = BeaconBestStateDetailInfo.Committee(committee_raw)
             return committee_obj
-        elif shard_num is not None and validator_number is None:  # get all committee in a shard
+
+        def make_obj_list(raw_data_list):
+            object_list = []
+            for datum in raw_data_list:
+                pub_k = datum['IncPubKey']
+                datum['IsAutoStake'] = self._get_auto_staking_committee_raw(pub_k)
+                o = BeaconBestStateDetailInfo.Committee(datum)
+                object_list.append(o)
+            return object_list
+
+        if shard_num is not None and validator_number is None:  # get all committee in a shard
             committee_list_raw = committee_dict_raw[str(shard_num)]
-            for committee_raw in committee_list_raw:
-                committee_obj = BeaconBestStateDetailInfo.Committee(committee_raw)
-                obj_list.append(committee_obj)
-            return obj_list
-        elif shard_num is None and validator_number is None:
+            return make_obj_list(committee_list_raw)
+        if shard_num is None and validator_number is None:
             dict_objs = {}
-            list_objs = []
-            for key, value in committee_dict_raw.items():
-                for info in value:
-                    obj = BeaconBestStateDetailInfo.Committee(info)
-                    list_objs.append(obj)
-                dict_objs.update({key: list_objs})
-                list_objs = []
+            for shard_id, committee_list_raw in committee_dict_raw.items():
+                dict_objs[shard_id] = make_obj_list(committee_list_raw)
             return dict_objs
-        else:
-            return
 
     def get_shard_pending_validator(self, shard_num=None, validator_number=None):
         obj_list = []
@@ -237,6 +228,13 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             return dict_objs
         else:
             return
+
+    def _get_auto_staking_committee_raw(self, public_key):
+        raw_auto_staking_data = self.data['AutoStaking']
+        for raw_datum in raw_auto_staking_data:
+            pub_k_of_datum = raw_datum['IncPubKey']
+            if pub_k_of_datum == public_key:
+                return raw_datum['IsAutoStake']
 
     def get_auto_staking_committees(self, account=None):
         """

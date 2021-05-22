@@ -256,9 +256,14 @@ class ChainHelper:
         blk_chain_info = node.get_block_chain_info()
         current_epoch = blk_chain_info.get_beacon_block().get_epoch()
         current_height = blk_chain_info.get_beacon_block().get_height()
-        num_o_block_till_next_stop = blk_chain_info.get_beacon_block().get_remaining_block_epoch() + block_of_epoch
-        time_till_next_epoch = ChainConfig.get_epoch_n_block_time(0, num_o_block_till_next_stop)
-        time_to_wait = ChainConfig.get_epoch_n_block_time(epoch_to_wait - 1) + time_till_next_epoch
+        first_blk_of_current_epoch = ChainHelper.cal_first_height_of_epoch(current_epoch)
+        num_of_block_till_next_epoch = blk_chain_info.get_beacon_block().get_remaining_block_epoch()
+        if epoch_to_wait == 0:
+            block_to_wait = first_blk_of_current_epoch + block_of_epoch - current_height
+        else:
+            block_to_wait = num_of_block_till_next_epoch + block_of_epoch \
+                            + (epoch_to_wait - 1) * ChainConfig.BLOCK_PER_EPOCH
+        time_to_wait = ChainConfig.get_epoch_n_block_time(0, block_to_wait)
         INFO(f'Current height = {current_height} @ epoch = {current_epoch}. '
              f'Wait {time_to_wait}s until epoch {current_epoch + epoch_to_wait} and B height {block_of_epoch}')
         WAIT(time_to_wait)

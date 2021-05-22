@@ -21,6 +21,7 @@ class Response(ResponseBase):
 
     def req_to(self, node):
         self.__handler = node
+        return self
 
     def expect_no_error(self, additional_msg_if_fail=''):
         """

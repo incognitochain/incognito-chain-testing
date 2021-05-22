@@ -9,6 +9,7 @@ from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import AccountGroup, COIN_MASTER
 from Objects.IncognitoTestCase import SUT
+from Objects.TestBedObject import TestBed
 
 key_list_file = KeyListJson()
 # number of node which already run,
@@ -31,11 +32,10 @@ def setup_module():
                 and bbi.is_in_shard_pending_list(validator) is False \
                 and bbi.get_auto_staking_committees(validator) is None:
             not_yet_stake_list.append(validator)
-
     if not not_yet_stake_list:
         return
 
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1755), not_yet_stake_list)
+    COIN_MASTER.top_up_if_lower_than(not_yet_stake_list, coin(1751), coin(1755))
 
     def staking_action(account):
         account.stake_and_reward_me().expect_no_error()
@@ -45,13 +45,12 @@ def setup_module():
             executor.submit(staking_action, acc)
 
     # Wait for 2 epochs
-    ChainHelper.wait_till_next_epoch()
-    ChainHelper.wait_till_next_epoch()
+    ChainHelper.wait_till_next_epoch(2)
 
 
 @pytest.mark.parametrize("shard_committee,shard_origin", [
     (SHARD0, SHARD1),
-    (SHARD1, SHARD0),
+    # (SHARD1, SHARD0),
 ])
 def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_origin):
     """
@@ -66,8 +65,7 @@ def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_or
         accounts_from_shard1 += validators.get_accounts_in_shard(i % ChainConfig.ACTIVE_SHARD)
 
     INFO(f'Change request handler to shard {shard_committee}, which user is a committee')
-    SUT.REQUEST_HANDLER = SUT.shards[shard_committee].get_representative_node()
-
+    TestBed.REQUEST_HANDLER = SUT.shards[shard_committee].get_representative_node()
     INFO(f'Get shard best state detail, get epoch, beacon height')
     shard0_state_detail = SUT().get_shard_best_state_detail_info(shard_committee)
     shard0_committees = shard0_state_detail.get_shard_committee()
@@ -110,12 +108,13 @@ def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_or
     bal_b4_un_stake = acc_stop_stake.get_prv_balance()
 
     INFO(f'Send stop auto staking to user originated shard')
-    un_stake_tx = acc_stop_stake.stk_stop_auto_stake_me().expect_no_error().subscribe_transaction()
+    un_stake_tx = acc_stop_stake.stk_stop_auto_stake_me().expect_no_error().req_to(
+        SUT.full_node).subscribe_transaction()
     assert un_stake_tx.get_block_height() > 0
     acc_stop_stake.stk_wait_till_i_am_swapped_out_of_committee()
 
     INFO(f'Get beacon best state from full node')
-    SUT.REQUEST_HANDLER = SUT.full_node
+    TestBed.REQUEST_HANDLER = SUT.full_node
     BBI = SUT().get_beacon_best_state_info()
 
     auto_stake_status = BBI.get_auto_staking_committees(acc_stop_stake)
@@ -149,6 +148,6 @@ def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_or
             assert auto_stake_status is None, f'Expect auto staking status to be removed, ' \
                                               f'got {auto_stake_status} instead'
 
-    bal_af_un_stake = acc_stop_stake.get_prv_balance()
+    bal_af_un_stake = acc_stop_stake.wait_for_balance_change(from_balance=bal_b4_un_stake)
     INFO(f"Bal before - after unstake: {bal_b4_un_stake} - {bal_af_un_stake}")
     assert bal_af_un_stake == bal_b4_un_stake + ChainConfig.STK_AMOUNT - un_stake_tx.get_fee()
