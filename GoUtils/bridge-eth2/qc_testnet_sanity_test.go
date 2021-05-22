@@ -223,8 +223,8 @@ func (tradingSuite *TnTradingTestSuite) SetupSuite() {
 	// tradingSuite.IncBridgeHost = "http://172.105.114.134:8334" //beacon test
 	// tradingSuite.IncRPCHost = "http://172.105.114.134:8334"    //beacon test
 
-	tradingSuite.IncBridgeHost = "http://51.161.119.66:9334" // testnet 2
-	tradingSuite.IncRPCHost = "http://51.161.119.66:9334"    // testnet 2
+	tradingSuite.IncBridgeHost = "http://139.162.55.124:8334" // testnet 2
+	tradingSuite.IncRPCHost = "http://139.162.55.124:8334"    // testnet 2
 
 	// tradingSuite.UniswapRouteContractAddr = common.HexToAddress("0xf164fC0Ec4E93095b804a4795bBe1e041497b92a")
 	// tradingSuite.KyberContractAddr = common.HexToAddress("0x692f391bCc85cefCe8C237C01e1f636BbD70EA4D")
@@ -978,7 +978,7 @@ func (tradingSuite *TnTradingTestSuite) getStatusBridgeRq(txhash string) int {
 }
 
 func (tradingSuite *TnTradingTestSuite) Test1DepositAndWithdrwaEther() {
-	return
+	// return
 	fmt.Println("============ TEST 1 DEPOSIT AND WITHDRAW ETHER ===========")
 	fmt.Println("------------ STEP 0: declaration & initialization --------------")
 	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
@@ -1167,7 +1167,7 @@ func (tradingSuite *TnTradingTestSuite) Test1DepositAndWithdrwaEther() {
 }
 
 func (tradingSuite *TnTradingTestSuite) Test2DepositAndWithdrwaEtherCrossShard() {
-	// return
+	return
 	fmt.Println("============ TEST 2 DEPOSIT AND WITHDRAW ETHER Cross Shard ===========")
 	fmt.Println("------------ STEP 0: declaration & initialization --------------")
 	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
@@ -1306,7 +1306,7 @@ func (tradingSuite *TnTradingTestSuite) Test2DepositAndWithdrwaEtherCrossShard()
 }
 
 func (tradingSuite *TnTradingTestSuite) Test3TradeEthForUSDC() {
-	//  return
+	return
 	fmt.Println("============ TEST 3 TRADE ETHER FOR USDC WITH Uniswap AGGREGATOR ===========")
 	fmt.Println("------------ STEP 0: declaration & initialization --------------")
 	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))
@@ -1571,7 +1571,7 @@ func (tradingSuite *TnTradingTestSuite) Test3TradeEthForUSDC() {
 
 }
 func (tradingSuite *TnTradingTestSuite) Test4DepositAndWithdrwatokenUSDC() {
-	// return
+	return
 	fmt.Println("============ TEST 4 DEPOSIT AND WITHDRAW ERC20 TOKEN (USDC) ===========")
 	fmt.Println("------------ STEP 0: declaration & initialization --------------")
 
@@ -1761,7 +1761,7 @@ func (tradingSuite *TnTradingTestSuite) Test4DepositAndWithdrwatokenUSDC() {
 }
 
 func (tradingSuite *TnTradingTestSuite) Test5TradeEthForKNCWithKyber() {
-	// return
+	return
 	fmt.Println("============ TEST 5 TRADE ETHER FOR KNC WITH Kyber AGGREGATOR ===========")
 	fmt.Println("------------ STEP 0: declaration & initialization --------------")
 	tradeAmount := big.NewInt(int64(tradingSuite.DepositingEther * params.Ether))

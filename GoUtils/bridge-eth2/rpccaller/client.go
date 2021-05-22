@@ -3,6 +3,7 @@ package rpccaller
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -56,6 +57,7 @@ func (client *RPCClient) RPCCall(
 		"params":  params,
 		"id":      1,
 	}
+	fmt.Println(payload)
 	payloadInBytes, err := json.Marshal(payload)
 	if err != nil {
 		return err
