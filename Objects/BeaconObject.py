@@ -134,6 +134,15 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             """@return: True/False/None"""
             return self.data.get('IsAutoStake')
 
+        def __eq__(self, other):
+            # !! ATTENTION. not compare auto staking info
+            return self.get_inc_public_key() == other.get_inc_public_key() & \
+                   self.get_bls() == other.get_bls() & \
+                   self.get_dsa() == other.get_dsa()
+
+        def __ne__(self, other):
+            return not self.__eq__(other)
+
     def print_committees(self):
         all_committee_in_all_shard_dict = self.get_shard_committees()
         for shard_id, committee_list in all_committee_in_all_shard_dict.items():
