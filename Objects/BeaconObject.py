@@ -136,8 +136,8 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
 
         def __eq__(self, other):
             # !! ATTENTION. not compare auto staking info
-            return self.get_inc_public_key() == other.get_inc_public_key() & \
-                   self.get_bls() == other.get_bls() & \
+            return self.get_inc_public_key() == other.get_inc_public_key() and \
+                   self.get_bls() == other.get_bls() and \
                    self.get_dsa() == other.get_dsa()
 
         def __ne__(self, other):
