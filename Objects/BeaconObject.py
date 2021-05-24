@@ -181,8 +181,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
             committee_raw = committee_dict_raw[str(shard_num)][validator_number]
-            committee_obj = BeaconBestStateDetailInfo.Committee(committee_raw)
-            return committee_obj
+            return self._parse_raw_list_to_committee_list([committee_raw])[0]
         if shard_num is not None and validator_number is None:  # get all committee in a shard
             committee_list_raw = committee_dict_raw[str(shard_num)]
             return self._parse_raw_list_to_committee_list(committee_list_raw)
@@ -198,8 +197,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
             committee_raw = committee_dict_raw[str(shard_num)][validator_number]
-            committee_obj = BeaconBestStateDetailInfo.Committee(committee_raw)
-            return committee_obj
+            return self._parse_raw_list_to_committee_list([committee_raw])[0]
         if shard_num is not None and validator_number is None:  # get all committee in a shard
             committee_list_raw = committee_dict_raw[str(shard_num)]
             return self._parse_raw_list_to_committee_list(committee_list_raw)
