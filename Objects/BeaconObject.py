@@ -131,20 +131,16 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             return self.data['MiningPubKey']['dsa']
 
         def is_auto_staking(self):
-            auto_staking = self.data['IsAutoStake'] if "IsAutoStake" in self.data else None
-            return auto_staking
+            """@return: True/False/None"""
+            return self.data.get('IsAutoStake')
 
     def print_committees(self):
         all_committee_in_all_shard_dict = self.get_shard_committees()
-        for key, value in all_committee_in_all_shard_dict.items():
-            for info in value:
-                public_key = info.get_inc_public_key()
-                shard_id = self.is_he_a_committee(public_key)
-                for auto_staking in self.get_auto_staking_committees():
-                    if auto_staking.get_inc_public_key() == public_key:
-                        auto_staking_info = self.is_this_committee_auto_stake(public_key)
-                validator_number = len(value)
-                INFO(f"{l6(public_key)} - {shard_id} - {validator_number} - {auto_staking_info}")
+        for shard_id, committee_list in all_committee_in_all_shard_dict.items():
+            for i in range(len(committee_list)):
+                committee = committee_list[i]
+                INFO(f"{l6(committee.get_inc_public_key())} - shard{shard_id}.{i} - "
+                     f"AutoStake {committee.is_auto_staking()}")
 
     def is_random_number(self):
         return self.data["IsGetRandomNumber"]
@@ -162,11 +158,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
 
     def get_beacon_pending_validator(self):
         raw_beacon_pending_validator_list = self.data['BeaconPendingValidator']
-        beacon_pending_validator_objs = []
-        for obj in raw_beacon_pending_validator_list:
-            beacon_pending_validator_obj = BeaconBestStateDetailInfo.Committee(obj)
-            beacon_pending_validator_objs.append(beacon_pending_validator_obj)
-        return beacon_pending_validator_objs
+        return self._parse_raw_list_to_shard_committee_list(raw_beacon_pending_validator_list)
 
     def get_shard_committees(self, shard_num=None, validator_number=None):
         """
@@ -181,14 +173,14 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
             committee_raw = committee_dict_raw[str(shard_num)][validator_number]
-            return self._parse_raw_list_to_committee_list([committee_raw])[0]
+            return self._parse_raw_list_to_shard_committee_list([committee_raw])[0]
         if shard_num is not None and validator_number is None:  # get all committee in a shard
             committee_list_raw = committee_dict_raw[str(shard_num)]
-            return self._parse_raw_list_to_committee_list(committee_list_raw)
+            return self._parse_raw_list_to_shard_committee_list(committee_list_raw)
         if shard_num is None and validator_number is None:
             dict_objs = {}
             for shard_id, committee_list_raw in committee_dict_raw.items():
-                dict_objs[shard_id] = self._parse_raw_list_to_committee_list(committee_list_raw)
+                dict_objs[shard_id] = self._parse_raw_list_to_shard_committee_list(committee_list_raw)
             return dict_objs
 
     def get_shard_pending_validator(self, shard_num=None, validator_number=None):
@@ -196,17 +188,21 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
             committee_raw = committee_dict_raw[str(shard_num)][validator_number]
-            return self._parse_raw_list_to_committee_list([committee_raw])[0]
+            return self._parse_raw_list_to_shard_committee_list([committee_raw])[0]
         if shard_num is not None and validator_number is None:  # get all committee in a shard
             committee_list_raw = committee_dict_raw[str(shard_num)]
-            return self._parse_raw_list_to_committee_list(committee_list_raw)
+            return self._parse_raw_list_to_shard_committee_list(committee_list_raw)
         if shard_num is None and validator_number is None:
             dict_objs = {}
             for shard, raw_list in committee_dict_raw.items():
-                dict_objs[shard] = self._parse_raw_list_to_committee_list(raw_list)
+                dict_objs[shard] = self._parse_raw_list_to_shard_committee_list(raw_list)
             return dict_objs
 
-    def _parse_raw_list_to_committee_list(self, raw_data_list):
+    def _parse_raw_list_to_shard_committee_list(self, raw_data_list):
+        """
+        @param raw_data_list: list of ShardCommittee raw data
+        @return:
+        """
         object_list = []
         for datum in raw_data_list:
             try:
@@ -373,12 +369,8 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         Function to get candidate shard waiting current random
         :return: a list candidate shard waiting current random objs
         """
-        candidate_shard_waiting_current_random_objs = []
         candidate_shard_waiting_current_random_list_raw = self.data['CandidateShardWaitingForCurrentRandom']
-        for obj in candidate_shard_waiting_current_random_list_raw:
-            candidate_shard_waiting_current_random_obj = BeaconBestStateDetailInfo.Committee(obj)
-            candidate_shard_waiting_current_random_objs.append(candidate_shard_waiting_current_random_obj)
-        return candidate_shard_waiting_current_random_objs
+        return self._parse_raw_list_to_shard_committee_list(candidate_shard_waiting_current_random_list_raw)
 
     def get_candidate_shard_waiting_next_random(self):
         """
@@ -386,12 +378,8 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         :return: a list candidate shard waiting next random objs
         :return:
         """
-        candidate_shard_waiting_next_random_objs = []
         candidate_shard_waiting_next_random_list_raw = self.data['CandidateShardWaitingForNextRandom']
-        for obj in candidate_shard_waiting_next_random_list_raw:
-            candidate_shard_waiting_next_random_obj = BeaconBestStateDetailInfo.Committee(obj)
-            candidate_shard_waiting_next_random_objs.append(candidate_shard_waiting_next_random_obj)
-        return candidate_shard_waiting_next_random_objs
+        return self._parse_raw_list_to_shard_committee_list(candidate_shard_waiting_next_random_list_raw)
 
     def get_current_shard_committee_size(self, shard_number):
         committee_list_in_shard = self.get_shard_committees(shard_number)
