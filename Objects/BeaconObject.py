@@ -192,7 +192,6 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             return dict_objs
 
     def get_shard_pending_validator(self, shard_num=None, validator_number=None):
-        obj_list = []
         committee_dict_raw = self.data['ShardPendingValidator']  # get all committee in all shard
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
@@ -203,11 +202,8 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             return self._parse_raw_list_to_committee_list(committee_list_raw)
         if shard_num is None and validator_number is None:
             dict_objs = {}
-            list_objs = []
             for shard, raw_list in committee_dict_raw.items():
-                list_objs.append(self._parse_raw_list_to_committee_list(raw_list))
-                dict_objs.update({shard: list_objs})
-                list_objs = []
+                dict_objs[shard] = self._parse_raw_list_to_committee_list(raw_list)
             return dict_objs
 
     def _parse_raw_list_to_committee_list(self, raw_data_list):
