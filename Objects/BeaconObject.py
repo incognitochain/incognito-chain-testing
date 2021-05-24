@@ -183,23 +183,13 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             committee_raw = committee_dict_raw[str(shard_num)][validator_number]
             committee_obj = BeaconBestStateDetailInfo.Committee(committee_raw)
             return committee_obj
-
-        def make_obj_list(raw_data_list):
-            object_list = []
-            for datum in raw_data_list:
-                pub_k = datum['IncPubKey']
-                datum['IsAutoStake'] = self._get_auto_staking_committee_raw(pub_k)
-                o = BeaconBestStateDetailInfo.Committee(datum)
-                object_list.append(o)
-            return object_list
-
         if shard_num is not None and validator_number is None:  # get all committee in a shard
             committee_list_raw = committee_dict_raw[str(shard_num)]
-            return make_obj_list(committee_list_raw)
+            return self._parse_raw_list_to_committee_list(committee_list_raw)
         if shard_num is None and validator_number is None:
             dict_objs = {}
             for shard_id, committee_list_raw in committee_dict_raw.items():
-                dict_objs[shard_id] = make_obj_list(committee_list_raw)
+                dict_objs[shard_id] = self._parse_raw_list_to_committee_list(committee_list_raw)
             return dict_objs
 
     def get_shard_pending_validator(self, shard_num=None, validator_number=None):
@@ -210,24 +200,30 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             committee_raw = committee_dict_raw[str(shard_num)][validator_number]
             committee_obj = BeaconBestStateDetailInfo.Committee(committee_raw)
             return committee_obj
-        elif shard_num is not None and validator_number is None:  # get all committee in a shard
+        if shard_num is not None and validator_number is None:  # get all committee in a shard
             committee_list_raw = committee_dict_raw[str(shard_num)]
-            for committee_raw in committee_list_raw:
-                committee_obj = BeaconBestStateDetailInfo.Committee(committee_raw)
-                obj_list.append(committee_obj)
-            return obj_list
-        elif shard_num is None and validator_number is None:
+            return self._parse_raw_list_to_committee_list(committee_list_raw)
+        if shard_num is None and validator_number is None:
             dict_objs = {}
             list_objs = []
-            for key, value in committee_dict_raw.items():
-                for info in value:
-                    obj = BeaconBestStateDetailInfo.Committee(info)
-                    list_objs.append(obj)
-                dict_objs.update({key: list_objs})
+            for shard, raw_list in committee_dict_raw.items():
+                list_objs.append(self._parse_raw_list_to_committee_list(raw_list))
+                dict_objs.update({shard: list_objs})
                 list_objs = []
             return dict_objs
-        else:
-            return
+
+    def _parse_raw_list_to_committee_list(self, raw_data_list):
+        object_list = []
+        for datum in raw_data_list:
+            try:
+                _ = datum['IsAutoStake']
+                o = BeaconBestStateDetailInfo.Committee(datum)
+            except KeyError:
+                pub_k = datum['IncPubKey']
+                datum['IsAutoStake'] = self._get_auto_staking_committee_raw(pub_k)
+                o = BeaconBestStateDetailInfo.Committee(datum)
+            object_list.append(o)
+        return object_list
 
     def _get_auto_staking_committee_raw(self, public_key):
         raw_auto_staking_data = self.data['AutoStaking']
