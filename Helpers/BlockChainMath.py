@@ -44,6 +44,17 @@ class PdeMath:
             return token_1_contribute_amount, token_2_contribute_amount, 0, 0
 
     @staticmethod
+    def cal_contribution_share(contribute_amount, sum_all_share, token_pool, share_amount_before_contribute):
+        """
+        @param contribute_amount: must be amount of the token which use as token_pool
+        @param sum_all_share: of the pair
+        @param token_pool: pool value (before contribution) of token use as contribute_amount
+        @param share_amount_before_contribute:
+        @return:
+        """
+        return round((contribute_amount * sum_all_share / token_pool) + share_amount_before_contribute)
+
+    @staticmethod
     def cal_trade_receive(sell_amount, pool_token_sell, pool_token_buy):
         pool_token_buy_remain = (pool_token_buy * pool_token_sell) / (sell_amount + pool_token_sell)
         # print("-remain before mod: " + str(remain))

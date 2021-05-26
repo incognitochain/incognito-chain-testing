@@ -1,6 +1,7 @@
 import pytest
 
 from Configs.Constants import PRV_ID, coin, Status
+from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import INFO, STEP
 from Helpers.TestHelper import l6
 from Helpers.Time import get_current_date_time
@@ -25,7 +26,7 @@ def test_contribute(token1, token2):
         if tok == PRV_ID:
             COIN_MASTER.top_up_if_lower_than(token_owner, amount, amount + 1000)
     pde_state_b4_test = SUT().get_latest_pde_state_info()
-    is_first_time_contrib = not pde_state_b4_test.is_pair_existed(token1, token2)
+    is_none_zero_pair = pde_state_b4_test.get_contributor_reward_amount(token1, token2) != [0, 0]
     INFO(f"""
             test_DEX01_contribute:
             - contribute a pair of token {l6(token1)} vs {l6(token2)}
@@ -121,7 +122,21 @@ def test_contribute(token1, token2):
         Expect contribution:
             {l6(token1)}            : {expect_token1_contribution}
             {l6(token2)}            : {expect_token2_contribution}"""
-    if not is_first_time_contrib:
+    # NOTE: at first time contribute, all will be taken so API will return 0 as api_contrib_tok*
+    real_contrib_amount1 = tok1_contrib_amount if is_none_zero_pair else api_contrib_tok1
+    real_contrib_amount2 = tok2_contrib_amount if is_none_zero_pair else api_contrib_tok2
+
+    if token1 == PRV_ID:
+        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1 + contrib_fee_sum
+        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2
+    elif token2 == PRV_ID:
+        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1
+        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2 + contrib_fee_sum
+    else:
+        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1
+        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2
+
+    if is_none_zero_pair:
         api_contrib_tok1 = contribution_status.get_contribute_amount_of_token(token1)
         api_contrib_tok2 = contribution_status.get_contribute_amount_of_token(token2)
         api_return_tok1 = contribution_status.get_return_amount_of_token(token1)
@@ -135,7 +150,7 @@ def test_contribute(token1, token2):
         INFO(debug_info)
         assert contribution_status.get_status() == Status.Dex.Contribution.MATCHED_RETURNED
         calculated_owner_share_amount_after = \
-            round((api_contrib_tok2 * sum(all_share_amount)) / rate_b4[0]) + owner_share_amount
+            PdeMath.cal_contribution_share(api_contrib_tok2, sum(all_share_amount), rate_b4[0], owner_share_amount)
         assert INFO(f"Contribution shares amount is correct") \
                and abs(calculated_owner_share_amount_after - owner_share_amount_after) <= 1, \
             f'calculated vs real = {calculated_owner_share_amount_after} - {owner_share_amount_after}'
@@ -143,17 +158,3 @@ def test_contribute(token1, token2):
         debug_info = "FIRST time contribution" + debug_info
         INFO(debug_info)
         assert contribution_status.get_status() == Status.Dex.Contribution.ACCEPTED
-
-    # NOTE: at first time contribute, all will be taken so API will return 0 as api_contrib_tok*
-    real_contrib_amount1 = tok1_contrib_amount if is_first_time_contrib else api_contrib_tok1
-    real_contrib_amount2 = tok2_contrib_amount if is_first_time_contrib else api_contrib_tok2
-
-    if token1 == PRV_ID:
-        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1 + contrib_fee_sum
-        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2
-    elif token2 == PRV_ID:
-        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1
-        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2 + contrib_fee_sum
-    else:
-        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1
-        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2

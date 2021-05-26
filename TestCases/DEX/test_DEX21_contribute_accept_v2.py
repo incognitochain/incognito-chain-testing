@@ -1,6 +1,7 @@
 import pytest
 
 from Configs.Constants import PRV_ID, coin
+from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import INFO, STEP
 from Helpers.TestHelper import l6, ChainHelper
 from Helpers.Time import get_current_date_time
@@ -132,8 +133,9 @@ def test_contribute_prv(contributor, token1, token2):
     INFO(f"{l6(token2)} balance after contribution (after refund): {bal_tok2_aft_refund}")
 
     if rate_b4 != 0:
-        calculated_owner_share_amount_after = round((api_contrib_tok1 * sum(all_share_amount_b4)) / rate_b4[0]) + \
-                                              owner_share_amount_b4
+        calculated_owner_share_amount_after = \
+            PdeMath.cal_contribution_share(api_contrib_tok1, sum(all_share_amount_b4), rate_b4[0],
+                                           owner_share_amount_b4)
         assert abs(calculated_owner_share_amount_after - owner_share_amount_after) <= 1 and INFO(
             f"Calculated vs Actual share : {calculated_owner_share_amount_after}-{owner_share_amount_after}"), \
             'actual share amount vs estimated share amount is off by more than 1 nano'
