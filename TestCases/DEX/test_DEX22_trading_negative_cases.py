@@ -225,19 +225,10 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
     STEP(3, "Wait for Tx to be confirmed")
     tx_fee_list = []
     for tx in trade_tx_list:
-        tx_is_confirmed = False
         print(f'          checking tx id: {l6(tx.get_tx_id())}')
-        for i in range(0, 10):  # check 10 times each Tx
-            tx_confirm = tx.get_transaction_by_hash()
-            if tx_confirm.get_block_hash() != "":
-                tx_is_confirmed = True
-                tx_fee_list.append(tx_confirm.get_fee())
-                DEBUG("the " + tx.get_tx_id() + " is confirmed")
-                break
-            else:
-                print(f"shard id: {tx_confirm.get_shard_id()}")
-                WAIT(10)
-        assert tx_is_confirmed, f"The {tx.get_tx_id()} is NOT yet confirmed"
+        tx_detail = tx.get_transaction_by_hash(interval=10)
+        assert tx_detail.is_confirmed(), f"The {tx.get_tx_id()} is NOT yet confirmed"
+        tx_fee_list.append(tx_detail.get_fee())
 
     STEP(4.1, "Wait for balance of traders to update after tx accepted")
     threads_buy = {}

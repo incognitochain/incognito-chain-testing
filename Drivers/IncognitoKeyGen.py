@@ -3,8 +3,6 @@ import re
 import subprocess
 import sys
 
-from Configs import Constants
-
 if sys.platform == 'darwin':
     get_key = {1: f'{os.getcwd()}/bin/getKey-mac',
                2: f''}
@@ -16,7 +14,7 @@ else:
                2: f''}
 
 
-def get_key_set_from_private_k(private_k, version=Constants.TestConfig.KEY_VERSION):
+def get_key_set_from_private_k(private_k, version):
     """
     @param version: 1 or 2, for privacy v1/2
     @param private_k:
@@ -58,7 +56,6 @@ def get_key_set_from_private_k(private_k, version=Constants.TestConfig.KEY_VERSI
         __get_key_from_output(stdout, 'View Key'),
         __get_key_from_output(stdout, 'OTA Key'),
         int(__get_key_from_output(stdout, 'ShardID')),
-
     )
 
 

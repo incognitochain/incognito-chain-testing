@@ -183,6 +183,19 @@ class TxOutPut(BlockChainInfoBaseClass):
         value = self.get_value()
         return "%6s : %6s : %2s : %s" % (serial_num, k_image, ver, value)
 
+    def __add__(self, other):
+        if type(other) is TxOutPut:
+            x = other.get_value()
+        else:
+            try:
+                x = int(other)
+            except ValueError:
+                x = 0
+        return self.get_value() + x
+
+    def __radd__(self, other):
+        return self.get_value() + int(other)
+
     def get_index(self):
         try:  # new
             return self.data['Index']
@@ -237,6 +250,9 @@ class TxOutPut(BlockChainInfoBaseClass):
 
 
 class BaseListTxOutput(ResponseExtractor):
+    def __len__(self):
+        return len(self.info_obj_list)
+
     def __contains__(self, token):
         try:
             token_id = token.get_token_id()  # if 'token' is 'InChainPtokenInfo'
@@ -264,6 +280,9 @@ class ListPrvTXO(BaseListTxOutput):
         super().__init__(response)
         # list of PRV UTXO response is a dict of {private key: [list of UTXO]}, this is a bit redundant,
         # (it should be [list of UTXO] only). Thus, cannot use _extract_dict_info_obj method here
-        raw_data = list(response.get_result('Outputs').values())[0]
+        all_value = response.get_result('Outputs').values()
+        if len(all_value) == 0:
+            return
+        raw_data = list(all_value)[0]
         for datum in raw_data:
             self.info_obj_list.append(TxOutPut(datum))

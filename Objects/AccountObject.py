@@ -65,6 +65,7 @@ class Account:
         (usually full node). If None, account is tied to default full node in specified test bed
         @param kwargs:
         """
+        version = kwargs.get('version', TestConfig.KEY_VERSION)
         self.remote_addr = {}
         self.private_key = private_key
         self.payment_key = payment_k
@@ -86,10 +87,21 @@ class Account:
             self.REQ_HANDLER = IncognitoTestCase.SUT()
 
         if private_key and not payment_k:  # generate all key from private key if there's privatekey but not paymentkey
-            self.private_key, self.payment_key, self.public_key, self.read_only_key, self.validator_key, \
-            self.bls_public_k, self.bridge_public_k, self.mining_public_k, self.committee_public_k, \
-            self.view_k, self.ota_k, self.shard = \
-                get_key_set_from_private_k(private_key)
+            self.get_keys(version)
+
+    def get_keys(self, version, **kwargs):
+        """
+        generate all key from private key
+        @param version: key version 1/2
+        @param kwargs: private_key=xxx, default value: self.private_key
+        @return:
+        """
+        private_key = kwargs.get('private_key', self.private_key)
+        self.private_key, self.payment_key, self.public_key, self.read_only_key, self.validator_key, \
+        self.bls_public_k, self.bridge_public_k, self.mining_public_k, self.committee_public_k, \
+        self.view_k, self.ota_k, self.shard = \
+            get_key_set_from_private_k(private_key, version)
+        return self
 
     @property
     def incognito_addr(self):  # just an alias for payment key
@@ -235,7 +247,7 @@ class Account:
         while True:
             try:
                 error_msg = result.get_error_trace().get_message()
-                if re.search("View Key \{.*\} not synced", error_msg):
+                if re.search(re.compile(r'View Key {(.*)} not synced'), error_msg):
                     self.submit_key()
                     WARNING(f'{error_msg}. Wait for {ChainConfig.BLOCK_TIME}s and retry')
                     WAIT(ChainConfig.BLOCK_TIME)
@@ -267,8 +279,8 @@ class Account:
         response = self.REQ_HANDLER.transaction().list_output_coin(self.payment_key, self.read_only_key, token_id)
         return ListPrvTXO(response)
 
-    def list_unspent_coin(self):
-        raw_response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key)
+    def list_unspent_coin(self, token_id=PRV_ID):
+        raw_response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key, token_id)
         return ListPrvTXO(raw_response)
 
     def list_unspent_token(self, token_id=None):
@@ -514,7 +526,7 @@ class Account:
         while True:
             if get_bal_res.get_error_trace():
                 error_msg = get_bal_res.get_error_trace().get_message()
-                if re.search("View Key \{.*\} not synced", error_msg):
+                if re.search(re.compile(r"View Key {(.*)} not synced"), error_msg):
                     self.submit_key()
                     WAIT(ChainConfig.BLOCK_TIME)
                     get_bal_res = self.REQ_HANDLER.transaction().get_balance(self.private_key)
@@ -613,7 +625,7 @@ class Account:
             return self.send_prv_to(to_account, balance - 100, int(100 / (size + 1)),
                                     privacy).subscribe_transaction()
 
-    def count_unspent_output_coins(self):
+    def count_unspent_output_coins(self, token_id=''):
         """
         count number of unspent coin
 
@@ -621,7 +633,7 @@ class Account:
         """
         INFO('Count unspent coin')
 
-        response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key).get_result(
+        response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key, token_id).get_result(
             "Outputs")
         return len(response[self.private_key])
 

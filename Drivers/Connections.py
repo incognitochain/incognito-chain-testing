@@ -1,11 +1,11 @@
 import json
 
-import Helpers.Logging as Log
 import requests
 from pexpect import pxssh
 from urllib3.exceptions import NewConnectionError
 from websocket import create_connection
 
+import Helpers.Logging as Log
 from Drivers.Response import Response
 from Helpers.Logging import DEBUG, ERROR
 
@@ -14,6 +14,7 @@ class RpcConnection:
     DEFAULT_JSON_RPC = "1.0"
     DEFAULT_HEADER = {'Content-Type': 'application/json'}
     DEFAULT_ID = 1
+    DEFAULT_TIMEOUT = 90
 
     def __init__(self, url, headers=None, id_num=None, json_rpc=None):
         id_num = RpcConnection.DEFAULT_ID if id_num is None else id_num
@@ -22,7 +23,7 @@ class RpcConnection:
         self._headers = RpcConnection.DEFAULT_HEADER if headers is None else headers
         self._base_url = url
         self._payload = {"jsonrpc": json_rpc,
-                          "id": id_num}
+                         "id": id_num}
 
     def with_id(self, new_id):
         self._payload['id'] = new_id
@@ -47,7 +48,8 @@ class RpcConnection:
     def execute(self):
         Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(self._payload, indent=3)}')
         try:
-            response = requests.post(self._base_url, data=json.dumps(self._payload), headers=self._headers)
+            response = requests.post(self._base_url, data=json.dumps(self._payload),
+                                     headers=self._headers, timeout=RpcConnection.DEFAULT_TIMEOUT)
         except NewConnectionError:
             ERROR('Connection refused')
         return Response(response, f'From: {self._base_url}')

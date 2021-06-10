@@ -62,11 +62,6 @@ class Response(ResponseBase):
             return None
         return Response.StackTrace(self.data()['Error']['StackTrace'][0:512])
 
-    def get_error_msg(self):
-        if self.data()['Error'] is None:
-            return None
-        return self.data()['Error']['Message']
-
     def find_in_result(self, string):
         for k, v in self.data()["Result"].items():
             if k == str(string):

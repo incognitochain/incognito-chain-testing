@@ -30,5 +30,5 @@ else
   param4="-k $4"
 fi
 set -x
-$python $xoption -m pytest \
+$python $xoption -m pytest -vv \
   --show-capture=stderr --capture=tee-sys -v --html="$html_report" --self-contained-html $3 $param4

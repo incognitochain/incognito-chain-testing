@@ -1,3 +1,6 @@
+"""
+This package should contain all integration/business test.
+"""
 import sys
 
 from Configs.Constants import coin, ChainConfig
@@ -28,24 +31,24 @@ COIN_MASTER.req_to(SUT())
 # -----------------------------------------
 INFO_HEADLINE("Setup from Testcase init", logger)
 
-if ChainConfig.PRIVACY_VERSION == 2:
-    COIN_MASTER.submit_key()
-    PORTAL_FEEDER.submit_key()
-
-INFO("CONVERT to COIN V2", logger)
-convert_tx = COIN_MASTER.convert_token_to_v2()
-if convert_tx.get_error_msg() == "Method not found":
-    ChainConfig.PRIVACY_VERSION = 1
-elif convert_tx.get_error_msg() == "Can not create tx":
-    ChainConfig.PRIVACY_VERSION = 2
-else:
-    ChainConfig.PRIVACY_VERSION = 2
-    convert_tx.subscribe_transaction()
-
-if isinstance(ACCOUNTS, AccountGroup) or isinstance(ACCOUNTS, list):
-    COIN_MASTER.top_up_if_lower_than(ACCOUNTS, coin(2), coin(5))
-
-for acc in ACCOUNTS:
-    acc.submit_key()
+# if ChainConfig.PRIVACY_VERSION == 2:
+#     COIN_MASTER.submit_key()
+#     PORTAL_FEEDER.submit_key()
+#
+# INFO("CONVERT to COIN V2", logger)
+# convert_tx = COIN_MASTER.convert_token_to_v2()
+# if convert_tx.get_error_msg() == "Method not found":
+#     ChainConfig.PRIVACY_VERSION = 1
+# elif convert_tx.get_error_msg() == "Can not create tx":
+#     ChainConfig.PRIVACY_VERSION = 2
+# else:
+#     ChainConfig.PRIVACY_VERSION = 2
+#     convert_tx.subscribe_transaction()
+#
+# if isinstance(ACCOUNTS, AccountGroup) or isinstance(ACCOUNTS, list):
+#     COIN_MASTER.top_up_if_lower_than(ACCOUNTS, coin(2), coin(5))
+#
+# for acc in ACCOUNTS:
+#     acc.submit_key()
 
 INFO_HEADLINE("END setup from Testcase init",logger)

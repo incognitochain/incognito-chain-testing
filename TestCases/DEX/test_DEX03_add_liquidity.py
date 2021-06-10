@@ -64,7 +64,8 @@ def test_add_liquidity(contributors, contribute_percent_of_bal_tok2, token1, tok
     pde_state_after_contribute = SUT().get_latest_pde_state_info()
     for acc in contributors:
         pair_id = pair_ids[acc]
-        assert pde_state_after_contribute.find_waiting_contribution_of_user(acc, pair_id, token1) != []
+        assert pde_state_after_contribute.find_waiting_contribution_of_user(acc, pair_id, token1), \
+            f"Expect pair {pair_id} to be in waiting list, but it is not"
         d_contribute_fee[acc] = d_contribute_tx[acc].get_transaction_by_hash().get_fee()
 
     STEP(3, f'Contribute {l6(token2)}')
@@ -84,7 +85,13 @@ def test_add_liquidity(contributors, contribute_percent_of_bal_tok2, token1, tok
     pde_state_after_test = SUT().get_latest_pde_state_info()
     for acc in contributors:
         pair_id = pair_ids[acc]
-        assert pde_state_after_test.find_waiting_contribution_of_user(acc, pair_id, token1) == []
+        waiting_contribution = pde_state_after_test.find_waiting_contribution_of_user(acc, pair_id, token1)
+        assert not waiting_contribution, \
+            f'''not expect to found waiting contribution but found anyway
+            user {acc.private_key}, 
+            pair {pair_id}, token {token1}
+            {waiting_contribution[0]}
+            '''
         d_contribute_fee[acc] += d_contribute_tx[acc].get_transaction_by_hash().get_fee()
 
     STEP(5, 'Wait 30s then check balance after contribution')
@@ -109,7 +116,7 @@ def test_add_liquidity(contributors, contribute_percent_of_bal_tok2, token1, tok
         for tok in [token1, token2]:
             tx_fee = d_contribute_fee[account] if tok == PRV_ID else 0
             assert abs(contributor_balance_b4[tok][account] - commit_amount[tok][account] - tx_fee -
-                       contributor_balance_af[tok][account]) <= 1, \
+                       contributor_balance_af[tok][account]) <= 2, \
                 f"wrong balance {tok} after contribute of acc {account}"  # accept error margin =1
     INFO(summary_msg)
 

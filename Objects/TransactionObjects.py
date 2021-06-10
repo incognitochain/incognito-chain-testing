@@ -295,7 +295,7 @@ class TransactionDetail(BlockChainInfoBaseClass):
         privacy = privacy_flag and detail_proof.check_proof_privacy()
         if version == 2:
             INFO(f'In v2, privacy must always be true no mater the hell you want')
-            assert privacy, f'Expected privacy = {expected_privacy}, actual = {privacy}'
+            assert privacy, f'Expected privacy = True, actual = {privacy}'
         else:
             assert privacy == expected_privacy, f'Expected privacy = {expected_privacy} while actual = {privacy}'
         return self
@@ -315,3 +315,6 @@ class TransactionDetail(BlockChainInfoBaseClass):
         privacy = self.is_privacy()
         INFO(f'IsPrivacy={privacy}')
         return self.__verify_privacy(privacy, detail_proof, expected_privacy)
+
+    def is_confirmed(self):
+        return self.get_block_hash() and self.get_hash()

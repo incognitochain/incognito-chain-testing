@@ -121,6 +121,23 @@ class Shard:
     def __init__(self, node_list: list = None):
         self._node_list = node_list
 
+    def __getitem__(self, item):
+        return self._node_list[item]
+
+    def __iter__(self):
+        self.__current_index = 0
+        return iter(self._node_list)
+
+    def __next__(self):
+        if self.__current_index >= len(self._node_list):
+            raise StopIteration
+        else:
+            self.__current_index += 1
+            return self[self.__current_index]
+
+    def __len__(self):
+        return len(self._node_list)
+
     def add_node(self, node: Node):
         self._node_list.append(node)
 

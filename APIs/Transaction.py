@@ -232,7 +232,7 @@ class TransactionRpc(BaseRpcApi):
                              "TokenFee": 0
                          }, "", 1]).execute()
 
-    def list_unspent_output_coins(self, private_key, start_height=0):
+    def list_unspent_output_coins(self, private_key, token_id='', start_height=0, ):
         param_v1 = [0, 999999,  # old privacy
                     [{"PrivateKey": private_key}],
                     ""
@@ -240,11 +240,11 @@ class TransactionRpc(BaseRpcApi):
         param_v2 = [0, 999999,  # privacy v2
                     [{"PrivateKey": private_key,
                       "StartHeight": start_height}],
-                    ""
+                    token_id
                     ]
         # param = param_v1 if ChainConfig.PRIVACY_VERSION == 1 else param_v2
         return self.rpc_connection. \
-            with_method('listunspentoutputcoins'). \
+            with_method('listunspentoutputcoinsfromcache'). \
             with_params(param_v2). \
             execute()
 

@@ -123,6 +123,8 @@ def test_contribute(token1, token2):
             {l6(token1)}            : {expect_token1_contribution}
             {l6(token2)}            : {expect_token2_contribution}"""
     # NOTE: at first time contribute, all will be taken so API will return 0 as api_contrib_tok*
+    api_contrib_tok1 = contribution_status.get_contribute_amount_of_token(token1)
+    api_contrib_tok2 = contribution_status.get_contribute_amount_of_token(token2)
     real_contrib_amount1 = tok1_contrib_amount if is_none_zero_pair else api_contrib_tok1
     real_contrib_amount2 = tok2_contrib_amount if is_none_zero_pair else api_contrib_tok2
 
@@ -133,12 +135,10 @@ def test_contribute(token1, token2):
         assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1
         assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2 + contrib_fee_sum
     else:
-        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1
-        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2
+        assert bal_tok1_be4_contrib - (bal_tok1_aft_refund + real_contrib_amount1) <= 2, "error margin is off limit"
+        assert bal_tok2_be4_contrib - (bal_tok2_aft_refund + real_contrib_amount2) <= 2, "error margin is off limit"
 
     if is_none_zero_pair:
-        api_contrib_tok1 = contribution_status.get_contribute_amount_of_token(token1)
-        api_contrib_tok2 = contribution_status.get_contribute_amount_of_token(token2)
         api_return_tok1 = contribution_status.get_return_amount_of_token(token1)
         api_return_tok2 = contribution_status.get_return_amount_of_token(token2)
         debug_info = "NOT FIRST time contribution" + debug_info + f"""
