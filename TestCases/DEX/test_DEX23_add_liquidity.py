@@ -1,9 +1,6 @@
-from typing import Dict
-
 import pytest
 
 from Configs.Constants import coin, PRV_ID
-from Drivers.Response import Response
 from Helpers.Logging import INFO, STEP, INFO_HEADLINE
 from Helpers.TestHelper import l6
 from Helpers.Time import get_current_date_time, WAIT
@@ -59,7 +56,13 @@ def test_add_liquidity_v2(contributors, contribute_percent_of_bal_tok2, token1, 
     pde_state_after_contribute = SUT().get_latest_pde_state_info()
     for acc in contributors:
         pair_id = pair_ids[acc]
-        assert pde_state_after_contribute.find_waiting_contribution_of_user(acc, pair_id, token2) != []
+        find_contribution = pde_state_after_contribute.find_waiting_contribution_of_user(acc, pair_id, token2)
+        assert find_contribution, \
+            f"""Expected to find waiting contribution but none was found. Expected to find:
+            ID: {pair_id}
+            Acc: {acc.private_key}
+            Token: {token2}"""
+
         d_contribute_fee[acc] = d_contribute_tx[acc].get_transaction_by_hash().get_fee()
 
     STEP(3, f'Contribute {l6(token1)}')

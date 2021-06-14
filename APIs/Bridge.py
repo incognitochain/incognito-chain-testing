@@ -18,13 +18,14 @@ class BridgeRpc(BaseRpcApi):
         }]). \
             execute()
 
-    def issue_centralized_bridge_token(self, receiver, token_id, token_name, amount, tx_ver=2):
+    def issue_centralized_bridge_token(self, DAO_private_key, receiver_payment_key,
+                                       token_id, token_name, amount, tx_ver=2):
         return self.rpc_connection. \
             with_method("createandsendissuingrequest"). \
-            with_params([Constants.DAO_PRIVATE_K,
+            with_params([DAO_private_key,
                          None, 100, -1,
                          {
-                             "ReceiveAddress": receiver,
+                             "ReceiveAddress": receiver_payment_key,
                              "DepositedAmount": amount,
                              "TokenID": token_id,
                              "TokenName":

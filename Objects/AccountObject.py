@@ -344,7 +344,7 @@ class Account:
                                                 receiver_reward.payment_key, stake_amount, auto_re_stake,
                                                 TestConfig.TX_VER)
 
-    def stake_and_reward_me(self, stake_amount=None, auto_re_stake=True):
+    def stake_and_reward_me(self, stake_amount=None, auto_re_stake=True, tx_version=TestConfig.TX_VER):
         """
 
         @return:
@@ -359,7 +359,7 @@ class Account:
 
         return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, self.payment_key, self.validator_key,
-                                                self.payment_key, stake_amount, auto_re_stake, TestConfig.TX_VER)
+                                                self.payment_key, stake_amount, auto_re_stake, tx_version)
 
     def stake_someone_reward_me(self, someone, stake_amount=None):
         """
@@ -842,7 +842,7 @@ class Account:
             initialize a new centralize token
             @return: Response Object
         """
-        return self.REQ_HANDLER.bridge().issue_centralized_bridge_token(self.payment_key, token_id,
+        return self.REQ_HANDLER.bridge().issue_centralized_bridge_token(DAO_PRIVATE_K, self.payment_key, token_id,
                                                                         token_name, amount)
 
     def withdraw_centralize_token(self, token_id, amount_custom_token):
@@ -1395,10 +1395,24 @@ class Account:
         for acc, amount in receiver.items():
             acc.wait_for_balance_change(from_balance=bal_receiver_b4_dict[acc])
 
-    def submit_key(self):
-        INFO(f'Submit private key for indexing coin {l6(self.private_key)}')
-        self.REQ_HANDLER.transaction().submit_key(self.private_key).expect_no_error()
+    def submit_key(self, key_type='private'):
+        """
+        @param key_type: private or ota
+        @return:
+        """
+        key_type = key_type.lower()
+        if key_type == 'private':
+            key = self.private_key
+        elif key_type == 'ota':
+            key = self.ota_k
+        else:
+            key = None
+        INFO(f'Submit {key_type} key for indexing coin {l6(key)}')
+        self.REQ_HANDLER.transaction().submit_key(key).expect_no_error()
         return self
+
+    def submit_key_authorize(self):
+        pass
 
 
 class AccountGroup:

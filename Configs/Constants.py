@@ -12,6 +12,8 @@ PBTC_ID = "ef5947f70ead81a76a53c7c8b7317dd5245510c665d3a13921dc9a581188728b"
 
 DAO_PRIVATE_K = \
     "112t8roafGgHL1rhAP9632Yef3sx5k8xgp8cwK4MCJsCL1UWcxXvpzg97N4dwvcD735iKf31Q2ZgrAvKfVjeSUEvnzKJyyJD3GqqSZdxN4or"
+ADDR_10MIL = \
+    '112t8rnX6L6keA9b4WeM1Ay3BjVkaeib2zv1fw3sLnrmbLSgXwNbBdhnhXiKT28ZhAgoa4RByXhzY5uLe8WxQXpLjR4LmqLz61VKz6mh5PfX'
 
 
 class ChainConfig:
@@ -24,7 +26,7 @@ class ChainConfig:
     BEACON_COMMITTEE_SIZE = 4
     FIX_BLOCK_VALIDATOR = 4
     SHARD_COMMITTEE_SIZE = 6
-    PRIVACY_VERSION = 2
+    PRIVACY_VERSION = 1
     STK_AMOUNT = 1750000000000
     STK_WAIT_TIME_OUT = 4000  # seconds
     ONE_COIN = 1000000000
@@ -60,9 +62,7 @@ class ChainConfig:
         """
         num_of_epoch = max(0, num_of_epoch)  # make sure epoch and block must always >=0
         number_of_block = max(0, number_of_block)
-        block_time = ChainConfig.BLOCK_TIME * number_of_block
-        epoch_time = ChainConfig.BLOCK_PER_EPOCH * ChainConfig.BLOCK_TIME * num_of_epoch
-        return epoch_time + block_time
+        return ChainConfig.BLOCK_TIME * (number_of_block + num_of_epoch * ChainConfig.BLOCK_PER_EPOCH)
 
     @staticmethod
     def get_running_config():

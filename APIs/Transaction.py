@@ -367,10 +367,21 @@ class TransactionRpc(BaseRpcApi):
             with_params([proof]). \
             execute()
 
-    def submit_key(self, private_k):
+    def submit_key(self, key):
         """
         for privacy v2, must subscribe for caching and getting balance
-        @param private_k:
+        @param key: OTA private key or Private key
         @return:
         """
-        return self.rpc_connection.with_method('submitkey').with_params([private_k]).execute()
+        return self.rpc_connection.with_method('submitkey').with_params([key]).execute()
+
+    def submit_key_authorized(self, ota_key, access_token, block_height=0, re_index=False):
+        """
+        @param ota_key:
+        @param access_token:
+        @param block_height:
+        @param re_index:
+        @return:
+        """
+        return self.rpc_connection.with_method('authorizedsubmitkey'). \
+            with_params([ota_key, access_token, block_height, re_index]).execute()
