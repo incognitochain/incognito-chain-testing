@@ -4,9 +4,9 @@ from Configs.Constants import coin, PRV_ID
 from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import INFO, INFO_HEADLINE
 from Helpers.TestHelper import l6
-from Helpers.Time import get_current_date_time, WAIT
+from Helpers.Time import get_current_date_time
 from Objects.AccountObject import Account, COIN_MASTER, AccountGroup
-from Objects.IncognitoTestCase import SUT, ACCOUNTS
+from Objects.IncognitoTestCase import SUT
 
 token_owner = Account(
     '112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA')
@@ -204,5 +204,5 @@ def calculate_trade_order(trading_fees_list, amount_list):
 #         pass
 
 # WAIT(60)
-#     acc.convert_token_to_v2(token_id_1)
-#     acc.convert_token_to_v2(token_id_2)
+#     acc.convert_token_to_v2(token_id_1, 10)
+#     acc.convert_token_to_v2(token_id_2, 10)

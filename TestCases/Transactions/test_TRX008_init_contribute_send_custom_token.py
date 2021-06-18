@@ -190,12 +190,6 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
 
     STEP(3, "Subscribe sending transaction")
     transaction_tx = sending_token_transaction.subscribe_transaction()
-    if sender.shard != receiver.shard:
-        try:
-            receiver.subscribe_cross_output_token()
-        except:
-            pass
-
     STEP(4, '''
             checking sender and receiver bal
             sending token use prv fee then: sender prv - fee, token - sent amount only
@@ -203,7 +197,7 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
             ''')
     STEP(4.1, "check sender and receiver token balance after sent")
     sender_token_bal_after = sender.get_token_balance(custom_token_id)
-    INFO(f"sender_token_balance_after:{sender_token_bal_after}")
+    INFO(f"sender_token_balance_after: {sender_token_bal_after}")
     # Balance after = balance before - amount
     if fee_type == 'prv':
         assert sender_token_bal_after == sender_token_bal_before - token_amount_to_send, "sender balance incorrect" and INFO(
@@ -212,21 +206,22 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
         assert sender_token_bal_after == sender_token_bal_before - token_amount_to_send - fee, \
             "sender balance incorrect" and INFO("Failed")
 
-    receiver_token_balance_after = receiver.get_token_balance(custom_token_id)
-    INFO(f"Receiver token balance after: ")
+    receiver_token_balance_after = receiver.wait_for_balance_change(custom_token_id, receiver_token_balance_before)
+
+    INFO(f"Receiver token balance after: {receiver_token_balance_after}")
     # Balance after = balance before + amount
     assert receiver_token_balance_before == receiver_token_balance_after - token_amount_to_send, \
-        "receiver balance incorrect" and INFO("Failed")
+        f'Balance before/after {receiver_token_balance_before}/{receiver_token_balance_after}, sent {token_amount_to_send}'
 
     STEP(4.2, "check sender and receiver PRV balance after sent")
     sender_prv_bal_after = sender.get_prv_balance()
     INFO(f"Sender prv balance after : {sender_prv_bal_after}")
     if fee_type == 'prv':
         assert sender_prv_bal_after == sender_prv_bal_before - transaction_tx.get_fee(), \
-            "incorrect prv balance of the address 1 " and INFO("Failed")
+            "incorrect prv balance of the address 1 "
     else:  # fee_type = 'token'
         assert sender_prv_bal_after == sender_prv_bal_before, \
-            "incorrect prv balance of the address 1 " and INFO("Failed")
+            "incorrect prv balance of the address 1 "
 
     receiver_prv_balance_after = receiver.get_prv_balance()
     INFO(f"Receiver prv balance after : {receiver_prv_balance_after}")
@@ -304,14 +299,8 @@ def test_send_token_insufficient_fund(sender, receiver):
     STEP(5, "Subscribe transaction")
     step4_result.subscribe_transaction()
 
-    if sender.shard != receiver.shard:
-        try:
-            receiver.subscribe_cross_output_token()
-        except:
-            pass
-
     STEP(6, "Check sender balance")
-    sender_token_bal_after = sender.get_token_balance(custom_token_id)
+    sender_token_bal_after = sender.wait_for_balance_change(custom_token_id, sender_token_bal)
     assert sender_token_bal_after == 0, "sender token balance must be 0" and INFO("Failed")
 
     STEP(7, "Check receiver balance")
@@ -321,11 +310,7 @@ def test_send_token_insufficient_fund(sender, receiver):
     STEP(8, 'Return token to sender for the next run')
     receiver.send_token_to(sender, custom_token_id, (sender_token_bal - token_fee) - token_fee,
                            token_fee=token_fee).subscribe_transaction()
-    if sender.shard != receiver.shard:
-        try:
-            sender.subscribe_cross_output_token()
-        except:
-            pass
+    sender.wait_for_balance_change(custom_token_id, sender_token_bal_after)
 
 
 @pytest.mark.dependency(depends=["test_init_ptoken"])
@@ -387,13 +372,9 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
     assert sender_prv_bal_after == sender_prv_bal_before - transaction_result.get_fee(), INFO("Failed")
 
     STEP(6, "check receiver balance ")
-    for account in receiver_amount_dict.keys():
-        try:
-            account.subscribe_cross_output_token()
-        except:
-            pass
-        amount_token_received = receiver_amount_dict[account]
-        balance_token_after = account.get_token_balance(custom_token_id)
+    for account, amount_token_received in receiver_amount_dict.items():
+        balance_token_after = account.wait_for_balance_change(custom_token_id,
+                                                              account.get_token_balance_cache(custom_token_id))
         for account_before in receiver_amount_dict_copy.keys():
             if account == account_before:
                 if account_before.get_token_balance_cache(custom_token_id) is None:

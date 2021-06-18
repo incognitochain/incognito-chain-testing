@@ -1225,12 +1225,12 @@ class Account:
     def convert_payment_k_to_v1(self):
         return self.REQ_HANDLER.util_rpc().convert_payment_k_to_v1(self.payment_key).get_result()
 
-    def convert_token_to_v2(self, token_id=PRV_ID):
+    def convert_token_to_v2(self, token_id=PRV_ID, fee=-1):
         if token_id == PRV_ID:
             convert_tx = self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_transaction(self.private_key)
         else:
             convert_tx = self.REQ_HANDLER.transaction().create_convert_coin_ver1_to_ver2_tx_token(self.private_key,
-                                                                                                  token_id, 10)
+                                                                                                  token_id, fee)
         return convert_tx
 
     def top_up_if_lower_than(self, account, lower, upper, token_id=PRV_ID, retry_interval=30, max_wait=180):
