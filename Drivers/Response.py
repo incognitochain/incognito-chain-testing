@@ -13,14 +13,22 @@ from Objects.TransactionObjects import TransactionDetail
 class Response(ResponseBase):
     def __init__(self, response=None, more_info=None, handler=None):
         super().__init__(response, more_info)
-        if handler:
-            self.__handler = handler
-        else:
-            from Objects.IncognitoTestCase import SUT
-            self.__handler = SUT()
+        self.__handler = handler
 
-    def req_to(self, node):
-        self.__handler = node
+    def req_to(self, handler=None):
+        """
+        @param handler: if the input handler not None, change the handler. If input handler = 0, check current handler
+        if not exist -> change to SUT. If handler is not None, nor 0, set to SUT
+        @return: self
+        """
+        if handler is not None:
+            self.__handler = handler
+            return self
+        elif handler == 0:
+            if not self.__handler:
+                return self
+        from Objects.IncognitoTestCase import SUT
+        self.__handler = SUT()
         return self
 
     def expect_no_error(self, additional_msg_if_fail=''):
@@ -142,6 +150,7 @@ class Response(ResponseBase):
         :param tx_id: if not specified, use tx id from self
         :return: TransactionDetail Object
         """
+        self.req_to(0)
         if tx_id is None:
             tx_id = self.expect_no_error().get_tx_id()
         if tx_id is None:
@@ -178,6 +187,7 @@ class Response(ResponseBase):
         @param time_out:
         @return: TransactionDetail, use TransactionDetail.is_none() to check if it's an empty object
         """
+        self.req_to(0)
         if tx_hash is None:
             tx_hash = self.expect_no_error().get_tx_id()
         if tx_hash is None:
@@ -203,6 +213,7 @@ class Response(ResponseBase):
         @param tx_hash: tx hash of trade request tx
         @return: Status.Dex.Trading.ACCEPTED
         """
+        self.req_to(0)
         tx_hash = self.expect_no_error().get_tx_id() if tx_hash is None else tx_hash
         try:
             return self.__handler.dex().get_trade_status(tx_hash).get_result()
