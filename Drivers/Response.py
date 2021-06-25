@@ -21,11 +21,11 @@ class Response(ResponseBase):
         if not exist -> change to SUT. If handler is not None, nor 0, set to SUT
         @return: self
         """
-        if handler is not None:
+        if handler:
             self.__handler = handler
             return self
         elif handler == 0:
-            if not self.__handler:
+            if self.__handler:
                 return self
         from Objects.IncognitoTestCase import SUT
         self.__handler = SUT()

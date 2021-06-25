@@ -1411,8 +1411,8 @@ class Account:
         self.REQ_HANDLER.transaction().submit_key(key).expect_no_error()
         return self
 
-    def submit_key_authorize(self):
-        pass
+    def submit_key_authorize(self, from_height=0, re_index=False, access_token=ChainConfig.ACCESS_TOKEN):
+        return self.REQ_HANDLER.transaction().submit_key_authorized(self.ota_k, access_token, from_height, re_index)
 
 
 class AccountGroup:
