@@ -49,10 +49,14 @@ class Account:
         @param key_to_check:
         @return: key type of the {key_key_to_check} or False if not found in this account
         """
-        for key_type, value in self.__dict__.items():
-            if "key" in key_type or "address" in key_type or "_k" in key_type:
+        if self.check_payment_key_version(key_to_check) == 2:
+            key_to_check = self.convert_payment_k_to_v1(key_to_check)
+        for attribute, value in self.__dict__.items():
+            if "key" in attribute or "address" in attribute or "_k" in attribute:
+                if self.check_payment_key_version(value) == 2:
+                    value = self.convert_payment_k_to_v1(value)
                 if key_to_check == value:
-                    return key_type
+                    return attribute
         return False
 
     def __init__(self, private_key=None, payment_k=None, handler=None, **kwargs):
@@ -88,6 +92,19 @@ class Account:
 
         if private_key and not payment_k:  # generate all key from private key if there's privatekey but not paymentkey
             self.get_keys(version)
+
+    def check_payment_key_version(self, key=None):
+        """
+        this not yet is the best solution to check key version, but it works for now. so... WTH!
+        @param key:
+        @return: 1 or 2. None if don't know what the key is.
+        """
+        key = key if key else self.payment_key
+        if len(key) == 103:
+            return 1
+        if len(key) == 148:
+            return 2
+        return None
 
     def get_keys(self, version, **kwargs):
         """
@@ -892,18 +909,18 @@ class Account:
         except KeyError:
             return None
 
-    def stk_withdraw_reward_to(self, reward_receiver, token_id=PRV_ID):
+    def stk_withdraw_reward_to(self, reward_receiver, token_id=PRV_ID, tx_fee=0, tx_version=TestConfig.TX_VER):
         INFO(f"Withdraw token reward {token_id} to {l6(reward_receiver.payment_key)}")
         if ChainConfig.PRIVACY_VERSION == 1:
             return self.REQ_HANDLER.transaction().withdraw_reward(self.private_key, reward_receiver.payment_key,
-                                                                  token_id, TestConfig.TX_VER)
+                                                                  token_id, tx_fee, tx_version)
         if ChainConfig.PRIVACY_VERSION == 2:
             return self.REQ_HANDLER.transaction(). \
-                withdraw_reward_privacy_v2(self.private_key, reward_receiver.payment_key, token_id, TestConfig.TX_VER)
+                withdraw_reward_privacy_v2(self.private_key, reward_receiver.payment_key, token_id, tx_fee, tx_version)
         raise BaseException('Can not detect privacy version to use the correct withdraw rpc')
 
-    def stk_withdraw_reward_to_me(self, token_id=PRV_ID):
-        return self.stk_withdraw_reward_to(self, token_id)
+    def stk_withdraw_reward_to_me(self, token_id=PRV_ID, tx_fee=0, tx_version=TestConfig.TX_VER):
+        return self.stk_withdraw_reward_to(self, token_id, tx_fee, tx_version)
 
     #######
     # DEX
@@ -1222,8 +1239,9 @@ class Account:
         except KeyError:
             return 0
 
-    def convert_payment_k_to_v1(self):
-        return self.REQ_HANDLER.util_rpc().convert_payment_k_to_v1(self.payment_key).get_result()
+    def convert_payment_k_to_v1(self, key=None):
+        key = key if key else self.payment_key
+        return self.REQ_HANDLER.util_rpc().convert_payment_k_to_v1(key).get_result()
 
     def convert_token_to_v2(self, token_id=PRV_ID, fee=-1):
         if token_id == PRV_ID:
