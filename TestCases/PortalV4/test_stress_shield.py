@@ -5,7 +5,7 @@ from Helpers.Logging import INFO
 from Helpers.Time import WAIT
 from Objects.IncognitoTestCase import ACCOUNTS
 from TestCases.PortalV4.test_PTV4_001_shield_new_flow import test_shield_new_flow as shield_btc
-
+from multiprocessing import Lock
 
 
 
@@ -19,7 +19,21 @@ from TestCases.PortalV4.test_PTV4_001_shield_new_flow import test_shield_new_flo
 #     INFO("End process")
 
 def print_test():
-    print("aaaaaaa")
+    print("aaaaaaa1")
+    print("aaaaaaa2")
+    print("aaaaaaa3")
+    print("aaaaaaa4")
+    print("aaaaaaa5")
+    print("aaaaaaa6")
+    print("aaaaaaa7")
+    lock =Lock()
+    lock.acquire()
+    print("aaaaaaa8")
+    WAIT(3)
+    print("aaaaaaa9")
+    print("aaaaaaa10")
+    lock.release()
+
 
 def test_sumit_theard():
     INFO("Start process ")
@@ -28,9 +42,10 @@ def test_sumit_theard():
         while(counter > 0):
             counter -= 1
             INFO(f"Shielding for Account : {counter} ")
-            executor.submit(shield_btc, PBTC_ID, 0.1, ACCOUNTS[counter], "P2PKH", "valid")
+            executor.submit(shield_btc, PBTC_ID, 0.1, ACCOUNTS[counter], "P2PKH", "loadtest")
+            # executor.submit(print_test)
             if counter == 1:
-                WAIT(300)
+                WAIT(5)
                 counter = len(ACCOUNTS)
     INFO("End process")
 

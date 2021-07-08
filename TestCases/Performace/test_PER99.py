@@ -94,6 +94,8 @@ def num_of_proofs():
     return TX_PER_LOOP * LOOP
 
 
+
+
 @pytest.mark.parametrize("proof_list", [
     prepare_proof_1_shard_self_send(1, 1),
     # prepare_proof_1_shard_in_1_shard(-1, 1),
@@ -105,14 +107,8 @@ def test_tx_machine_gun(proof_list):
     INFO_HEADLINE(f'Firing {len(proof_list)} txs at full node, {TX_PER_LOOP} round at a time')
     send_thread_list = []
     proof_list_len = len(proof_list)
-    with ThreadPoolExecutor(max_workers=TX_PER_LOOP) as executor:
-        for i in range(proof_list_len):
-            proof = proof_list[i]
-            thread = executor.submit(SUT().send_proof, proof)
-            send_thread_list.append(thread)
-            if (i + 1) % TX_PER_LOOP == 0:
-                INFO(f"Sleep {GAP_BETWEEN_LOOP}s")
-                time.sleep(GAP_BETWEEN_LOOP)
+    executor=  ThreadPoolExecutor(max_workers=TX_PER_LOOP)
+
 
     INFO_HEADLINE('Wait 60 for txs to be confirmed')
     WAIT(60)

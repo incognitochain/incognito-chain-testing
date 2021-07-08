@@ -48,7 +48,7 @@ def test_send_prv_cross_shard_0_balance_with_privacy_is(fee, privacy):
     STEP(1, "get sender and receiver balance before sending")
     balance1b = sender.get_prv_balance()
     INFO(f"sender balance: {balance1b}")
-    assert balance1b == 0, f'Sender balance must = 0 before running this test, got {balance1b} instead' and INFO("Failed")   # add info to debug testcases specific
+    assert balance1b == 0, f'Sender balance must = 0 before running this test, got {balance1b} instead' and INFO("Failed")   # add info to debug TestCases specific
 
     balance2b = receiver.get_prv_balance()
     INFO("receiver balance: " + str(balance2b))
