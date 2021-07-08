@@ -33,9 +33,9 @@ def setup_module():
 
 def setup_function():
     top = max(trade_amounts)
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(2), coin(2), traders)
-    token_owner.top_him_up_token_to_amount_if(token_id_1, 10 * top, 20 * top, traders)
-    token_owner.top_him_up_token_to_amount_if(token_id_2, 10 * top, 20 * top, traders)
+    COIN_MASTER.top_up_if_lower_than(traders, coin(2), coin(2))
+    token_owner.top_up_if_lower_than(traders, 10 * top, 20 * top, token_id_1)
+    token_owner.top_up_if_lower_than(traders, 10 * top, 20 * top, token_id_2)
 
 
 @pytest.mark.parametrize('cID1, num_of_branch1, cID2, num_of_branch2, at_transfer_next_epoch', [

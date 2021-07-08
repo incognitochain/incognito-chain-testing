@@ -34,8 +34,8 @@ def setup_module():
     global receiver_amount_dict
     INFO("Test set up")
 
-    COIN_MASTER.top_him_up_prv_to_amount_if(token_init_amount + prv_contribute_amount,
-                                            token_init_amount + prv_contribute_amount + coin(1), account_init)
+    COIN_MASTER.top_up_if_lower_than(account_init, token_init_amount + prv_contribute_amount,
+                                     token_init_amount + prv_contribute_amount + coin(1))
     receiver_amount_dict = dict()
     receiver_amount_dict[receiver_account] = random.randrange(1000, 2000)
     receiver_amount_dict[receiver_x_shard] = random.randrange(1000, 2000)

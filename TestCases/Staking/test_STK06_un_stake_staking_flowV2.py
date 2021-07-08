@@ -30,7 +30,7 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
     elif beacon_bsd.get_auto_staking_committees(validator) is False:
         validator.stk_wait_till_i_am_out_of_autostaking_list()
 
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1850), the_stake)
+    COIN_MASTER.top_up_if_lower_than(the_stake, coin(1751), coin(1850))
     bal_b4_stake = the_stake.get_prv_balance()
 
     INFO('Calculate & wait to execute test at block that after random time 0-5 block')
@@ -94,7 +94,7 @@ def test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, auto
     elif beacon_bsd.get_auto_staking_committees(validator) is False:
         validator.stk_wait_till_i_am_out_of_autostaking_list()
 
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1850), the_stake)
+    COIN_MASTER.top_up_if_lower_than(the_stake, coin(1751), coin(1850))
     bal_b4_stake = the_stake.get_prv_balance()
 
     STEP(1, 'Staking')
@@ -141,7 +141,7 @@ def test_un_stake_when_exist_shard_committee(the_stake, validator, receiver_rewa
     elif beacon_bsd.get_auto_staking_committees(validator) is False:
         validator.stk_wait_till_i_am_out_of_autostaking_list()
 
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1751), coin(1850), the_stake)
+    COIN_MASTER.top_up_if_lower_than(the_stake, coin(1751), coin(1850))
     bal_b4_stake = the_stake.get_prv_balance()
 
     STEP(1, 'Staking')

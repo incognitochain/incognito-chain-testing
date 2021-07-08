@@ -22,7 +22,7 @@ token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff" 
 need_withdraw_contribution_1 = False
 need_withdraw_contribution_2 = False
 
-COIN_MASTER.top_him_up_prv_to_amount_if(coin(10000), coin(100000), token_owner)
+COIN_MASTER.top_up_if_lower_than(token_owner, coin(10000), coin(100000))
 
 all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
 if token_id_1 not in all_ptoken_in_chain:
@@ -191,7 +191,7 @@ def calculate_trade_order(trading_fees_list, amount_list):
 
 # work around for privacy v2 "invalid token" bug, if not testing privacy v2, just comment these lines
 # if ChainConfig.PRIVACY_VERSION == 2:
-#     COIN_MASTER.top_him_up_prv_to_amount_if(1000, coin(1), acc_list_n_shard)
+#     COIN_MASTER.top_up_if_lower_than(acc_list_n_shard, 1000, coin(1))
 #     acc_list_n_shard.get_accounts_in_shard(5)[0]. \
 #         pde_trade_prv(10, token_id_1, 1).expect_no_error().subscribe_transaction()
 #     acc_list_n_shard.get_accounts_in_shard(5)[0]. \

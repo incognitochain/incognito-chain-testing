@@ -36,7 +36,7 @@ from TestCases.Staking import account_x, amount_token_send, amount_token_fee, ac
     (account_x, account_y, account_t, True),
 ])
 def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), the_stake)
+    COIN_MASTER.top_up_if_lower_than(the_stake, coin(1750), coin(1850))
     from TestCases.Staking import token_id
     INFO(f'Run test with token: {token_id}')
     reward_PRV = reward_receiver.stk_get_reward_amount()

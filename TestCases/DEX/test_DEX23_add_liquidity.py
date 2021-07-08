@@ -9,9 +9,9 @@ from TestCases.DEX import token_owner, token_id_1, token_id_2
 
 
 def setup_function():
-    token_owner.top_him_up_token_to_amount_if(token_id_1, coin(500), coin(1000), ACCOUNTS)
-    token_owner.top_him_up_token_to_amount_if(token_id_2, coin(500), coin(1000), ACCOUNTS)
-    token_owner.top_him_up_prv_to_amount_if(coin(500), coin(1000), ACCOUNTS)
+    token_owner.top_up_if_lower_than(ACCOUNTS, coin(500), coin(1000), token_id_1)
+    token_owner.top_up_if_lower_than(ACCOUNTS, coin(500), coin(1000), token_id_2)
+    token_owner.top_up_if_lower_than(ACCOUNTS, coin(500), coin(1000))
 
 
 @pytest.mark.parametrize('contributors, contribute_percent_of_bal_tok2, token1, token2', [

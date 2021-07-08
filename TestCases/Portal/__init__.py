@@ -30,9 +30,9 @@ self_pick_custodian = ACCOUNTS[6].set_remote_addr(
 portal_user = ACCOUNTS[1].set_remote_addr({PBNB_ID: bnb_address_list[1], PBTC_ID: 'mhpTRAPdmyB1PUvXR2yqaSBK8ZJhEQ8rEw'})
 all_custodians = AccountGroup(
     ACCOUNTS[3].set_remote_addr({PBNB_ID: bnb_address_list[2], PBTC_ID: {"P2SH": "mgdwpAgvYNuJ2MyUimiKdTYsu2vpDZNpAa",
-            "P2PKH": "xxxxx",
-            "P2WSH": "yyy",
-            "P2WPKH": "zzzz"}}),
+                                                                         "P2PKH": "xxxxx",
+                                                                         "P2WSH": "yyy",
+                                                                         "P2WPKH": "zzzz"}}),
     ACCOUNTS[4].set_remote_addr({PBNB_ID: bnb_address_list[3], PBTC_ID: 'mkgT1mphBPX1C3tn9yRK7HmVSYkVEn7VzY'}),
     ACCOUNTS[5].set_remote_addr({PBNB_ID: bnb_address_list[4], PBTC_ID: 'myo25dPxQNqk94HwFLeFr42cH8VbwTGbBm'}),
     self_pick_custodian
@@ -79,9 +79,9 @@ big_rate = {PBNB_ID: '105873200000',
 def setup_module():
     INFO()
     INFO('SETUP TEST MODULE, TOP UP PRV FOR CUSTODIAN AND PORTAL FEEDER')
-    COIN_MASTER.top_him_up_prv_to_amount_if(TEST_SETTING_DEPOSIT_AMOUNT * 4, TEST_SETTING_DEPOSIT_AMOUNT * 4 + coin(1),
-                                            all_custodians)
-    COIN_MASTER.top_him_up_prv_to_amount_if(100, coin(1), PORTAL_FEEDER)
+    COIN_MASTER.top_up_if_lower_than(all_custodians, TEST_SETTING_DEPOSIT_AMOUNT * 4,
+                                     TEST_SETTING_DEPOSIT_AMOUNT * 4 + coin(1))
+    COIN_MASTER.top_up_if_lower_than(PORTAL_FEEDER, 100, coin(1))
     INFO("Check rate")
     PSI_current = SUT().get_latest_portal_state_info()
     for k, v in init_portal_rate.items():

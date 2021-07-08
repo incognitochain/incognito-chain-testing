@@ -17,7 +17,7 @@ def test_stake_complex():
     accounts = [account_a, account_t, account_u]
     multi_out_put = dict()
 
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), accounts)
+    COIN_MASTER.top_up_if_lower_than(accounts, coin(1750), coin(1850))
 
     try:
         account_u.subscribe_cross_output_coin()

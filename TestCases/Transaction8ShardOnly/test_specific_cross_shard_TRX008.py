@@ -23,7 +23,7 @@ for i in range(8):
     except IndexError:
         INFO(f'Not found account in shard {i}')
 
-COIN_MASTER.top_him_up_prv_to_amount_if(coin(50000), coin(100000), list(list_acc_x_shard.values()))
+COIN_MASTER.top_up_if_lower_than(list(list_acc_x_shard.values()), coin(50000), coin(100000))
 
 
 def teardown_module():
@@ -187,7 +187,7 @@ def test_send_token(shard_sender, fee, fee_type, privacy, privacy_type):
     try:
         sender = list_acc_x_shard[shard_sender]
         if sender != account_init:
-            account_init.top_him_up_token_to_amount_if(custom_token_id, coin(2), coin(5), sender)
+            account_init.top_up_if_lower_than(sender, coin(2), coin(5), custom_token_id)
     except KeyError:
         pytest.skip(f'Test Data not exist account in shard {shard_sender}')
     receiver_account_list_before = copy.deepcopy(list_acc_x_shard)
@@ -214,7 +214,7 @@ def test_send_token_insufficient_fund(shard_sender):
     try:
         sender = list_acc_x_shard[shard_sender]
         if sender != account_init:
-            account_init.top_him_up_token_to_amount_if(custom_token_id, coin(2), coin(5), sender)
+            account_init.top_up_if_lower_than(sender, coin(2), coin(5), custom_token_id)
     except KeyError:
         pytest.skip(f'Test Data not exist account in shard {shard_sender}')
     receiver_account_list_before = copy.deepcopy(list_acc_x_shard)
@@ -242,7 +242,7 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output(shard_sender)
     try:
         sender = list_acc_x_shard[shard_sender]
         if sender != account_init:
-            account_init.top_him_up_token_to_amount_if(custom_token_id, coin(2), coin(5), sender)
+            account_init.top_up_if_lower_than(sender, coin(2), coin(5), custom_token_id)
     except KeyError:
         pytest.skip(f'Test Data not exist account in shard {shard_sender}')
     receiver_amount_dict = {}
@@ -263,7 +263,7 @@ def est_crash_fullnode_when_token_receiver_null(shard_sender):
     try:
         sender = list_acc_x_shard[shard_sender]
         if sender != account_init:
-            account_init.top_him_up_token_to_amount_if(custom_token_id, coin(2), coin(5), sender)
+            account_init.top_up_if_lower_than(sender, coin(2), coin(5), custom_token_id)
     except KeyError:
         pytest.skip(f'Test Data not exist account in shard {shard_sender}')
     TRX008.sender_account = sender

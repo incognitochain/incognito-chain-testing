@@ -16,7 +16,7 @@ token_id_2 = "08803efd77bfaad73b13af202d2b5d68315a20e5405f1621aab954407944a451" 
 
 token_owner = Account(
     '112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA')
-COIN_MASTER.top_him_up_prv_to_amount_if(coin(10000), coin(100000), token_owner)
+COIN_MASTER.top_up_if_lower_than(token_owner, coin(10000), coin(100000))
 
 all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
 if token_id_1 not in all_ptoken_in_chain:

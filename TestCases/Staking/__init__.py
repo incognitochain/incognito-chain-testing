@@ -79,7 +79,7 @@ def setup_module():
     wait_list = []
     for committee in auto_stake_list:
         if beacon_bsd.get_auto_staking_committees(committee) is None:
-            COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1751), committee)
+            COIN_MASTER.top_up_if_lower_than(committee, coin(1750), coin(1751))
             committee.stake_and_reward_me().expect_no_error()
             wait_list.append(committee)
 

@@ -1,5 +1,6 @@
-import pytest
 from concurrent.futures.thread import ThreadPoolExecutor
+
+import pytest
 
 from Configs.Constants import coin, ChainConfig
 from Helpers.Logging import INFO, STEP, ERROR
@@ -13,7 +14,7 @@ receiver_shard_0 = Account(
 receiver_shard_1 = acc_list_1_shard[0]
 senders_from_1_to_0 = acc_list_1_shard[1:4]
 senders_from_1_to_1 = acc_list_1_shard[4:7]
-COIN_MASTER.top_him_up_prv_to_amount_if(coin(2), coin(5), senders_from_1_to_1 + senders_from_1_to_0)
+COIN_MASTER.top_up_if_lower_than(senders_from_1_to_1 + senders_from_1_to_0, coin(2), coin(5))
 amount = 10000
 min_blocks_wait_fork = 6  # Chain will be forked after at least {min_blocks_wait_fork} blocks
 time_send_tx = 3  # create & send transaction before and after {time_send_tx} blocks
@@ -92,9 +93,9 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
         round_height[height_current] += 1
         assert round_height[height_current] <= num_of_branch1 * 2 + 2, ERROR(f'Chain is stopped at {height_current}')
         if height_current in block_fork_list + [block_fork_list[0] - 1]:
-            WAIT(ChainConfig.BLOCK_TIME*4)
+            WAIT(ChainConfig.BLOCK_TIME * 4)
         else:
-            WAIT(ChainConfig.BLOCK_TIME*2)
+            WAIT(ChainConfig.BLOCK_TIME * 2)
         # WAIT(ChainConfig.BLOCK_TIME * 4)
 
     WAIT(10 * ChainConfig.BLOCK_TIME)  # wait 10 blocks to balance update

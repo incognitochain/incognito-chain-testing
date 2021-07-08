@@ -1,7 +1,9 @@
-import pytest
 from concurrent.futures.thread import ThreadPoolExecutor
-from Helpers.KeyListJson import KeyListJson
+
+import pytest
+
 from Configs.Constants import coin, ChainConfig
+from Helpers.KeyListJson import KeyListJson
 from Helpers.Logging import INFO, STEP, ERROR
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
@@ -17,7 +19,7 @@ except IndexError:
     raise EnvironmentError(f'Not enough staker in keylist file for the test. '
                            f'Check the file, and make sure nodes are run or else chain will be stuck')
 account_a = acc_list_1_shard[0]
-COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), [account_a, account_x])
+COIN_MASTER.top_up_if_lower_than([account_a, account_x], coin(1750), coin(1850))
 min_blocks_wait_fork = 6  # Chain will be forked after at least {min_blocks_wait_fork} blocks
 time_send_tx = 3  # create & send transaction before and after {time_send_tx} blocks
 num_of_block_fork = 5

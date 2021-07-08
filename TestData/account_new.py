@@ -1,4 +1,4 @@
-from Objects.AccountObjectNew import Account
+from Objects.AccountObject import Account
 
 account_list = \
     [

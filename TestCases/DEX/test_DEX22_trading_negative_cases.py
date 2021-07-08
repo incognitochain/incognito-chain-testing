@@ -6,9 +6,8 @@ import pytest
 
 from Configs.Constants import PRV_ID, coin, Status
 from Helpers.BlockChainMath import PdeMath
-from Helpers.Logging import STEP, INFO, DEBUG, INFO_HEADLINE
+from Helpers.Logging import STEP, INFO, INFO_HEADLINE
 from Helpers.TestHelper import l6, ChainHelper
-from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from Objects.PdeObjects import PDEStateInfo
@@ -127,11 +126,9 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
     num_of_trade_tx = 10
     trade_amounts = [2234900] * num_of_trade_tx
     top = max(trade_amounts)
-    COIN_MASTER.top_him_up_prv_to_amount_if(1.5 * top, 2 * top, acc_list_1_shard + acc_list_n_shard)
-    token_owner.top_him_up_token_to_amount_if(token_id_1, 1.5 * top, 2 * top,
-                                              acc_list_1_shard + acc_list_n_shard)
-    token_owner.top_him_up_token_to_amount_if(token_id_2, 1.5 * top, 2 * top,
-                                              acc_list_1_shard + acc_list_n_shard)
+    COIN_MASTER.top_up_if_lower_than(acc_list_1_shard + acc_list_n_shard, 1.5 * top, 2 * top)
+    token_owner.top_up_if_lower_than(acc_list_1_shard + acc_list_n_shard, 1.5 * top, 2 * top, token_id_1)
+    token_owner.top_up_if_lower_than(acc_list_1_shard + acc_list_n_shard, 1.5 * top, 2 * top, token_id_2)
     trading_fees = [random.randrange(190000, 200000) for x in range(num_of_trade_tx - 1)] + [0]
     trade_order = calculate_trade_order(trading_fees, trade_amounts)
 

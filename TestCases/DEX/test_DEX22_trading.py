@@ -4,7 +4,7 @@ from concurrent.futures.thread import ThreadPoolExecutor
 import pytest
 
 from Configs.Constants import PRV_ID
-from Helpers.Logging import STEP, INFO, DEBUG, INFO_HEADLINE
+from Helpers.Logging import STEP, INFO, INFO_HEADLINE
 from Helpers.TestHelper import l6
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
@@ -19,11 +19,9 @@ trade_amounts = [random.randrange(9900000, 10000000)] * 10
 def setup_function():
     INFO_HEADLINE("SETUP TEST DEX TRADING")
     top = max(trade_amounts)
-    COIN_MASTER.top_him_up_prv_to_amount_if(top, 2 * top, acc_list_1_shard + acc_list_n_shard)
-    token_owner.top_him_up_token_to_amount_if(token_id_1, top, 2 * top,
-                                              acc_list_1_shard + acc_list_n_shard)
-    token_owner.top_him_up_token_to_amount_if(token_id_2, top, 2 * top,
-                                              acc_list_1_shard + acc_list_n_shard)
+    COIN_MASTER.top_up_if_lower_than(acc_list_1_shard + acc_list_n_shard, top, 2 * top)
+    token_owner.top_up_if_lower_than(acc_list_1_shard + acc_list_n_shard, top, 2 * top, token_id_1)
+    token_owner.top_up_if_lower_than(acc_list_1_shard + acc_list_n_shard, top, 2 * top, token_id_2)
     INFO_HEADLINE("DONE SETUP DEX TRADING")
 
 

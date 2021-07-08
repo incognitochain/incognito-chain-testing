@@ -5,10 +5,14 @@ PRV_ID = "0000000000000000000000000000000000000000000000000000000000000004"
 # old: for main net
 # PBNB_ID = "b2655152784e8639fa19521a7035f331eea1f1e911b2f3200a507ebb4554387b"
 # PBTC_ID = "b832e5d3b1f01a4f0623f7fe91d6673461e1f5d37d91fe78c5c2e6183ff39696"
+# PBAT_ID = "1fe75e9afa01b85126370a1583c7af9f1a5731625ef076ece396fcc6584c2b44"
+# PUSDT_ID = "716fd1009e2a1669caacc36891e707bfdf02590f96ebd897548e8963c95ebac0"
+# PUSDC_ID = "1ff2da446abfebea3ba30385e2ca99b0f0bbeda5c6371f4c23c939672b429a42"
 
 # new: for local
 PBNB_ID = "6abd698ea7ddd1f98b1ecaaddab5db0453b8363ff092f0d8d7d4c6b1155fb693"
 PBTC_ID = "ef5947f70ead81a76a53c7c8b7317dd5245510c665d3a13921dc9a581188728b"
+PETH_ID = "ffd8d42dc40a8d166ea4848baf8b5f6e9fe0e9c30d60062eb7d44a8df9e00854"
 
 DAO_PRIVATE_K = \
     "112t8roafGgHL1rhAP9632Yef3sx5k8xgp8cwK4MCJsCL1UWcxXvpzg97N4dwvcD735iKf31Q2ZgrAvKfVjeSUEvnzKJyyJD3GqqSZdxN4or"
@@ -17,6 +21,7 @@ ADDR_10MIL = \
 
 
 class ChainConfig:
+    ACCESS_TOKEN = '0c3d46946bbf99c8213dd7f6c640ed6433bdc056a5b68e7e80f5525311b0ca11'
     BLOCK_PER_EPOCH = 20
     RANDOM_TIME = 10
     BLOCK_TIME = 10
@@ -65,7 +70,7 @@ class ChainConfig:
         return ChainConfig.BLOCK_TIME * (number_of_block + num_of_epoch * ChainConfig.BLOCK_PER_EPOCH)
 
     @staticmethod
-    def get_running_config():
+    def get_running_config(from_height=3):
         # collecting running chain config
         from Objects.IncognitoTestCase import SUT
         bbs = SUT().get_beacon_best_state_info()
@@ -74,9 +79,9 @@ class ChainConfig:
         ChainConfig.SHARD_COMMITTEE_SIZE = bbs.get_max_shard_committee_size()
         chain_info = SUT().get_block_chain_info()
         ChainConfig.BLOCK_PER_EPOCH = chain_info.get_block_per_epoch_number()
-        block_3 = SUT().get_shard_block_by_height(0, 3)
-        block_4 = SUT().get_shard_block_by_height(0, 4)
-        ChainConfig.BLOCK_TIME = block_4.get_time() - block_3.get_time()
+        block_from = SUT().get_shard_block_by_height(0, from_height)
+        block_next = SUT().get_shard_block_by_height(0, from_height + 1)
+        ChainConfig.BLOCK_TIME = block_next.get_time() - block_from.get_time()
 
 
 class TestConfig:

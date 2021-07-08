@@ -9,7 +9,7 @@ stake_account = Account(
     "112t8sw4ZAc1wwbKog9NhE6VqpEiPii4reg8Zc5AVGu7BkxtPYv95dXRJtzP9CkepgzfUwTseNzgHXRovo9oDb8XrEpb5EgFhKdZhwjzHTbd")
 
 # Prepare coin to test
-COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), stake_account)
+COIN_MASTER.top_up_if_lower_than(stake_account, coin(1750), coin(1850))
 
 
 def stake_and_check_balance_after_stake(account):

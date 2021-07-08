@@ -83,7 +83,7 @@ def send_then_release():
 def test_create_proofs_self_send():
     # shard = random.randrange(len(ACCOUNTS))
     senders = ACCOUNTS[SHARD][:NUM_OF_SENDER]
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(3), coin(5), senders)
+    COIN_MASTER.top_up_if_lower_than(senders, coin(3), coin(5))
 
     INFO_HEADLINE(f' PREPARE TEST DATA, 1 SHARD TX, SHARD {SHARD}, SELF SEND')
 

@@ -19,8 +19,7 @@ def setup_module():
     INFO("Check if custodian need to add more collateral")
     PSI = SUT().get_latest_portal_state_info()
     deposit_amount = 0
-    COIN_MASTER.top_him_up_prv_to_amount_if(deposit_amount * 2, deposit_amount * 2 + 1,
-                                            all_custodians)
+    COIN_MASTER.top_up_if_lower_than(all_custodians, deposit_amount * 2, deposit_amount * 2 + 1)
 
     for cus in all_custodians:
         cus_stat = cus.portal_get_my_custodian_info(PSI)
@@ -297,7 +296,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
 def prepare_fat_custodian():
     from TestCases.Portal import find_fat_custodian, big_collateral, fat_custodian_prv
     fat_custodian = find_fat_custodian()
-    COIN_MASTER.top_him_up_prv_to_amount_if(big_collateral, fat_custodian_prv, fat_custodian)
+    COIN_MASTER.top_up_if_lower_than(fat_custodian, big_collateral, fat_custodian_prv)
     # deposit big collateral
     deposit_tx = fat_custodian.portal_make_me_custodian((big_collateral + 1), PBNB_ID)
     deposit_tx.expect_no_error()

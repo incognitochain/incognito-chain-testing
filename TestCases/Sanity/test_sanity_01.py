@@ -11,7 +11,7 @@ from Objects.IncognitoTestCase import SUT
 from Objects.PortalObjects import DepositTxInfo, PortingReqInfo
 from TestCases.Sanity import account_0, account_1, account_11, fixed_validators, auto_stake_list
 
-COIN_MASTER.top_him_up_prv_to_amount_if(coin(3600), coin(3601), account_0)
+COIN_MASTER.top_up_if_lower_than(account_0, coin(3600), coin(3601))
 P___TOKEN = 'e4ee6277935d280728de8724ab24e4aa227d36672ac1aed2153ec5a2c3297b41'
 BRD_TOKEN = '0000000000000000000000000000000000000000000000000000000000000100'
 
@@ -95,8 +95,8 @@ def test_02_transaction():
 @pytest.mark.testnet
 def test_03_portal():
     pytest.skip("feature is removed")
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1), coin(1.5), PORTAL_FEEDER)
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(10), coin(20), account_0)
+    COIN_MASTER.top_up_if_lower_than(PORTAL_FEEDER, coin(1), coin(1.5))
+    COIN_MASTER.top_up_if_lower_than(account_0, coin(10), coin(20))
     STEP(1, 'Portal: deposit collateral')
     deposit_amount = coin(1)
     bal_b4 = account_0.get_prv_balance()
@@ -176,7 +176,7 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
         pytest.skip(msg)
 
     STEP(0.2, 'Top up committees')
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), auto_stake_list + [stake_funder, the_staked])
+    COIN_MASTER.top_up_if_lower_than(auto_stake_list + [stake_funder, the_staked], coin(1750), coin(1850))
 
     STEP(0.3, 'Stake and wait till becoming committee')
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
@@ -197,7 +197,7 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
     assert num_committee_shard_0 == ChainConfig.SHARD_COMMITTEE_SIZE, f"shard 0: {num_committee_shard_0} committee"
     assert num_committee_shard_1 == ChainConfig.SHARD_COMMITTEE_SIZE, f"shard 1: {num_committee_shard_1} committee"
 
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1750), coin(1850), stake_funder)
+    COIN_MASTER.top_up_if_lower_than(stake_funder, coin(1750), coin(1850))
     STEP(0, 'check if the staked is already a committee')
     beacon_state = SUT().get_beacon_best_state_detail_info()
     if beacon_state.is_he_a_committee(the_staked):
@@ -340,7 +340,7 @@ def test_06_dex_v1():
     assert rate_b4[1] + PDE_RATE_V1[BRD_TOKEN] == rate_af[1]
 
     STEP(4, 'Trade')
-    COIN_MASTER.top_him_up_token_to_amount_if(BRD_TOKEN, DEX_V1_TRADE_AMOUNT, DEX_V1_TRADE_AMOUNT + 1000, account_0)
+    COIN_MASTER.top_up_if_lower_than(account_0, DEX_V1_TRADE_AMOUNT, DEX_V1_TRADE_AMOUNT + 1000, BRD_TOKEN)
     bal_brd_b4 = account_0.get_token_balance(BRD_TOKEN)
     bal_p___b4 = account_0.get_token_balance(P___TOKEN)
     trade_tx = account_0.pde_trade(BRD_TOKEN, DEX_V1_TRADE_AMOUNT, P___TOKEN, 1).expect_no_error(). \

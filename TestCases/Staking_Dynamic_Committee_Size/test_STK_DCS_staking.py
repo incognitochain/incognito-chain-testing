@@ -7,7 +7,6 @@ from Objects.IncognitoTestCase import SUT, STAKER_ACCOUNTS
 from TestCases.Staking import test_STK01_staking as STK01, test_STK03_stake_reject as STK03, \
     test_STK04_stake_for_multi_validator as STK04, test_STK06_un_stake_staking_flowV2 as STK06
 
-
 list_staker_to_test = []
 beacon_bsd = SUT().get_beacon_best_state_detail_info()
 for staker in STAKER_ACCOUNTS[:35]:
@@ -70,7 +69,7 @@ def test_staking():
 def test_stake_under_over_1750_prv():
     amount_stake = {"amount_stake_under_1750": coin(1749), "amount_stake_over_1750": coin(1751)}
     STK03.account_y = list_staker_to_test[0]
-    COIN_MASTER.top_him_up_prv_to_amount_if(coin(1800), coin(1850), STK03.account_y)
+    COIN_MASTER.top_up_if_lower_than(STK03.account_y, coin(1800), coin(1850))
     for key, amount in amount_stake.items():
         try:
             STK03.test_stake_under_over_1750_prv(amount)

@@ -14,7 +14,7 @@ from TestCases.Performace import *
 
 def setup_function():
     INFO('get balance all accounts')
-    COIN_MASTER.top_him_up_prv_to_amount_if(1300, 1300, accounts_send + accounts_receive)
+    COIN_MASTER.top_up_if_lower_than(accounts_send + accounts_receive, 1300, 1300)
     thread_list = []
     with ThreadPoolExecutor() as executor:
         for user in account_list:
