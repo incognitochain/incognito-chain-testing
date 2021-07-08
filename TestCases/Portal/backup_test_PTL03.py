@@ -30,8 +30,8 @@ from TestCases.Portal import portal_user, cli_pass_phrase, \
     (PBTC_ID, 1, 'manual', 'invalid'),
 ])
 def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
-    prv_bal_be4 = portal_user.get_prv_balance()
-    tok_bal_be4 = portal_user.get_token_balance(token)
+    prv_bal_be4 = portal_user.get_balance()
+    tok_bal_be4 = portal_user.get_balance(token)
     test_redeem_amount = TEST_SETTING_REDEEM_AMOUNT
     PSI_before_test = SUT().get_latest_portal_state_info()
     highest_holding_custodian = PSI_before_test.help_get_highest_holding_token_custodian(token)
@@ -45,15 +45,15 @@ def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
     tx_size = tx_block.get_tx_size()
     redeem_id = redeem_req_tx.params().get_portal_redeem_req_id()
     STEP(1.2, 'Check tx fee and redeem fee')
-    assert prv_bal_be4 - redeem_fee - tx_fee == portal_user.get_prv_balance()
+    assert prv_bal_be4 - redeem_fee - tx_fee == portal_user.get_balance()
 
     INFO(f"""Porting req is created with redeem amount            = {test_redeem_amount} 
                                          redeem fee               = {redeem_fee}
                                          redeem id                = {redeem_id}
                                          tx fee                   = {tx_fee}
                                          tx size                  = {tx_size}
-                                         user token bal after req = {portal_user.get_token_balance(token)}
-                                         user prv bal after req   = {portal_user.get_prv_balance()}""")
+                                         user token bal after req = {portal_user.get_balance(token)}
+                                         user prv bal after req   = {portal_user.get_balance()}""")
     STEP(2, "Check req status")
     redeem_info = RedeemReqInfo()
     redeem_info.get_redeem_status_by_redeem_id(redeem_id)
@@ -64,11 +64,11 @@ def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
     else:
         assert redeem_info.data is None
 
-    assert prv_bal_be4 - redeem_fee - tx_fee == portal_user.get_prv_balance()
+    assert prv_bal_be4 - redeem_fee - tx_fee == portal_user.get_balance()
 
     if expected == 'valid':
         STEP(3.1, "Check requester bal")
-        assert tok_bal_be4 - test_redeem_amount == portal_user.get_token_balance(token)
+        assert tok_bal_be4 - test_redeem_amount == portal_user.get_balance(token)
 
         if custodian_picking == 'auto':
             STEP(3.2, 'Wait 10 min for custodian auto pick')
@@ -159,8 +159,8 @@ def test_create_redeem_req_1_1(token, redeem_fee, custodian_picking, expected):
     else:
         STEP(3, "Redeem req reject, wait 60s to return token but not tx and redeem fee. Check requester bal")
         WAIT(60)
-        assert tok_bal_be4 == portal_user.get_token_balance(token)
-        assert prv_bal_be4 - tx_fee - redeem_fee == portal_user.get_prv_balance()
+        assert tok_bal_be4 == portal_user.get_balance(token)
+        assert prv_bal_be4 - tx_fee - redeem_fee == portal_user.get_balance()
 
 
 @pytest.mark.parametrize('token', [
@@ -180,13 +180,13 @@ def test_create_redeem_req_1_n(token):
 
     custodian_account_list_of_this_req = []
 
-    # if portal_user.get_prv_balance() < coin(5):
-    #     COIN_MASTER.send_prv_to(portal_user, coin(5) - portal_user.get_prv_balance_cache(),
+    # if portal_user.get_balance() < coin(5):
+    #     COIN_MASTER.send_prv_to(portal_user, coin(5) - portal_user.get_balance(cache=True),
     #                             privacy=0).subscribe_transaction()
-    #     portal_user.wait_for_balance_change(prv_token_id, portal_user.get_prv_balance_cache())
+    #     portal_user.wait_for_balance_change(prv_token_id, portal_user.get_balance(cache=1))
 
-    prv_bal_be4_test = portal_user.get_prv_balance()
-    tok_bal_be4_test = portal_user.get_token_balance(token)
+    prv_bal_be4_test = portal_user.get_balance()
+    tok_bal_be4_test = portal_user.get_balance(token)
 
     STEP(1.1, 'Create redeem req')
     redeem_req_tx = portal_user.portal_req_redeem_my_token(token, redeem_amount)
@@ -197,15 +197,15 @@ def test_create_redeem_req_1_n(token):
     redeem_id = redeem_req_tx.params().get_portal_redeem_req_id()
     PSI_after_porting_req = SUT().get_latest_portal_state_info()
     STEP(1.2, 'Check tx fee and redeem fee')
-    assert prv_bal_be4_test - redeem_fee - tx_fee == portal_user.get_prv_balance()
+    assert prv_bal_be4_test - redeem_fee - tx_fee == portal_user.get_balance()
 
     INFO(f"""Porting req is created with redeem amount            = {redeem_amount} 
                                              redeem fee               = {redeem_fee}
                                              redeem id                = {redeem_id}
                                              tx fee                   = {tx_fee}
                                              tx size                  = {tx_size}
-                                             user token bal after req = {portal_user.get_token_balance(token)}
-                                             user prv bal after req   = {portal_user.get_prv_balance()}""")
+                                             user token bal after req = {portal_user.get_balance(token)}
+                                             user prv bal after req   = {portal_user.get_balance()}""")
     assert estimated_redeem_fee == redeem_fee
 
     STEP(2, "Check req status")
@@ -217,12 +217,12 @@ def test_create_redeem_req_1_n(token):
 
     num_of_custodian_for_this_req = len(redeem_req_info.get_redeem_matching_custodians())
     assert redeem_req_info.get_status() == Status.Portal.RedeemStatus.WAITING
-    assert prv_bal_be4_test - redeem_fee - tx_fee == portal_user.get_prv_balance()
+    assert prv_bal_be4_test - redeem_fee - tx_fee == portal_user.get_balance()
     assert num_of_custodian_for_this_req >= 2 and INFO(
         f'This redeem req require {num_of_custodian_for_this_req} custodians')
 
     STEP(3, "Check requester bal")
-    assert tok_bal_be4_test - redeem_amount == portal_user.get_token_balance(token)
+    assert tok_bal_be4_test - redeem_amount == portal_user.get_balance(token)
 
     STEP(4, 'Custodian send BNB to user')
     send_public_token_txs = {}
@@ -321,8 +321,8 @@ def test_redeem_req_expired(token):
     TimeOutCustodianReturnPubToken must be set to 30min or less
     :return:
     """
-    user_prv_bal_be4_test = portal_user.get_prv_balance()
-    user_tok_bal_be4_test = portal_user.get_token_balance(token)
+    user_prv_bal_be4_test = portal_user.get_balance()
+    user_tok_bal_be4_test = portal_user.get_balance(token)
     test_redeem_amount = 10
 
     STEP(1.1, 'Create redeem req')
@@ -333,15 +333,15 @@ def test_redeem_req_expired(token):
     tx_size = tx_block.get_tx_size()
     redeem_id = redeem_req.params().get_portal_redeem_req_id()
     STEP(1.2, 'Check tx fee and redeem fee')
-    assert user_prv_bal_be4_test - redeem_fee - tx_fee == portal_user.get_prv_balance()
+    assert user_prv_bal_be4_test - redeem_fee - tx_fee == portal_user.get_balance()
 
     INFO(f"""Porting req is created with redeem amount            = {test_redeem_amount} 
                                             redeem fee               = {redeem_fee}
                                             redeem id                = {redeem_id}
                                             tx fee                   = {tx_fee}
                                             tx size                  = {tx_size}
-                                            user token bal after req = {portal_user.get_token_balance(token)}
-                                            user prv bal after req   = {portal_user.get_prv_balance()}""")
+                                            user token bal after req = {portal_user.get_balance(token)}
+                                            user prv bal after req   = {portal_user.get_balance()}""")
 
     STEP(2, "Check req status")
     redeem_info = RedeemReqInfo()
@@ -351,10 +351,10 @@ def test_redeem_req_expired(token):
         assert False, 'No matching custodian found'
 
     assert redeem_info.get_status() == Status.Portal.RedeemStatus.WAITING
-    assert user_prv_bal_be4_test - redeem_fee - tx_fee == portal_user.get_prv_balance()
+    assert user_prv_bal_be4_test - redeem_fee - tx_fee == portal_user.get_balance()
 
     STEP(3, "Check requester bal")
-    assert user_tok_bal_be4_test - test_redeem_amount == portal_user.get_token_balance(token)
+    assert user_tok_bal_be4_test - test_redeem_amount == portal_user.get_balance(token)
 
     STEP(4, f'Wait {ChainConfig.Portal.REQ_TIME_OUT + 0.5} min for the req to be expired')
     WAIT(ChainConfig.Portal.REQ_TIME_OUT + 0.5)
@@ -364,10 +364,10 @@ def test_redeem_req_expired(token):
     assert redeem_info.get_status() == Status.Portal.RedeemStatus.LIQUIDATED
 
     STEP(6, "Must return ptoken to user")
-    assert user_tok_bal_be4_test == portal_user.get_token_balance(token)
+    assert user_tok_bal_be4_test == portal_user.get_balance(token)
 
     STEP(7, "No return any fee (tx and portal fee)")
-    assert user_prv_bal_be4_test - tx_fee - redeem_fee == portal_user.get_prv_balance()
+    assert user_prv_bal_be4_test - tx_fee - redeem_fee == portal_user.get_balance()
 
 # def test_redeem_from_liquidation_pool():
 #     portal_user.portalrede

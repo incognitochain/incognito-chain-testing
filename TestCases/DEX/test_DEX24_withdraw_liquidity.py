@@ -32,8 +32,8 @@ def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_share_to_w
     wdraw_recv_amount_est = pde_state_b4_test.cal_share_withdrawal(withdrawer, wdraw_share_x_percent, token1, token2)
     STEP(1, 'Get balance of withdrawer before test')
     bal_b4 = {
-        token1: withdrawer.get_token_balance(token1),
-        token2: withdrawer.get_token_balance(token2)}
+        token1: withdrawer.get_balance(token1),
+        token2: withdrawer.get_balance(token2)}
 
     STEP(2, f'Withdraw {percent_of_share_to_withdraw} of my share')
     withdraw_tx = withdrawer.pde_withdraw_contribution_v2(token1, token2, wdraw_share_x_percent).subscribe_transaction()

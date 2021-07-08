@@ -40,7 +40,7 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
     balance_before = {}
     balance_after_stk = {}
     for acc in [account_a, account_x, account_y]:
-        balance_before[acc] = acc.get_prv_balance()
+        balance_before[acc] = acc.get_balance()
 
     STEP(1, f'Create fork on chain_id {cID1} & chain_id {cID2}')
     with ThreadPoolExecutor() as executor:
@@ -94,7 +94,7 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
                 thread_unstake2 = executor.submit(account_a.stk_stop_auto_stake_him, account_y)
                 thread_unstake_dict[account_a] = thread_unstake2
                 for acc in [account_a, account_x, account_y]:
-                    thread = executor.submit(acc.get_prv_balance)
+                    thread = executor.submit(acc.get_balance)
                     balance_after_stk[acc] = thread
                 i += 1
         height_current = thread_height.result()
@@ -134,7 +134,7 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
         height = tx.get_block_height()
         shard = tx.get_shard_id()
         INFO(f'Unstake at Shard{shard}_height: {height}')
-        assert balance_after_stk[acc].result() + ChainConfig.STK_AMOUNT - fee == acc.get_prv_balance()
+        assert balance_after_stk[acc].result() + ChainConfig.STK_AMOUNT - fee == acc.get_balance()
         assert balance_after_stk[account_y].result() == balance_before[account_y]
 
     for acc in [account_x, account_y]:

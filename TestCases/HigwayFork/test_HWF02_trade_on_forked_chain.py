@@ -74,9 +74,9 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
     with ThreadPoolExecutor() as executor:
         for i in range(0, num_of_traders):
             trader = traders[i]
-            future_buy = executor.submit(trader.get_token_balance, token_buy)
-            future_sell = executor.submit(trader.get_token_balance, token_sell)
-            future_prv_sell = executor.submit(trader.get_prv_balance)
+            future_buy = executor.submit(trader.get_balance, token_buy)
+            future_sell = executor.submit(trader.get_balance, token_sell)
+            future_prv_sell = executor.submit(trader.get_balance)
             threads_buy.append(future_buy)
             threads_sell.append(future_sell)
             threads_prv_sell.append(future_prv_sell)
@@ -154,9 +154,9 @@ def test_trade_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2, at_tr
     with ThreadPoolExecutor() as executor:
         for i in range(0, num_of_traders):
             trader = traders[i]
-            future_buy = executor.submit(trader.get_token_balance, token_buy)
-            future_sell = executor.submit(trader.get_token_balance, token_sell)
-            future_sell_prv = executor.submit(trader.get_prv_balance)
+            future_buy = executor.submit(trader.get_balance, token_buy)
+            future_sell = executor.submit(trader.get_balance, token_sell)
+            future_sell_prv = executor.submit(trader.get_balance)
             threads_buy.append(future_buy)
             threads_sell.append(future_sell)
             threads_sell_prv.append(future_sell_prv)

@@ -21,7 +21,7 @@ def test_withdraw_portal_reward(custodian_account):
         custodian_account = find_fat_custodian()
     STEP(1, "Get reward amount, balance of custodian")
     prv_reward_amount = custodian_account.portal_get_my_reward(PRV_ID)
-    prv_balance_before = custodian_account.get_prv_balance()
+    prv_balance_before = custodian_account.get_balance()
     INFO(f'''
             Reward amount of {l6(custodian_account.incognito_addr)} is {prv_reward_amount}
             Balance is {prv_balance_before}''')
@@ -48,5 +48,5 @@ def test_withdraw_portal_reward(custodian_account):
     assert withdraw_tx_info.get_status() == Status.Portal.RewardWithdrawStatus.REJECTED
 
     STEP(6, 'Verify balance')
-    prv_balance_after_2 = custodian_account.get_prv_balance()
+    prv_balance_after_2 = custodian_account.get_balance()
     assert prv_balance_after_2 == prv_balance_after - fee

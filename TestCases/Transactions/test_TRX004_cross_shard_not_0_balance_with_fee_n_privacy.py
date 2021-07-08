@@ -22,11 +22,11 @@ def setup_module():
 def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
     INFO(f"Verify send PRV to another address Xshard successfully with fee={fee} privacy={privacy}")
     STEP(1, "Get sender balance")
-    sender_bal = sender.get_prv_balance()
+    sender_bal = sender.get_balance()
     INFO(f"Sender balance before: {sender_bal}")
 
     STEP(2, "Get receiver balance")
-    receiver_bal = receiver.get_prv_balance()
+    receiver_bal = receiver.get_balance()
     INFO(f"receiver balance before: {receiver_bal}")
 
     STEP(3, " send PRV")
@@ -48,13 +48,13 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
         pass
 
     STEP(6, "Check sender balance")
-    sender_bal_after = sender.get_prv_balance()
+    sender_bal_after = sender.get_balance()
     INFO(f"sender balance after: {sender_bal_after}")
     assert sender_bal_after == sender_bal - send_amount - send_transaction.get_fee(), \
         "something wrong" and INFO("Failed")  # when privacy=1, ws cannot get fee
 
     STEP(7, "Check receiver balance")
-    receiver_bal_after = receiver.get_prv_balance()
+    receiver_bal_after = receiver.get_balance()
     INFO(f"receiver balance after: {receiver_bal_after}")
     assert receiver_bal_after == receiver_bal + send_amount, \
         f"Receiver balance after={receiver_bal_after}\n\t " \

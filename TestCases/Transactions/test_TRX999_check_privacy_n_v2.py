@@ -23,8 +23,8 @@ def test_convert_coin_to_v2(token_id, account_list):
 
         INFO_HEADLINE(f"Convert f{l6(token_id)} of user {l6(account.payment_key)} to v2")
         STEP(1, 'Get balance before convert')
-        prv_bal_before = account.get_prv_balance()
-        token_bal_before = account.get_token_balance(token_id)
+        prv_bal_before = account.get_balance()
+        token_bal_before = account.get_balance(token_id)
 
         STEP(2, " Check current coin version, must be v1, otherwise, skip the test")
         if token_id == PRV_ID:
@@ -50,11 +50,11 @@ def test_convert_coin_to_v2(token_id, account_list):
             convert_fee += tx.get_fee()
 
         STEP(4, 'Check balance after convert')
-        prv_bal_after = account.get_prv_balance()
+        prv_bal_after = account.get_balance()
         assert prv_bal_before == prv_bal_after - convert_fee
         if token_id != PRV_ID:
             for token in custom_token_list:
-                token_bal_after = account.get_token_balance(token)
+                token_bal_after = account.get_balance(token)
                 assert token_bal_before == token_bal_after
 
         STEP(5, 'Check coin version after convert')

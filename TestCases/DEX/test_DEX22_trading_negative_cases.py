@@ -66,8 +66,8 @@ def test_trade_non_exist_pair(trader, token_sell, token_buy):
     pde = SUT().get_latest_pde_state_info()
     if pde.is_trading_pair_v2_is_possible(token_sell, token_buy):
         pytest.skip(f"trade possible due to prv-token pair is exist")
-    bal_tok_sell_b4 = trader.get_token_balance(token_sell)
-    bal_tok_buy_b4 = trader.get_token_balance(token_buy)
+    bal_tok_sell_b4 = trader.get_balance(token_sell)
+    bal_tok_buy_b4 = trader.get_balance(token_buy)
 
     STEP(1, f'Trade {l6(token_sell)} for {l6(token_buy)}')
     trade_tx = trader.pde_trade_v2(token_sell, trade_amount, token_buy, trading_fee)
@@ -181,8 +181,8 @@ def test_trading_with_min_acceptable_not_meet_expectation(test_mode, token_sell,
     for i in range(0, len(traders)):
         trader = traders[i]
         amount = trade_amounts[i]
-        bal_tok_sell = trader.get_token_balance(token_sell)
-        bal_tok_buy = trader.get_token_balance(token_buy)
+        bal_tok_sell = trader.get_balance(token_sell)
+        bal_tok_buy = trader.get_balance(token_buy)
 
         if bal_tok_sell <= amount:
             pytest.skip(

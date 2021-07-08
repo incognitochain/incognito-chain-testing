@@ -77,8 +77,8 @@ def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, c
         redeem_amount = highest_holding_token_custodian_in_pool.get_holding_token_amount(token) + 1
     if redeem_amount == full_holding:
         redeem_amount = highest_holding_token_custodian_in_pool.get_holding_token_amount(token)
-    prv_bal_be4 = portal_user.get_prv_balance()
-    tok_bal_be4 = portal_user.get_token_balance(token)
+    prv_bal_be4 = portal_user.get_balance()
+    tok_bal_be4 = portal_user.get_balance(token)
 
     STEP(1.1, 'Create redeem req')
     redeem_req_tx = portal_user.portal_req_redeem_my_token(token, redeem_amount, redeem_fee=redeem_fee)
@@ -89,15 +89,15 @@ def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, c
     tx_size = tx_block.get_tx_size()
     redeem_id = redeem_req_tx.params().get_portal_redeem_req_id()
     STEP(1.2, 'Check tx fee and redeem fee')
-    assert prv_bal_be4 - redeem_fee - tx_fee == portal_user.get_prv_balance()
+    assert prv_bal_be4 - redeem_fee - tx_fee == portal_user.get_balance()
 
     INFO(f"""Porting req is created with redeem amount            = {redeem_amount} 
                                          redeem fee               = {redeem_fee}
                                          redeem id                = {redeem_id}
                                          tx fee                   = {tx_fee}
                                          tx size                  = {tx_size}
-                                         user token bal after req = {portal_user.get_token_balance(token)}
-                                         user prv bal after req   = {portal_user.get_prv_balance()}""")
+                                         user token bal after req = {portal_user.get_balance(token)}
+                                         user prv bal after req   = {portal_user.get_balance()}""")
     STEP(2, "Check req status")
     redeem_info = RedeemReqInfo()
     redeem_info.get_redeem_status_by_redeem_id(redeem_id)
@@ -107,11 +107,11 @@ def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, c
     else:  # invalid redeem req
         assert redeem_info.data is None
 
-    assert prv_bal_be4 - redeem_fee - tx_fee == portal_user.get_prv_balance()
+    assert prv_bal_be4 - redeem_fee - tx_fee == portal_user.get_balance()
 
     if expected != invalid:  # valid or expire
         STEP(3.1, "Check requester bal")
-        assert tok_bal_be4 - redeem_amount == portal_user.get_token_balance(token)
+        assert tok_bal_be4 - redeem_amount == portal_user.get_balance(token)
 
         matching_custodian(custodian_matching, num_of_custodian, token, redeem_id, PSI_before_test)
         if expected == valid:
@@ -125,8 +125,8 @@ def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, c
     else:  # case invalid redeem
         STEP(3, "Redeem req reject, wait 60s to return token but not tx and redeem fee. Check requester bal")
         WAIT(60)
-        assert tok_bal_be4 == portal_user.get_token_balance(token)
-        assert prv_bal_be4 - tx_fee - redeem_fee == portal_user.get_prv_balance()
+        assert tok_bal_be4 == portal_user.get_balance(token)
+        assert prv_bal_be4 - tx_fee - redeem_fee == portal_user.get_balance()
 
 
 def verify_valid_redeem(psi_b4, redeem_id, redeem_amount, token, matching):
@@ -238,7 +238,7 @@ def verify_expired_redeem_0_custodian_sent(redeem_id, tok_bal_b4, prv_bal_b4, tx
     assert prv_bal_b4 - tx_fee - redeem_fee + prv_return_amount == prv_bal_af
 
     STEP(5.3, "User token balance must -redeem amount")
-    assert tok_bal_b4 - redeem_info.get_redeem_amount() == portal_user.get_token_balance(redeem_info.get_token_id())
+    assert tok_bal_b4 - redeem_info.get_redeem_amount() == portal_user.get_balance(redeem_info.get_token_id())
 
 
 def verify_expired_redeem_1_custodian_sent(token, redeem_id, tok_bal_b4, prv_bal_b4, tx_fee, redeem_fee, psi_b4):
@@ -280,7 +280,7 @@ def verify_expired_redeem_1_custodian_sent(token, redeem_id, tok_bal_b4, prv_bal
     assert prv_bal_b4 - tx_fee - redeem_fee + prv_return_amount == prv_bal_af
 
     STEP(5.2, "User token balance must -redeem amount")
-    assert tok_bal_b4 - redeem_info.get_redeem_amount() == portal_user.get_token_balance(redeem_info.get_token_id())
+    assert tok_bal_b4 - redeem_info.get_redeem_amount() == portal_user.get_balance(redeem_info.get_token_id())
 
 
 def matching_custodian(matching_mode, num_of_custodian, token, redeem_id, psi_b4):

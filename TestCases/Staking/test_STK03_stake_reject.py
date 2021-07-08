@@ -17,7 +17,7 @@ from TestCases.Staking import account_x, amount_stake_under_1750, \
 ])
 def test_stake_under_over_1750_prv(amount_prv_stake):
     STEP(0, 'Get balance account before staking')
-    balance_before_stake = account_y.get_prv_balance()
+    balance_before_stake = account_y.get_balance()
 
     STEP(1, f"Send {amount_prv_stake} PRV to stake")
     stake_response = account_y.stake_and_reward_me(amount_prv_stake, auto_re_stake=False)
@@ -26,7 +26,7 @@ def test_stake_under_over_1750_prv(amount_prv_stake):
     assert stake_response.get_error_msg() == 'Can not send tx', "something went wrong, this tx must failed"
     assert re.search(r'Reject not sansity tx transaction',
                      stake_response.get_error_trace().get_message()), "something went so wrong"
-    assert balance_before_stake == account_y.get_prv_balance(), "balance no return"
+    assert balance_before_stake == account_y.get_balance(), "balance no return"
 
 
 @pytest.mark.parametrize('staker1, staker2, validator', [
@@ -47,10 +47,10 @@ def test_stake_same_validator(staker1, staker2, validator):
     staking_state = bbsd.get_auto_staking_committees(validator)
     if staking_state is None:
         STEP(2.1, 'Stake the first time and check balance after staking')
-        balance_before_stake_first = staker1.get_prv_balance()
+        balance_before_stake_first = staker1.get_balance()
         stake_response = staker1.stake(validator=validator, auto_re_stake=False).subscribe_transaction()
         stake_fee = stake_response.get_fee()
-        balance_after_stake_first = staker1.get_prv_balance()
+        balance_after_stake_first = staker1.get_balance()
         assert balance_before_stake_first == balance_after_stake_first + stake_fee + coin(1750)
 
         STEP(2.2, f'Wait until epoch {epoch_number} + n and Check if the stake become a committee')
@@ -62,13 +62,13 @@ def test_stake_same_validator(staker1, staker2, validator):
         pytest.skip(f'Validator_key: {validator.validator_key} already staked, this test must be run again with another account')
 
     STEP(3, 'Stake the second time')
-    balance_before_stake_second = staker2.get_prv_balance()
+    balance_before_stake_second = staker2.get_balance()
     stake_response = staker2.stake(validator=validator, auto_re_stake=False)
     print("stake_response = %s" % stake_response)
 
     STEP(4, 'Verify that the transaction was rejected and PRV was not sent')
     stake_response.expect_error('Double Spend With Current Blockchain')
-    assert balance_before_stake_second == staker2.get_prv_balance()
+    assert balance_before_stake_second == staker2.get_balance()
 
     STEP(5, "Wait for the stake to be swapped out")
     epoch_x = validator.stk_wait_till_i_am_out_of_autostaking_list()
@@ -84,7 +84,7 @@ def test_stake_same_validator(staker1, staker2, validator):
     assert balance_before_stake_first - stake_fee == bal_after_stake_refund
 
     STEP(8, 'Withdraw PRV reward and verify balance')
-    prv_bal_b4_withdraw = staker1.get_prv_balance()
+    prv_bal_b4_withdraw = staker1.get_balance()
     prv_reward_amount = staker1.stk_get_reward_amount()
     withdraw_fee = staker1.stk_withdraw_reward_to_me().subscribe_transaction().get_fee()
     prv_bal_after_withdraw = staker1.wait_for_balance_change(from_balance=prv_bal_b4_withdraw)

@@ -105,7 +105,7 @@ def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_or
     INFO(f"Current beacon height {current_height}")
     if last_height != current_height:
         pytest.skip(f"Current beacon height {current_height} is not the last height of epoch, skip the test")
-    bal_b4_un_stake = acc_stop_stake.get_prv_balance()
+    bal_b4_un_stake = acc_stop_stake.get_balance()
 
     INFO(f'Send stop auto staking to user originated shard')
     un_stake_tx = acc_stop_stake.stk_stop_auto_stake_me().expect_no_error().req_to(

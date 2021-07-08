@@ -32,10 +32,10 @@ def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_reward_amo
         WARNING(f'User {withdrawer.payment_key} has no pde reward')
 
     STEP(1, 'Get balance of withdrawer before test')
-    prv_bal_b4 = withdrawer.get_prv_balance()
+    prv_bal_b4 = withdrawer.get_balance()
     bal_b4 = {
-        token1: withdrawer.get_token_balance(token1),
-        token2: withdrawer.get_token_balance(token2)}
+        token1: withdrawer.get_balance(token1),
+        token2: withdrawer.get_balance(token2)}
 
     STEP(2, f'Withdraw {percent_of_reward_amount_to_withdraw} of my reward')
     withdraw_tx = withdrawer.pde_withdraw_reward_v2(token1, token2, withdraw_reward_amount) \
@@ -46,8 +46,8 @@ def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_reward_amo
     assert prv_bal_b4 + received_amount - withdraw_tx.get_fee() == prv_bal_af
 
     bal_af = {
-        token1: withdrawer.get_token_balance(token1),
-        token2: withdrawer.get_token_balance(token2)}
+        token1: withdrawer.get_balance(token1),
+        token2: withdrawer.get_balance(token2)}
 
     INFO_HEADLINE('Summary')
     pde_state_af_test = SUT().get_latest_pde_state_info()

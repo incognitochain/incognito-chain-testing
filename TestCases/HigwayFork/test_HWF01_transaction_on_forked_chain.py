@@ -39,10 +39,10 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
     amount_receiver = {}
     fee_dict = {}
     for sender in senders_from_1_to_1 + senders_from_1_to_0:
-        bal_b4_sender_dict[sender] = sender.get_prv_balance()
+        bal_b4_sender_dict[sender] = sender.get_balance()
         fee_dict[sender] = []
     for receiver in [receiver_shard_1, receiver_shard_0]:
-        bal_b4_receiver[receiver] = receiver.get_prv_balance()
+        bal_b4_receiver[receiver] = receiver.get_balance()
         amount_receiver[receiver] = 0
 
     STEP(1, f'Create fork on chain_id {cID1} & chain_id {cID2}')
@@ -154,20 +154,20 @@ def test_transaction_on_forked_chain(cID1, num_of_branch1, cID2, num_of_branch2,
     amount_send_cross = 0
     for sender in senders_from_1_to_1:
         amount_send_same += amount * len(fee_dict[sender])
-        diff = sender.get_prv_balance() - (
+        diff = sender.get_balance() - (
                 bal_b4_sender_dict[sender] - sum(fee_dict[sender]) - amount * len(fee_dict[sender]))
         diff_send_same.append(diff)
     INFO(f'Different balance sender same shard: {diff_send_same}')
     for sender in senders_from_1_to_0:
         amount_send_cross += amount * len(fee_dict[sender])
-        diff = sender.get_prv_balance() - (
+        diff = sender.get_balance() - (
                 bal_b4_sender_dict[sender] - sum(fee_dict[sender]) - amount * len(fee_dict[sender]))
         diff_send_cross.append(diff)
     INFO(f'Different balance sender cross shard: {diff_send_cross}')
-    diff_receiver_same = receiver_shard_1.get_prv_balance() - (
+    diff_receiver_same = receiver_shard_1.get_balance() - (
             bal_b4_receiver[receiver_shard_1] + amount_send_same)
     INFO(f'Different balance receiver same shard: {diff_receiver_same}')
-    diff_receiver_cross = receiver_shard_0.get_prv_balance() - (
+    diff_receiver_cross = receiver_shard_0.get_balance() - (
             bal_b4_receiver[receiver_shard_0] + amount_send_cross)
     INFO(f'Different balance receiver cross shard: {diff_receiver_cross}')
 

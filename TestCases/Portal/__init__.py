@@ -111,7 +111,7 @@ def noteardown_module():
     # clean up redeem special case: big fat custodian send back prv to COIN_MASTER and return rate back to default
     # if not fat_custodian.is_empty:
     #     assert fat_custodian.portal_withdraw_my_collateral(big_collateral).get_error_msg() is None, "must redeem first"
-    #     fat_custodian.send_prv_to(COIN_MASTER, fat_custodian.get_prv_balance() - coin(2),
+    #     fat_custodian.send_prv_to(COIN_MASTER, fat_custodian.get_balance() - coin(2),
     #                               privacy=0).subscribe_transaction()
     #     PORTAL_FEEDER.create_portal_exchange_rate(init_portal_rate)
 

@@ -25,11 +25,11 @@ def stake_and_check_balance_after_stake(account):
     INFO(f'Ready to stake at epoch: {epoch_number}, beacon height: {beacon_height}')
 
     INFO('Stake and check balance after stake')
-    balance_before_staking = account.get_prv_balance()
+    balance_before_staking = account.get_balance()
     stake_response = account.stake_and_reward_me(auto_re_stake=False)
     stake_response.subscribe_transaction()
     stake_fee = stake_response.get_transaction_by_hash().get_fee()
-    balance_after_staking = stake_account.get_prv_balance()
+    balance_after_staking = stake_account.get_balance()
     tx_id = stake_response.get_tx_id()
     assert balance_before_staking == balance_after_staking + stake_fee + coin(1750)
 

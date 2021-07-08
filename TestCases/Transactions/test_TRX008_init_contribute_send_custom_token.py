@@ -153,16 +153,16 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
         ''')
 
     STEP(1, "get sender and receiver balance before sending")
-    sender_token_bal_before = sender.get_token_balance(custom_token_id)
+    sender_token_bal_before = sender.get_balance(custom_token_id)
     INFO(f"Sender token balance before: {sender_token_bal_before}")
 
-    sender_prv_bal_before = sender.get_prv_balance()
+    sender_prv_bal_before = sender.get_balance()
     INFO("sender prv balance before : " + str(sender_prv_bal_before))
 
-    receiver_token_balance_before = receiver.get_token_balance(custom_token_id)
+    receiver_token_balance_before = receiver.get_balance(custom_token_id)
     INFO(f"Receiver token balance before: {receiver_token_balance_before}")
 
-    receiver_prv_balance_before = receiver.get_prv_balance()
+    receiver_prv_balance_before = receiver.get_balance()
     INFO(f'Receiver prv balance before: {receiver_prv_balance_before}')
 
     STEP(2, f"send token: {token_amount_to_send}. Fee {fee}:{fee_type}. Privacy {privacy}:{privacy_type}")
@@ -196,7 +196,7 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
             sending token use token fee then: sender token - fee, prv no change
             ''')
     STEP(4.1, "check sender and receiver token balance after sent")
-    sender_token_bal_after = sender.get_token_balance(custom_token_id)
+    sender_token_bal_after = sender.get_balance(custom_token_id)
     INFO(f"sender_token_balance_after: {sender_token_bal_after}")
     # Balance after = balance before - amount
     if fee_type == 'prv':
@@ -214,7 +214,7 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
         f'Balance before/after {receiver_token_balance_before}/{receiver_token_balance_after}, sent {token_amount_to_send}'
 
     STEP(4.2, "check sender and receiver PRV balance after sent")
-    sender_prv_bal_after = sender.get_prv_balance()
+    sender_prv_bal_after = sender.get_balance()
     INFO(f"Sender prv balance after : {sender_prv_bal_after}")
     if fee_type == 'prv':
         assert sender_prv_bal_after == sender_prv_bal_before - transaction_tx.get_fee(), \
@@ -223,7 +223,7 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
         assert sender_prv_bal_after == sender_prv_bal_before, \
             "incorrect prv balance of the address 1 "
 
-    receiver_prv_balance_after = receiver.get_prv_balance()
+    receiver_prv_balance_after = receiver.get_balance()
     INFO(f"Receiver prv balance after : {receiver_prv_balance_after}")
     assert receiver_prv_balance_before == receiver_prv_balance_after, "incorrect prv balance of receiver" and INFO(
         "Failed")
@@ -264,13 +264,13 @@ def test_send_token_insufficient_fund(sender, receiver):
         - Valid transaction (sending all token) 
         """)
     STEP(1, "Get sender, receiver token and prv balance before sending")
-    sender_token_bal = sender.get_token_balance(custom_token_id)
-    sender_prv_bal = sender.get_prv_balance()
+    sender_token_bal = sender.get_balance(custom_token_id)
+    sender_prv_bal = sender.get_balance()
     INFO(f"Sender token balance: {sender_token_bal}")
     INFO(f"Sender prv balance: {sender_prv_bal}")
 
-    receiver_token_bal = receiver.get_token_balance(custom_token_id)
-    receiver_prv_bal = receiver.get_prv_balance()
+    receiver_token_bal = receiver.get_balance(custom_token_id)
+    receiver_prv_bal = receiver.get_balance()
     INFO(f"Receiver token balance: {receiver_token_bal}")
     INFO(f"Receiver prv balance: {receiver_prv_bal}")
 
@@ -304,7 +304,7 @@ def test_send_token_insufficient_fund(sender, receiver):
     assert sender_token_bal_after == 0, "sender token balance must be 0" and INFO("Failed")
 
     STEP(7, "Check receiver balance")
-    receiver_token_bal_after = receiver.get_token_balance(custom_token_id)
+    receiver_token_bal_after = receiver.get_balance(custom_token_id)
     assert receiver_token_bal_after == receiver_token_bal + sender_token_bal - token_fee, INFO("Failed")
 
     STEP(8, 'Return token to sender for the next run')
@@ -328,16 +328,16 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
     total_token_sent = 0
 
     STEP(1, "get sender balance before sending")
-    sender_token_bal_before = sender_account.get_token_balance(custom_token_id)
+    sender_token_bal_before = sender_account.get_balance(custom_token_id)
     INFO(f"Sender token balance before: {sender_token_bal_before}")
 
-    sender_prv_bal_before = sender_account.get_prv_balance()
+    sender_prv_bal_before = sender_account.get_balance()
     INFO("sender prv balance before : " + str(sender_prv_bal_before))
 
     STEP(2, "get receiver balance before sending")
     for account in receiver_amount_dict.keys():
-        account.get_token_balance(custom_token_id)
-        account.get_prv_balance()
+        account.get_balance(custom_token_id)
+        account.get_balance()
         total_token_sent += receiver_amount_dict[account]
 
     # save output account state for later comparisons
@@ -359,13 +359,13 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
     transaction_result = tx_result.subscribe_transaction()
 
     STEP(5, "check sender balance after sent")
-    sender_token_bal_after = sender_account.get_token_balance(custom_token_id)
+    sender_token_bal_after = sender_account.get_balance(custom_token_id)
     INFO(f"Sender token balance after: {sender_token_bal_after}"), INFO("Failed")
 
     # Balance token after = balance before - amount * n - fee
     assert sender_token_bal_after == sender_token_bal_before - total_token_sent - token_fee, INFO("Failed")
 
-    sender_prv_bal_after = sender_account.get_prv_balance()
+    sender_prv_bal_after = sender_account.get_balance()
 
     INFO(f"Sender prv balance after: {sender_prv_bal_after}")
     # Balance prv after = balance before - amount * n - fee
@@ -374,14 +374,14 @@ def test_send_token_and_prv_x_shard_token_and_prv_fee_multi_output():
     STEP(6, "check receiver balance ")
     for account, amount_token_received in receiver_amount_dict.items():
         balance_token_after = account.wait_for_balance_change(custom_token_id,
-                                                              account.get_token_balance_cache(custom_token_id))
+                                                              account.get_balance(custom_token_id, cache=1))
         for account_before in receiver_amount_dict_copy.keys():
             if account == account_before:
-                if account_before.get_token_balance_cache(custom_token_id) is None:
+                if account_before.get_balance(custom_token_id, cache=1) is None:
                     assert balance_token_after == amount_token_received, INFO("Failed")
                 else:
-                    assert balance_token_after == amount_token_received + account_before.get_token_balance_cache(
-                        custom_token_id), INFO("Failed")
+                    assert balance_token_after == amount_token_received + account_before.get_balance(
+                        custom_token_id, cache=1), INFO("Failed")
 
     STEP(7, "Check transaction privacy")
     INFO("Check transaction prv_privacy")

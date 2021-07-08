@@ -36,8 +36,8 @@ def test_contribute_prv(contributor, token1, token2):
     # assert not token_owner.is_my_token_waiting_for_contribution(pair_id, token1)
     # assert not token_owner.is_my_token_waiting_for_contribution(pair_id, token2)
 
-    bal_tok1_be4_contrib = token_owner.get_token_balance(token1)
-    bal_tok2_be4_contrib = token_owner.get_token_balance(token2)
+    bal_tok1_be4_contrib = token_owner.get_balance(token1)
+    bal_tok2_be4_contrib = token_owner.get_balance(token2)
 
     all_share_amount = pde_state_b4.get_pde_shares_amount(None, token1, token2)
     owner_share_amount = pde_state_b4.get_pde_shares_amount(token_owner, token2, token1)

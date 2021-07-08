@@ -69,8 +69,8 @@ def test_bulk_swap_with_prv(test_mode, token_sell, token_buy):
     for i in range(0, len(traders)):
         trader = traders[i]
         amount = trade_amounts[i]
-        bal_tok_sell = trader.get_token_balance(token_sell)
-        bal_tok_buy = trader.get_token_balance(token_buy)
+        bal_tok_sell = trader.get_balance(token_sell)
+        bal_tok_buy = trader.get_balance(token_buy)
 
         if bal_tok_sell <= amount:
             pytest.skip(

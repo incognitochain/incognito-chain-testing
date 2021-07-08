@@ -39,13 +39,13 @@ def test_send_prv_multi_output_privacy_x_shard_no_auto_fee():
          """)
 
     STEP(1, "get sender balance before sending")
-    sender_bal_b4 = sender_account.get_prv_balance()
+    sender_bal_b4 = sender_account.get_balance()
     INFO(f"Sender balance before: {sender_bal_b4}")
 
     STEP(2, "get receiver balance before sending")
     dict_receiver_bal_b4 = {}
     for acc in receiver_account_list_before:
-        balance_b4 = acc.get_prv_balance()
+        balance_b4 = acc.get_balance()
         dict_receiver_bal_b4[acc] = balance_b4
         INFO(f"{acc.payment_key} balance = {balance_b4}")
 
@@ -60,7 +60,7 @@ def test_send_prv_multi_output_privacy_x_shard_no_auto_fee():
     is_sent = True
     WAIT(100)
     STEP(5, "check sender balance after send")
-    sender_balance_after = sender_account.get_prv_balance()
+    sender_balance_after = sender_account.get_balance()
     INFO(f"sender balance after : {sender_balance_after}")
 
     # Balance after = balance before - (amount x n_payment)  - fee
@@ -70,7 +70,7 @@ def test_send_prv_multi_output_privacy_x_shard_no_auto_fee():
     STEP(6, "check receivers balance")
     for acc_before in receiver_account_list_before:
         acc_before: Account
-        balance_receiver_af = acc_before.get_prv_balance()
+        balance_receiver_af = acc_before.get_balance()
         balance_receiver_b4 = dict_receiver_bal_b4[acc_before]
         sent_amount = receiver_account_n_amount_dict[acc_before]
         assert balance_receiver_af == balance_receiver_b4 + sent_amount and INFO(

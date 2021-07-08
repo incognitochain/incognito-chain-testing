@@ -19,13 +19,13 @@ def setup_function():
     dict_tx_save_fullnode.clear()
     dict_tx_save_shard.clear()
     for account in sender_account_list:
-        account.get_prv_balance()
-    receiver_account.get_prv_balance()
+        account.get_balance()
+    receiver_account.get_balance()
 
 
 def teardown_function():
     INFO('TEST CLEANUP:\nsend PRV back')
-    amount_to_send_back = math.floor((receiver_account.get_prv_balance() - 100) / 20)
+    amount_to_send_back = math.floor((receiver_account.get_balance() - 100) / 20)
     sender_account_dict = {}
     if amount_to_send_back == 0:
         return
@@ -39,7 +39,7 @@ def test_max_tx_in_same_block_with_some_fail():
     STEP(2, 'Pick 20 address, send 3/4 PRV to shard, and 1/2 to fullnode')
     with ThreadPoolExecutor() as executor:
         for sender_account in sender_account_list:
-            send_amount = math.floor(sender_account.get_prv_balance_cache() * 3 / 5)
+            send_amount = math.floor(sender_account.get_balance(cache=1) * 3 / 5)
 
             thread = executor.submit(sender_account.send_prv_to, receiver_account, send_amount, shard_handle=1)
             dict_tx_save_shard[sender_account] = thread

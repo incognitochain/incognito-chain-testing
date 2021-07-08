@@ -85,8 +85,8 @@ def setup_module():
 def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of_custodian, desired_status):
     STEP(0, "Preparation before test")
     remote_receiver_dict = {}
-    prv_bal_be4_test = user.get_prv_balance()
-    tok_bal_be4_test = user.get_token_balance(token)
+    prv_bal_be4_test = user.get_balance()
+    tok_bal_be4_test = user.get_balance(token)
     PSI_before_test = SUT().get_latest_portal_state_info()
     tok_rate = PSI_before_test.get_portal_rate(token)
     prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
@@ -113,9 +113,9 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         tok_rate = PSI_before_test.get_portal_rate(token)
         prv_rate = PSI_before_test.get_portal_rate(PRV_ID)
 
-    if user.get_prv_balance() < estimated_porting_fee:
+    if user.get_balance() < estimated_porting_fee:
         COIN_MASTER.send_prv_to(user,
-                                estimated_porting_fee - user.get_prv_balance_cache() + coin(
+                                estimated_porting_fee - user.get_balance(cache=1) + coin(
                                     1)).subscribe_transaction()
         prv_bal_be4_test = user.wait_for_balance_change(from_balance=prv_bal_be4_test)
 
@@ -135,7 +135,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
             porting id                     = {porting_id}, 
             tx fee                         = {tx_fee}, 
             tx size                        = {tx_size}
-            prv bal after req              = {user.get_prv_balance()}
+            prv bal after req              = {user.get_balance()}
             estimate total lock collateral = {estimated_total_lock_collateral}""")
     STEP(1.2, 'verify porting fee')
     if desired_status == 'valid':
@@ -173,7 +173,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
     if desired_status == 'invalid':
         STEP(4, "Porting req fail, wait 60s to return porting fee (only take tx fee), verify user balance")
         WAIT(60)
-        assert user.get_prv_balance() == prv_bal_be4_test - tx_fee
+        assert user.get_balance() == prv_bal_be4_test - tx_fee
     elif desired_status == 'expire':
         verify_expire_porting(user, porting_id, token, num_of_custodian, PSI_before_test, prv_bal_be4_test, tx_fee,
                               porting_fee)
@@ -199,7 +199,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         send_public_token_tx = user.send_public_token_multi(token, remote_receiver_dict, cli_pass_phrase, memo)
 
         STEP(6, 'Submit proof to request ported token')
-        balance_before_req_ported_token = user.get_token_balance(token)
+        balance_before_req_ported_token = user.get_balance(token)
         proof = send_public_token_tx.build_proof()
         req_tx = user.portal_req_ported_ptoken(porting_id, token, porting_amount, proof)
         req_tx.subscribe_transaction()
@@ -337,5 +337,5 @@ def verify_expire_porting(user, porting_id, token, num_of_custodian, psi_b4, prv
             token)
 
     STEP(7, "Verify user balance, porting fee and tx fee will not be returned")
-    user_prv_bal_after_test = user.get_prv_balance()
+    user_prv_bal_after_test = user.get_balance()
     assert prv_bal_b4 - tx_fee - porting_fee == user_prv_bal_after_test

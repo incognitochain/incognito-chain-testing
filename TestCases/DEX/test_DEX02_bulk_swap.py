@@ -62,8 +62,8 @@ def test_bulk_swap(test_mode, token_sell, token_buy):
     trading_fee = [77, 22, 11, 66, 99, 2, 33, 55, 88, 44]
 
     for trader in traders:
-        bal_tok_1 = trader.get_token_balance(token_sell)
-        bal_tok_2 = trader.get_token_balance(token_buy)
+        bal_tok_1 = trader.get_balance(token_sell)
+        bal_tok_2 = trader.get_balance(token_buy)
 
         if bal_tok_1 <= trade_amount:
             pytest.skip(

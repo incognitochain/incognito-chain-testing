@@ -7,8 +7,8 @@ from Objects.IncognitoTestCase import SUT
 
 # sender_account = get_accounts_in_shard(0)[1]
 receiver_account = get_accounts_in_shard(5)[0]
-# init_sender_balance = sender_account.get_prv_balance()
-# init_receiver_balance = receiver_account.get_prv_balance()
+# init_sender_balance = sender_account.get_balance()
+# init_receiver_balance = receiver_account.get_balance()
 
 token_name = get_current_date_time()
 token_id = "0000000000000000000000000000000000000000000000000000" + token_name
@@ -49,7 +49,7 @@ def test_init_centralize_token():
     INFO("Initialize a completely new centralize token")
 
     STEP(1, "check receiver balance before init token")
-    receiver_bal_b4 = receiver_account.get_token_balance(token_id)
+    receiver_bal_b4 = receiver_account.get_balance(token_id)
     INFO(f"receiver balance: {receiver_bal_b4}")
     assert receiver_bal_b4 == 0, "receiver balance is <> 0"
 
@@ -85,7 +85,7 @@ def test_burn_centralize_token():
     INFO("burn centralize token")
 
     STEP(1, "check user balance before burn token")
-    user_bal_b4 = receiver_account.get_token_balance(token_id)
+    user_bal_b4 = receiver_account.get_balance(token_id)
     INFO(f"user balance: {user_bal_b4}")
     assert user_bal_b4 != 0, "user balance = 0, nothing to burn"
 
@@ -125,7 +125,7 @@ def test_withdraw_centralize_token():
     INFO("withdraw centralize token")
 
     STEP(1, "check user balance before withdraw token")
-    user_bal_b4 = receiver_account.get_token_balance(token_id)
+    user_bal_b4 = receiver_account.get_balance(token_id)
     INFO(f"user balance: {user_bal_b4}")
     assert user_bal_b4 != 0, "user balance = 0, nothing to withdraw"
 

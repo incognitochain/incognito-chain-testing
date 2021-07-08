@@ -14,8 +14,8 @@ def setup_module():
     INFO("Set-up")
     sender_account = get_accounts_in_shard(5)[0]
     receiver_account = get_accounts_in_shard(5)[1]
-    init_sender_balance = sender_account.get_prv_balance()
-    init_receiver_balance = receiver_account.get_prv_balance()
+    init_sender_balance = sender_account.get_balance()
+    init_receiver_balance = receiver_account.get_balance()
     if init_sender_balance > 0:
         sender_account.send_all_prv_to(receiver_account)
 
@@ -41,11 +41,11 @@ def test_send_prv_same_shard_0_balance_with_fee_n_privacy(fee, privacy):
     INFO(f"Verify send PRV form account balance = 0 to another address X1hard with privacy={privacy} fee={fee}")
 
     STEP(1, "get balance of sender and receiver before sending")
-    sender_balance = sender_account.get_prv_balance()
+    sender_balance = sender_account.get_balance()
     INFO(f"sender balance: {sender_balance}")
     assert sender_balance == 0, ERROR("Balance != 0")
 
-    receiver_balance = receiver_account.get_prv_balance()
+    receiver_balance = receiver_account.get_balance()
     INFO(f"receiver balance: {receiver_balance}")
 
     # sent with amount >0

@@ -18,8 +18,8 @@ def test_withdraw_liquidity(withdrawer, token1, token2, percent_of_share_amount_
     rate_b4 = pde_state_b4_test.get_rate_between_token(token1, token2)
     STEP(1, 'Get balance of withdrawer before test')
     bal_b4 = {
-        token1: withdrawer.get_token_balance(token1),
-        token2: withdrawer.get_token_balance(token2)}
+        token1: withdrawer.get_balance(token1),
+        token2: withdrawer.get_balance(token2)}
     my_pde_share_b4 = pde_state_b4_test.get_pde_shares_amount(withdrawer, token1, token2)
     assert my_pde_share_b4 is not None, ERROR(f"share of {l6(withdrawer.private_key)} is NULL")
 

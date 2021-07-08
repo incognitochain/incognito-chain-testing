@@ -94,7 +94,7 @@ def test_miss_sig(time_stop):
     INFO('Get balance before test:')
     bal_b4 = {}
     for account in list_acc_test:
-        bal_b4[account] = account.get_prv_balance()
+        bal_b4[account] = account.get_balance()
 
     STEP(1, 'Kill node under 1/3 committee, verify shard active')
     for node in node_kill_now:
@@ -153,8 +153,8 @@ def test_miss_sig(time_stop):
     for tx_id in tx_pending:
         assert tx_id in mem_pool_tx
     for acc in tx_success:
-        assert acc.get_prv_balance() == bal_b4[acc] - amount - fee_dict[acc]
-        bal_b4[acc] = acc.get_prv_balance()
+        assert acc.get_balance() == bal_b4[acc] - amount - fee_dict[acc]
+        bal_b4[acc] = acc.get_balance()
 
     INFO('Verify create and send transactions when shard not active')
 
@@ -229,7 +229,7 @@ def test_miss_sig(time_stop):
     bal_af = {}
     string = ''
     for account in list_acc_test:
-        bal_af[account] = account.get_prv_balance()
+        bal_af[account] = account.get_balance()
         string += f'\tbal_b4 - bal_af : {bal_b4[account]} - {bal_af[account]}\n'
     INFO(string)
 

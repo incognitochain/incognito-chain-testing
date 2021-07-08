@@ -31,7 +31,7 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
         validator.stk_wait_till_i_am_out_of_autostaking_list()
 
     COIN_MASTER.top_up_if_lower_than(the_stake, coin(1751), coin(1850))
-    bal_b4_stake = the_stake.get_prv_balance()
+    bal_b4_stake = the_stake.get_balance()
 
     INFO('Calculate & wait to execute test at block that after random time 0-5 block')
     chain_info = SUT().get_block_chain_info()
@@ -95,7 +95,7 @@ def test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, auto
         validator.stk_wait_till_i_am_out_of_autostaking_list()
 
     COIN_MASTER.top_up_if_lower_than(the_stake, coin(1751), coin(1850))
-    bal_b4_stake = the_stake.get_prv_balance()
+    bal_b4_stake = the_stake.get_balance()
 
     STEP(1, 'Staking')
     fee_stk = the_stake.stake(validator, receiver_reward, auto_re_stake=auto_re_stake).subscribe_transaction().get_fee()
@@ -142,7 +142,7 @@ def test_un_stake_when_exist_shard_committee(the_stake, validator, receiver_rewa
         validator.stk_wait_till_i_am_out_of_autostaking_list()
 
     COIN_MASTER.top_up_if_lower_than(the_stake, coin(1751), coin(1850))
-    bal_b4_stake = the_stake.get_prv_balance()
+    bal_b4_stake = the_stake.get_balance()
 
     STEP(1, 'Staking')
     fee_stk = the_stake.stake(validator, receiver_reward, auto_re_stake=auto_re_stake).subscribe_transaction().get_fee()

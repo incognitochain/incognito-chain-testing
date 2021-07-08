@@ -519,22 +519,6 @@ class Account:
         INFO(f"Private k = {l6(self.private_key)}, token id = {l6(token_id)}, bal = {coin(balance, False)} ")
         return balance
 
-    def get_prv_balance(self):
-        """ @deprecated, use 'get_balance' instead """
-        return self.get_balance()
-
-    def get_prv_balance_cache(self):
-        """ @deprecated, use 'get_balance' instead """
-        return self.get_balance(cache=1)
-
-    def get_token_balance(self, token_id=PRV_ID):
-        """ @deprecated, use 'get_balance' instead """
-        return self.get_balance(token_id)
-
-    def get_token_balance_cache(self, token_id):
-        """ @deprecated, use 'get_balance' instead """
-        return self.get_balance(token_id, cache=1)
-
     def send_public_token(self, token_id, amount, receiver, password=None, memo=None):
         """
 
@@ -607,7 +591,7 @@ class Account:
         defrag = self.defragment_account()
         if defrag is not None:
             defrag.subscribe_transaction()
-        balance = self.get_prv_balance()
+        balance = self.get_balance()
         fee, size = self.get_estimate_fee_and_size(to_account, balance - 100, privacy=privacy)
         INFO(f'''EstimateFeeCoinPerKb = {fee}, EstimateTxSizeInKb = {size}''')
         if balance > 0:

@@ -12,8 +12,8 @@ def test_transaction_min_fee():
     send_amount = 200
     fee = 'equal'
     STEP(0, "get sender and receiver balance")
-    sender.get_prv_balance()
-    receiver.get_prv_balance()
+    sender.get_balance()
+    receiver.get_balance()
 
     STEP(1, f"send prv with {fee} fee per kb, ({fee} {ChainConfig.MIN_FEE_PER_KB})")
     result = sender.send_prv_to(receiver, send_amount, ChainConfig.MIN_FEE_PER_KB)
@@ -28,5 +28,5 @@ def test_transaction_min_fee():
     STEP(2, "Verify that prv is sent and received")
     if receiver.shard != sender.shard:
         receiver.subscribe_cross_output_coin()
-    assert receiver.get_prv_balance_cache() + send_amount == receiver.get_prv_balance()
-    assert sender.get_prv_balance_cache() - send_amount - tx_block.get_fee() == sender.get_prv_balance()
+    assert receiver.get_balance(cache='Yes') + send_amount == receiver.get_balance()
+    assert sender.get_balance(cache='Yes') - send_amount - tx_block.get_fee() == sender.get_balance()

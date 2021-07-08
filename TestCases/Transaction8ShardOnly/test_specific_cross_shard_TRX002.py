@@ -69,7 +69,7 @@ def test_send_prv_balance_0_with_privacy_is(shard_sender, fee, privacy):
         INFO()
         INFO(f'--------->TO SHARD {shard}')
         INFO()
-        sender_balance_init = sender.get_prv_balance()
+        sender_balance_init = sender.get_balance()
         TRX002.sender_balance_init = sender_balance_init
         INFO('SET UP FUNCTION')
         TRX002.receiver = receiver

@@ -38,8 +38,8 @@ def test_contribute_prv(contributor, token1, token2):
     assert pde_state_b4.find_waiting_contribution_of_user(contributor, pair_id, token1) == []
     assert pde_state_b4.find_waiting_contribution_of_user(contributor, pair_id, token2) == []
 
-    bal_tok1_be4_contrib = contributor.get_token_balance(token1)
-    bal_tok2_be4_contrib = contributor.get_token_balance(token2)
+    bal_tok1_be4_contrib = contributor.get_balance(token1)
+    bal_tok2_be4_contrib = contributor.get_balance(token2)
     all_share_amount_b4 = pde_state_b4.get_pde_shares_amount(None, token1, token2)
     owner_share_amount_b4 = pde_state_b4.get_pde_shares_amount(contributor, token1, token2)
     rate_b4 = pde_state_b4.get_rate_between_token(token1, token2)
@@ -63,8 +63,8 @@ def test_contribute_prv(contributor, token1, token2):
 
     STEP(4, f'Verify {l6(token1)} is no longer in waiting contribution list')
     PdeObjects.wait_for_user_contribution_in_waiting(contributor, pair_id, token1)
-    bal_tok1_aft_contrib = contributor.get_token_balance(token1)
-    bal_tok2_aft_contrib = contributor.get_token_balance(token2)
+    bal_tok1_aft_contrib = contributor.get_balance(token1)
+    bal_tok2_aft_contrib = contributor.get_balance(token2)
     INFO(f'{l6(token1)} after contribute (before refund): {bal_tok1_aft_contrib}')
     INFO(f'{l6(token2)} after contribute (before refund): {bal_tok2_aft_contrib}')
 

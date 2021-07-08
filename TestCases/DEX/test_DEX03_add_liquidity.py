@@ -30,8 +30,8 @@ def test_add_liquidity(contributors, contribute_percent_of_bal_tok2, token1, tok
     commit_amount = {token1: {}, token2: {}}
 
     for account in contributors + [token_owner]:
-        contributor_balance_b4[token1][account] = account.get_token_balance(token1)
-        contributor_balance_b4[token2][account] = account.get_token_balance(token2)
+        contributor_balance_b4[token1][account] = account.get_balance(token1)
+        contributor_balance_b4[token2][account] = account.get_balance(token2)
 
     INFO(f'Private key | To commit {l6(token1)}/{l6(token2)} | balance {l6(token1)}/{l6(token2)} | '
          f'share amount {l6(token2)}')
@@ -97,8 +97,8 @@ def test_add_liquidity(contributors, contribute_percent_of_bal_tok2, token1, tok
     STEP(5, 'Wait 30s then check balance after contribution')
     WAIT(30)
     for account in contributors + [token_owner]:
-        contributor_balance_af[token1][account] = account.get_token_balance(token1)
-        contributor_balance_af[token2][account] = account.get_token_balance(token2)
+        contributor_balance_af[token1][account] = account.get_balance(token1)
+        contributor_balance_af[token2][account] = account.get_balance(token2)
 
     summary_msg = f'\nUser   | bal {l6(token1)} before/after    | {l6(token1)} commit amount | ' \
                   f'bal {l6(token2)} before/after  | {l6(token2)} commit amount | share amount before/after'

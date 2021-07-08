@@ -20,11 +20,11 @@ def test_05_send_prv_no_privacy_same_shard_auto_fee(send_amount, shard_id):
                Verify send PRV ( no privacy - Auto fee )to another address 1Shard successfully with no privacy
                """)
     STEP(1, "get sender and receiver balance before sending")
-    sender_bal = account_sender.get_prv_balance()
+    sender_bal = account_sender.get_balance()
     INFO("sender balance before: " + str(sender_bal))
     assert sender_bal.is_success(), "get sender balance wrong"
 
-    receiver_bal = account_receiver.get_prv_balance()
+    receiver_bal = account_receiver.get_balance()
     INFO("receiver balance before: " + str(receiver_bal))
     assert receiver_bal.is_success(), "get receiver balance wrong"
 
@@ -37,14 +37,14 @@ def test_05_send_prv_no_privacy_same_shard_auto_fee(send_amount, shard_id):
     send_transaction_info = send_result.subscribe_transaction()
 
     STEP(4, "check sender balance")
-    sender_bal_after = account_sender.get_prv_balance()
+    sender_bal_after = account_sender.get_balance()
     INFO("sender balance after: " + str(sender_bal_after))
     # Balance after = balance before - amount - fee
     assert sender_bal_after == sender_bal - send_amount - send_transaction_info.get_fee(), \
         "sender balance output incorrect"
 
     STEP(5, "check receiver balance")
-    receiver_bal_after = account_receiver.get_prv_balance()
+    receiver_bal_after = account_receiver.get_balance()
     INFO("receiver balance after: " + str(receiver_bal_after))
     # Balance after = balance before + amount
     assert receiver_bal_after.get_result() == receiver_bal.get_result() + send_amount, "receiver balance output incorrect"

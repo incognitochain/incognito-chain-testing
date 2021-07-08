@@ -41,11 +41,11 @@ def test_stake_for_multi_validator():
     INFO(f'Run test with token: {token_id}')
     reward = account_y.stk_get_reward_amount()
     if reward != 0:
-        bal_b4_withdraw = account_y.get_prv_balance()
+        bal_b4_withdraw = account_y.get_balance()
         account_y.stk_withdraw_reward_to_me().subscribe_transaction()
         WAIT(40)
         assert account_y.stk_get_reward_amount() == 0
-        assert account_y.get_prv_balance() == bal_b4_withdraw + reward
+        assert account_y.get_balance() == bal_b4_withdraw + reward
 
     thread_pool = []
     executor = ThreadPoolExecutor()
@@ -59,7 +59,7 @@ def test_stake_for_multi_validator():
     thread_pool.append(thread_validator4)
 
     INFO('STAKING AND VERIFY BALANCE')
-    bal_b4_stake = account_y.get_prv_balance()
+    bal_b4_stake = account_y.get_balance()
     INFO(f'Stake for validator 1')
     fee_tx1 = account_y.stake(account_y, auto_re_stake=False).subscribe_transaction().get_fee()
     INFO(f'Stake for validator 2')
@@ -69,7 +69,7 @@ def test_stake_for_multi_validator():
     INFO(f'Stake for validator 4')
     fee_tx4 = account_y.stake(account_t, auto_re_stake=False).subscribe_transaction().get_fee()
     stake_sum_fee_tx = fee_tx1 + fee_tx2 + fee_tx3 + fee_tx4
-    bal_af_stake = account_y.get_prv_balance()
+    bal_af_stake = account_y.get_balance()
     assert bal_af_stake == bal_b4_stake - stake_sum_fee_tx - ChainConfig.STK_AMOUNT * 4
 
     concurrent.futures.wait(thread_pool)

@@ -15,7 +15,7 @@ def setup_function():
     send_amount = 10000
     max_fee = 900000000000000
     max_send_amount = 1000000000000000001
-    sender_bal = sender.get_prv_balance()
+    sender_bal = sender.get_balance()
     if sender_bal < max_fee + send_amount:
         COIN_MASTER.send_prv_to(sender, max_fee + send_amount - sender_bal + 10, privacy=0).subscribe_transaction()
         if COIN_MASTER.shard != sender.shard:
@@ -32,12 +32,12 @@ def test_send_prv_privacy_x_shard_max_value():
          - Tx fee = 100000000000 PRV success
          """)
     STEP(1, "Get sender balance")
-    sender_bal_b4 = sender.get_prv_balance()
+    sender_bal_b4 = sender.get_balance()
     INFO(f"Sender Balance: {sender_bal_b4}")
     assert sender_bal_b4 != 0, "Sender balance = 0, stop this testcase" and INFO("Failed")
 
     STEP(2, "Get receiver balance")
-    receiver_bal_b4 = receiver.get_prv_balance()
+    receiver_bal_b4 = receiver.get_balance()
     INFO(f"Receiver Balance: {receiver_bal_b4}")
 
     STEP(3, "From address3 send prv to address1 - max value, expect create tx fail")
@@ -55,5 +55,5 @@ def test_send_prv_privacy_x_shard_max_value():
     #                  step4_result.get_error_trace().get_message()), "something went so wrong"
 
     STEP(5, f"Check balance sender and receiver")
-    assert receiver_bal_b4 == receiver.get_prv_balance(), INFO("Failed")
-    assert sender_bal_b4 == sender.get_prv_balance(), INFO("Failed")
+    assert receiver_bal_b4 == receiver.get_balance(), INFO("Failed")
+    assert sender_bal_b4 == sender.get_balance(), INFO("Failed")

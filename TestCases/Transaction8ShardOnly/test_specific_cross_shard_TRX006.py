@@ -46,7 +46,7 @@ def test_send_prv_privacy_max_value(shard_sender):
         INFO(f'----------> TO shard {shard}')
         INFO()
         TRX006.receiver = receiver
-        sender_bal = sender.get_prv_balance()
+        sender_bal = sender.get_balance()
         if sender_bal < max_fee + send_amount:
             COIN_MASTER.send_prv_to(sender, max_fee + send_amount - sender_bal + 10, privacy=0).subscribe_transaction()
             if COIN_MASTER.shard != sender.shard:

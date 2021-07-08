@@ -50,17 +50,17 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         WAIT(40)
         assert reward_receiver.stk_get_reward_amount(token_id) == 0
     STEP(1, 'Stake and check balance after stake')
-    bal_before_stake = the_stake.get_prv_balance()
-    bal_before_validator = validator.get_prv_balance()
-    bal_before_receiver = reward_receiver.get_prv_balance()
+    bal_before_stake = the_stake.get_balance()
+    bal_before_validator = validator.get_balance()
+    bal_before_receiver = reward_receiver.get_balance()
     stake_response = the_stake.stake(validator, reward_receiver, auto_re_stake=auto_re_stake).expect_no_error()
     stake_response.subscribe_transaction()
     stake_fee = stake_response.get_transaction_by_hash().get_fee()
-    assert bal_before_stake == the_stake.get_prv_balance() + stake_fee + coin(1750)
+    assert bal_before_stake == the_stake.get_balance() + stake_fee + coin(1750)
     if the_stake != validator:
-        assert bal_before_validator == validator.get_prv_balance()
+        assert bal_before_validator == validator.get_balance()
     if the_stake != reward_receiver:
-        assert bal_before_receiver == reward_receiver.get_prv_balance()
+        assert bal_before_receiver == reward_receiver.get_balance()
 
     STEP(2, f'Wait until the stake become a committee')
     epoch_plus_n = validator.stk_wait_till_i_am_committee()
@@ -91,7 +91,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     except KeyError:
         pytest.skip(f'Test Data not exist account in shard {staked_shard}')
 
-    token_bal_b4_withdraw_reward = token_receiver.get_token_balance(token_id)
+    token_bal_b4_withdraw_reward = token_receiver.get_balance(token_id)
     if ChainConfig.PRIVACY_VERSION == 1:
         token_sender.send_token_to(token_receiver, token_id, amount_token_send, token_fee=amount_token_fee) \
             .expect_no_error().subscribe_transaction()
@@ -99,7 +99,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         token_sender.send_token_to(token_receiver, token_id, amount_token_send, prv_fee=amount_token_fee) \
             .expect_no_error().subscribe_transaction()
     token_receiver.wait_for_balance_change(token_id, token_bal_b4_withdraw_reward)
-    assert token_bal_b4_withdraw_reward + amount_token_send == token_receiver.get_token_balance(token_id)
+    assert token_bal_b4_withdraw_reward + amount_token_send == token_receiver.get_balance(token_id)
 
     if not auto_re_stake:
         STEP(5, "Wait for the stake to be swapped out")
@@ -128,7 +128,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         STEP(7, 'Auto staking = True, not verify refund')
 
     STEP(8.1, 'Withdraw PRV reward and verify balance')
-    prv_bal_b4_withdraw_reward = reward_receiver.get_prv_balance()
+    prv_bal_b4_withdraw_reward = reward_receiver.get_balance()
     prv_reward_amount = reward_receiver.stk_get_reward_amount()
     assert prv_reward_amount > 0, 'User has no PRV reward while expecting some'
     fee = reward_receiver.stk_withdraw_reward_to_me().subscribe_transaction().get_fee()
@@ -138,8 +138,8 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
 
     STEP(8.2, 'Withdraw token reward and verify balance')
     all_reward_b4 = reward_receiver.stk_get_reward_amount_all_token()
-    token_bal_b4_withdraw_reward = reward_receiver.get_token_balance(token_id)
-    prv_bal_b4_withdraw_reward = reward_receiver.get_prv_balance()
+    token_bal_b4_withdraw_reward = reward_receiver.get_balance(token_id)
+    prv_bal_b4_withdraw_reward = reward_receiver.get_balance()
     token_reward_amount = reward_receiver.stk_get_reward_amount(token_id)
     if ChainConfig.PRIVACY_VERSION == 1:
         INFO(f'Expect reward amount to received {token_reward_amount}')
@@ -147,7 +147,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         reward_receiver.stk_withdraw_reward_to_me(token_id).subscribe_transaction()
         token_bal_after_withdraw_reward = reward_receiver. \
             wait_for_balance_change(token_id, from_balance=token_bal_b4_withdraw_reward)
-        assert prv_bal_b4_withdraw_reward == reward_receiver.get_prv_balance()
+        assert prv_bal_b4_withdraw_reward == reward_receiver.get_balance()
         assert token_bal_b4_withdraw_reward == token_bal_after_withdraw_reward - token_reward_amount
 
     elif ChainConfig.PRIVACY_VERSION == 2:

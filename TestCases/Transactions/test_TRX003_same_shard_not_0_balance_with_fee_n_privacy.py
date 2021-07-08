@@ -19,10 +19,10 @@ def setup_module():
 def test_send_prv_1shard_with_fee_privacy(fee, privacy):
     INFO(f"Verify send PRV to another address in same Shard successfully with privacy={privacy} and fee={fee}")
     STEP(1, "get sender and receiver balance before sending")
-    balance1b = sender_account.get_prv_balance()
+    balance1b = sender_account.get_balance()
     INFO(f"Sender balance before: {balance1b}")
 
-    balance2b = receiver_account.get_prv_balance()
+    balance2b = receiver_account.get_balance()
     INFO(f"Receiver balance before: {balance2b}")
 
     STEP(2, "send PRV")
@@ -33,14 +33,14 @@ def test_send_prv_1shard_with_fee_privacy(fee, privacy):
     transaction_result = send_transaction.subscribe_transaction()
 
     STEP(4, "check sender balance")
-    balance1a = sender_account.get_prv_balance()
+    balance1a = sender_account.get_balance()
     INFO(f" Sender balance after: {balance1a}")
     # Balance after = balance before - amount - fee
     assert balance1a == balance1b - send_amount - transaction_result.get_fee(), \
         "sender balance output incorrect"
 
     STEP(5, "check receiver balance")
-    balance2a = receiver_account.get_prv_balance()
+    balance2a = receiver_account.get_balance()
     INFO(f"receiver balance after: {balance2a}")
     # Balance after = balance before + amount
     assert balance2a == balance2b + send_amount, "receiver balance output incorrect"

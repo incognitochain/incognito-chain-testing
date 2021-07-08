@@ -56,7 +56,7 @@ def test_custodian_deposit(depositor, token, expected_pass):
     STEP(0, "Check if user is already a custodian")
     custodian_info_b4 = depositor.portal_get_my_custodian_info()
     total_collateral_b4 = 0 if custodian_info_b4 is None else custodian_info_b4.get_total_collateral()
-    bal_b4 = depositor.get_prv_balance()
+    bal_b4 = depositor.get_balance()
 
     STEP(1, "Make a valid custodian deposit")
     deposit_response = depositor.portal_make_me_custodian(TEST_SETTING_DEPOSIT_AMOUNT, token)
@@ -72,14 +72,14 @@ def test_custodian_deposit(depositor, token, expected_pass):
     if expected_pass:
         INFO('Verify deposit is successful and user becomes custodian')
         deposit_response.expect_no_error()
-        assert bal_b4 - TEST_SETTING_DEPOSIT_AMOUNT - tx_fee == depositor.get_prv_balance()
+        assert bal_b4 - TEST_SETTING_DEPOSIT_AMOUNT - tx_fee == depositor.get_balance()
         assert custodian_info_af is not None
         assert custodian_info_af.get_total_collateral() == TEST_SETTING_DEPOSIT_AMOUNT + total_collateral_b4
     else:
         INFO("Verify deposit is failed and user not becomes custodian or collateral must not change")
         deposit_response.expect_error()
         assert 'public token is not supported currently' in deposit_response.get_error_trace().get_message()
-        assert bal_b4 == depositor.get_prv_balance()
+        assert bal_b4 == depositor.get_balance()
         if custodian_info_b4 is None:  # if not a custodian before then not after
             assert custodian_info_af is None
         else:  # if was a custodian before then collateral must not change
@@ -95,7 +95,7 @@ def test_add_more_collateral(depositor, token, expected_pass):
     deposit_amount = coin(1)
     STEP(1, "Check existing collateral of user")
     custodian_info_b4 = depositor.portal_get_my_custodian_info()
-    bal_b4 = depositor.get_prv_balance()
+    bal_b4 = depositor.get_balance()
     if custodian_info_b4.get_total_collateral() == 0:
         pytest.skip(f'{l6(depositor.incognito_addr)} is not an existing custodian,'
                     f' add more collateral test cannot proceed')
@@ -121,7 +121,7 @@ def test_add_more_collateral(depositor, token, expected_pass):
             token) == custodian_info_b4.get_locked_collateral(token)
 
     STEP(4, 'Verify balance')
-    balance_after = depositor.get_prv_balance()
+    balance_after = depositor.get_balance()
     if expected_pass:
         assert bal_b4 == balance_after + deposit_tx_result.get_fee() + deposit_amount
     else:
@@ -139,7 +139,7 @@ def test_update_remote_address(custodian, token, total_collateral_precondition, 
     STEP(0, "precondition check")
     custodian_info_b4 = custodian.portal_get_my_custodian_info()
     deposit_amount = 123
-    bal_b4 = custodian.get_prv_balance()
+    bal_b4 = custodian.get_balance()
     if custodian_info_b4.get_total_collateral() > custodian_info_b4.get_free_collateral():
         pytest.skip(f'{l6(custodian.incognito_addr)} holding '
                     f'{custodian_info_b4.get_holding_token_amount(token)} token {l6(token)}')
@@ -168,17 +168,17 @@ def test_update_remote_address(custodian, token, total_collateral_precondition, 
     deposit_tx_result = deposit_tx.subscribe_transaction()
     custodian_info_af = custodian.portal_get_my_custodian_info()
     if expected_pass:
-        assert bal_b4 == custodian.get_prv_balance() + deposit_tx_result.get_fee() + deposit_amount
+        assert bal_b4 == custodian.get_balance() + deposit_tx_result.get_fee() + deposit_amount
         assert custodian_info_af.get_remote_address(token) == new_addr
         assert custodian_info_af.get_total_collateral() == custodian_info_b4.get_total_collateral() + deposit_amount
         deposit_tx.expect_no_error()
     else:
         if token == PRV_ID:
             deposit_tx.expect_error()
-            assert bal_b4 == custodian.get_prv_balance()
+            assert bal_b4 == custodian.get_balance()
         else:
             deposit_tx.expect_no_error()
-            assert bal_b4 == custodian.get_prv_balance() \
+            assert bal_b4 == custodian.get_balance() \
                    + deposit_tx_result.get_fee() + deposit_amount
             assert custodian_info_af.get_total_collateral() == custodian_info_b4.get_total_collateral() \
                    + deposit_amount
