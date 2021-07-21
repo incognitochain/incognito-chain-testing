@@ -52,7 +52,7 @@ class RpcConnection:
                                      headers=self._headers, timeout=RpcConnection.DEFAULT_TIMEOUT)
         except NewConnectionError:
             ERROR('Connection refused')
-        return Response(response, f'From: {self._base_url}')
+        return Response(response)
 
     def print_pay_load(self):
         print(f'RCP: {self._base_url} \n{json.dumps(self._payload, indent=3)}')
@@ -88,11 +88,14 @@ class WebSocket(RpcConnection):
 
     def open(self):
         if self._ws_conn is None:
+            DEBUG('Open new web socket connection')
             self._ws_conn = create_connection(self._url, self.__timeout)
-            DEBUG('Open web socket')
             return
         if not self.is_alive():
+            DEBUG('Current ws connection is dead, open new one')
             self._ws_conn = create_connection(self._url, self.__timeout)
+            return
+        DEBUG('WS connection is alive, use existing one')
 
     def close(self):
         self._ws_conn.close()
@@ -109,16 +112,15 @@ class WebSocket(RpcConnection):
         return self
 
     def execute(self, close_when_done=True):
+        self.open()
         data = {"request": self._payload,
                 "subcription": self.__subscription, "type": self.__type}
         Log.DEBUG(f'exec WS: {self._base_url} \n{json.dumps(data, indent=3)}')
-        self.open()
         self._ws_conn.send(json.dumps(data))
-        Log.DEBUG(f'Receiving response')
         result = self._ws_conn.recv()
         if close_when_done:
             self.close()
-        return Response(result)
+        return Response(result, self._url)
 
 
 class SshSession(pxssh.pxssh):

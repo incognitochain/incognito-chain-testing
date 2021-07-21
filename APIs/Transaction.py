@@ -1,6 +1,8 @@
+from requests.structures import CaseInsensitiveDict
+
 from APIs import BaseRpcApi
 from Configs import Constants
-from Configs.Constants import BURNING_ADDR, ChainConfig
+from Configs.Constants import BURNING_ADDR
 
 
 class TransactionRpc(BaseRpcApi):
@@ -186,10 +188,10 @@ class TransactionRpc(BaseRpcApi):
     ###############
     # WITHDRAW REWARD
     ###############
-    def withdraw_reward(self, private_key, payment_address, token_id, tx_ver, version=1):
+    def withdraw_reward(self, private_key, payment_address, token_id, tx_fee=-1, tx_ver=2, version=2, privacy=1):
         return self.rpc_connection. \
             with_method("withdrawreward"). \
-            with_params([private_key, {}, 0, 0,
+            with_params([private_key, {}, tx_fee, privacy,
                          {
                              "PaymentAddress": payment_address,
                              "TokenID": token_id,
@@ -199,8 +201,7 @@ class TransactionRpc(BaseRpcApi):
                          ]). \
             execute()
 
-    def withdraw_reward_privacy_v2(self, private_key, payment_address, token_id, tx_ver):
-        tx_fee = 1
+    def withdraw_reward_privacy_v2(self, private_key, payment_address, token_id="", tx_fee=-1, tx_ver=2):
         return self.rpc_connection. \
             with_method("withdrawreward"). \
             with_params([private_key, {}, tx_fee, 0,
@@ -219,6 +220,13 @@ class TransactionRpc(BaseRpcApi):
             execute()
 
     def de_fragment_token(self, private_k, token_id, defrag_amount=0, privacy=True):
+        """
+        @param private_k:
+        @param token_id:
+        @param defrag_amount:
+        @param privacy:True/False
+        @return:
+        """
         return self.rpc_connection.with_method('defragmentaccounttoken'). \
             with_params([private_k, {}, -1, 1,
                          {
@@ -232,35 +240,38 @@ class TransactionRpc(BaseRpcApi):
                              "TokenFee": 0
                          }, "", 1]).execute()
 
-    def list_unspent_output_coins(self, private_key, token_id='', start_height=0, ):
-        param_v1 = [0, 999999,  # old privacy
-                    [{"PrivateKey": private_key}],
-                    ""
-                    ]
-        param_v2 = [0, 999999,  # privacy v2
-                    [{"PrivateKey": private_key,
-                      "StartHeight": start_height}],
-                    token_id
-                    ]
-        # param = param_v1 if ChainConfig.PRIVACY_VERSION == 1 else param_v2
+    def list_unspent_output_coins(self, private_key, token_id='', start_height=0):
         return self.rpc_connection. \
             with_method('listunspentoutputcoinsfromcache'). \
-            with_params(param_v2). \
+            with_params([0, 999999,  # privacy v2
+                         [{"PrivateKey": private_key,
+                           "StartHeight": start_height}],
+                         token_id]). \
             execute()
 
-    def list_output_coin(self, payment_k, read_only_k, token_id, ):
+    def list_output_coin(self, payment_k, token_id, **kwargs):
+        """
+        @param payment_k: mandatory parameter
+        @param token_id:
+        @param kwargs: ReadonlyKey or OTASecretKey (should not be both) must be specified
+        @return:
+        """
+        kwargs = CaseInsensitiveDict(kwargs)
+        read_only_k = kwargs.get("ReadonlyKey", "")
+        ota_secret_key = kwargs.get("OTASecretKey", "")
         return self.rpc_connection.with_method("listoutputcoins"). \
             with_params([0, 999999,
                          [{
                              "PaymentAddress": payment_k,
-                             "ReadonlyKey": read_only_k
+                             "ReadonlyKey": read_only_k,
+                             "OTASecretKey": ota_secret_key
                          }], token_id]).execute()
 
-    def list_unspent_output_tokens(self, private_k, token_id):
+    def list_unspent_output_tokens(self, private_k, token_id, from_height):
         return self.rpc_connection. \
             with_method('listunspentoutputtokens'). \
             with_params([0, 999999, [{"PrivateKey": private_k,
-                                      "StartHeight": 0,
+                                      "StartHeight": from_height,
                                       "tokenID": token_id}]]) \
             .execute()
 
@@ -272,10 +283,8 @@ class TransactionRpc(BaseRpcApi):
 
     # stake
     def create_and_send_staking_transaction(self, candidate_private_key, candidate_payment_key, candidate_validator_key,
-                                            reward_receiver_payment_key, stake_amount=None, auto_re_stake=True,
+                                            reward_receiver_payment_key, stake_amount=1750, auto_re_stake=True,
                                             tx_version=2):
-        if stake_amount is None:
-            stake_amount = ChainConfig.STK_AMOUNT
         return self.rpc_connection. \
             with_method("createandsendstakingtransaction"). \
             with_params([candidate_private_key,
@@ -385,3 +394,11 @@ class TransactionRpc(BaseRpcApi):
         """
         return self.rpc_connection.with_method('authorizedsubmitkey'). \
             with_params([ota_key, access_token, block_height, re_index]).execute()
+
+    def get_tx_by_receiver_v2(self, payment_k, read_only_k, token_id, from_index=0, to_index=500):
+        return self.rpc_connection.with_method('gettransactionbyreceiverv2'). \
+            with_params([{"PaymentAddress": payment_k,
+                          "ReadonlyKey": read_only_k,
+                          "TokenID": token_id,
+                          "Skip": from_index,
+                          "Limit": to_index}]).execute()

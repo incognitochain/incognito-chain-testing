@@ -5,8 +5,7 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
 from Configs import Constants
-from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, \
-    ChainConfig, TestConfig
+from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, ChainConfig, TestConfig
 from Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
@@ -182,6 +181,9 @@ class Account:
         # for using Account object as 'key' in dictionary
         return int(str(self.private_key).encode('utf8').hex(), 16)
 
+    def clone(self):
+        return self.__deepcopy__()
+
     def convert_payment_address_to_version(self, version=1):
         self.payment_key = get_key_set_from_private_k(self.private_key, version)[1]
         return self
@@ -350,7 +352,7 @@ class Account:
             create_and_send_staking_transaction(self.private_key, self.payment_key, self.validator_key,
                                                 self.payment_key, stake_amount, auto_re_stake, tx_version)
 
-    def stake_someone_reward_me(self, someone, stake_amount=None):
+    def stake_someone_reward_me(self, someone, stake_amount=None, auto_re_stake=False, tx_version=TestConfig.TX_VER):
         """
 
         @return:
@@ -358,9 +360,9 @@ class Account:
         INFO(f'Stake {someone.validator_key} but reward me')
         return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
-                                                self.payment_key, stake_amount)
+                                                self.payment_key, stake_amount, auto_re_stake, tx_version)
 
-    def stake_someone_reward_him(self, someone, stake_amount=None, auto_re_stake=True):
+    def stake_someone_reward_him(self, someone, stake_amount=None, auto_re_stake=True, tx_version=TestConfig.TX_VER):
         """
 
         @return:
@@ -368,7 +370,7 @@ class Account:
         INFO(f'Stake and reward other: f{someone.validator_key}')
         return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
-                                                someone.payment_key, stake_amount, auto_re_stake)
+                                                someone.payment_key, stake_amount, auto_re_stake, tx_version)
 
     def stk_stop_auto_staking(self, reward_receiver, validator):
         return self.REQ_HANDLER.transaction(). \
@@ -548,10 +550,15 @@ class Account:
         @param privacy: default = privacy on
         @return: Response object
         """
-        INFO(f'From: {l6(self.private_key)}. Send {amount} prv to: {l6(receiver_account.payment_key)}')
-
-        return self.REQ_HANDLER.transaction(). \
+        response = self.REQ_HANDLER.transaction(). \
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
+        log_msg = f'From: {l6(self.private_key)}. Sent {amount} prv to: {l6(receiver_account.payment_key)}'
+        try:
+            log_msg += f', tx {response.get_tx_hashes()}'
+        except TypeError:
+            log_msg += f', \n    Err: {response.get_error_trace().get_message()}'
+        INFO(log_msg)
+        return response
 
     def send_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1, token_id=PRV_ID):
         if token_id == PRV_ID:
@@ -577,6 +584,10 @@ class Account:
         return self.REQ_HANDLER.transaction(). \
             send_transaction(self.private_key, send_param, fee, privacy)
 
+    def send_coin(self, receiver_amount_dict, fee, privacy, token=PRV_ID, **kwargs):
+        # todo: merge all send coin/token methods into this if possible
+        pass
+
     def send_all_prv_to(self, to_account, privacy=1):
         """
         send all prv to another account
@@ -598,7 +609,7 @@ class Account:
             return self.send_prv_to(to_account, balance - 100, int(100 / (size + 1)),
                                     privacy).subscribe_transaction()
 
-    def count_unspent_output_coins(self, token_id=''):
+    def count_unspent_output_coins(self, token_id='', from_height=0):
         """
         count number of unspent coin
 
@@ -606,8 +617,8 @@ class Account:
         """
         INFO('Count unspent coin')
 
-        response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key, token_id).get_result(
-            "Outputs")
+        response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key, token_id,
+                                                                            from_height).get_result("Outputs")
         return len(response[self.private_key])
 
     def defragment_account(self, min_bill=1000000000000000):
@@ -755,13 +766,9 @@ class Account:
         """
         INFO(f'Sending {amount_custom_token} token {l6(token_id)} to {l6(receiver.payment_key)}')
 
-        return self.REQ_HANDLER.transaction().send_custom_token_transaction(self.private_key,
-                                                                            receiver.payment_key,
-                                                                            token_id, amount_custom_token,
-                                                                            prv_fee,
-                                                                            token_fee, prv_amount,
-                                                                            prv_privacy,
-                                                                            token_privacy)
+        return self.REQ_HANDLER.transaction(). \
+            send_custom_token_transaction(self.private_key, receiver.payment_key, token_id, amount_custom_token,
+                                          prv_fee, token_fee, prv_amount, prv_privacy, token_privacy)
 
     def send_token_multi_output(self, receiver_token_amount_dict, token_id, prv_fee=0, token_fee=0, prv_privacy=0,
                                 token_privacy=0):
@@ -781,11 +788,9 @@ class Account:
         payment_key_amount_dict = {}
         for acc in receiver_token_amount_dict.keys():
             payment_key_amount_dict[acc.payment_key] = receiver_token_amount_dict[acc]
-        return self.REQ_HANDLER.transaction().send_custom_token_multi_output(self.private_key,
-                                                                             payment_key_amount_dict,
-                                                                             token_id,
-                                                                             prv_fee, token_fee,
-                                                                             prv_privacy, token_privacy)
+        return self.REQ_HANDLER.transaction(). \
+            send_custom_token_multi_output(self.private_key, payment_key_amount_dict, token_id, prv_fee, token_fee,
+                                           prv_privacy, token_privacy)
 
     def burn_token(self, token_id, amount_custom_token):
         """
@@ -795,14 +800,9 @@ class Account:
         @return: Response object
         """
         INFO(f'Send custom token transaction to burning address')
-        return self.REQ_HANDLER.transaction().send_custom_token_transaction(self.private_key,
-                                                                            Constants.BURNING_ADDR,
-                                                                            token_id,
-                                                                            amount_custom_token,
-                                                                            prv_fee=-1,
-                                                                            token_fee=0, prv_amount=0,
-                                                                            prv_privacy=0,
-                                                                            token_privacy=0)
+        return self.REQ_HANDLER.transaction(). \
+            send_custom_token_transaction(self.private_key, Constants.BURNING_ADDR, token_id, amount_custom_token,
+                                          prv_fee=-1, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0)
 
     ########
     # BRIDGE
@@ -819,13 +819,9 @@ class Account:
         """
         Withdraw token (this mean send token to burning address, but receive your token on ETH network)
         INFO(f'Send custom token transaction')
-        return Account.SYSTEM.transaction().send_custom_token_transaction(self.private_key,
-                                                                                Constants.burning_address,
-                                                                                token_id, amount_custom_token,
-                                                                                prv_fee=-1,
-                                                                                token_fee=0, prv_amount=0,
-                                                                                prv_privacy=0,
-                                                                                token_privacy=0)
+        return Account.SYSTEM.transaction().\
+            send_custom_token_transaction(self.private_key, Constants.burning_address, token_id, amount_custom_token,
+                                          prv_fee=-1, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0)
 
         @param token_id: Token ID
         @param amount_custom_token: amount to withdraw
@@ -862,15 +858,17 @@ class Account:
         except KeyError:
             return None
 
-    def stk_withdraw_reward_to(self, reward_receiver, token_id=PRV_ID, tx_fee=0, tx_version=TestConfig.TX_VER):
+    def stk_withdraw_reward_to(self, reward_receiver, token_id=PRV_ID, tx_fee=0, tx_version=TestConfig.TX_VER,
+                               privacy=0):
         INFO(f"Withdraw token reward {token_id} to {l6(reward_receiver.payment_key)}")
         if ChainConfig.PRIVACY_VERSION == 1:
-            return self.REQ_HANDLER.transaction().withdraw_reward(self.private_key, reward_receiver.payment_key,
-                                                                  token_id, tx_fee, tx_version)
+            return self.REQ_HANDLER.transaction(). \
+                withdraw_reward(self.private_key, reward_receiver.payment_key, token_id, tx_fee, tx_version, privacy)
         if ChainConfig.PRIVACY_VERSION == 2:
             return self.REQ_HANDLER.transaction(). \
-                withdraw_reward_privacy_v2(self.private_key, reward_receiver.payment_key, token_id, tx_fee, tx_version)
-        raise BaseException('Can not detect privacy version to use the correct withdraw rpc')
+                withdraw_reward_privacy_v2(self.private_key, reward_receiver.payment_key, token_id, tx_fee, tx_version,
+                                           privacy)
+        raise RuntimeError('Can not detect privacy version to use the correct withdraw rpc')
 
     def stk_withdraw_reward_to_me(self, token_id=PRV_ID, tx_fee=0, tx_version=TestConfig.TX_VER):
         return self.stk_withdraw_reward_to(self, token_id, tx_fee, tx_version)
@@ -1112,18 +1110,18 @@ class Account:
                                                                           porting_id, token_id, amount,
                                                                           proof)
 
-    def portal_get_my_custodian_info(self, psi: PortalStateInfo = None):
+    def portal_get_my_custodian_info(self, psi: PortalStateInfo = None, **kwargs):
         """
 
         @param psi: PortalStateInfo
         @return CustodianInfo or None:
         """
+        cache = kwargs.get("cache", False)
         if psi is None:
+            if cache:
+                return self.cache[Account._cache_custodian_inf]
             psi = self.REQ_HANDLER.get_latest_portal_state_info()
         return psi.get_custodian_info_in_pool(self)
-
-    def portal_get_my_custodian_info_cache(self):
-        return self.cache[Account._cache_custodian_inf]
 
     def portal_wait_my_lock_collateral_to_change(self, token_id, from_amount=None, check_rate=30, timeout=180):
         INFO(f'Wait for my lock collateral change, {l6(self.payment_key)}, token {l6(token_id)}')

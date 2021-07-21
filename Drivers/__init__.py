@@ -7,13 +7,21 @@ import Helpers.Logging as Log
 
 class ResponseBase:
     def __init__(self, response=None, more_info=None):
-        if isinstance(response, ResponseBase):
+        if isinstance(response, ResponseBase):  # for cloning object
             self.response = response.response
             self.more_info = response.more_info
         else:
             self.response = response
             self.more_info = more_info
-            log_str = '' if not more_info else more_info
+            log_str = ''
+            try:
+                log_str += f'[{self.response.status_code}] '
+            except AttributeError:
+                pass
+            try:
+                log_str += f'{self.response.url}'
+            except AttributeError:
+                log_str += f'{more_info}'
             log_str += f'{self.__str__()}' if response else ''
             Log.DEBUG(log_str, ResponseBase.__name__)
 

@@ -3,6 +3,8 @@ import re
 import subprocess
 import sys
 
+from Helpers.Logging import DEBUG
+
 if sys.platform == 'darwin':
     get_key = {1: f'{os.getcwd()}/bin/getKey-mac',
                2: f''}
@@ -33,6 +35,7 @@ def get_key_set_from_private_k(private_k, version):
                 shard_id)
     """
     try:
+        DEBUG(f'Generating keys v{version} from private key: {private_k}')
         process = subprocess.Popen([get_key[version], '-privatekey', private_k],
                                    stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True)
     except KeyError:
@@ -40,7 +43,7 @@ def get_key_set_from_private_k(private_k, version):
 
     stdout, stderr = process.communicate()
     if 'error' in stdout:
-        raise ValueError(f"Invalid private key: {stdout}")
+        raise ValueError(f"Invalid private key: {stdout}\nprivate key: {private_k}")
     # print(f'Generating keys from private key {l6(private_k)}')
     # print(stdout)
     return (
