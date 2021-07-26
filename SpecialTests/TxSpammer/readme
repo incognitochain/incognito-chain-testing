@@ -1,7 +1,0 @@
-How to config: check the __init__.py file in this folder
-    - To add/modify account list: create a new list then update @pytest.mark.parametrize decorator of the test
-    - To change the testing node: update node variable
-
-How to run:
-    cd incognito-chain-testing
-    pytest --show-capture=stderr --capture=tee-sys -v --html="$html_report" SpecialTests/TxSpammer/[test_script_name.py]
