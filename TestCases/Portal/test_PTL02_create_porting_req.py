@@ -1,6 +1,7 @@
 import pytest
 
-from Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status, ChainConfig
+from Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status
+from Configs.Configs import ChainConfig
 from Helpers.Logging import STEP, INFO, WARNING, INFO_HEADLINE
 from Helpers.PortalHelper import PortalMath
 from Helpers.TestHelper import l6, ChainHelper

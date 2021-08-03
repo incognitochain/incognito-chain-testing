@@ -1,7 +1,6 @@
 import sys
 
-from Configs import config
-from Configs.Constants import ChainConfig
+from Configs.Configs import TestConfig, ChainConfig
 from Helpers.Logging import WARNING, ERROR
 from Objects.AccountObject import AccountGroup
 from Objects.TestBedObject import *
@@ -20,13 +19,13 @@ STAKER_ACCOUNTS = AccountGroup()
 
 if not skip_load:
     # load test bed
-    test_bed = config.test_bed
+    test_bed = TestConfig.TEST_BED
     if PARAMS.get("testBed") is not None:
         test_bed = PARAMS.get("testBed").rstrip('y').rstrip('p').rstrip('.')
     SUT: TestBed = TestBed(test_bed)
 
     # load account list
-    __account_file = config.test_data
+    __account_file = TestConfig.TEST_DATA
     if PARAMS.get('testData') is not None:
         __account_file = PARAMS.get('testData').rstrip('y').rstrip('p').rstrip('.')
 

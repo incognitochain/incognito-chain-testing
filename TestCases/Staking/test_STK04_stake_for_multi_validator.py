@@ -1,7 +1,7 @@
 import concurrent
 from concurrent.futures.thread import ThreadPoolExecutor
 
-from Configs.Constants import ChainConfig
+from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO
 from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT

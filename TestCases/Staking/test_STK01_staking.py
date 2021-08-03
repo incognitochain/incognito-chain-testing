@@ -13,7 +13,8 @@
 
 import pytest
 
-from Configs.Constants import coin, ChainConfig
+from Configs.Constants import coin
+from Configs.Configs import ChainConfig
 from Helpers.Logging import STEP, INFO
 from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT

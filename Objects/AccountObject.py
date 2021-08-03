@@ -5,7 +5,8 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
 from Configs import Constants
-from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, ChainConfig, TestConfig
+from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K
+from Configs.Configs import ChainConfig, TestConfig
 from Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response

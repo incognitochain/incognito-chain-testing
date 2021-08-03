@@ -4,7 +4,8 @@ import random
 import pytest
 
 from Configs import Constants
-from Configs.Constants import coin, ChainConfig
+from Configs.Constants import coin
+from Configs.Configs import ChainConfig
 from Helpers.Logging import *
 from Helpers.Time import get_current_date_time, WAIT
 from Objects.AccountObject import get_accounts_in_shard, COIN_MASTER

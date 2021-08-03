@@ -8,7 +8,8 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
-from Configs.Constants import coin, ChainConfig
+from Configs.Constants import coin
+from Configs.Configs import ChainConfig
 from Helpers.KeyListJson import KeyListJson
 from Helpers.Logging import INFO, STEP
 from Objects.AccountObject import Account, AccountGroup, COIN_MASTER

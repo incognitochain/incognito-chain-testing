@@ -10,7 +10,8 @@ from APIs.Subscription import SubscriptionWs
 from APIs.System import SystemRpc
 from APIs.Transaction import TransactionRpc
 from APIs.Utils import UtilsRpc
-from Configs.Constants import ChainConfig, PRV_ID
+from Configs.Constants import PRV_ID
+from Configs.Configs import ChainConfig
 from Drivers.Connections import SshSession
 from Helpers import TestHelper
 from Helpers.Logging import INFO, DEBUG, INFO_HEADLINE

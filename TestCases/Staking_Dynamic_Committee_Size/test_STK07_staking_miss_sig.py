@@ -2,7 +2,7 @@ import concurrent
 from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
-from Configs.Constants import ChainConfig
+from Configs.Configs import ChainConfig
 from Drivers.Response import Response
 from Helpers.Logging import INFO, ERROR, STEP
 from Helpers.TestHelper import ChainHelper

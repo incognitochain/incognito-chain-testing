@@ -2,7 +2,8 @@ import copy
 import random
 from typing import List
 
-from Configs.Constants import PBNB_ID, PBTC_ID, PRV_ID, Status, ChainConfig
+from Configs.Constants import PBNB_ID, PBTC_ID, PRV_ID, Status
+from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO, DEBUG, INFO_HEADLINE, ERROR
 from Helpers.PortalHelper import PortalMath
 from Helpers.TestHelper import l6, KeyExtractor

@@ -3,7 +3,8 @@ import random
 
 import pytest
 
-from Configs.Constants import PBNB_ID, Status, ChainConfig
+from Configs.Constants import PBNB_ID, Status
+from Configs.Configs import ChainConfig
 from Helpers.Logging import STEP, INFO, WARNING
 from Helpers.TestHelper import l6
 from Helpers.Time import WAIT

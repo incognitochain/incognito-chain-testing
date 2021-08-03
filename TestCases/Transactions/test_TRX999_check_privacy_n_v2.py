@@ -1,6 +1,7 @@
 import pytest
 
-from Configs.Constants import PRV_ID, ChainConfig
+from Configs.Constants import PRV_ID
+from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO_HEADLINE, INFO, STEP
 from Helpers.TestHelper import l6
 from Objects.IncognitoTestCase import ACCOUNTS

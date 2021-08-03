@@ -3,11 +3,13 @@ This package should contain all integration/business test.
 """
 import sys
 
-from Configs.Constants import ChainConfig, coin
+from Configs.Constants import coin
+from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO_HEADLINE, INFO
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER, PORTAL_FEEDER, AccountGroup
 from Objects.IncognitoTestCase import SUT, ACCOUNTS
+from Objects.NodeObject import Node
 from Objects.TestBedObject import TestBed
 
 logger = "Test Init"
@@ -18,7 +20,7 @@ try:
     full_node_url = sys._xoptions.get('fullNodeUrl')
     # noinspection PyProtectedMember
     ws_port = int(sys._xoptions.get('wsPort'))
-    SUT.full_node = parse_url(full_node_url)
+    SUT.full_node = Node().parse_url(full_node_url)
     SUT.full_node.set_web_socket_port(ws_port)
     TestBed.REQUEST_HANDLER = SUT.full_node
 except:

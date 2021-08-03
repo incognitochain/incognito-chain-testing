@@ -4,7 +4,8 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
-from Configs.Constants import PRV_ID, coin, ChainConfig
+from Configs.Constants import PRV_ID, coin
+from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO, STEP, INFO_HEADLINE, ERROR
 from Helpers.TestHelper import l6
 from Helpers.Time import WAIT

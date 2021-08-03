@@ -1,6 +1,6 @@
 import pytest
 
-from Configs.Constants import ChainConfig
+from Configs.Configs import ChainConfig
 from Helpers import TestHelper
 from Helpers.Logging import STEP, INFO
 from Helpers.TestHelper import ChainHelper

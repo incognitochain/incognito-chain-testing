@@ -3,7 +3,7 @@ from abc import ABC
 
 from websocket import WebSocketTimeoutException, WebSocketBadStatusException
 
-from Configs.Constants import ChainConfig
+from Configs.Configs import ChainConfig
 from Drivers import ResponseBase
 from Helpers.Logging import INFO, WARNING
 from Helpers.Time import WAIT

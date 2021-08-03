@@ -1,4 +1,5 @@
-from Configs.Constants import coin, ChainConfig
+from Configs.Constants import coin
+from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO, ERROR
 from Helpers.TestHelper import l6
 from Objects.AccountObject import Account, COIN_MASTER

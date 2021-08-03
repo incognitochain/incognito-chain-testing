@@ -3,11 +3,11 @@ import signal
 
 import pytest
 
-from Configs import config
+from Configs.Configs import TestConfig
 from Helpers.Logging import INFO
 from Objects.IncognitoTestCase import SUT
 
-config.prepare_coin_precondition = False
+# config.prepare_coin_precondition = False
 salary_log_file = 'salary_log.txt'
 salary_log = open(salary_log_file, 'w+')
 

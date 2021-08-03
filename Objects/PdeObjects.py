@@ -3,7 +3,8 @@ import json
 import re
 from typing import List
 
-from Configs.Constants import PRV_ID, ChainConfig
+from Configs.Constants import PRV_ID
+from Configs.Configs import ChainConfig
 from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import INFO, WARNING, DEBUG, ERROR
 from Helpers.TestHelper import l6, KeyExtractor

@@ -1,6 +1,6 @@
 import json
 
-from Configs.Constants import ChainConfig
+from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO
 from Objects import BlockChainInfoBaseClass
 

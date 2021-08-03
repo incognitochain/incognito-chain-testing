@@ -1,4 +1,4 @@
-from Configs.Constants import ChainConfig
+from Configs.Configs import ChainConfig
 from Helpers.Logging import STEP, INFO
 from Objects.IncognitoTestCase import ACCOUNTS
 

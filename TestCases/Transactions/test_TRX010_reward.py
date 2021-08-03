@@ -8,7 +8,7 @@ import json
 
 import pytest
 
-from Configs.Constants import ChainConfig
+from Configs.Configs import ChainConfig
 from Helpers import TestHelper
 from Helpers.Logging import INFO, INFO_HEADLINE, STEP
 from Helpers.TestHelper import ChainHelper, format_dict_side_by_side

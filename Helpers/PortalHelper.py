@@ -1,4 +1,5 @@
-from Configs.Constants import ChainConfig, Status
+from Configs.Constants import Status
+from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO
 from Helpers.TestHelper import to_num
 

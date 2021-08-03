@@ -2,7 +2,8 @@ import random
 
 import pytest
 
-from Configs.Constants import coin, PBNB_ID, Status, PRV_ID, PBTC_ID, ChainConfig
+from Configs.Constants import coin, PBNB_ID, Status, PRV_ID, PBTC_ID
+from Configs.Configs import ChainConfig
 from Helpers.Logging import STEP, INFO, ERROR
 from Helpers.TestHelper import ChainHelper, l6
 from Helpers.Time import WAIT, get_current_date_time

@@ -3,7 +3,8 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
-from Configs.Constants import ChainConfig, coin
+from Configs.Constants import coin
+from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO, STEP
 from Helpers.TestHelper import ChainHelper
 from Objects.AccountObject import COIN_MASTER

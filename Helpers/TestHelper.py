@@ -3,7 +3,7 @@ import random
 import string
 from json.decoder import JSONDecodeError
 
-from Configs.Constants import ChainConfig
+from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO
 from Helpers.Time import WAIT
 
