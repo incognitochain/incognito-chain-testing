@@ -21,10 +21,7 @@ def test_contribute_prv(contributor, token1, token2):
     tok1_contrib_amount = coin(1234)
     tok2_contrib_amount = coin(2134)
     for tok, amount in zip((token1, token2), (tok1_contrib_amount, tok2_contrib_amount)):
-        if tok == PRV_ID:
-            COIN_MASTER.top_up_if_lower_than(contributor, amount + 1000, int(amount * 1.5))
-        else:
-            token_owner.top_up_if_lower_than(contributor, amount + 1000, int(amount * 1.5), tok)
+        token_owner.top_up_if_lower_than(contributor, amount + 1000, int(amount * 1.5), tok)
 
     pde_state_b4 = SUT().get_latest_pde_state_info()
     INFO(f"""

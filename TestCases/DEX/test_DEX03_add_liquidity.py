@@ -54,7 +54,7 @@ def test_add_liquidity(contributors, contribute_percent_of_bal_tok2, token1, tok
     d_contribute_tx = {}
     for acc in contributors:
         pair_id = pair_ids[acc]
-        contribute_tx = acc.pde_contribute(token1, commit_amount[token1][acc], pair_id)
+        contribute_tx = acc.pde_contribute_v2(token1, commit_amount[token1][acc], pair_id)
         contribute_tx.expect_no_error()
         INFO(f"Contribute {l6(token1)} tx_id: {contribute_tx.get_tx_id()} ")
         d_contribute_tx[acc] = contribute_tx
@@ -71,10 +71,7 @@ def test_add_liquidity(contributors, contribute_percent_of_bal_tok2, token1, tok
     STEP(3, f'Contribute {l6(token2)}')
     for acc in contributors:
         pair_id = pair_ids[acc]
-        if token2 is PRV_ID:
-            contribute_tx = acc.pde_contribute_prv(commit_amount[token2][acc], pair_id)
-        else:
-            contribute_tx = acc.pde_contribute_token(token2, commit_amount[token2][acc], pair_id)
+        contribute_tx = acc.pde_contribute_v2(token2, commit_amount[token2][acc], pair_id)
 
         contribute_tx.expect_no_error()
         d_contribute_tx[acc] = contribute_tx

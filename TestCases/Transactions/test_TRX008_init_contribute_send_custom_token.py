@@ -78,14 +78,14 @@ def test_init_ptoken():
 
     STEP(4, "contribute token & PRV")
     # Contribute TOKEN:
-    contribute_token_result = account_init.pde_contribute_token(custom_token_id, token_contribute_amount, pair_id)
+    contribute_token_result = account_init.pde_contribute_v2(custom_token_id, token_contribute_amount, pair_id)
     contribute_token_result.expect_no_error()
     INFO(f"Contribute {custom_token_id} Success, TxID: {contribute_token_result.get_tx_id()}")
     INFO("Subscribe contribution transaction")
     contribute_token_result.subscribe_transaction()
     # Contribute PRV:ken
     WAIT(10)
-    contribute_prv_result = account_init.pde_contribute_prv(prv_contribute_amount, pair_id)
+    contribute_prv_result = account_init.pde_contribute_v2(prv_contribute_amount, pair_id)
     contribute_prv_result.expect_no_error()
     global contribute_success
     contribute_success = True

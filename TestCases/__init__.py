@@ -3,12 +3,11 @@ This package should contain all integration/business test.
 """
 import sys
 
-from Configs.Constants import coin, ChainConfig
+from Configs.Constants import ChainConfig, coin
 from Helpers.Logging import INFO_HEADLINE, INFO
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER, PORTAL_FEEDER, AccountGroup
-from Objects.IncognitoTestCase import ACCOUNTS, SUT
-from Objects.NodeObject import Node
+from Objects.IncognitoTestCase import SUT, ACCOUNTS
 from Objects.TestBedObject import TestBed
 
 logger = "Test Init"
@@ -19,7 +18,7 @@ try:
     full_node_url = sys._xoptions.get('fullNodeUrl')
     # noinspection PyProtectedMember
     ws_port = int(sys._xoptions.get('wsPort'))
-    SUT.full_node = Node().parse_url(full_node_url)
+    SUT.full_node = parse_url(full_node_url)
     SUT.full_node.set_web_socket_port(ws_port)
     TestBed.REQUEST_HANDLER = SUT.full_node
 except:
@@ -31,11 +30,11 @@ COIN_MASTER.req_to(SUT())
 # -----------------------------------------
 INFO_HEADLINE("Setup from Testcase init", logger)
 
-# if ChainConfig.PRIVACY_VERSION == 2:
-#     COIN_MASTER.submit_key()
+if ChainConfig.PRIVACY_VERSION == 2:
+    COIN_MASTER.submit_key()
 #     PORTAL_FEEDER.submit_key()
 #
-# INFO("CONVERT to COIN V2", logger)
+INFO("CONVERT to COIN V2", logger)
 # convert_tx = COIN_MASTER.convert_token_to_v2()
 # if convert_tx.get_error_msg() == "Method not found":
 #     ChainConfig.PRIVACY_VERSION = 1
@@ -45,10 +44,11 @@ INFO_HEADLINE("Setup from Testcase init", logger)
 #     ChainConfig.PRIVACY_VERSION = 2
 #     convert_tx.subscribe_transaction()
 #
-# if isinstance(ACCOUNTS, AccountGroup) or isinstance(ACCOUNTS, list):
-#     COIN_MASTER.top_up_if_lower_than(ACCOUNTS, coin(2), coin(5))
-#
+if isinstance(ACCOUNTS, AccountGroup) or isinstance(ACCOUNTS, list):
+    COIN_MASTER.top_up_if_lower_than(ACCOUNTS, coin(2), coin(5))
+
 # for acc in ACCOUNTS:
 #     acc.submit_key()
 
-INFO_HEADLINE("END setup from Testcase init",logger)
+# WAIT(60)
+INFO_HEADLINE("END setup from Testcase init", logger)

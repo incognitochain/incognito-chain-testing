@@ -82,19 +82,6 @@ class TestBed:
         Log.INFO(f'Checking test bed')
         return self
 
-    def get_committee_accounts(self, shard_id=None):
-        acc_list = []
-        shards_to_get = self.shards if shard_id is None else [self.shards[shard_id]]
-        for shard in shards_to_get:
-            shard_acc = [node.account for node in shard._node_list]
-            acc_list += shard_acc
-
-        return acc_list
-
-    def get_beacon_accounts(self):
-        acc_list = [node.account for node in self.beacons._node_list]
-        return acc_list
-
     def is_default(self):
         return self.full_node.is_local_host()
 

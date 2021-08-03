@@ -3,7 +3,7 @@ import pytest
 from Configs.Constants import PRV_ID, coin, Status
 from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import INFO, STEP
-from Helpers.TestHelper import l6
+from Helpers.TestHelper import l6, CustomAssert as CA
 from Helpers.Time import get_current_date_time
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
@@ -50,20 +50,14 @@ def test_contribute(token1, token2):
     INFO(f'Rate {l6(token2)}:{l6(token1)} is {rate_b4}')
     # breakpoint()
     STEP(1, f"Contribute {l6(token1)}")
-    if token1 == PRV_ID:
-        contribute_token1_result = token_owner.pde_contribute_prv(tok1_contrib_amount, pair_id)
-    else:
-        contribute_token1_result = token_owner.pde_contribute_token(token1, tok1_contrib_amount, pair_id)
+    contribute_token1_result = token_owner.pde_contribute_v2(token1, tok1_contrib_amount, pair_id)
     contribute_token1_fee = contribute_token1_result.subscribe_transaction().get_fee()
 
     STEP(2, 'Verify contribution')
     assert token_owner.pde_wait_till_my_token_in_waiting_for_contribution(pair_id, token1)
 
     STEP(3, f'Contribute {l6(token2)}')
-    if token2 == PRV_ID:
-        contribute_token2_result = token_owner.pde_contribute_prv(tok2_contrib_amount, pair_id)
-    else:
-        contribute_token2_result = token_owner.pde_contribute_token(token2, tok2_contrib_amount, pair_id)
+    contribute_token2_result = token_owner.pde_contribute_v2(token2, tok2_contrib_amount, pair_id)
     contribute_token2_fee = contribute_token2_result.subscribe_transaction().get_fee()
     contrib_fee_sum = contribute_token1_fee + contribute_token2_fee
 
@@ -129,14 +123,14 @@ def test_contribute(token1, token2):
     real_contrib_amount2 = tok2_contrib_amount if is_none_zero_pair else api_contrib_tok2
 
     if token1 == PRV_ID:
-        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1 + contrib_fee_sum
-        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2
+        CA.compare_with_margin(bal_tok1_be4_contrib, bal_tok1_aft_refund + real_contrib_amount1 + contrib_fee_sum, 2)
+        CA.compare_with_margin(bal_tok2_be4_contrib, bal_tok2_aft_refund + real_contrib_amount2, 2)
     elif token2 == PRV_ID:
-        assert bal_tok1_be4_contrib == bal_tok1_aft_refund + real_contrib_amount1
-        assert bal_tok2_be4_contrib == bal_tok2_aft_refund + real_contrib_amount2 + contrib_fee_sum
+        CA.compare_with_margin(bal_tok1_be4_contrib, bal_tok1_aft_refund + real_contrib_amount1, 2)
+        CA.compare_with_margin(bal_tok2_be4_contrib, bal_tok2_aft_refund + real_contrib_amount2 + contrib_fee_sum, 2)
     else:
-        assert bal_tok1_be4_contrib - (bal_tok1_aft_refund + real_contrib_amount1) <= 2, "error margin is off limit"
-        assert bal_tok2_be4_contrib - (bal_tok2_aft_refund + real_contrib_amount2) <= 2, "error margin is off limit"
+        CA.compare_with_margin(bal_tok1_be4_contrib, bal_tok1_aft_refund + real_contrib_amount1, 2)
+        CA.compare_with_margin(bal_tok2_be4_contrib, bal_tok2_aft_refund + real_contrib_amount2, 2)
 
     if is_none_zero_pair:
         api_return_tok1 = contribution_status.get_return_amount_of_token(token1)
@@ -152,8 +146,7 @@ def test_contribute(token1, token2):
         calculated_owner_share_amount_after = \
             PdeMath.cal_contribution_share(api_contrib_tok2, sum(all_share_amount), rate_b4[0], owner_share_amount)
         assert INFO(f"Contribution shares amount is correct") \
-               and abs(calculated_owner_share_amount_after - owner_share_amount_after) <= 1, \
-            f'calculated vs real = {calculated_owner_share_amount_after} - {owner_share_amount_after}'
+               and CA.compare_with_margin(calculated_owner_share_amount_after, owner_share_amount_after, 1)
     else:
         debug_info = "FIRST time contribution" + debug_info
         INFO(debug_info)

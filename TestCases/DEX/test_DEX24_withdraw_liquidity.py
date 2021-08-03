@@ -19,8 +19,6 @@ from TestCases.DEX import token_owner, token_id_1, token_id_2, acc_list_1_shard
                  marks=pytest.mark.xfail(reason="Withdraw above already, nothing left")),
     pytest.param(acc_list_1_shard[3], PRV_ID, token_id_1, 1.1,
                  marks=pytest.mark.xfail(reason="User has no share")),
-    pytest.param(ACCOUNTS[3], token_id_1, token_id_2, 0.01),
-
 ])
 def test_withdraw_liquidity_v2(withdrawer, token1, token2, percent_of_share_to_withdraw):
     pde_state_b4_test = SUT().get_latest_pde_state_info()

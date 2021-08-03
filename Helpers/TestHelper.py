@@ -8,6 +8,15 @@ from Helpers.Logging import INFO
 from Helpers.Time import WAIT
 
 
+class CustomAssert:
+    @staticmethod
+    def compare_with_margin(a, b, margin):
+        if abs(a - b) > margin:
+            raise AssertionError(f"{a} vs {b}, margin {margin}")
+        INFO(f"{a} vs {b} is tolerable, margin = {margin}")
+        return True
+
+
 def l6(string):
     """
     Return the last 6 chars of a string
@@ -351,7 +360,7 @@ def make_random_word(word_min_len=3, word_max_len=8):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=random.randint(word_min_len, word_max_len)))
 
 
-def make_random_str_list(length=None, word_min_len=None, word_max_len=None):
+def make_random_str_list(length=None, word_min_len=3, word_max_len=8):
     length = random.randint(5, 10) if length is None else length
     random_list = []
     for i in range(length):

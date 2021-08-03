@@ -10,7 +10,7 @@ from Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
 from Helpers import TestHelper
-from Helpers.Logging import INFO, INFO_HEADLINE, WARNING
+from Helpers.Logging import INFO, INFO_HEADLINE, WARNING, ERROR
 from Helpers.TestHelper import l6, KeyExtractor, ChainHelper
 from Helpers.Time import WAIT, get_current_date_time
 from Objects.CoinObject import TxOutPut, ListOwnedToken, ListPrvTXO
@@ -151,6 +151,7 @@ class Account:
         copy_obj.committee_public_k = self.committee_public_k
         copy_obj.shard = self.shard
         copy_obj.cache = self.cache
+        copy_obj.ota_k = self.ota_k
         return copy_obj
 
     def __deepcopy__(self, memo={}):
@@ -167,6 +168,7 @@ class Account:
         copy_obj.committee_public_k = copy.deepcopy(self.committee_public_k)
         copy_obj.shard = copy.deepcopy(self.shard)
         copy_obj.cache = copy.deepcopy(self.cache)
+        copy_obj.ota_k = copy.deepcopy(self.ota_k)
         return copy_obj
 
     def __eq__(self, other):
@@ -296,18 +298,18 @@ class Account:
         @return:
         """
         if not token_id:
-            print_data = PRV_ID
-            for c in self.list_unspent_token(PRV_ID):
-                print_data += f'\n{c}'
+            print_data = f'+ {PRV_ID}'
+            for c in self.list_unspent_coin():
+                print_data += f'\n   {c}'
 
             for token in self.list_owned_custom_token():
-                print_data += f'\n{token}'
-                for c in self.list_unspent_token(token):
-                    print_data += f'\n{c}'
+                print_data += f'\n+ {token}'
+                for c in self.list_unspent_coin(token.get_token_id()):
+                    print_data += f'\n   {c}'
         else:
-            print_data = token_id
-            for c in self.list_unspent_token(token_id):
-                print_data += f'\n{c}'
+            print_data = f'\n+ {token_id}'
+            for c in self.list_unspent_coin(token_id):
+                print_data += f'\n   {c}'
         print(print_data)
 
     def stake(self, validator=None, receiver_reward=None, stake_amount=None, auto_re_stake=True):
@@ -554,7 +556,7 @@ class Account:
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
         log_msg = f'From: {l6(self.private_key)}. Sent {amount} prv to: {l6(receiver_account.payment_key)}'
         try:
-            log_msg += f', tx {response.get_tx_hashes()}'
+            log_msg += f', tx {response.get_tx_id()}'
         except TypeError:
             log_msg += f', \n    Err: {response.get_error_trace().get_message()}'
         INFO(log_msg)
@@ -686,41 +688,24 @@ class Account:
 
     def pde_contribute(self, token_id, amount, pair_id):
         if token_id == PRV_ID:
-            return self.pde_contribute_prv(amount, pair_id)
+            INFO(f'{l6(self.private_key)} Contribute PRV, amount: {amount}, pair id = {pair_id}')
+            return self.REQ_HANDLER.dex().contribute_prv(self.private_key, self.payment_key, amount,
+                                                         pair_id, TestConfig.TX_VER)
         else:
-            return self.pde_contribute_token(token_id, amount, pair_id)
+            INFO(f'{l6(self.private_key)} Contribute token: {l6(token_id)}, amount = {amount}, pair id = {pair_id}')
+            return self.REQ_HANDLER.dex().contribute_token(self.private_key, self.payment_key, token_id,
+                                                           amount, pair_id, TestConfig.TX_VER)
 
     def pde_contribute_v2(self, token_id, amount, pair_id):
         if token_id == PRV_ID:
-            return self.pde_contribute_prv_v2(amount, pair_id)
+            INFO(f'{l6(self.private_key)} Contribute PRV V2, amount: {amount}, pair id = {pair_id}')
+
+            return self.REQ_HANDLER.dex().contribute_prv_v2(self.private_key, self.payment_key, amount,
+                                                            pair_id, TestConfig.TX_VER)
         else:
-            return self.pde_contribute_token_v2(token_id, amount, pair_id)
-
-    def pde_contribute_token(self, contribute_token_id, amount, contribution_pair_id):
-        INFO(f'{l6(self.private_key)} Contribute token: {l6(contribute_token_id)}, amount = {amount}, '
-             f'pair id = {contribution_pair_id}')
-
-        return self.REQ_HANDLER.dex().contribute_token(self.private_key, self.payment_key, contribute_token_id, amount,
-                                                       contribution_pair_id, TestConfig.TX_VER)
-
-    def pde_contribute_token_v2(self, contribute_token_id, amount, contribution_pair_id):
-        INFO(f'{l6(self.private_key)} Contribute token V2: {l6(contribute_token_id)}, amount = {amount}, '
-             f'pair id = {contribution_pair_id}')
-
-        return self.REQ_HANDLER.dex().contribute_token_v2(self.private_key, self.payment_key, contribute_token_id,
-                                                          amount, contribution_pair_id, TestConfig.TX_VER)
-
-    def pde_contribute_prv(self, amount, contribution_pair_id):
-        INFO(f'{l6(self.private_key)} Contribute PRV, amount: {amount}, pair id = {contribution_pair_id}')
-
-        return self.REQ_HANDLER.dex().contribute_prv(self.private_key, self.payment_key, amount,
-                                                     contribution_pair_id, TestConfig.TX_VER)
-
-    def pde_contribute_prv_v2(self, amount, contribution_pair_id):
-        INFO(f'{l6(self.private_key)} Contribute PRV V2, amount: {amount}, pair id = {contribution_pair_id}')
-
-        return self.REQ_HANDLER.dex().contribute_prv_v2(self.private_key, self.payment_key, amount,
-                                                        contribution_pair_id, TestConfig.TX_VER)
+            INFO(f'{l6(self.private_key)} Contribute token V2: {l6(token_id)}, amount = {amount}, pair id = {pair_id}')
+            return self.REQ_HANDLER.dex().contribute_token_v2(self.private_key, self.payment_key, token_id,
+                                                              amount, pair_id, TestConfig.TX_VER)
 
     def pde_withdraw_contribution(self, token_id_1, token_id_2, amount):
         INFO(f'Withdraw PDE contribution {l6(token_id_1)}-{l6(token_id_2)}, amount = {amount}')
@@ -1232,7 +1217,7 @@ class Account:
         if len(receiver) == 0:
             return None
 
-        INFO_HEADLINE(f"TOP UP OTHERS'({len(receiver)} acc) TO {lower} ({(l6(token_id))})")
+        INFO_HEADLINE(f"TOP UP OTHERS'({len(receiver)} acc) TO {upper} (token {(l6(token_id))})")
 
         # there's a max number of output in "createandsendtransaction" rpc, so must split into small batch of output
         each, length, start = 20, len(receiver), 0
@@ -1277,7 +1262,12 @@ class Account:
         else:
             key = None
         INFO(f'Submit {key_type} key for indexing coin {l6(key)}')
-        self.REQ_HANDLER.transaction().submit_key(key).expect_no_error()
+        submit_response = self.REQ_HANDLER.transaction().submit_key(key)
+        try:
+            error = submit_response.get_error_trace().get_message()
+        except AttributeError:
+            error = None
+        ERROR(error) if error else INFO(submit_response.get_result())
         return self
 
     def submit_key_authorize(self, from_height=0, re_index=False, access_token=ChainConfig.ACCESS_TOKEN):
@@ -1314,6 +1304,9 @@ class AccountGroup:
         copy_acc_group = AccountGroup()
         copy_acc_group.account_list = copy.deepcopy(self.account_list, memo)
         return copy_acc_group
+
+    def clone(self):
+        return self.__deepcopy__()
 
     def convert_payment_address_to_version(self, version=2):
         for acc in self:
@@ -1384,6 +1377,16 @@ class AccountGroup:
         for acc, thread in balance_result.items():
             balance_result[acc] = thread.result()
         return balance_result
+
+    def submit_key(self, key_type='private'):
+        for acc in self.account_list:
+            with ThreadPoolExecutor() as tpe:
+                tpe.submit(acc.submit_key, key_type)
+
+    def convert_token_to_v2(self, token=PRV_ID, fee=-1):
+        for acc in self.account_list:
+            with ThreadPoolExecutor() as tpe:
+                tpe.submit(acc.convert_token_to_v2, token, fee)
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None):
