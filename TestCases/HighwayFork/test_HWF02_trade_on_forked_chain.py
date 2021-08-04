@@ -12,7 +12,7 @@ from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT, ACCOUNTS
 from TestCases.DEX import calculate_trade_order, verify_contributor_reward_prv_token
-from TestCases.HigwayFork import get_block_height, token_id_1, token_id_2, token_owner, \
+from TestCases.HighwayFork import get_block_height, token_id_1, token_id_2, token_owner, \
     calculated_and_create_fork, verify_trading_prv_token
 
 num_of_traders = 5

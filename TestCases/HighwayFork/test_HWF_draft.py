@@ -1,4 +1,4 @@
-from TestCases.HigwayFork import calculated_and_create_fork
+from TestCases.HighwayFork import calculated_and_create_fork
 
 min_blocks_wait_fork = 2  # Chain will be forked after at least {min_blocks_wait_fork} blocks
 cID1 = 255

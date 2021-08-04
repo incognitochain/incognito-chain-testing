@@ -9,7 +9,7 @@ from Helpers.Logging import INFO, STEP, ERROR
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
-from TestCases.HigwayFork import acc_list_1_shard, get_block_height, calculated_and_create_fork
+from TestCases.HighwayFork import acc_list_1_shard, get_block_height, calculated_and_create_fork
 
 key_list_file = KeyListJson()
 stakers = key_list_file.get_staker_accounts()

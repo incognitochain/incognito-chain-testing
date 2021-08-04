@@ -8,7 +8,7 @@ from Helpers.Logging import INFO, STEP, ERROR
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER, Account
 from Objects.IncognitoTestCase import SUT
-from TestCases.HigwayFork import acc_list_1_shard, get_block_height, calculated_and_create_fork
+from TestCases.HighwayFork import acc_list_1_shard, get_block_height, calculated_and_create_fork
 
 receiver_shard_0 = Account(
     '112t8rnakdKxvk7VMKUB9qmsPY4czwnP24b82BnepcxHLX6kJ1dYQsR8d6xNTzwC9nEhJdocr9u19NAr4iSYXCeTBRu3YET8iADMAP3szdfw')
