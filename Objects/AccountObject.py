@@ -1,3 +1,4 @@
+import collections
 import copy
 import datetime
 import re
@@ -5,8 +6,8 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
 from Configs import Constants
-from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K
 from Configs.Configs import ChainConfig, TestConfig
+from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K
 from Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
@@ -313,7 +314,7 @@ class Account:
                 print_data += f'\n   {c}'
         print(print_data)
 
-    def stake(self, validator=None, receiver_reward=None, stake_amount=None, auto_re_stake=True):
+    def stake(self, validator=None, receiver_reward=None, stake_amount=ChainConfig.STK_AMOUNT, auto_re_stake=True):
         """
 
         @param validator: account_object. if None then validator = the stake
@@ -861,12 +862,12 @@ class Account:
                 withdraw_reward(self.private_key, reward_receiver.payment_key, token_id, tx_fee, tx_version, privacy)
         if ChainConfig.PRIVACY_VERSION == 2:
             return self.REQ_HANDLER.transaction(). \
-                withdraw_reward_privacy_v2(self.private_key, reward_receiver.payment_key, token_id, tx_fee, tx_version,
+                withdraw_reward_privacy_v2(self.private_key, reward_receiver.payment_key, token_id, -1, tx_version,
                                            privacy)
         raise RuntimeError('Can not detect privacy version to use the correct withdraw rpc')
 
-    def stk_withdraw_reward_to_me(self, token_id=PRV_ID, tx_fee=0, tx_version=TestConfig.TX_VER):
-        return self.stk_withdraw_reward_to(self, token_id, tx_fee, tx_version)
+    def stk_withdraw_reward_to_me(self, token_id=PRV_ID, tx_fee=0, tx_version=TestConfig.TX_VER, privacy=0):
+        return self.stk_withdraw_reward_to(self, token_id, tx_fee, tx_version, privacy)
 
     #######
     # DEX
@@ -1211,11 +1212,12 @@ class Account:
         @param max_wait: max time to wait (in each tx) if retry keep failing
         @return:
         """
-        if type(account) is Account:
+        if isinstance(account, Account):
             account = AccountGroup(account)
-        elif type(account) is list:
+        elif isinstance(account, list):
             account = AccountGroup(*account)
-
+        lower = int(lower)
+        upper = int(upper)
         receiver = {}
         bal_receiver_b4_dict = account.get_balance(token_id)
 
@@ -1245,8 +1247,8 @@ class Account:
                 WAIT(retry_interval)
                 wasted_time += retry_interval
                 if wasted_time >= max_wait:
-                    raise BaseException(f"Waited {wasted_time}s but cannot create send tx, "
-                                        f"out put coins appear to being used use in another tx")
+                    raise TimeoutError(f"Waited {wasted_time}s but cannot create send tx, "
+                                       f"output coins appear to being used use in another tx")
 
             else:
                 # tx should be succeed

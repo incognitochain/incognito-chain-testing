@@ -13,30 +13,26 @@
 
 import pytest
 
-from Configs.Constants import coin
-from Configs.Configs import ChainConfig
-from Helpers.Logging import STEP, INFO, ERROR
+from Helpers.Logging import ERROR
+from Helpers.Logging import STEP
 from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
-from Objects.AccountObject import COIN_MASTER
-from Objects.IncognitoTestCase import SUT
-from TestCases.Staking import account_x, amount_token_send, amount_token_fee, account_y, account_t, list_acc_x_shard, \
-    token_receiver
+from TestCases.Staking import *
 
 slashing_v2 = False
 
 
 @pytest.mark.parametrize("the_stake, validator, reward_receiver, auto_re_stake", [
-    (account_y, account_y, account_y, False),
-    (account_y, account_y, account_x, False),
-    (account_x, account_y, account_x, False),
-    (account_x, account_y, account_y, False),
-    (account_x, account_y, account_t, False),
-    (account_y, account_y, account_y, True),
-    (account_y, account_y, account_x, True),
-    (account_x, account_y, account_x, True),
-    (account_x, account_y, account_y, True),
-    (account_x, account_y, account_t, True),
+    (account_y, account_y, account_y, False),  # self stake, self reward
+    # (account_x, account_x, account_y, False),  # self stake, reward other
+    # (account_y, account_t, account_y, False),  # stake other, self reward
+    # (account_x, account_u, account_u, False),  # stake other, reward him
+    # (account_x, account_a, account_t, False),  # stake other, reward another
+    # (account_y, account_y, account_y, True),  # self stake, self reward
+    # (account_x, account_x, account_y, True),  # self stake, reward other
+    # (account_y, account_t, account_y, True),  # stake other, self reward
+    # (account_x, account_u, account_u, True),  # stake other, reward him
+    # (account_x, account_a, account_t, True),  # stake other, reward another
 ])
 def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     COIN_MASTER.top_up_if_lower_than(the_stake, coin(1750), coin(1850))
@@ -64,10 +60,13 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         assert bal_before_validator == validator.get_balance()
     if the_stake != reward_receiver:
         assert bal_before_receiver == reward_receiver.get_balance()
+    beacon_state_after_stake = SUT().get_beacon_best_state_detail_info()
+    assert beacon_state_after_stake.get_auto_staking_committees(validator) is auto_re_stake
 
     STEP(2, f'Wait until the staker be assigned to shard committee')
     validator.stk_wait_till_i_am_in_shard_pending()
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
+    ChainHelper.wait_till_next_beacon_height(3)
     staked_shard = beacon_bsd.is_he_in_shard_pending(validator)
     assert staked_shard is not False
 

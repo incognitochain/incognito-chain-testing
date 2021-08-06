@@ -201,10 +201,10 @@ class TransactionRpc(BaseRpcApi):
                          ]). \
             execute()
 
-    def withdraw_reward_privacy_v2(self, private_key, payment_address, token_id="", tx_fee=-1, tx_ver=2):
+    def withdraw_reward_privacy_v2(self, private_key, payment_address, token_id="", tx_fee=-1, tx_ver=2, privacy=0):
         return self.rpc_connection. \
             with_method("withdrawreward"). \
-            with_params([private_key, {}, tx_fee, 0,
+            with_params([private_key, {}, tx_fee, privacy,
                          {
                              "PaymentAddress": payment_address,
                              "TokenID": token_id,

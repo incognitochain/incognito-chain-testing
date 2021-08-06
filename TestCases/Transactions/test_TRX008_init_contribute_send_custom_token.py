@@ -4,8 +4,8 @@ import random
 import pytest
 
 from Configs import Constants
-from Configs.Constants import coin
 from Configs.Configs import ChainConfig
+from Configs.Constants import coin, PRV_ID
 from Helpers.Logging import *
 from Helpers.Time import get_current_date_time, WAIT
 from Objects.AccountObject import get_accounts_in_shard, COIN_MASTER
@@ -86,7 +86,7 @@ def test_init_ptoken():
     contribute_token_result.subscribe_transaction()
     # Contribute PRV:ken
     WAIT(10)
-    contribute_prv_result = account_init.pde_contribute_v2(prv_contribute_amount, pair_id)
+    contribute_prv_result = account_init.pde_contribute_v2(PRV_ID, prv_contribute_amount, pair_id)
     contribute_prv_result.expect_no_error()
     global contribute_success
     contribute_success = True
