@@ -4,7 +4,7 @@ import pytest
 
 from Configs.Constants import coin
 from Configs.Configs import ChainConfig
-from Helpers.Logging import INFO, STEP
+from Helpers.Logging import INFO, STEP, ERROR
 from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
@@ -34,7 +34,7 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
     COIN_MASTER.top_up_if_lower_than(the_stake, coin(1751), coin(1850))
     bal_b4_stake = the_stake.get_balance()
 
-    INFO('Calculate & wait to execute test at block that after random time 0-5 block')
+    INFO('Calculate & wait to execute test at block that before transfer epoch time min 5 blocks')
     chain_info = SUT().get_block_chain_info()
     remaining_block_epoch = chain_info.get_beacon_block().get_remaining_block_epoch()
     if remaining_block_epoch >= ChainConfig.RANDOM_TIME:
@@ -72,16 +72,11 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
 
 
 @pytest.mark.parametrize("the_stake, validator, receiver_reward, auto_re_stake", [
-    pytest.param(account_y, account_y, account_y, False,
-                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    pytest.param(account_y, account_y, account_x, False,
-                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    pytest.param(account_x, account_y, account_x, False,
-                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    pytest.param(account_x, account_y, account_y, False,
-                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    pytest.param(account_x, account_y, account_t, False,
-                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
+    (account_y, account_y, account_y, False),
+    (account_y, account_y, account_x, False),
+    (account_x, account_y, account_x, False),
+    (account_x, account_y, account_y, False),
+    (account_x, account_y, account_t, False),
     (account_y, account_y, account_y, True),
     (account_y, account_y, account_x, True),
     (account_x, account_y, account_x, True),
@@ -107,28 +102,37 @@ def test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, auto
     validator.stk_wait_till_i_am_in_shard_pending()
 
     STEP(2, 'Un_staking')
-    fee_un_stk = the_stake.stk_un_stake_tx(validator).subscribe_transaction().get_fee()
-    bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=-fee_un_stk)
-    assert bal_af_un_stake == bal_af_stake - fee_un_stk
+    if auto_re_stake:
+        fee_un_stk = the_stake.stk_un_stake_tx(validator).subscribe_transaction().get_fee()
+        bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=-fee_un_stk)
+        assert bal_af_un_stake == bal_af_stake - fee_un_stk
 
-    WAIT(60)  # wait to convert status auto re-stake
+        WAIT(60)  # wait to convert status auto re-stake
 
-    STEP(3, 'Verify auto staking is False')
-    beacon_bsd = SUT().get_beacon_best_state_detail_info()
-    assert beacon_bsd.get_auto_staking_committees(validator) is False
+        STEP(2.1, 'Verify auto staking is False')
+        beacon_bsd = SUT().get_beacon_best_state_detail_info()
+        assert beacon_bsd.get_auto_staking_committees(validator) is False
+    else:
+        tx = the_stake.stk_un_stake_tx(validator)
+        if tx.get_tx_id() is not None:
+            ERROR(f'Trx stop auto staking be created, tx_id: {tx.get_tx_id()}')
+            WAIT(50)
+            res = tx.get_transaction_by_hash(retry=False)
+            if res.data:
+                fee = res.get_fee()
+                bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=-fee)
+                assert bal_af_un_stake == bal_af_stake - fee
+
+    STEP(3, 'Verify cannot unstake when auto stake is False')
+    the_stake.stk_un_stake_tx(validator).expect_error()
 
 
 @pytest.mark.parametrize("the_stake, validator, receiver_reward, auto_re_stake", [
-    pytest.param(account_y, account_y, account_y, False,
-                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    pytest.param(account_y, account_y, account_x, False,
-                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    pytest.param(account_x, account_y, account_x, False,
-                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    pytest.param(account_x, account_y, account_y, False,
-                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
-    pytest.param(account_x, account_y, account_t, False,
-                 marks=pytest.mark.xfail(reason="auto re stake = False, can not un stake")),
+    (account_y, account_y, account_y, False),
+    (account_y, account_y, account_x, False),
+    (account_x, account_y, account_x, False),
+    (account_x, account_y, account_y, False),
+    (account_x, account_y, account_t, False),
     (account_y, account_y, account_y, True),
     (account_y, account_y, account_x, True),
     (account_x, account_y, account_x, True),
@@ -154,12 +158,16 @@ def test_un_stake_when_exist_shard_committee(the_stake, validator, receiver_rewa
     validator.stk_wait_till_i_am_committee()
 
     STEP(2, 'Un_staking')
-    fee_un_stk = the_stake.stk_un_stake_tx(validator).subscribe_transaction().get_fee()
-    bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=-fee_un_stk)
-    assert bal_af_un_stake == bal_af_stake - fee_un_stk
+    if auto_re_stake:
+        fee_un_stk = the_stake.stk_un_stake_tx(validator).subscribe_transaction().get_fee()
+        bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=-fee_un_stk)
+        assert bal_af_un_stake == bal_af_stake - fee_un_stk
 
-    WAIT(60)  # wait to convert status auto re-stake
+        WAIT(60)  # wait to convert status auto re-stake
 
-    STEP(3, 'Verify auto staking is False')
-    beacon_bsd = SUT().get_beacon_best_state_detail_info()
-    assert beacon_bsd.get_auto_staking_committees(validator) is False
+        STEP(2.1, 'Verify auto staking is False')
+        beacon_bsd = SUT().get_beacon_best_state_detail_info()
+        assert beacon_bsd.get_auto_staking_committees(validator) is False
+
+    STEP(3, 'Verify cannot unstake when auto stake is False')
+    the_stake.stk_un_stake_tx(validator).expect_error()

@@ -21,8 +21,7 @@ def get_epoch_swap_in_out_and_reward_committee(account_stake):
     bbd_b4 = SUT().get_beacon_best_state_detail_info()
     shard_id = bbd_b4.is_he_a_committee(account_stake)
     assert shard_id is not False
-    epoch_out = account_stake.stk_wait_till_i_am_swapped_out_of_committee(
-        timeout=ChainConfig.get_epoch_n_block_time(10))
+    epoch_out = account_stake.stk_wait_till_i_am_out_of_autostaking_list(timeout=ChainConfig.get_epoch_n_block_time(10))
     for epoch in range(epoch_in, epoch_out):
         instruction_beacon_height = ChainHelper.cal_first_height_of_epoch(epoch=epoch + 1)
         instruction_bb = SUT().get_latest_beacon_block(instruction_beacon_height)
@@ -31,7 +30,10 @@ def get_epoch_swap_in_out_and_reward_committee(account_stake):
             shard_id)
         print(
             f"Beacon_height: {instruction_beacon_height}, Shard {shard_id}, shard_committee_size: {shard_committee_size}")
-        reward += bb_reward_instruction_prv[str(shard_id)] / shard_committee_size
+        try:
+            reward += bb_reward_instruction_prv[str(shard_id)] / shard_committee_size
+        except KeyError:
+            reward += 0
     return epoch_in, epoch_out, reward, shard_id
 
 
@@ -39,13 +41,9 @@ def test_stake_for_multi_validator():
     COIN_MASTER.top_up_if_lower_than(account_y, ChainConfig.STK_AMOUNT * 4, ChainConfig.STK_AMOUNT * 5)
     from TestCases.Staking import token_id
     INFO(f'Run test with token: {token_id}')
-    reward = account_y.stk_get_reward_amount()
-    if reward != 0:
-        bal_b4_withdraw = account_y.get_balance()
-        account_y.stk_withdraw_reward_to_me().subscribe_transaction()
-        WAIT(40)
-        assert account_y.stk_get_reward_amount() == 0
-        assert account_y.get_balance() == bal_b4_withdraw + reward
+    reward_b4 = {}
+    for acc in [account_y, account_a, account_u, account_t]:
+        reward_b4[acc] = acc.stk_get_reward_amount()
 
     thread_pool = []
     executor = ThreadPoolExecutor()
@@ -59,7 +57,10 @@ def test_stake_for_multi_validator():
     thread_pool.append(thread_validator4)
 
     INFO('STAKING AND VERIFY BALANCE')
-    bal_b4_stake = account_y.get_balance()
+    bal_b4_stake = {}
+    for acc in [account_y, account_a, account_u, account_t]:
+        bal_b4_stake[acc] = acc.get_balance()
+
     INFO(f'Stake for validator 1')
     fee_tx1 = account_y.stake(account_y, auto_re_stake=False).subscribe_transaction().get_fee()
     INFO(f'Stake for validator 2')
@@ -69,8 +70,14 @@ def test_stake_for_multi_validator():
     INFO(f'Stake for validator 4')
     fee_tx4 = account_y.stake(account_t, auto_re_stake=False).subscribe_transaction().get_fee()
     stake_sum_fee_tx = fee_tx1 + fee_tx2 + fee_tx3 + fee_tx4
-    bal_af_stake = account_y.get_balance()
-    assert bal_af_stake == bal_b4_stake - stake_sum_fee_tx - ChainConfig.STK_AMOUNT * 4
+    WAIT(40)
+    INFO('Verify balance after staking')
+    bal_af_stake = {}
+    for acc in [account_y, account_a, account_u, account_t]:
+        bal_af_stake[acc] = acc.get_balance()
+    assert bal_af_stake[account_y] == bal_b4_stake[account_y] - stake_sum_fee_tx - ChainConfig.STK_AMOUNT * 4
+    for acc in [account_a, account_u, account_t]:
+        assert bal_b4_stake[acc] == bal_af_stake[acc], executor.shutdown()
 
     concurrent.futures.wait(thread_pool)
     executor.shutdown()
@@ -78,6 +85,9 @@ def test_stake_for_multi_validator():
     for thread in thread_pool:
         epoch_in, epoch_out, reward, shard_committee = thread.result()
         instruction_reward += reward
-    WAIT(ChainConfig.get_epoch_n_block_time(num_of_epoch=0, number_of_block=5))
-    reward_receive = account_y.stk_get_reward_amount()  # Wait receive reward
-    assert reward_receive == instruction_reward, f'{reward_receive} == {instruction_reward}'
+    WAIT(ChainConfig.get_epoch_n_block_time(num_of_epoch=0, number_of_block=5))  # Wait receive reward
+    INFO(f'Verify balance after refund')
+    for acc in [account_a, account_u, account_t]:
+        assert reward_b4[acc] == acc.stk_get_reward_amount()
+    assert account_y.get_balance() == bal_af_stake[account_y] + ChainConfig.STK_AMOUNT * 4
+    assert account_y.stk_get_reward_amount() - reward_b4[account_y] == instruction_reward

@@ -15,13 +15,15 @@ import pytest
 
 from Configs.Constants import coin
 from Configs.Configs import ChainConfig
-from Helpers.Logging import STEP, INFO
+from Helpers.Logging import STEP, INFO, ERROR
 from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from TestCases.Staking import account_x, amount_token_send, amount_token_fee, account_y, account_t, list_acc_x_shard, \
     token_receiver
+
+slashing_v2 = False
 
 
 @pytest.mark.parametrize("the_stake, validator, reward_receiver, auto_re_stake", [
@@ -63,27 +65,52 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     if the_stake != reward_receiver:
         assert bal_before_receiver == reward_receiver.get_balance()
 
-    STEP(2, f'Wait until the stake become a committee')
-    epoch_plus_n = validator.stk_wait_till_i_am_committee()
+    STEP(2, f'Wait until the staker be assigned to shard committee')
+    validator.stk_wait_till_i_am_in_shard_pending()
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
-    staked_shard = beacon_bsd.is_he_a_committee(validator)
+    staked_shard = beacon_bsd.is_he_in_shard_pending(validator)
     assert staked_shard is not False
 
     STEP(3, 'Stop auto staking')
+    STEP(3.1, 'Verify stop auto staking success when auto_re_stake = True')
+    epoch_plus_n = validator.stk_wait_till_i_am_committee()
+    INFO('When validator in shard committee')
     if auto_re_stake:
-        result_un_stake = the_stake.stk_stop_auto_stake_him(validator).subscribe_transaction()
-        un_stake_fee = result_un_stake.get_fee()
-        un_stake_block_height = result_un_stake.get_block_height()
-        beacon_height = SUT().get_shard_block_by_height(the_stake.calculate_shard_id(),
-                                                        un_stake_block_height).get_beacon_height()
-        INFO(f'Un_stake at beacon h: {beacon_height}')
+        result_stop_auto_stake = the_stake.stk_stop_auto_stake_him(validator).subscribe_transaction()
+        stop_auto_stake_fee = result_stop_auto_stake.get_fee()
+        block_height = result_stop_auto_stake.get_block_height()
+        shard_id = the_stake.calculate_shard_id() % ChainConfig.ACTIVE_SHARD
+        beacon_height = SUT().get_shard_block_by_height(shard_id, block_height).get_beacon_height()
+        INFO(f'Stop_auto_stake at beacon height: {beacon_height}')
         ChainHelper.wait_till_beacon_height(beacon_height + 5)
         auto_re_stake = SUT().get_beacon_best_state_detail_info().get_auto_staking_committees(validator)
         assert auto_re_stake is False
     else:
-        un_stake_fee = 0
-    INFO('Verify can not stop auto staking when auto_re_stake = False')
-    the_stake.stk_stop_auto_stake_him(validator).expect_error()
+        stop_auto_stake_fee = 0
+
+    STEP(3.2, 'Verify can not stop auto staking when auto_re_stake = False')
+    # INFO('When validator in shard pending')
+    tx = the_stake.stk_stop_auto_stake_him(validator)
+    try:
+        tx.expect_error()
+        INFO('Can not stop auto staking when auto_re_stake = False ')
+    except:
+        ERROR(f'Trx stop auto staking be created, tx_id: {tx.get_tx_id()}')
+        tx.subscribe_transaction()
+    tx = the_stake.stk_un_stake_tx(validator)
+    try:
+        tx.expect_error()
+        fee = 0
+        INFO('Can not unstake when auto_re_stake = False ')
+    except:
+        WAIT(40)
+        ERROR(f'Trx unstake be created, tx_id: {tx.get_tx_id()}')
+        res = tx.get_transaction_by_hash(retry=False)
+        if res.data:
+            fee = res.get_fee()
+        else:
+            INFO('Transaction is rejected')
+            fee = 0
 
     STEP(4, "Sending token")
     # sending from staked shard, so that the committee will have ptoken reward
@@ -124,13 +151,21 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         STEP(7.1, 'Wait for staking refund in case auto-stake = false')
         bal_after_stake_refund = the_stake.wait_for_balance_change()
         STEP(7.2, 'Verify staking refund')
-        assert bal_before_stake - stake_fee - un_stake_fee == bal_after_stake_refund
+        assert bal_before_stake - stake_fee - stop_auto_stake_fee - fee == bal_after_stake_refund, ERROR(
+            f'{bal_before_stake - stake_fee - stop_auto_stake_fee - fee}')
     else:
         STEP(7, 'Auto staking = True, not verify refund')
 
     STEP(8.1, 'Withdraw PRV reward and verify balance')
     prv_bal_b4_withdraw_reward = reward_receiver.get_balance()
     prv_reward_amount = reward_receiver.stk_get_reward_amount()
+    if slashing_v2:
+        slashing_committees = SUT().get_slashing_committee(epoch_x - 1)
+        for committees in slashing_committees.values():
+            for committee_key in committees:
+                if reward_receiver.public_key == committee_key:
+                    assert prv_reward_amount == 0
+                    return
     assert prv_reward_amount > 0, 'User has no PRV reward while expecting some'
     fee = reward_receiver.stk_withdraw_reward_to_me().subscribe_transaction().get_fee()
     prv_bal_after_withdraw_reward = reward_receiver.wait_for_balance_change(from_balance=prv_bal_b4_withdraw_reward)
@@ -154,4 +189,4 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     elif ChainConfig.PRIVACY_VERSION == 2:
         assert token_reward_amount == 0, 'Privacy v2 should not have any token reward, PRV only'
         assert all_reward_b4 == reward_receiver.stk_get_reward_amount_all_token()
-        reward_receiver.stk_withdraw_reward_to_me(token_id).expect_error('Not enough reward')
+        reward_receiver.stk_withdraw_reward_to_me(token_id).expect_error()
