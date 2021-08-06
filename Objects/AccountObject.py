@@ -432,22 +432,31 @@ class Account:
         INFO(f"Waited {t}s but still not yet exist in waiting next random")
         return None
 
-    def stk_wait_till_i_am_in_shard_pending(self, check_cycle=ChainConfig.BLOCK_TIME,
-                                            timeout=ChainConfig.STK_WAIT_TIME_OUT):
-        t = timeout
-        INFO(f"Wait until {self.validator_key} exist in shard pending, check every {check_cycle}s, timeout: {timeout}s")
-        while timeout > check_cycle:
+    def stk_wait_till_i_am_in_shard_pending(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+        INFO(f"Wait until {self.validator_key} exist in shard pending, timeout: {timeout}s")
+        time_start = datetime.datetime.now()
+        time_spent = 0
+        block_per_epoch = ChainConfig.BLOCK_PER_EPOCH
+        while timeout > time_spent:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             staked_shard = beacon_bsd.is_he_in_shard_pending(self)
+            e2 = beacon_bsd.get_epoch()
+            h = beacon_bsd.get_beacon_height()
             if staked_shard is False:
-                WAIT(check_cycle)
-                timeout -= check_cycle
+                index_height = h % block_per_epoch
+                if index_height <= ChainConfig.RANDOM_TIME:
+                    num_of_block_wait = ChainConfig.RANDOM_TIME - index_height
+                    time_to_wait = ChainConfig.get_epoch_n_block_time(0, num_of_block_wait)
+                    INFO(f'Current height = {h} @ epoch = {e2}. '
+                         f'Wait {time_to_wait}s until epoch {e2} and B height {h + num_of_block_wait}')
+                    WAIT(time_to_wait)
+                else:
+                    ChainHelper.wait_till_next_epoch(1, block_of_epoch=ChainConfig.RANDOM_TIME + 1)
+                time_spent = (datetime.datetime.now() - time_start).seconds
             else:
-                e2 = beacon_bsd.get_epoch()
-                h = beacon_bsd.get_beacon_height()
                 INFO(f"Already exists in shard pending at epoch {e2}, block height {h}")
                 return e2
-        INFO(f"Waited {t}s but still not yet exist in shard pending")
+        INFO(f"Waited {time_spent}s but still not yet exist in shard pending")
         return None
 
     def stk_wait_till_i_am_out_of_autostaking_list(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):

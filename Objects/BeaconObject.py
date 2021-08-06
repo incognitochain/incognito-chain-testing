@@ -143,6 +143,10 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         def __ne__(self, other):
             return not self.__eq__(other)
 
+        def __str__(self):
+            string = f'IncPubKey = {self.get_inc_public_key} - IsAutoStake = {self.is_auto_staking}\n'
+            return string
+
     def print_committees(self):
         all_committee_in_all_shard_dict = self.get_shard_committees()
         for shard_id, committee_list in all_committee_in_all_shard_dict.items():
@@ -485,7 +489,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         # get a committee auto staking
         for key, value in auto_staking_dict_raw.items():
             if committee_public_k == key:
-                # INFO(f'(comm pub k) {l6(committee_public_k)} auto staking is {value}')
+                INFO(f'(comm pub k) {l6(committee_public_k)} auto staking is {value}')
                 return value
         INFO(f'(comm pub k) {l6(committee_public_k)} is not found in auto staking list')
         return None
@@ -577,9 +581,9 @@ class BeaconBestStateInfo(BeaconBestStateBase):
 
 
 class BeaconBlock(BlockChainInfoBaseClass):
-    INST_TYPE_DAO = 'dev'
-    INST_TYPE_SHARD = 'shard'
-    INST_TYPE_BEACON = 'beacon'
+    INST_TYPE_DAO = 'devRewardInst'
+    INST_TYPE_SHARD = 'shardRewardInst'
+    INST_TYPE_BEACON = 'beaconRewardInst'
     INST_TYPE_PORTAL = 'portal'
 
     class ShardState(BlockChainInfoBaseClass):
