@@ -24,15 +24,15 @@ slashing_v2 = False
 
 @pytest.mark.parametrize("the_stake, validator, reward_receiver, auto_re_stake", [
     (account_y, account_y, account_y, False),  # self stake, self reward
-    # (account_x, account_x, account_y, False),  # self stake, reward other
-    # (account_y, account_t, account_y, False),  # stake other, self reward
-    # (account_x, account_u, account_u, False),  # stake other, reward him
-    # (account_x, account_a, account_t, False),  # stake other, reward another
-    # (account_y, account_y, account_y, True),  # self stake, self reward
-    # (account_x, account_x, account_y, True),  # self stake, reward other
-    # (account_y, account_t, account_y, True),  # stake other, self reward
-    # (account_x, account_u, account_u, True),  # stake other, reward him
-    # (account_x, account_a, account_t, True),  # stake other, reward another
+    (account_x, account_x, account_y, False),  # self stake, reward other
+    (account_y, account_t, account_y, False),  # stake other, self reward
+    (account_x, account_u, account_u, False),  # stake other, reward him
+    (account_x, account_a, account_t, False),  # stake other, reward another
+    (account_y, account_y, account_y, True),  # self stake, self reward
+    (account_x, account_x, account_y, True),  # self stake, reward other
+    (account_y, account_t, account_y, True),  # stake other, self reward
+    (account_x, account_u, account_u, True),  # stake other, reward him
+    (account_x, account_a, account_t, True),  # stake other, reward another
 ])
 def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     COIN_MASTER.top_up_if_lower_than(the_stake, coin(1750), coin(1850))
@@ -60,6 +60,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         assert bal_before_validator == validator.get_balance()
     if the_stake != reward_receiver:
         assert bal_before_receiver == reward_receiver.get_balance()
+    ChainHelper.wait_till_next_beacon_height(4)
     beacon_state_after_stake = SUT().get_beacon_best_state_detail_info()
     assert beacon_state_after_stake.get_auto_staking_committees(validator) is auto_re_stake
 
