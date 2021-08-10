@@ -1,4 +1,3 @@
-import collections
 import copy
 import datetime
 import re
@@ -833,26 +832,18 @@ class Account:
 
     def stk_get_reward_amount(self, token_id=PRV_ID):
         """
+        @param token_id: token id to get reward, set as '*' to get all token reward in a dictionary
         @return: reward amount of token
         """
-        result = self.REQ_HANDLER.transaction().get_reward_amount(self.payment_key)
-        if token_id == PRV_ID:
-            reward = result.get_result("PRV")
+        result = self.REQ_HANDLER.transaction().get_reward_amount(self.payment_key).get_result()
+        result[PRV_ID] = result.get('PRV', result[PRV_ID])
+        result.pop('PRV')
+        if token_id == '*':
+            return result
         else:
-            reward = result.get_result(token_id)
-        reward = 0 if reward is None else reward
-        INFO(f"Payment key = {l6(self.payment_key)}, prv reward = {coin(reward, False)}")
+            reward = result.get(token_id, 0)
+        INFO(f"Payment key = {l6(self.payment_key)}, {token_id[-6:]} reward = {coin(reward, False)}")
         return reward
-
-    def stk_get_reward_amount_all_token(self):
-        """
-
-        @return:
-        """
-        try:
-            return self.REQ_HANDLER.transaction().get_reward_amount(self.payment_key).get_result()
-        except KeyError:
-            return None
 
     def stk_withdraw_reward_to(self, reward_receiver, token_id=PRV_ID, tx_fee=0, tx_version=TestConfig.TX_VER,
                                privacy=0):

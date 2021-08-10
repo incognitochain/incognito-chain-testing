@@ -9,8 +9,8 @@ from TestCases.DEX import token_owner, token_id_1, token_id_2, acc_list_1_shard
 
 @pytest.mark.parametrize('withdrawer, token1, token2, percent_of_share_to_withdraw', [
     # todo: fix 3 first test, always fail at step 3
-    pytest.param(token_owner, PRV_ID, token_id_1, 0.1),
-    pytest.param(token_owner, token_id_1, token_id_2, 0.01),
+    pytest.param(ACCOUNTS[1], PRV_ID, token_id_1, 0.1),
+    pytest.param(ACCOUNTS[1], token_id_1, token_id_2, 0.01),
     pytest.param(ACCOUNTS[3], PRV_ID, token_id_1, 1.1),
     pytest.param(ACCOUNTS[4], token_id_1, PRV_ID, 1.1),
     pytest.param(ACCOUNTS[4], PRV_ID, token_id_1, 0.5,

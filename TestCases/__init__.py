@@ -32,11 +32,11 @@ COIN_MASTER.req_to(SUT())
 # -----------------------------------------
 INFO_HEADLINE("Setup from Testcase init", logger)
 
-if ChainConfig.PRIVACY_VERSION == 2:
-    COIN_MASTER.submit_key()
+# if ChainConfig.PRIVACY_VERSION == 2:
+#     COIN_MASTER.submit_key()
 #     PORTAL_FEEDER.submit_key()
 #
-INFO("CONVERT to COIN V2", logger)
+# INFO("CONVERT to COIN V2", logger)
 # convert_tx = COIN_MASTER.convert_token_to_v2()
 # if convert_tx.get_error_msg() == "Method not found":
 #     ChainConfig.PRIVACY_VERSION = 1
@@ -51,6 +51,5 @@ if isinstance(ACCOUNTS, AccountGroup) or isinstance(ACCOUNTS, list):
 
 # for acc in ACCOUNTS:
 #     acc.submit_key()
-
 # WAIT(60)
 INFO_HEADLINE("END setup from Testcase init", logger)

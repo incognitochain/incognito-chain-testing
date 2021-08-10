@@ -13,6 +13,7 @@
 
 import pytest
 
+from Configs.Constants import PRV_ID
 from Helpers.Logging import ERROR
 from Helpers.Logging import STEP
 from Helpers.TestHelper import ChainHelper
@@ -38,16 +39,17 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     COIN_MASTER.top_up_if_lower_than(the_stake, coin(1750), coin(1850))
     from TestCases.Staking import token_id
     INFO(f'Run test with token: {token_id}')
-    reward_PRV = reward_receiver.stk_get_reward_amount()
-    if reward_PRV != 0:
-        reward_receiver.stk_withdraw_reward_to_me().subscribe_transaction()
-        WAIT(40)
-        assert reward_receiver.stk_get_reward_amount() == 0
-    reward_ptoken = reward_receiver.stk_get_reward_amount(token_id)
-    if reward_ptoken != 0:
-        reward_receiver.stk_withdraw_reward_to_me(token_id).subscribe_transaction()
-        WAIT(40)
-        assert reward_receiver.stk_get_reward_amount(token_id) == 0
+    STEP(0.1, "Withdraw reward if there's any")
+    reward_all_tok = reward_receiver.stk_get_reward_amount('*')
+    for tok in [PRV_ID, token_id]:
+        reward_receiver.stk_withdraw_reward_to_me(tok).subscribe_transaction()
+        WAIT(2 * ChainConfig.BLOCK_TIME)
+        assert reward_receiver.stk_get_reward_amount(tok) == 0
+    STEP(0.2, "Check if there's coin v1 from last the unstake, then convert")
+    for c in the_stake.list_unspent_coin():
+        if c.get_version() == 1:
+            the_stake.convert_token_to_v2().subscribe_transaction()
+            break
     STEP(1, 'Stake and check balance after stake')
     bal_before_stake = the_stake.get_balance()
     bal_before_validator = validator.get_balance()
@@ -173,7 +175,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     assert prv_bal_b4_withdraw_reward + prv_reward_amount - fee == prv_bal_after_withdraw_reward
 
     STEP(8.2, 'Withdraw token reward and verify balance')
-    all_reward_b4 = reward_receiver.stk_get_reward_amount_all_token()
+    all_reward_b4 = reward_receiver.stk_get_reward_amount('*')
     token_bal_b4_withdraw_reward = reward_receiver.get_balance(token_id)
     prv_bal_b4_withdraw_reward = reward_receiver.get_balance()
     token_reward_amount = reward_receiver.stk_get_reward_amount(token_id)
@@ -188,5 +190,5 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
 
     elif ChainConfig.PRIVACY_VERSION == 2:
         assert token_reward_amount == 0, 'Privacy v2 should not have any token reward, PRV only'
-        assert all_reward_b4 == reward_receiver.stk_get_reward_amount_all_token()
+        assert all_reward_b4 == reward_receiver.stk_get_reward_amount('*')
         reward_receiver.stk_withdraw_reward_to_me(token_id).expect_error()

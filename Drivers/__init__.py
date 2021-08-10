@@ -50,11 +50,11 @@ class ResponseBase:
         except Exception as e:
             pass
 
-    def get_result(self, string=None):
+    def get_result(self, string=None, default=None):
         try:
             if string is None:
                 return self.data()['Result']
-            return self.data()['Result'][string]
+            return self.data()['Result'].get(string, default)
         except(KeyError, TypeError):
             return None
 
