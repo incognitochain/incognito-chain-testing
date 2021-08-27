@@ -1,25 +1,27 @@
 import copy
-import concurrent
-
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from Configs.Configs import ChainConfig
-from Helpers.Logging import INFO
+from Helpers.Logging import INFO, ERROR
 from Helpers.TestHelper import l3
 from Helpers.Time import WAIT
-from Objects.IncognitoTestCase import SUT, BEACON_ACCOUNTS, COMMITTEE_ACCOUNTS
+from Objects.IncognitoTestCase import SUT, BEACON_ACCOUNTS, COMMITTEE_ACCOUNTS, STAKER_ACCOUNTS
 from TestCases.Staking_Dynamic_Committee_Size import get_staker_by_tx_id
 
 fix_node = ChainConfig.FIX_BLOCK_VALIDATOR
 max_shard_comm_size = ChainConfig.SHARD_COMMITTEE_SIZE
-staking_flowv2_height = 355
-enable_slashing_staking_flowV2 = 775
+staking_flowv2_height = 1
+enable_slashing_staking_flowV2 = 1
+slashingV2 = True
+cross_stake = False
+tracking_reward = False
 
 
 def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_waiting_current_random, pending_validator,
                  shard_committees, beacon_height, shard_missing_signature_penalty):
     """
     Display dynamic committee size follow each beacon height, verify swap in-out according to staking flow v2
+    @param epoch:
     @param reward_dict: dict of {public_key: reward}
     @param candidate_waiting_next_random: a list candidate shard waiting next random: list of BeaconBestStateDetailInfo.Committee
     @param candidate_waiting_current_random: a list candidate shard waiting current random: list of BeaconBestStateDetailInfo.Committee
@@ -55,12 +57,12 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
     random_time = block_per_epoch / 2
     current_height_in_epoch = block_per_epoch - remaining_block_epoch  # number of blocks created in the current epoch
     beacon_bs = thread_beacon_bs.result()
-    epoch = beacon_bs.get_epoch()
-    beacon_height = beacon_bs.get_beacon_height()
-    current_height_in_epoch = beacon_height % block_per_epoch  # comment if have TestnetEpochV2BreakPoint
-    random_number = beacon_bs.get_current_random_number()
     reward_receiver = beacon_bs.get_reward_receiver()
     beacon_bsd = thread_beacon_bsd.result()
+    epoch = beacon_bsd.get_epoch()
+    beacon_height = beacon_bsd.get_beacon_height()
+    current_height_in_epoch = beacon_height % block_per_epoch  # comment if have TestnetEpochV2BreakPoint
+    random_number = beacon_bsd.get_current_random_number()
     candidate_waiting_next_random = beacon_bsd.get_candidate_shard_waiting_next_random()
     candidate_waiting_current_random = beacon_bsd.get_candidate_shard_waiting_current_random()
     pending_validator = beacon_bsd.get_shard_pending_validator()
@@ -72,6 +74,13 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
     for i in range(len(thread_shard)):
         shard_bsd = thread_shard[i].result()
         shard_height[str(i)] = shard_bsd.get_shard_height()
+
+    if slashingV2:
+        count_vote_by_shard = beacon_bs.get_number_of_shard_block()
+        expect_total = int(sum(count_vote_by_shard.values()) / ChainConfig.ACTIVE_SHARD)
+    else:
+        expect_total = 0
+        count_vote_by_shard = {}
 
     INFO(f"""
                 ================================================================
@@ -101,8 +110,12 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
                     # beacons & shard committees have not stake transaction
                     stakers[pub_k] = staker
                     continue
-                thread = executor.submit(get_staker_by_tx_id, tx_id)
-                stakers[pub_k] = thread
+                if cross_stake:
+                    thread = executor.submit(get_staker_by_tx_id, tx_id)
+                    stakers[pub_k] = thread
+                else:
+                    staker = STAKER_ACCOUNTS.find_account_by_key(pub_k)
+                    stakers[pub_k] = staker
         for pub_k, thread in stakers.items():
             try:
                 stakers[pub_k] = thread.result()
@@ -111,10 +124,12 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
         return stakers
 
     with ThreadPoolExecutor() as executor_m:
-        thread_reward_dict = executor_m.submit(get_reward_received)
+        if tracking_reward:
+            thread_reward_dict = executor_m.submit(get_reward_received)
         thread_stakers = executor_m.submit(get_stakers)
 
-    reward_dict = thread_reward_dict.result()
+    if tracking_reward:
+        reward_dict = thread_reward_dict.result()
     stakers = thread_stakers.result()
 
     def get_string_info_of_committee(committees_list, base_string=None):
@@ -129,26 +144,59 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
             base_string = ''
         global missing_signature_penalty_list
         missing_signature_penalty_list = []
-        for j in range(len(committees_list)):
-            pub_k = committees_list[j].get_inc_public_key()
+        count_signature = None
+        j = 0
+        try:
+            for shard_id, shard_committee in shard_committees.items():
+                if committees_list[0] in shard_committee:
+                    count_signature = shard_id
+                    if committees_list[0] in shard_committee[fix_node:]:
+                        j += fix_node
+                    break
+        except IndexError:
+            pass
+        for committee in committees_list:
+            pub_k = committee.get_inc_public_key()
             is_auto_stk = beacon_bsd.get_auto_staking_committees(pub_k)
-            if b4_reward_dict.get(pub_k) is None:
-                b4_reward_dict[pub_k] = reward_dict[pub_k]
-            reward_increase = reward_dict[pub_k] - b4_reward_dict[pub_k]
+            try:
+                reward_increase = reward_dict.get(pub_k) - b4_reward_dict.get(pub_k)
+            except:
+                reward_increase = None
             if stakers[pub_k] is None:
-                # INFO(pub_k)
-                base_string += f'\tnode{j}: None__{l3(pub_k)}__{l3(reward_receiver[pub_k])} - reward: {reward_dict[pub_k]}, rwinc: {reward_increase} - auto_stk: {is_auto_stk}'
-            else:
-                base_string += f'\tnode{j}: {l3(stakers[pub_k].private_key)}__{l3(pub_k)}__{l3(reward_receiver[pub_k])} - reward: {reward_dict[pub_k]}, rwinc: {reward_increase} - auto_stk: {is_auto_stk}'
-            total_signature, miss_signature = beacon_bsd.get_missing_signature(pub_k)
-            if total_signature is not None:
-                if miss_signature >= total_signature / 2 and total_signature != 0:
-                    assert missing_signature_penalty.get(pub_k) is not None, missing_signature_penalty
-                    missing_signature_penalty_list.append(committees_list[j])
+                str = ""
+                if tracking_reward:
+                    base_string += f'\t{j}_{str}\t: None__{l3(pub_k)}__{l3(reward_receiver.get(pub_k))} - reward: {reward_dict.get(pub_k)}, rwinc: {reward_increase} - auto_stk: {is_auto_stk}'
                 else:
-                    assert missing_signature_penalty.get(pub_k) is None, missing_signature_penalty
-                base_string += f'- missing signature: {miss_signature}/{total_signature}'
+                    base_string += f'\t{j}_{str}\t: None__{l3(pub_k)}__{l3(reward_receiver.get(pub_k))} - auto_stk: {is_auto_stk}'
+            else:
+                try:
+                    index = STAKER_ACCOUNTS.account_list.index(stakers[pub_k])
+                    str = f'stk{index}'
+                except ValueError:
+                    str = ""
+                if tracking_reward:
+                    base_string += f'\t{j}_{str}\t: {l3(stakers[pub_k].private_key)}__{l3(pub_k)}__{l3(reward_receiver.get(pub_k))} - reward: {reward_dict.get(pub_k)}, rwinc: {reward_increase} - auto_stk: {is_auto_stk}'
+                else:
+                    base_string += f'\t{j}_{str}\t: {l3(stakers[pub_k].private_key)}__{l3(pub_k)}__{l3(reward_receiver.get(pub_k))} - auto_stk: {is_auto_stk}'
+            if count_signature is not None:
+                total_signature, miss_signature = beacon_bsd.get_missing_signature(pub_k)
+                if slashingV2:
+                    if total_signature < count_vote_by_shard[count_signature]:
+                        miss_signature += count_vote_by_shard[count_signature] - total_signature
+                    total_signature = count_vote_by_shard[count_signature]
+                if total_signature is not None:
+                    if total_signature < expect_total:
+                        miss_signature += expect_total - total_signature
+                        total_signature = expect_total
+                    if miss_signature >= total_signature / 2 and total_signature != 0:
+                    # if miss_signature >= total_signature / 2:
+                        assert missing_signature_penalty.get(pub_k) is not None, INFO(f'{pub_k}: miss_signature: {miss_signature}, total_signature: {total_signature}, expect_total: {expect_total}')
+                        missing_signature_penalty_list.append(committee)
+                    else:
+                        assert missing_signature_penalty.get(pub_k) is None, INFO(f'{pub_k}: miss_signature: {miss_signature}, total_signature: {total_signature}, expect_total: {expect_total}')
+                    base_string += f'- missing signature: {miss_signature}/{total_signature}'
             base_string += '\n'
+            j += 1
         return base_string
 
     # ./ Info of candidates in waiting next random:
@@ -172,13 +220,12 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
     # ./ Info of committees in shard committee:
     string_shard_committees = '\t--Shard_committee\n'
     for shard, committees in shard_committees.items():
-        string_shard_committees += f'\t-----Shard-{shard} height: {shard_height[shard]}:\n'
+        string_shard_committees += f'\t-----Shard-{shard} height: {shard_height[shard]}: {count_vote_by_shard.get(str(shard))}\n'
         string_shard_committees += '\t--FIX node\n'
         string_shard_committees += get_string_info_of_committee(committees[:fix_node])
-        shard_missing_signature_penalty[shard] = missing_signature_penalty_list
         string_shard_committees += '\t--Normal node\n'
         string_shard_committees += get_string_info_of_committee(committees[fix_node:])
-        shard_missing_signature_penalty[shard] += missing_signature_penalty_list
+        shard_missing_signature_penalty[shard] = missing_signature_penalty_list
 
     # Get info of validators have missed signature, exist in penalty list.
     string_missing_signature_penalty = '\tMissing_Signature_Penalty\n'
@@ -191,7 +238,11 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
                 # INFO(pub_k)
                 string_missing_signature_penalty += f'\tNone__{l3(pub_k)}__{l3(reward_receiver[pub_k])}, auto_stk: {is_auto_stk} - missing signature: {miss_signature}/{total_signature}\n'
             else:
-                string_missing_signature_penalty += f'\t{l3(stakers[pub_k].private_key)}__{l3(pub_k)}__{l3(reward_receiver[pub_k])}, auto_stk: {is_auto_stk} - missing signature: {miss_signature}/{total_signature}\n'
+                try:
+                    index = STAKER_ACCOUNTS.account_list.index(stakers[pub_k])
+                except:
+                    index = 0
+                string_missing_signature_penalty += f'\tstk{index}: {l3(stakers[pub_k].private_key)}__{l3(pub_k)}__{l3(reward_receiver[pub_k])}, auto_stk: {is_auto_stk} - missing signature: {miss_signature}/{total_signature}\n'
 
     INFO(f"""
         {string_candidate_waiting_next_random}
@@ -245,24 +296,28 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
         if len(b4_candidate_waiting_next_random) < num_of_assigned_candidates:
             num_of_assigned_candidates = len(b4_candidate_waiting_next_random)
         if not b4_candidate_waiting_current_random:
-            assert candidate_waiting_current_random == b4_candidate_waiting_next_random[:num_of_assigned_candidates]
+            assert candidate_waiting_current_random == b4_candidate_waiting_next_random[
+                                                       :num_of_assigned_candidates], ERROR(
+                *candidate_waiting_current_random) and ERROR(
+                *b4_candidate_waiting_next_random[:num_of_assigned_candidates])
         else:
-            assert candidate_waiting_current_random == b4_candidate_waiting_current_random
+            assert candidate_waiting_current_random == b4_candidate_waiting_current_random, ERROR(
+                *candidate_waiting_current_random) and ERROR(*b4_candidate_waiting_current_random)
         for committee in b4_candidate_waiting_next_random[num_of_assigned_candidates:]:
-            assert committee in candidate_waiting_next_random, committee
+            assert committee in candidate_waiting_next_random, ERROR(committee)
     else:
-        assert candidate_waiting_current_random == []
+        assert candidate_waiting_current_random == [], ERROR(*candidate_waiting_current_random)
 
     if b4_candidate_waiting_current_random:
         for shard, committees in pending_validator.items():
             for committee in committees:
                 if committee not in b4_pending_validator[shard]:
-                    assert committee in b4_candidate_waiting_current_random, committee
+                    assert committee in b4_candidate_waiting_current_random, ERROR(committee)
         assert len(
             b4_candidate_waiting_current_random) + b4_pending_validator_size == pending_validator_size, f'{len(b4_candidate_waiting_current_random) + b4_pending_validator_size} == {pending_validator_size}'
-        assert shard_committees == b4_shard_committees, f'{shard_committees} = {b4_shard_committees}'
+        assert shard_committees == b4_shard_committees, ERROR(*shard_committees) and ERROR(*b4_shard_committees)
     elif b4_beacon_height % block_per_epoch < random_time < beacon_height % block_per_epoch:
-        assert shard_committees == b4_shard_committees, f'{shard_committees} = {b4_shard_committees}'
+        assert shard_committees == b4_shard_committees, ERROR(*shard_committees) and ERROR(*b4_shard_committees)
     elif b4_epoch != epoch:
         for shard, committees in shard_committees.items():
             if len(b4_pending_validator[shard]) > num_of_swap_in[shard]:
@@ -280,18 +335,22 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
                     b4_shard_committees[shard].remove(committee)
             index_break = fix_node + swap_out
             assert committees == b4_shard_committees[shard][:fix_node] + b4_shard_committees[shard][index_break:] + \
-                   b4_pending_validator[shard][
-                   :swap_in], f"{committees}={b4_shard_committees[shard][:fix_node] + b4_shard_committees[shard][index_break:] + b4_pending_validator[shard][:swap_in]}"
-            assert b4_pending_validator[shard][swap_in:] == pending_validator[shard][:len(b4_pending_validator[
-                                                                                              shard]) - swap_in], f'{b4_pending_validator[shard][swap_in:]} = {pending_validator[shard][:len(b4_pending_validator[shard]) - swap_in]}'
+                   b4_pending_validator[shard][:swap_in], ERROR(*committees) and ERROR(*(
+                    b4_shard_committees[shard][:fix_node] + b4_shard_committees[shard][index_break:] +
+                    b4_pending_validator[shard][:swap_in]))
+            assert b4_pending_validator[shard][swap_in:] == pending_validator[shard][
+                                                            :len(b4_pending_validator[shard]) - swap_in], ERROR(
+                *b4_pending_validator[shard][swap_in:]) and ERROR(
+                *(pending_validator[shard][:len(b4_pending_validator[shard]) - swap_in]))
             for committee in b4_shard_committees[shard][fix_node:index_break]:
                 if beacon_bsd.get_auto_staking_committees(committee) is True:
-                    assert committee in pending_validator_list, committee
+                    assert committee in pending_validator_list, ERROR(committee)
                 else:
-                    assert beacon_bsd.get_auto_staking_committees(committee) is None
+                    assert beacon_bsd.get_auto_staking_committees(
+                        committee) is None, beacon_bsd.get_auto_staking_committees(committee)
     else:
-        assert b4_pending_validator == pending_validator, f'{b4_pending_validator} = {pending_validator}'
-        assert shard_committees == b4_shard_committees, f'{shard_committees} = {b4_shard_committees}'
+        assert b4_pending_validator == pending_validator, ERROR(*b4_pending_validator) and ERROR(*pending_validator)
+        assert shard_committees == b4_shard_committees, ERROR(*shard_committees) and ERROR(*b4_shard_committees)
 
     return epoch, reward_dict, candidate_waiting_next_random, candidate_waiting_current_random, pending_validator, shard_committees, beacon_height, shard_missing_signature_penalty, shard_height
 
@@ -306,26 +365,34 @@ def test_view_dynamic():
     shard_missing_signature_penalty = {}
     epoch = 0
     shard_height_b4 = {}
-    for i in range(100000000):
+    b = 0
+    s = [0]*ChainConfig.ACTIVE_SHARD
+    while True:
         epoch, reward_dict, candidate_waiting_next_random, candidate_waiting_current_random, pending_validator, shard_committees, beacon_height, shard_missing_signature_penalty, shard_height = view_dynamic(
             epoch, reward_dict, candidate_waiting_next_random, candidate_waiting_current_random, pending_validator,
             shard_committees, beacon_height_b4, shard_missing_signature_penalty)
-        # WAIT(5)
         print(f'\tEpoch: {epoch}--Beacon- height: {beacon_height}\n')
-        string_shard_committees = '\tShard_committee\n'
         for shard, committees in shard_committees.items():
             print(f'\t--Shard-{shard} height: {shard_height[shard]}:\n')
         try:
             assert beacon_height > beacon_height_b4
+            b = 0
         except:
-            INFO(f'Beacon stop create block at height {beacon_height}: ')
+            b += 1
+            if b > 1:
+                INFO(f'Beacon stop create block at height {beacon_height}: ')
         if shard_height_b4 != {}:
             for shard_id, height in shard_height.items():
                 try:
                     assert height > shard_height_b4[shard_id]
+                    s[int(shard_id)] = 0
                 except:
-                    INFO(f'Shard {shard_id} stop create block at height {height}: ')
+                    s[int(shard_id)] += 1
+                    if s[int(shard_id)] > 1:
+                        INFO(f'Shard {shard_id} stop create block at height {height}: ')
         beacon_height_b4 = beacon_height
         shard_height_b4 = shard_height
-        print(f'Round {i}')
-        WAIT(ChainConfig.BLOCK_TIME)
+        if ChainConfig.ACTIVE_SHARD != 8:
+            WAIT(ChainConfig.BLOCK_TIME)
+        else:
+            WAIT(5)

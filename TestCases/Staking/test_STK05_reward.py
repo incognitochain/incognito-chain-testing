@@ -145,11 +145,12 @@ def test_verify_reward_received(dcz):
     if slashing_v2:
         INFO('Get slashing committees')
         slashing_committees = SUT().get_slashing_committee_detail(epoch_reward)
-        for shard_id, committees in slashing_committees.items():
-            for committee in committees:
-                pub_k = committee.get_inc_public_key()
-                assert reward_b4_PRV[pub_k] == reward_af_PRV[pub_k]
-                assert reward_b4_ptoken[pub_k] == reward_af_ptoken[pub_k]
+        if slashing_committees:
+            for shard_id, committees in slashing_committees.items():
+                for committee in committees:
+                    pub_k = committee.get_inc_public_key()
+                    assert reward_b4_PRV[pub_k] == reward_af_PRV[pub_k]
+                    assert reward_b4_ptoken[pub_k] == reward_af_ptoken[pub_k]
 
     INFO("Get Committees earned reward")
     for shard, committees in bbd_epoch_reward.get_shard_committees().items():

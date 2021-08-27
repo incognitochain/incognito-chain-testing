@@ -201,6 +201,34 @@ class Node:
     def get_all_view_detail(self, chain_id):
         return AllViewDetail(self.system_rpc().get_all_view_detail(chain_id).get_result())
 
+    def get_slashing_committee_detail(self, epoch):
+        raw_data = self.system_rpc().get_slashing_committee_detail(epoch).get_result()
+        dict_obj = {}
+        for shard_id, committees in raw_data.items():
+            committees_obj = []
+            for committee in committees:
+                committees_obj.append(BeaconBestStateDetailInfo().Committee(committee))
+            dict_obj[shard_id] = committees_obj
+        return
+
+    def get_slashing_committee(self, epoch):
+        return self.system_rpc().get_slashing_committee(epoch).get_result()
+
+    # def get_total_block_in_epoch(self, epoch):
+    #     return TotalBlock(self.system_rpc().get_total_block(epoch).get_result())
+    #
+    # def get_detail_blocks_of_epoch(self, shard_id, epoch, height=None):
+    #     raw_data = self.system_rpc().get_detail_blocks_of_epoch(shard_id, epoch).get_result()
+    #     list_obj = []
+    #     if height is not None:
+    #         try:
+    #             return DetailBlock(raw_data[height])
+    #         except KeyError:
+    #             ERROR(f'Epoch {epoch} does not have height {height}')
+    #     # else:
+    #     #     for info_block in raw_data.values():
+    #     #         list_obj.append(DetailBlock(block))
+
     def create_fork(self, block_fork_list, chain_id=1, num_of_branch=2, branch_tobe_continue=1):
         return self.system_rpc().create_fork(block_fork_list, chain_id, num_of_branch, branch_tobe_continue)
 

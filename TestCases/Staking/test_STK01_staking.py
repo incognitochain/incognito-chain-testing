@@ -20,7 +20,7 @@ from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from TestCases.Staking import *
 
-slashing_v2 = False
+slashing_v2 = True
 
 
 @pytest.mark.parametrize("the_stake, validator, reward_receiver, auto_re_stake", [
@@ -62,14 +62,13 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         assert bal_before_validator == validator.get_balance()
     if the_stake != reward_receiver:
         assert bal_before_receiver == reward_receiver.get_balance()
-    ChainHelper.wait_till_next_beacon_height(4)
+    WAIT(40)  # wait beacon confirm trx stake
     beacon_state_after_stake = SUT().get_beacon_best_state_detail_info()
     assert beacon_state_after_stake.get_auto_staking_committees(validator) is auto_re_stake
 
-    STEP(2, f'Wait until the staker be assigned to shard committee')
+    STEP(2, f'Wait until the staker be assigned to shard pending')
     validator.stk_wait_till_i_am_in_shard_pending()
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
-    ChainHelper.wait_till_next_beacon_height(3)
     staked_shard = beacon_bsd.is_he_in_shard_pending(validator)
     assert staked_shard is not False
 
@@ -165,7 +164,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         slashing_committees = SUT().get_slashing_committee(epoch_x - 1)
         for committees in slashing_committees.values():
             for committee_key in committees:
-                if reward_receiver.public_key == committee_key:
+                if validator.committee_public_k == committee_key:
                     assert prv_reward_amount == 0
                     return
     assert prv_reward_amount > 0, 'User has no PRV reward while expecting some'

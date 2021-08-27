@@ -248,7 +248,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         for raw_data in raw_auto_staking_list_raw:
             auto_staking_obj = BeaconBestStateDetailInfo.Committee(raw_data)
             if auto_staking_obj.get_inc_public_key() == acc_pub_key:
-                INFO(f"{l6(acc_pub_key)} (public key) auto-staking is {auto_staking_obj.is_auto_staking()}")
+                # INFO(f"{l6(acc_pub_key)} (public key) auto-staking is {auto_staking_obj.is_auto_staking()}")
                 return auto_staking_obj.is_auto_staking()
             auto_staking_objs.append(auto_staking_obj)
 
@@ -290,9 +290,12 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
 
         for key, count_signature in missing_signature_dict.items():
             if key == acc_pub_key:
-                total = count_signature["Total"]
+                try:
+                    total = count_signature["ActualTotal"]
+                except KeyError:
+                    total = count_signature["Total"]
                 missing = count_signature["Missing"]
-                INFO(f"Count signature of {l6(acc_pub_key)} (public key) - Total: {total} - Missing: {missing}")
+                # INFO(f"Count signature of {l6(acc_pub_key)} (public key) - Total: {total} - Missing: {missing}")
                 return total, missing
         INFO(f"Missing Signature of {l6(acc_pub_key)} (public-key) not found")
 
@@ -578,6 +581,12 @@ class BeaconBestStateInfo(BeaconBestStateBase):
                     f"Count signature of {l6(acc_committee_pub_key)} (public key) - Total: {total} - Missing: {missing}")
                 return total, missing
         INFO(f"Missing Signature Penalty of {l6(acc_committee_pub_key)} (public-key) not found")
+
+    def get_number_of_shard_block(self, shard_id=None):
+        raw_data = self.data["NumberOfShardBlock"]
+        if shard_id is not None:
+            return raw_data[str(shard_id)]
+        return raw_data
 
 
 class BeaconBlock(BlockChainInfoBaseClass):
