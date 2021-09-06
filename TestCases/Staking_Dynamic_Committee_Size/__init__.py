@@ -3,7 +3,7 @@ from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO, ERROR
 from Helpers.TestHelper import l6
 from Objects.AccountObject import Account, COIN_MASTER
-from Objects.IncognitoTestCase import SUT, STAKER_ACCOUNTS, ACCOUNTS
+from Objects.IncognitoTestCase import SUT, STAKER_ACCOUNTS, ACCOUNTS, COMMITTEE_ACCOUNTS
 from Objects.TransactionObjects import TransactionDetail
 
 stake_account = Account(
@@ -672,11 +672,15 @@ def find_committee_public_key_in_shard_best_state(account, staking_tx_id, thread
 
 
 def get_staker_by_tx_id(tx_id):
+    default = 'd0e731f55fa6c49f602807a6686a7ac769de4e04882bb5eaf8f4fe209f46535d'
+    if tx_id == default:
+        return COMMITTEE_ACCOUNTS[0]
     acc_group = ACCOUNTS + STAKER_ACCOUNTS
     response = TransactionDetail().get_transaction_by_hash(tx_id)
     try:
-        public_k_staker = response.get_input_coin_pub_key()
+        meta_data = response.get_meta_data()
     except:
         INFO(f'Find staker of transaction by tx_id: {tx_id}: Error')
-    staker = acc_group.find_account_by_key(public_k_staker)
+    pay_add_k_staker = meta_data.get_funder_payment_address()
+    staker = acc_group.find_account_by_key(pay_add_k_staker)
     return staker
