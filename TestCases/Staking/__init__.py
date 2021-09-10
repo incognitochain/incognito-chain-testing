@@ -4,11 +4,14 @@ chain_committee_min = 4
 chain_committee_max = 6
 """
 import random
+from concurrent.futures import ThreadPoolExecutor
+
+import pytest
 
 from Configs.Configs import ChainConfig
 from Configs.Constants import coin
 from Helpers.KeyListJson import KeyListJson
-from Helpers.Logging import INFO
+from Helpers.Logging import INFO, STEP
 from Objects.AccountObject import Account, AccountGroup, COIN_MASTER
 from Objects.IncognitoTestCase import SUT, ACCOUNTS
 from TestCases.Transactions import test_TRX008_init_contribute_send_custom_token as trx008
@@ -40,6 +43,11 @@ for i in range(ChainConfig.ACTIVE_SHARD):
         INFO(f'Not found account in shard {i}')
 token_owner = list_acc_x_shard[0]
 
+token_owner.submit_key()
+auto_stake_list.submit_key()
+group_staker.submit_key()
+list_acc_x_shard.submit_key()
+
 amount_stake_under_1750 = random.randint(coin(1), coin(1749))
 amount_stake_over_1750 = random.randint(coin(1751), coin(1850))
 amount_token_send = 10
@@ -54,44 +62,46 @@ tear_down_trx008 = False
 
 def setup_module():
     INFO("SETUP MODULE")
-    # STEP(0.1, 'Check current fixed validators to make sure that this test wont be running on testnet')
-    # beacon_state = SUT().get_beacon_best_state_detail_info()
-    # all_shard_committee = beacon_state.get_shard_committees()
-    # list_fixed_validator_public_k = []
-    # for shard, committees in fixed_validators.items():
-    #     for committee in committees:
-    #         list_fixed_validator_public_k.append(committee.public_key)
-    #
-    # count_fixed_validator_in_beacon_state = 0
-    # for shard, committees in all_shard_committee.items():
-    #     for committee in committees:
-    #         if committee.get_inc_public_key() in list_fixed_validator_public_k:
-    #             count_fixed_validator_in_beacon_state += 1
-    #
-    # if count_fixed_validator_in_beacon_state < len(list_fixed_validator_public_k):
-    #     msg = 'Suspect that this chain is TestNet. Skip staking tests to prevent catastrophic disaster'
-    #     INFO(msg)
-    #     pytest.skip(msg)
-    #
-    # STEP(0.3, 'Top up, stake and wait till becoming committee')
-    # beacon_bsd = SUT().get_beacon_best_state_detail_info()
-    # wait_list = []
-    # for committee in auto_stake_list:
-    #     if beacon_bsd.get_auto_staking_committees(committee) is None:
-    #         COIN_MASTER.top_up_if_lower_than(committee, coin(1750), coin(1751))
-    #         committee.stake_and_reward_me().expect_no_error()
-    #         wait_list.append(committee)
-    #
-    # with ThreadPoolExecutor() as executor:
-    #     for acc in wait_list:
-    #         executor.submit(acc.stk_wait_till_i_am_committee)
-    #
-    # STEP(0.4, "Verify environment, 6 node per shard")
-    # committee_state = SUT().get_committee_state()
-    # for shard_id in range(committee_state.count_num_of_shard()):
-    #     num_committee_in_shard = committee_state.get_shard_committee_size(shard_id)
-    #     assert num_committee_in_shard == ChainConfig.SHARD_COMMITTEE_SIZE, \
-    #         f"shard {shard_id}: {num_committee_in_shard} committees"
+    STEP(0.1, 'Check current fixed validators to make sure that this test wont be running on testnet')
+    beacon_state = SUT().get_beacon_best_state_detail_info()
+    all_shard_committee = beacon_state.get_shard_committees()
+    list_fixed_validator_public_k = []
+    for shard, committees in fixed_validators.items():
+        for committee in committees:
+            list_fixed_validator_public_k.append(committee.public_key)
+
+    count_fixed_validator_in_beacon_state = 0
+    for shard, committees in all_shard_committee.items():
+        for committee in committees:
+            if committee.get_inc_public_key() in list_fixed_validator_public_k:
+                count_fixed_validator_in_beacon_state += 1
+
+    if count_fixed_validator_in_beacon_state < len(list_fixed_validator_public_k):
+        msg = 'Suspect that this chain is TestNet. Skip staking tests to prevent catastrophic disaster'
+        INFO(msg)
+        pytest.skip(msg)
+
+    STEP(0.3, 'Top up, stake and wait till becoming committee')
+    beacon_bsd = SUT().get_beacon_best_state_detail_info()
+    wait_list = [acc for acc in auto_stake_list if beacon_bsd.get_auto_staking_committees(acc) is None]
+    # breakpoint()
+    COIN_MASTER.top_up_if_lower_than(wait_list, coin(1750), coin(1751))
+    with ThreadPoolExecutor() as executor:
+        def stake_n_check(acc):
+            acc.stake_and_reward_me().get_transaction_by_hash()
+
+        for acc in wait_list:
+            executor.submit(stake_n_check, acc)
+    with ThreadPoolExecutor() as executor:
+        for acc in wait_list:
+            executor.submit(acc.stk_wait_till_i_am_committee)
+
+    STEP(0.4, "Verify environment, 6 node per shard")
+    committee_state = SUT().get_committee_state()
+    for shard_id in range(committee_state.count_num_of_shard()):
+        num_committee_in_shard = committee_state.get_shard_committee_size(shard_id)
+        assert num_committee_in_shard == ChainConfig.SHARD_COMMITTEE_SIZE, \
+            f"shard {shard_id}: {num_committee_in_shard} committees"
 
     all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
     global token_id, tear_down_trx008

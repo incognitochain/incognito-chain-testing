@@ -10,8 +10,9 @@ from APIs.Subscription import SubscriptionWs
 from APIs.System import SystemRpc
 from APIs.Transaction import TransactionRpc
 from APIs.Utils import UtilsRpc
-from Configs.Constants import PRV_ID
+from APIs.pDEX_V3 import DEXv3RPC
 from Configs.Configs import ChainConfig
+from Configs.Constants import PRV_ID
 from Drivers.Connections import SshSession
 from Helpers import TestHelper
 from Helpers.Logging import INFO, DEBUG, INFO_HEADLINE
@@ -118,6 +119,9 @@ class Node:
         @return: DexRpc Object
         """
         return DexRpc(self._get_rpc_url())
+
+    def dex_v3(self) -> DEXv3RPC:
+        return DEXv3RPC(self._get_rpc_url())
 
     def bridge(self) -> BridgeRpc:
         """

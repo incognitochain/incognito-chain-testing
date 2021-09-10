@@ -1,6 +1,5 @@
 from APIs import BaseRpcApi
 from Configs import Constants as Const
-from Configs.Constants import PRV_ID, BURNING_ADDR
 
 
 class DexRpc(BaseRpcApi):
@@ -120,7 +119,7 @@ class DexRpc(BaseRpcApi):
         return self.rpc_connection.with_method('createandsendtxwithptokencrosspooltradereq').with_params([
             private_k,
             {
-                BURNING_ADDR: str(trading_fee)
+                Const.BURNING_ADDR: str(trading_fee)
             }, -1, 0,
             {
                 "Privacy": True,
@@ -130,7 +129,7 @@ class DexRpc(BaseRpcApi):
                 "TokenSymbol": "",
                 "TokenAmount": str(amount_to_sell),
                 "TokenReceivers": {
-                    BURNING_ADDR: str(amount_to_sell)
+                    Const.BURNING_ADDR: str(amount_to_sell)
                 },
                 "TokenFee": "0",
                 "TokenIDToBuyStr": token_to_buy,
@@ -166,11 +165,11 @@ class DexRpc(BaseRpcApi):
         return self.rpc_connection.with_method('createandsendtxwithprvcrosspooltradereq').with_params([
             private_k,
             {
-                BURNING_ADDR: str(burn_amount)
+                Const.BURNING_ADDR: str(burn_amount)
             }, -1, -1,
             {
                 "TokenIDToBuyStr": token_to_buy,
-                "TokenIDToSellStr": PRV_ID,
+                "TokenIDToSellStr": Const.PRV_ID,
                 "SellAmount": str(amount_to_sell),
                 "MinAcceptableAmount": str(acceptable_amount),
                 "TradingFee": str(trading_fee),
@@ -219,7 +218,7 @@ class DexRpc(BaseRpcApi):
         return self.rpc_connection. \
             with_method('createandsendtxwithwithdrawalreqv2'). \
             with_params([private_k,
-                         {BURNING_ADDR: '0'}, -1, 0,
+                         {Const.BURNING_ADDR: '0'}, -1, 0,
                          {
                              "WithdrawerAddressStr": payment_k,
                              "WithdrawalToken1IDStr": token1,

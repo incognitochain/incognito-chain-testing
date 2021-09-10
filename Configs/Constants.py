@@ -29,7 +29,7 @@ def coin(amount, nano=True):
     if nano:
         return int(amount * 1e9)
     else:
-        return int(amount / 1e9)
+        return amount / 1e9
 
 
 class Status:

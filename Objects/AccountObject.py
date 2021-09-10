@@ -338,7 +338,8 @@ class Account:
                                                 receiver_reward.payment_key, stake_amount, auto_re_stake,
                                                 TestConfig.TX_VER)
 
-    def stake_and_reward_me(self, stake_amount=None, auto_re_stake=True, tx_version=TestConfig.TX_VER):
+    def stake_and_reward_me(self, stake_amount=ChainConfig.STK_AMOUNT, auto_re_stake=True,
+                            tx_version=TestConfig.TX_VER):
         """
 
         @return:
@@ -519,7 +520,7 @@ class Account:
         while True:
             try:
                 error_msg = result.get_error_trace().get_message()
-                if re.search(re.compile(r'View Key {(.*)} not synced'), error_msg):
+                if re.search(re.compile(r'{(.*)} not synced'), error_msg):
                     self.submit_key()
                     WARNING(f'{error_msg}. Wait for {ChainConfig.BLOCK_TIME}s and retry')
                     WAIT(ChainConfig.BLOCK_TIME)
@@ -836,8 +837,7 @@ class Account:
         @return: reward amount of token
         """
         result = self.REQ_HANDLER.transaction().get_reward_amount(self.payment_key).get_result()
-        result[PRV_ID] = result.get('PRV', result[PRV_ID])
-        result.pop('PRV')
+        result[PRV_ID] = result.pop('PRV')
         if token_id == '*':
             return result
         else:
@@ -1361,11 +1361,8 @@ class AccountGroup:
             acc.req_to(HANDLER)
 
     def find_the_richest(self, token_id=PRV_ID):
-        the_richest = self[0]
-        for acc in self[1:]:
-            if acc.get_balance(token_id) > the_richest.get_balance(token_id):
-                the_richest = acc
-        return the_richest
+        all_bal = self.get_balance(token_id)
+        return max(self, key=lambda acc: all_bal[acc])
 
     def get_balance(self, token_id=PRV_ID):
         """
@@ -1385,6 +1382,7 @@ class AccountGroup:
         for acc in self.account_list:
             with ThreadPoolExecutor() as tpe:
                 tpe.submit(acc.submit_key, key_type)
+        return self
 
     def convert_token_to_v2(self, token=PRV_ID, fee=-1):
         for acc in self.account_list:

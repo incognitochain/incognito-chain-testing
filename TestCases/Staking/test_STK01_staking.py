@@ -11,11 +11,8 @@
 8. withdraw reward, verify that account(A) received reward PRV and tokenT
 """
 
-import pytest
-
 from Configs.Constants import PRV_ID
 from Helpers.Logging import ERROR
-from Helpers.Logging import STEP
 from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from TestCases.Staking import *
@@ -42,9 +39,10 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     STEP(0.1, "Withdraw reward if there's any")
     reward_all_tok = reward_receiver.stk_get_reward_amount('*')
     for tok in [PRV_ID, token_id]:
-        reward_receiver.stk_withdraw_reward_to_me(tok).subscribe_transaction()
-        WAIT(2 * ChainConfig.BLOCK_TIME)
-        assert reward_receiver.stk_get_reward_amount(tok) == 0
+        if reward_all_tok.get(tok, 0) > 0:
+            reward_receiver.stk_withdraw_reward_to_me(tok).subscribe_transaction()
+            WAIT(2 * ChainConfig.BLOCK_TIME)
+            assert reward_receiver.stk_get_reward_amount(tok) == 0
     STEP(0.2, "Check if there's coin v1 from last the unstake, then convert")
     for c in the_stake.list_unspent_coin():
         if c.get_version() == 1:
