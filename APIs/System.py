@@ -20,6 +20,18 @@ class SystemRpc(BaseRpcApi):
     def get_all_view_detail(self, chain_id):
         return self.rpc_connection.with_method('getallviewdetail').with_params([chain_id]).execute()
 
+    def get_slashing_committee_detail(self, epoch):
+        return self.rpc_connection.with_method('getslashingcommitteedetail').with_params([epoch]).execute()
+
+    def get_slashing_committee(self, epoch):
+        return self.rpc_connection.with_method('getslashingcommittee').with_params([epoch]).execute()
+
+    def get_total_block(self, epoch):
+        return self.rpc_connection.with_method('gettotalblockinepoch').with_params([epoch]).execute()
+
+    def get_detail_blocks_of_epoch(self, shard_id, epoch):
+        return self.rpc_connection.with_method('getdetailblocksofepoch').with_params([shard_id, epoch]).execute()
+
     def create_fork(self, block_fork_list, chain_id=1, num_of_branch=2, branch_tobe_continue=1):
         """
 

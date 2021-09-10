@@ -197,7 +197,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             return dict_objs
 
     def get_shard_pending_validator(self, shard_num=None, validator_number=None):
-        committee_dict_raw = self.data['ShardPendingValidator']  # get all committee in all shard
+        committee_dict_raw = self.data['ShardPendingValidator']  # get all pending validator in all shard
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
             committee_raw = committee_dict_raw[str(shard_num)][validator_number]
@@ -208,6 +208,22 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         if shard_num is None and validator_number is None:
             dict_objs = {}
             for shard, raw_list in committee_dict_raw.items():
+                dict_objs[shard] = self._parse_raw_list_to_shard_committee_list(raw_list)
+            return dict_objs
+
+    def get_syncing_validators(self, shard_num=None, validator_number=None):
+        validators_dict_raw = self.data.get('GetSyncingValidators')  # get all syncing validators in all shard
+        if validators_dict_raw is None:
+            return
+        if shard_num is not None and validator_number is not None:  # get a specific validator
+            validator_raw = validators_dict_raw[str(shard_num)][validator_number]
+            return self._parse_raw_list_to_shard_committee_list([validator_raw])[0]
+        if shard_num is not None and validator_number is None:  # get all validators in a shard
+            committee_list_raw = validators_dict_raw[str(shard_num)]
+            return self._parse_raw_list_to_shard_committee_list(committee_list_raw)
+        if shard_num is None and validator_number is None:
+            dict_objs = {}
+            for shard, raw_list in validators_dict_raw.items():
                 dict_objs[shard] = self._parse_raw_list_to_shard_committee_list(raw_list)
             return dict_objs
 
@@ -521,6 +537,30 @@ class BeaconBestStateInfo(BeaconBestStateBase):
             committee_public_key_dict = self.data['ShardPendingValidator']
             return committee_public_key_dict
 
+    def get_syncing_validators(self, shard_num=None, validator_number=None):
+        """
+        Function to get committee in shard pending validator
+        :param shard_num: shard id
+        :param validator_number: position of validator in shard pending validator
+        :return:
+        Return a committee public key that shard_num and validator_num are specified
+        Return list of committee public key if only shard_num is specify
+        Return dict of {shard_num: list of committee public key} if only shard_num and validator_num are specify
+        """
+        validators_dict_raw = self.data.get('GetSyncingValidators')  # get all validators in all shard
+
+        if shard_num is not None and validator_number is not None:  # get a specific validator
+            committee_public_key = validators_dict_raw[str(shard_num)][validator_number]
+            return committee_public_key
+
+        elif shard_num is not None and validator_number is None:  # get all validators in a shard
+            committee_public_key_list = validators_dict_raw[str(shard_num)]
+            return committee_public_key_list
+
+        elif shard_num is None and validator_number is None:  # get all validators in all shard
+            committee_public_key_dict = validators_dict_raw
+            return committee_public_key_dict
+
     def get_staking_tx(self, account=None):
         """
         get staking transaction of a user or get list of all user with their staking transaction
@@ -554,7 +594,10 @@ class BeaconBestStateInfo(BeaconBestStateBase):
 
         for key, count_signature in missing_signature_dict.items():
             if key == acc_committee_pub_key:
-                total = count_signature["Total"]
+                try:
+                    total = count_signature["Total"]
+                except KeyError:
+                    total = count_signature["ActualTotal"]
                 missing = count_signature["Missing"]
                 INFO(
                     f"Count signature of {l6(acc_committee_pub_key)} (public key) - Total: {total} - Missing: {missing}")
