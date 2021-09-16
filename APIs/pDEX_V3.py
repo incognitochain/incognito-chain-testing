@@ -1,75 +1,393 @@
 from APIs import BaseRpcApi, unspecified
 from Configs import Constants
+from Drivers.Response import RPCResponseBase
 
 
+class ResponseStatusBase(RPCResponseBase):
+    def get_status(self):
+        return self.get_result("Status")
+
+
+class ResponseTxBase(RPCResponseBase):
+    def get_base58_check_data(self):
+        return self.response.get_result("Base58CheckData")
+
+    def get_tx_id(self):
+        return self.response.get_result("TxID")
+
+    def get_shard_id(self):
+        return self.response.get_result("ShardID")
+
+
+class ResponseTradeStatus(ResponseStatusBase):
+    def get_buy_mount(self):
+        return self.get_result("BuyAmount")
+
+    def get_token_buy(self):
+        return self.get_result("TokenToBuy")
+
+
+class ResponseOrderStatus(ResponseStatusBase):
+    """{
+                "OrderID": "ea54e6b4dc56adb546cf8096bac6204159aa77f4c897f58625be09017d35c140",
+                "Status": 1
+        }"""
+
+    def get_order_id(self):
+        return self.get_result("OrderID")
+
+
+class ResponseWithdrawOrderStatus(ResponseStatusBase):
+    """: {
+                "Amount": 669,
+                "Status": 1,
+                "TokenID": "0000000000000000000000000000000000000000000000000000000000000004"
+        }"""
+
+    def get_amount(self):
+        return self.get_result("Amount")
+
+    def get_token_id(self):
+        return self.get_result("TokenID")
+
+
+class ResponseWithdraw(ResponseTxBase):
+    """  example:
+        "Base58CheckData": "",
+        "ShardID": 0,
+        "TxID": "6f37444b9a1935fa1632779bc464b8bad691513bc67d76b95df914e8d636dc14",
+        "TokenID": "e55476d221e72bf5950bbc60ccf43ae35f5a38fd89ee0d7273e28313b8e1d248",
+        "TokenName": "",
+        "TokenAmount": 0    """
+
+    def get_token_id(self):
+        return self.get_result("TokenID")
+
+    def get_token_name(self):
+        return self.get_result("TokenName")
+
+    def get_token_amount(self):
+        return self.get_result("TokenAmount")
+
+
+class ResponseMintNftStatus(ResponseStatusBase):
+    def get_burn_amount(self):
+        return self.get_result("BurntAmount")
+
+    def get_nft_id(self):
+        return self.get_result("NftID")
+
+
+class ResponseContributeStatus(ResponseStatusBase):
+    def get_token0_contribute_amount(self):
+        return self.get_result("Token0ContributedAmount")
+
+    def get_token0_returned_amount(self):
+        return self.get_result("Token0ReturnedAmount")
+
+    def get_token0_id(self):
+        return self.get_result("Token0ID")
+
+    def get_token1_contribute_amount(self):
+        return self.get_result("Token1ContributedAmount")
+
+    def get_token1_returned_amount(self):
+        return self.get_result("Token1ReturnedAmount")
+
+    def get_token1_id(self):
+        return self.get_result("Token1ID")
+
+
+class ResponseWithdrawLiquidityStatus(ResponseStatusBase):
+    """ {
+        "Status": "accepted",
+        "Token0Amount": 16029395423,
+        "Token0ID": "0000000000000000000000000000000000000000000000000000000000000004",
+        "Token1Amount": 8014601537,
+        "Token1ID": "1411bdcae86863b0c09d94de0c6617d6729f0c5b550f6aac236931b8989207c1"
+    }"""
+
+    def get_token0_amount(self):
+        return self.get_result("Token0Amount")
+
+    def get_token0_id(self):
+        return self.get_result("Token0ID")
+
+    def get_token1_amount(self):
+        return self.get_result("Token1Amount")
+
+    def get_token1_id(self):
+        return self.get_result("Token1ID")
+
+
+class ResponseAddLiquidity(ResponseWithdraw):
+    pass  # nothing to add
+
+
+class ResponseMintNft(ResponseTxBase):
+    pass  # nothing to add
+
+
+class ResponseAddOrder(ResponseTxBase):
+    pass  # nothing to add
+
+
+class ResponseTrade(ResponseTxBase):
+    pass  # nothing to add
+
+
+class ResponseStake(ResponseStatusBase):
+    pass  # nothing to add
+
+
+class ResponseModifyParam(ResponseStatusBase):
+    pass  # nothing to add
+
+
+class ResponseGetEstimatedLPValue(RPCResponseBase):
+    """{
+        "PoolValue": {
+            "0000000000000000000000000000000000000000000000000000000000000004": 16970666577,
+            "1411bdcae86863b0c09d94de0c6617d6729f0c5b550f6aac236931b8989207c1": 8485229468
+        },
+        "TradingFee": {
+            "0000000000000000000000000000000000000000000000000000000000000004": 498
+        }
+    }"""
+
+    def get_pool_value(self, token_id=None):
+        if not token_id:
+            return self.get_result("PoolValue")
+        else:
+            return self.get_result("PoolValue").get(token_id)
+
+    def get_trading_fee(self, token_id=None):
+        if not token_id:
+            return self.get_result("TradingFee")
+        else:
+            return self.get_result("TradingFee").get(token_id)
+
+
+class ResponseWithdrawLPFeeStatus(ResponseStatusBase):
+    """ {
+        "Status": 1,
+        "Receivers": {
+            "0000000000000000000000000000000000000000000000000000000000000004": { # todo: ask dev, should it be multi-receiver?
+                "Address": "15aJPpUvgCNu978sppxG3KKMewCetCK5aNiJAVttcjwHeBTvQuMhpsGjDtvtt57tuUc3jbqNP9SuKyEbgTyJFKMGjqaYaQbtyERWzhCFDB55KTuhSwhzkFGvPqDoACsEfCqpPUdrgxYwAD55",
+                "Amount": 498
+            }
+        }
+    }"""
+
+    def get_receivers(self, token, amount, address):
+        pass
+
+
+class ResponseWithdrawProtocolFeeStatus(ResponseStatusBase):
+    """ {
+        "Status": 1,
+        "Amount": {
+            "0000000000000000000000000000000000000000000000000000000000000004": 0
+        }
+    }"""
+
+    def get_amount(self, token=None):
+        """
+        @param token: if none, return the amount of the first token on the list
+        @return:
+        """
+        if not token:
+            return self.get_result("Amount").get(token)
+
+        return list(self.get_result("Amount").values())[0]
+
+    def get_token_id(self):
+        return list(self.get_result("Amount").keys())[0]
+
+
+class ResponseStakingStatus(ResponseStatusBase):
+    """{
+        "Liquidity": 100,
+        "NftID": "e55476d221e72bf5950bbc60ccf43ae35f5a38fd89ee0d7273e28313b8e1d248",
+        "StakingPoolID": "0000000000000000000000000000000000000000000000000000000000000004",
+        "Status": "accept"
+    }"""
+
+    def get_liquidity(self):
+        return self.get_result("Liquidity")
+
+    def get_nft_id(self):
+        return self.get_result("NftID")
+
+    def get_staking_pool_id(self):
+        return self.get_result("StakingPoolID")
+
+
+class ResponseTxUnstake(ResponseWithdraw):
+    pass  # nothing to add
+
+
+class ResponseEstimatedStakingReward(RPCResponseBase):
+    def get_amount(self, by_token=None):
+        if not by_token:
+            return self.get_result()
+        return self.get_result(by_token)
+
+
+class ResponseWithdrawStakingRewardStatus(ResponseStatusBase):
+    """{
+        "Status": 1,
+        "Receivers": {
+            "0000000000000000000000000000000000000000000000000000000000000004": {
+                "Address": "15wTh6NkrqBwCCkETVscuLdA3dDiid12YhCAdHTaGdkE57oDJhDnf5JXMRju1kE3mKjrBVNQjh5ASrKXCuYG55ef27HfsuzsiYbBSS5Cr8GB1UPvxd83iZXhh7xKPD7PahVGmJBMUhTktxn7",
+                "Amount": 26
+            }
+        }
+    },
+    """
+
+    def get_amount(self, by_token=None, by_receiver=None):
+        all_reward = self.get_result("Receivers")
+        if not (by_token and by_receiver):
+            return all_reward
+        if by_receiver and not by_token:  # get amount by address, return {token: amount}
+            return {token: value["Amount"] for token, value in all_reward.items() if by_receiver == value["Address"]}
+        if by_token and not by_receiver:  # get amount by token, return {receiver: amount}
+            return all_reward[by_token]["Amount"]
+        if by_token and by_receiver:
+            raise SyntaxError("Only support query amount by token nor by receiver, not both")
+
+
+class ResponseModifyParamStatus(ResponseStatusBase):
+    def get_error(self):
+        return self.get_result("ErrorMsg")
+
+    def get_pde3_param(self):
+        return self.get_result("Pdexv3Params")
+
+    def get_default_fee_rate_bps(self):
+        return self.get_pde3_param()["DefaultFeeRateBPS"]
+
+    def get_fee_rate_bps(self, by_pool_pair=None):
+        all_rate = self.get_pde3_param()["FeeRateBPS"]
+        if by_pool_pair:
+            return all_rate.get(by_pool_pair)
+        return all_rate
+
+    def get_prv_discount_percent(self):
+        return self.get_pde3_param()["PRVDiscountPercent"]
+
+    def get_trading_protocol_fee_percent(self):
+        return self.get_pde3_param()["TradingProtocolFeePercent"]
+
+    def get_trading_staking_pool_reward_percent(self):
+        return self.get_pde3_param()["TradingStakingPoolRewardPercent"]
+
+    def get_pdex_reward_pool_pair_share(self, by_pool_pair=None):
+        all_reward = self.get_pde3_param()["PDEXRewardPoolPairsShare"]
+        if by_pool_pair:
+            return all_reward.get(by_pool_pair)
+        return all_reward
+
+    def get_staking_pool_share(self, by_token=None):
+        all_share = self.get_pde3_param()["StakingPoolsShare"]
+        if by_token:
+            return all_share.get(by_token)
+        return all_share
+
+    def get_staking_reward_token(self):
+        return self.get_pde3_param()["StakingRewardTokens"]
+
+    def get_mint_nft_require_amount(self):
+        return self.get_pde3_param()["MintNftRequireAmount"]
+
+    def get_max_order_per_nft(self):
+        return self.get_pde3_param()["MaxOrdersPerNft"]
+
+
+# ======================================================================================================================
 class DEXv3RPC(BaseRpcApi):
     def get_trade_status(self, tx_id):
-        return self.rpc_connection.with_method('pdexv3_getTradeStatus').with_params([tx_id]).execute()
+        return ResponseTradeStatus(
+            self.rpc_connection.with_method('pdexv3_getTradeStatus').with_params([tx_id]).execute())
 
     def get_add_order_status(self, tx_id):
-        return self.rpc_connection.with_method('pdexv3_getAddOrderStatus').with_params([tx_id]).execute()
+        return ResponseOrderStatus(
+            self.rpc_connection.with_method('pdexv3_getAddOrderStatus').with_params([tx_id]).execute())
 
     def get_withdraw_order_status(self, tx_id):
-        return self.rpc_connection.with_method('pdexv3_getWithdrawOrderStatus').with_params([tx_id]).execute()
+        return ResponseWithdrawOrderStatus(
+            self.rpc_connection.with_method('pdexv3_getWithdrawOrderStatus').with_params([tx_id]).execute())
 
-    def add_order(self, private_k, nft_id, token_sell, pool_pair_id, sell_amount, min_acceptable, tx_fee=-1,
-                  tx_privacy=1):
-        return self.rpc_connection.with_method('pdexv3_txAddOrder') \
-            .with_params([private_k, None, tx_fee, tx_privacy,
-                          {"TokenToSell": token_sell,
-                           "PoolPairID": pool_pair_id,
-                           "NftID": nft_id,
-                           "SellAmount": sell_amount,
-                           "MinAcceptableAmount": min_acceptable}
-                          ]).execute()
+    def add_order(self, private_k, nft_id, token_sell, pool_pair_id, sell_amount, min_acceptable, main_tx_receiver=None,
+                  tx_fee=-1, tx_privacy=1):
+        return ResponseAddOrder(
+            self.rpc_connection.with_method('pdexv3_txAddOrder')
+                .with_params([private_k, main_tx_receiver, tx_fee, tx_privacy,
+                              {"TokenToSell": token_sell,
+                               "PoolPairID": pool_pair_id,
+                               "NftID": nft_id,
+                               "SellAmount": sell_amount,
+                               "MinAcceptableAmount": min_acceptable}
+                              ]).execute())
 
-    def withdraw_order(self, private_k, token_id, amount, nft_id, pair_id, order_id, tx_fee=-1, tx_privacy=1):
-        return self.rpc_connection.with_method('pdexv3_txWithdrawOrder') \
-            .with_params([private_k, None, tx_fee, tx_privacy,
-                          {
-                              "TokenID": token_id,
-                              "PoolPairID": pair_id,
-                              "NftID": nft_id,
-                              "Amount": amount,
-                              "OrderID": order_id
-                          }]).execute()
+    def withdraw_order(self, private_k, token_id_list, amount, nft_id, pair_id, order_id,
+                       main_tx_receiver=None, tx_fee=-1, tx_privacy=1):
+        return ResponseWithdraw(
+            self.rpc_connection.with_method('pdexv3_txWithdrawOrder')
+                .with_params([private_k, main_tx_receiver, tx_fee, tx_privacy,
+                              {
+                                  "WithdrawTokenIDs": token_id_list,
+                                  "PoolPairID": pair_id,
+                                  "NftID": nft_id,
+                                  "Amount": amount,
+                                  "OrderID": order_id
+                              }]).execute())
 
     def trade(self, private_k, token_sell, token_buy, sell_amount, min_acceptable, trade_path, trading_fee=100,
-              use_prv_fee=True, tx_fee=-1, tx_privacy=1):
+              use_prv_fee=True, main_tx_receiver=None, tx_fee=-1, tx_privacy=1):
         """
+        @param main_tx_receiver: {} by default
         @param private_k:
         @param token_sell:
         @param token_buy:
         @param sell_amount:
         @param min_acceptable:
-        @param trade_path: list of pair id, example ['pair
+        @param trade_path: list of pair id, example ['pair1', 'pair2', ...]
         @param trading_fee:
         @param use_prv_fee: True/False
         @param tx_fee:
         @param tx_privacy:
         @return:
         """
-        return self.rpc_connection.with_method("pdexv3_txTrade") \
-            .with_params([private_k, None, tx_fee, tx_privacy,
-                          {
-                              "TradePath": trade_path,
-                              "TokenToSell": token_sell,
-                              "TokenToBuy": token_buy,
-                              "SellAmount": sell_amount,
-                              "MinAcceptableAmount": min_acceptable,
-                              "TradingFee": trading_fee,
-                              "FeeInPRV": use_prv_fee
-                          }]).execute()
+        if main_tx_receiver is None:
+            main_tx_receiver = {}
+        return ResponseTrade(
+            self.rpc_connection.with_method("pdexv3_txTrade")
+                .with_params([private_k, main_tx_receiver, tx_fee, tx_privacy,
+                              {
+                                  "TradePath": trade_path,
+                                  "TokenToSell": token_sell,
+                                  "TokenToBuy": token_buy,
+                                  "SellAmount": sell_amount,
+                                  "MinAcceptableAmount": min_acceptable,
+                                  "TradingFee": trading_fee,
+                                  "FeeInPRV": use_prv_fee
+                              }]).execute())
 
     def get_estimated_lp_value(self, pool_pair_id, nft_id):
-        return self.rpc_connection.with_method("pdexv3_getEstimatedLPValue") \
-            .with_params([{"PoolPairID": pool_pair_id,
-                           "NftID": nft_id}]).execute()
+        return ResponseGetEstimatedLPValue(
+            self.rpc_connection.with_method("pdexv3_getEstimatedLPValue")
+                .with_params([{"PoolPairID": pool_pair_id,
+                               "NftID": nft_id}]).execute())
 
     def withdraw_lp_fee(self, private_k, receiver_payment_address, token_amount, token_id, pool_pair_id, nft_id,
                         token_tx_type=1, token_fee=0, token_name="", token_symbol=0,
-                        burning_addr=Constants.BURNING_ADDR, burn_amount=1, tx_fee=-1, tx_privacy=1):
+                        sub_tx_receiver=None, sub_tx_privacy=True, main_tx_receiver=None, tx_fee=-1, tx_privacy=1):
         """
+        @param sub_tx_privacy:
+        @param main_tx_receiver: None by default, accept dict type
+        @param sub_tx_receiver: dict {burn addr: burn amount}, should test multiple output burn tx
         @param token_symbol:
         @param token_name:
         @param private_k:
@@ -79,168 +397,223 @@ class DEXv3RPC(BaseRpcApi):
         @param pool_pair_id:
         @param nft_id:
         @param token_tx_type:
-        @param token_fee:
-        @param burning_addr:
-        @param burn_amount:
+        @param token_fee: string num, should be "0"
         @param tx_fee:
         @param tx_privacy:
         @return:
         """
-        return self.rpc_connection.with_method("pdexv3_txWithdrawLPFee") \
-            .with_params([private_k, None, tx_fee, tx_privacy, {
-            "Privacy": True,
-            "TokenID": token_id,
-            "TokenTxType": token_tx_type,
-            "TokenName": token_name,
-            "TokenSymbol": token_symbol,
-            "TokenAmount": token_amount,
-            "TokenReceivers": {burning_addr: burn_amount},
-            "TokenFee": str(token_fee),
-            "PoolPairID": pool_pair_id,
-            "NftID": nft_id,
-            "FeeReceiver": receiver_payment_address}, "", 0]).execute()
+        if sub_tx_receiver is None:
+            burning_tx = {Constants.BURNING_ADDR: 1}
+        return ResponseWithdraw(
+            self.rpc_connection.with_method("pdexv3_txWithdrawLPFee")
+                .with_params([private_k, main_tx_receiver, tx_fee, tx_privacy,
+                              {"Privacy": sub_tx_privacy,
+                               "TokenID": token_id,
+                               "TokenTxType": token_tx_type,
+                               "TokenName": token_name,
+                               "TokenSymbol": token_symbol,
+                               "TokenAmount": token_amount,
+                               "TokenReceivers": sub_tx_receiver,
+                               "TokenFee": token_fee,
+                               "PoolPairID": pool_pair_id,
+                               "NftID": nft_id,
+                               "FeeReceiver": receiver_payment_address}, "", 0]).execute())
 
     def get_withdrawal_lp_fee_status(self, tx_id):
-        return self.rpc_connection.with_method("pdexv3_getWithdrawalLPFeeStatus") \
-            .with_params([{"ReqTxID": tx_id}]).execute()
+        return ResponseWithdrawLPFeeStatus(
+            self.rpc_connection.with_method("pdexv3_getWithdrawalLPFeeStatus")
+                .with_params([{"ReqTxID": tx_id}]).execute())
 
-    def withdraw_protocol_fee(self, centralize_private_k, pool_pair_id, tx_fee=-1, tx_privacy=1):
-        return self.rpc_connection.with_method("pdexv3_txWithdrawProtocolFee") \
-            .with_params([centralize_private_k, None, tx_fee, tx_privacy,
-                          {"PoolPairID": pool_pair_id}, "", 0]).execute()
+    def withdraw_protocol_fee(self, centralize_private_k, pool_pair_id, main_tx_receivers=None, tx_fee=-1,
+                              tx_privacy=1):
+        return ResponseWithdraw(self.rpc_connection.with_method("pdexv3_txWithdrawProtocolFee")
+                                .with_params([centralize_private_k, main_tx_receivers, tx_fee, tx_privacy,
+                                              {"PoolPairID": pool_pair_id}, "", 0]).execute())
 
     def get_withdraw_protocol_fee_status(self, tx_id):
-        return self.rpc_connection.with_method("pdexv3_getWithdrawalProtocolFeeStatus") \
-            .with_params([{"ReqTxID": tx_id}]).execute()
+        return ResponseWithdrawProtocolFeeStatus(
+            self.rpc_connection.with_method("pdexv3_getWithdrawalProtocolFeeStatus")
+                .with_params([{"ReqTxID": tx_id}]).execute())
 
     def get_staking_status(self, *tx_id):
-        return self.rpc_connection.with_method("pdexv3_getStakingStatus") \
-            .with_params(tx_id).execute()
+        return ResponseStakingStatus(
+            self.rpc_connection.with_method("pdexv3_getStakingStatus").with_params(tx_id).execute())
 
-    def stake(self, private_k, token_id, stake_amount, nft_id="", burning_addr=Constants.BURNING_ADDR,
-              burn_amount='unspecified', tx_fee=-1, tx_privacy=1):
-        burn_amount = stake_amount if burn_amount == 'unspecified' else burn_amount
-        return self.rpc_connection.with_method("pdexv3_txStake") \
-            .with_params([private_k, {burning_addr: burn_amount}, tx_fee, tx_privacy,
-                          {"TokenID": token_id,
-                           "TokenAmount": stake_amount,
-                           "NftID": nft_id}]).execute()
+    def stake(self, private_k, staking_pool_id, stake_amount, nft_id="", main_tx_receivers=None,
+              tx_fee=-1, tx_privacy=1):
+        """
+        @param private_k:
+        @param staking_pool_id:
+        @param stake_amount:
+        @param nft_id:
+        @param main_tx_receivers: dict {burn addr: burn amount}, should test multiple output burn tx
+        @param tx_fee:
+        @param tx_privacy:
+        @return:
+        """
+        if main_tx_receivers is None:
+            main_tx_receivers = {Constants.BURNING_ADDR: stake_amount}
 
-    def unstake(self, private_k, staking_pool_id, token_id, unstake_amount, token_amount=1,
-                burning_addr=Constants.BURNING_ADDR, burn_amount='unspecified', tx_fee=-1, tx_privacy=1):
-        burn_amount = token_amount if burn_amount == 'unspecified' else burn_amount
-        return self.rpc_connection.with_method("pdexv3_txUnstake") \
-            .with_params([{[private_k, {burning_addr: str(burn_amount)}, tx_fee, tx_privacy,
-                            {"StakingPoolID": staking_pool_id,
-                             "TokenID": token_id,
-                             "TokenAmount": token_amount,
-                             "UnstakingAmount": unstake_amount}], }]).execute()
+        return ResponseStake(
+            self.rpc_connection.with_method("pdexv3_txStake")
+                .with_params([private_k, main_tx_receivers, tx_fee, tx_privacy,
+                              {"StakingPoolID": staking_pool_id,
+                               "TokenAmount": stake_amount,
+                               "NftID": nft_id}]).execute())
+
+    def unstake(self, private_k, staking_pool_id, nft_id, unstake_amount,
+                main_tx_receivers=None, tx_fee=-1, tx_privacy=1):
+        """
+        @param private_k:
+        @param staking_pool_id:
+        @param nft_id:
+        @param unstake_amount: String num
+        @param main_tx_receivers: dict {burn addr: burn amount}, should test multiple output burn tx
+        @param tx_fee:
+        @param tx_privacy:
+        @return:
+        """
+        return ResponseTxUnstake(self.rpc_connection.with_method("pdexv3_txUnstake")
+                                 .with_params([private_k, main_tx_receivers, tx_fee, tx_privacy,
+                                               {
+                                                   "Amount": unstake_amount,
+                                                   "NftID": nft_id,
+                                                   "StakingPoolID": staking_pool_id
+                                               }]).execute())
 
     def get_estimated_staking_reward(self, staking_pool_id, nft_id):
-        return self.rpc_connection.with_method("pdexv3_getEstimatedStakingReward") \
-            .with_params([{"StakingPoolID": staking_pool_id,
-                           "NftID": nft_id}]).execute()
+        return ResponseEstimatedStakingReward(self.rpc_connection.with_method("pdexv3_getEstimatedStakingReward")
+                                              .with_params([{"StakingPoolID": staking_pool_id,
+                                                             "NftID": nft_id}]).execute())
 
     def withdraw_staking_reward(self, private_k, receiver_payment_addr, staking_pool_id, nft_id, token_id=unspecified,
-                                burning_addr=Constants.BURNING_ADDR, burn_amount=1, privacy=True, token_fee=0,
-                                token_tx_type=1, token_amount=1, tx_fee=-1, tx_privacy=1):
+                                sub_tx_receivers=unspecified, sub_tx_privacy=True, token_fee="0", token_tx_type=1,
+                                token_amount=1, main_tx_receivers=None, tx_fee=-1, tx_privacy=1):
+        """
+        @param private_k:
+        @param receiver_payment_addr:
+        @param staking_pool_id:
+        @param nft_id:
+        @param token_id: if unspecified, will be nft_id
+        @param sub_tx_receivers: should be {burning addr: 1}
+        @param sub_tx_privacy:
+        @param token_fee:
+        @param token_tx_type:
+        @param token_amount:
+        @param main_tx_receivers:
+        @param tx_fee:
+        @param tx_privacy:
+        @return:
+        """
         token_id = nft_id if token_id == unspecified else token_id
-        return self.rpc_connection.with_method("pdexv3_txWithdrawStakingReward") \
-            .with_params([private_k, None, tx_fee, tx_privacy,
-                          {"Privacy": privacy,
-                           "TokenID": token_id,
-                           "TokenTxType": token_tx_type,
-                           "TokenName": "",
-                           "TokenSymbol": "",
-                           "TokenAmount": token_amount,
-                           "TokenReceivers": {burning_addr: burn_amount},
-                           "TokenFee": str(token_fee),
-                           "StakingPoolID": staking_pool_id,
-                           "NftID": nft_id,
-                           "FeeReceiver": receiver_payment_addr
-                           }, "", 0]).execute()
+        if sub_tx_receivers == unspecified:
+            sub_tx_receivers = {Constants.BURNING_ADDR: 1}
+        return ResponseWithdraw(self.rpc_connection.with_method("pdexv3_txWithdrawStakingReward")
+                                .with_params([private_k, main_tx_receivers, tx_fee, tx_privacy,
+                                              {"Privacy": sub_tx_privacy,
+                                               "TokenID": token_id,
+                                               "TokenTxType": token_tx_type,
+                                               "TokenName": "",
+                                               "TokenSymbol": "",
+                                               "TokenAmount": token_amount,
+                                               "TokenReceivers": sub_tx_receivers,
+                                               "TokenFee": token_fee,
+                                               "StakingPoolID": staking_pool_id,
+                                               "NftID": nft_id,
+                                               "FeeReceiver": receiver_payment_addr
+                                               }, "", 0]).execute())
 
     def get_withdrawal_staking_reward_status(self, tx_id):
-        return self.rpc_connection.with_method("pdexv3_getWithdrawalStakingRewardStatus") \
-            .with_params([{"ReqTxID": tx_id}]).execute()
+        return ResponseWithdrawStakingRewardStatus(
+            self.rpc_connection.with_method("pdexv3_getWithdrawalStakingRewardStatus")
+                .with_params([{"ReqTxID": tx_id}]).execute())
 
-    def modify_param(self, centralized_private_k, tx_fee=-1, tx_privacy=1):
-        # todo, not yet done
-        return self.rpc_connection.with_method("pdexv3_txModifyParams") \
-            .with_params([centralized_private_k, None, -1, 0,
-                          {"NewParams": {
-                              "DefaultFeeRateBPS": "1",
-                              "FeeRateBPS": {
-                                  "PRV-BTC-1": "1",
-                                  "PRV-ETH-2": "2"
-                              },
-                              "PRVDiscountPercent": "2",
-                              "TradingProtocolFeePercent": "5",
-                              "TradingStakingPoolRewardPercent": "6",
-                              "PDEXRewardPoolPairsShare": {
-                                  "PRV-BTC-3": "100",
-                                  "PRV-ETH-4": "20"
-                              },
-                              "StakingPoolsShare": {
-                                  "0000000000000000000000000000000000000000000000000000000000000004": "200",
-                                  "0000000000000000000000000000000000000000000000000000000000000006": "100"
-                              },
-                              "StakingRewardTokens": [
-                                  "0000000000000000000000000000000000000000000000000000000000000004"
-                              ],
-                              "MintNftRequireAmount": "100",
-                              "MaxOrdersPerNft": "10"
-                          }}]).execute()
+    def modify_param(self, centralized_private_k, new_config_dict, main_tx_receivers=None, tx_fee=-1, tx_privacy=1):
+        return ResponseModifyParam(
+            self.rpc_connection.with_method("pdexv3_txModifyParams")
+                .with_params([centralized_private_k, main_tx_receivers, tx_fee, tx_privacy,
+                              {"NewParams": new_config_dict}]).execute())
 
-    def get_modify_param_status(self):
-        pass
+    def get_modify_param_status(self, tx_id):
+        return ResponseModifyParamStatus(
+            self.rpc_connection.with_method()
+                .with_params([{"ReqTxID": tx_id}]).execute())
 
     def get_pdev3_state(self, beacon_height):
         return self.rpc_connection.with_method("pdexv3_getState") \
             .with_params([{"BeaconHeight": beacon_height}]).execute()
 
     def add_liquidity(self, private_k, token_id, amount, amplifier, pool_pair_id="", pair_hash="", nft_id="",
-                      burning_addr=Constants.BURNING_ADDR, burn_amount=unspecified, tx_fee=-1, tx_privacy=1):
-        burn_amount = amount if burn_amount == unspecified else burn_amount
-        return self.rpc_connection.with_method("pdexv3_txAddLiquidity") \
-            .with_params([private_k, {burning_addr: burn_amount}, tx_fee, tx_privacy,
-                          {
-                              "PoolPairID": pool_pair_id,
-                              "TokenID": token_id,
-                              "TokenAmount": amount,
-                              "PairHash": pair_hash,
-                              "Amplifier": amplifier,
-                              "NftID": nft_id
-                          }]).execute()
+                      main_tx_receivers=None, tx_fee=-1, tx_privacy=1):
+        """
+        @param private_k:
+        @param token_id:
+        @param amount: String num
+        @param amplifier:
+        @param pool_pair_id:
+        @param pair_hash:
+        @param nft_id:
+        @param main_tx_receivers: dict {burn addr: burn amount}, should test multiple output burn tx
+        @param tx_fee:
+        @param tx_privacy:
+        @return:
+        """
+        main_tx_receivers = {Constants.BURNING_ADDR: amount}
+        return ResponseAddLiquidity(self.rpc_connection.with_method("pdexv3_txAddLiquidity")
+                                    .with_params([private_k, main_tx_receivers, tx_fee, tx_privacy,
+                                                  {
+                                                      "PoolPairID": pool_pair_id,
+                                                      "TokenID": token_id,
+                                                      "TokenAmount": amount,
+                                                      "PairHash": pair_hash,
+                                                      "Amplifier": amplifier,
+                                                      "NftID": nft_id
+                                                  }]).execute())
 
-    def withdraw_liquidity(self, private_k, receiver_payment_k, pool_pair_id, token_id, share_amount,
-                           token_amount=1, receiver_amount=unspecified, tx_fee=-1, tx_privacy=1):
-        receiver_amount = token_amount if receiver_amount == unspecified else receiver_amount
-        return self.rpc_connection.with_method("pdexv3_txWithdrawLiquidity") \
-            .with_params([private_k, {receiver_payment_k: str(receiver_amount)}, tx_fee, tx_privacy,
-                          {
-                              "PoolPairID": pool_pair_id,
-                              "TokenID": token_id,
-                              "TokenAmount": str(token_amount),
-                              "ShareAmount": str(share_amount)
-                          }]).execute()
+    def withdraw_liquidity(self, private_k, pool_pair_id, nft_id, share_amount,
+                           main_tx_receivers=None, tx_fee=-1, tx_privacy=1):
+        """
+        @param nft_id:
+        @param private_k:
+        @param pool_pair_id:
+        @param share_amount: string number
+        @param main_tx_receivers: None by default
+        @param tx_fee:
+        @param tx_privacy:
+        @return:
+        """
+        return ResponseWithdraw(self.rpc_connection.with_method("pdexv3_txWithdrawLiquidity") \
+                                .with_params([private_k, main_tx_receivers, tx_fee, tx_privacy,
+                                              {"NftID": nft_id,
+                                               "PoolPairID": pool_pair_id,
+                                               "ShareAmount": share_amount
+                                               }]).execute())
 
     def get_contribution_status(self, tx_id):
-        return self.rpc_connection.with_method("pdexv3_getContributionStatus") \
-            .with_params([tx_id]).execute()
+        return ResponseContributeStatus(self.rpc_connection.with_method("pdexv3_getContributionStatus")
+                                        .with_params([tx_id]).execute())
 
     def get_withdraw_liquidity_status(self, tx_id):
-        return self.rpc_connection.with_method("pdexv3_getWithdrawLiquidityStatus") \
-            .with_params([tx_id]).execute()
+        return ResponseWithdrawLiquidityStatus(self.rpc_connection.with_method("pdexv3_getWithdrawLiquidityStatus")
+                                               .with_params([tx_id]).execute())
 
-    def mint_nft(self, private_k, amount, token_id=Constants.PRV_ID, burning_addr=Constants.BURNING_ADDR,
-                 burn_amount=unspecified, tx_fee=-1, tx_privacy=1):
-        burn_amount = amount if burn_amount == unspecified else burn_amount
-        return self.rpc_connection.with_method("pdexv3_txMintNft") \
-            .with_params([private_k, {burning_addr: str(burn_amount)}, tx_fee, tx_privacy,
-                          {"TokenID": token_id,
-                           "TokenAmount": str(amount)}]).execute()
+    def mint_nft(self, private_k, amount, token_id=Constants.PRV_ID, main_tx_receivers=unspecified, tx_fee=-1,
+                 tx_privacy=1):
+        """
+        @param private_k:
+        @param amount: String num
+        @param token_id:
+        @param main_tx_receivers: default and should be {burn addr: "1"}
+        @param tx_fee:
+        @param tx_privacy:
+        @return:
+        """
+        if main_tx_receivers == unspecified:
+            main_tx_receivers = {Constants.BURNING_ADDR: "1"}
+        return ResponseMintNft(self.rpc_connection.with_method("pdexv3_txMintNft")
+                               .with_params([private_k, main_tx_receivers, tx_fee, tx_privacy,
+                                             {"Amount": amount}]).execute())
 
     def get_mint_nft_status(self, tx_id):
-        return self.rpc_connection.with_method("pdexv3_getMintNftStatus") \
-            .with_params([tx_id]).execute()
+        return ResponseMintNftStatus(self.rpc_connection.with_method("pdexv3_getMintNftStatus")
+                                     .with_params([tx_id]).execute())

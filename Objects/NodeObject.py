@@ -26,6 +26,7 @@ from Objects.PdeObjects import PDEStateInfo
 from Objects.PortalObjects import PortalStateInfo
 from Objects.ShardBlock import ShardBlock
 from Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
+from Objects.TransactionObjects import TransactionDetail
 from Objects.ViewDetailBlock import AllViewDetail
 
 
@@ -146,6 +147,31 @@ class Node:
     def util_rpc(self) -> UtilsRpc:
         return UtilsRpc(self._get_rpc_url())
 
+    def get_tx_by_hash(self, tx_hash, interval=10, time_out=120) -> TransactionDetail:
+        """
+        @param tx_hash:
+        @param interval:
+        @param time_out: set = 0 to ignore interval, won't retry if got error in Response or block height = 0
+        @return: TransactionDetail, use TransactionDetail.is_none() to check if it's an empty object
+        """
+        if tx_hash is None:
+            raise ValueError("Tx id must not be none")
+
+        tx_detail = self.transaction().get_tx_by_hash(tx_hash)
+        if tx_detail.get_error_msg():
+            result = TransactionDetail()
+        else:
+            result = TransactionDetail(tx_detail.get_result())
+
+        while time_out > 0:
+            WAIT(interval)
+            time_out -= interval
+            if not tx_detail.get_error_msg() and tx_detail.get_result('BlockHeight'):
+                result = TransactionDetail(tx_detail.get_result())
+                break
+            tx_detail = self.transaction().get_tx_by_hash(tx_hash)
+        return result
+
     def get_latest_beacon_block(self, beacon_height=None):
         if beacon_height is None:
             beacon_height = self.help_get_beacon_height()
@@ -155,7 +181,6 @@ class Node:
 
     def get_first_beacon_block_of_epoch(self, epoch=None):
         """
-
         @param epoch: epoch number
         @return: BeaconBlock obj of the first epoch of epoch.
         If epoch is specify, get first beacon block of that epoch

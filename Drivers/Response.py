@@ -6,30 +6,21 @@ from websocket import WebSocketTimeoutException, WebSocketBadStatusException
 from Configs.Configs import ChainConfig
 from Drivers import ResponseBase
 from Helpers.Logging import INFO, WARNING
-from Helpers.Time import WAIT
 from Objects.TransactionObjects import TransactionDetail
 
 
-class Response(ResponseBase):
+class RPCResponseBase(ResponseBase):
     def __init__(self, response=None, more_info=None, handler=None):
-        super().__init__(response, more_info)
-        self.__handler = handler
-
-    def req_to(self, handler=None):
-        """
-        @param handler: if the input handler not None, change the handler. If input handler = 0, check current handler
-        if not exist -> change to SUT. If handler is not None, nor 0, set to SUT
-        @return: self
-        """
-        if handler:
+        if isinstance(response, ResponseBase):  # for casting object
+            self.response = response.response
+            self.more_info = response.more_info
+            try:
+                handler = response.__handler
+            except AttributeError:
+                handler = None
+        else:
+            super().__init__(response, more_info)
             self.__handler = handler
-            return self
-        elif handler == 0:
-            if self.__handler:
-                return self
-        from Objects.IncognitoTestCase import SUT
-        self.__handler = SUT()
-        return self
 
     def expect_no_error(self, additional_msg_if_fail=''):
         """
@@ -52,6 +43,22 @@ class Response(ResponseBase):
                 f'Expecting: {expecting_error}. Instead got: {error_msg} | {trace_msg}'
         return self
 
+    def req_to(self, handler=None):
+        """
+        @param handler: if the input handler not None, change the handler. If input handler = 0, check current handler
+        if not exist -> change to SUT. If handler is not None, nor 0, set to SUT
+        @return: self
+        """
+        if handler:
+            self.__handler = handler
+            return self
+        elif handler == 0:
+            if self.__handler:
+                return self
+        from Objects.IncognitoTestCase import SUT
+        self.__handler = SUT()
+        return self
+
     def params(self):
         return Response.Params(self.data()["Params"])
 
@@ -70,38 +77,19 @@ class Response(ResponseBase):
             return None
         return Response.StackTrace(self.data()['Error']['StackTrace'][0:512])
 
-    def find_in_result(self, string):
-        for k, v in self.data()["Result"].items():
-            if k == str(string):
-                return True
-        return False
 
+class Response(RPCResponseBase):
     def get_tx_id(self):
         return self.get_result("TxID")
+
+    def get_shard_id(self):
+        return self.get_result('ShardID')
 
     def get_beacon_height(self):
         return self.get_result("BeaconHeight")
 
-    def get_token_id_1_str(self):
-        return self.get_result("TokenID1Str")
-
-    def get_token_id_2_str(self):
-        return self.get_result("TokenID2Str")
-
     def get_token_id(self):
         return self.get_result("TokenID")
-
-    def get_returned_1_amount(self):
-        return self.get_result("Returned1Amount")
-
-    def get_returned_2_amount(self):
-        return self.get_result("Returned2Amount")
-
-    def get_contributed_1_amount(self):
-        return self.get_result("Contributed1Amount")
-
-    def get_contributed_2_amount(self):
-        return self.get_result("Contributed2Amount")
 
     def get_fee(self):
         try:
@@ -135,9 +123,6 @@ class Response(ResponseBase):
     def get_block_hash(self):
         return self.get_result("BlockHash")
 
-    def get_shard_id(self):
-        return self.get_result('ShardID')
-
     def is_node_busy(self):
         return self.response.text == "503 Too busy.  Try again later."
 
@@ -162,11 +147,11 @@ class Response(ResponseBase):
             return TransactionDetail(res)
         except WebSocketTimeoutException:
             WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
-            return self.get_transaction_by_hash(tx_id, retry=False)
+            return self.get_transaction_by_hash(time_out=0)
         except (WebSocketBadStatusException,
                 ConnectionRefusedError) as status_err:  # in case full node does not have web socket enabled
             WARNING(f"Encounter web socket bad status exception: {status_err}. Now get transaction by hash instead")
-            return self.get_transaction_by_hash(tx_id, retry=True)
+            return self.get_transaction_by_hash(time_out=0)
 
     def is_transaction_v2_error_appears(self):
         try:
@@ -178,35 +163,18 @@ class Response(ResponseBase):
             INFO('Transaction v2 no longer support paying fee with token')
             return True
 
-    def get_transaction_by_hash(self, tx_hash=None, retry=True, interval=ChainConfig.BLOCK_TIME,
-                                time_out=120) -> TransactionDetail:
+    def get_transaction_by_hash(self, time_out=120, interval=ChainConfig.BLOCK_TIME) -> TransactionDetail:
         """
-        @param tx_hash:
-        @param retry: if True, try when got error in Response or block height = 0
         @param interval:
-        @param time_out:
+        @param time_out: set = 0 to ignore interval, won't retry if got error in Response or block height = 0
         @return: TransactionDetail, use TransactionDetail.is_none() to check if it's an empty object
         """
         self.req_to(0)
+        tx_hash = self.expect_no_error().get_tx_id()
         if tx_hash is None:
-            tx_hash = self.expect_no_error().get_tx_id()
-        if tx_hash is None:
-            raise ValueError("Tx id must not be none")
+            raise AttributeError("Response does not contain tx hash")
 
-        tx_detail = self.__handler.transaction().get_tx_by_hash(tx_hash)
-        if not retry:
-            if tx_detail.get_error_msg():
-                return TransactionDetail()
-            else:
-                return TransactionDetail(tx_detail.get_result())
-
-        while time_out > 0:
-            if not tx_detail.get_error_msg() and tx_detail.get_result('BlockHeight'):
-                return TransactionDetail(tx_detail.get_result())
-            time_out -= interval
-            WAIT(interval)
-            tx_detail = self.__handler.transaction().get_tx_by_hash(tx_hash)
-        return TransactionDetail()
+        return self.__handler.get_tx_by_hash(self, tx_hash, time_out, interval)
 
     def get_trade_tx_status(self, tx_hash=None):
         """

@@ -7,7 +7,7 @@ import Helpers.Logging as Log
 
 class ResponseBase:
     def __init__(self, response=None, more_info=None):
-        if isinstance(response, ResponseBase):  # for cloning object
+        if isinstance(response, ResponseBase):  # for casting object
             self.response = response.response
             self.more_info = response.more_info
         else:
