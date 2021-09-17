@@ -212,14 +212,17 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             return dict_objs
 
     def get_syncing_validators(self, shard_num=None, validator_number=None):
-        validators_dict_raw = self.data.get('GetSyncingValidators')  # get all syncing validators in all shard
+        validators_dict_raw = self.data.get('SyncingValidator')  # get all syncing validators in all shard
         if validators_dict_raw is None:
             return
         if shard_num is not None and validator_number is not None:  # get a specific validator
             validator_raw = validators_dict_raw[str(shard_num)][validator_number]
             return self._parse_raw_list_to_shard_committee_list([validator_raw])[0]
         if shard_num is not None and validator_number is None:  # get all validators in a shard
-            committee_list_raw = validators_dict_raw[str(shard_num)]
+            try:
+                committee_list_raw = validators_dict_raw[str(shard_num)]
+            except KeyError:
+                committee_list_raw = []
             return self._parse_raw_list_to_shard_committee_list(committee_list_raw)
         if shard_num is None and validator_number is None:
             dict_objs = {}
@@ -377,6 +380,25 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
                     INFO(f" IS committee in shard pending: pub_key = {public_key} : shard {shard_number}")
                     return shard_number
         INFO(f"NOT exist in shard pending: pub_key = {public_key}")
+        return False
+
+    def is_he_in_sync_pool(self, account):
+        from Objects.AccountObject import Account
+        if type(account) == str:
+            public_key = account
+        elif type(account) == Account:
+            public_key = account.public_key
+        else:
+            public_key = ''
+
+        number_of_shards = self.get_active_shard()
+        for shard_number in range(0, number_of_shards):
+            shard_pending = self.get_syncing_validators(shard_number)
+            for committee in shard_pending:
+                if committee.get_inc_public_key() == public_key:
+                    INFO(f" IS committee in sync pool: pub_key = {public_key} : shard {shard_number}")
+                    return shard_number
+        INFO(f"NOT exist in sync pool: pub_key = {public_key}")
         return False
 
     def is_he_in_waiting_next_random(self, account):
@@ -547,7 +569,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         Return list of committee public key if only shard_num is specify
         Return dict of {shard_num: list of committee public key} if only shard_num and validator_num are specify
         """
-        validators_dict_raw = self.data.get('GetSyncingValidators')  # get all validators in all shard
+        validators_dict_raw = self.data.get('SyncingValidator')  # get all validators in all shard
 
         if shard_num is not None and validator_number is not None:  # get a specific validator
             committee_public_key = validators_dict_raw[str(shard_num)][validator_number]

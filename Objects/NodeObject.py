@@ -435,7 +435,7 @@ class Node:
                     (1 - ChainConfig.DAO_REWARD_PERCENT) * 2 * total_reward_from_shard / (num_of_active_shard + 2)
                 shard_reward = (1 - ChainConfig.DAO_REWARD_PERCENT) * total_reward_from_shard - beacon_reward_from_shard
 
-            if shard_reward > 0:
+            if shard_reward >= 0:
                 RESULT[str(shard_id)] = int(shard_reward)
             list_beacon_reward_from_shard.append(max(0, beacon_reward_from_shard))
 

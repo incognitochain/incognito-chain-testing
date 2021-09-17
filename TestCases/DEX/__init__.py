@@ -22,6 +22,7 @@ token_id_0 = "00000000000000000000000000000000000000000000000000000000000000ff" 
 need_withdraw_contribution_1 = False
 need_withdraw_contribution_2 = False
 
+token_owner.submit_key()
 COIN_MASTER.top_up_if_lower_than(token_owner, coin(10000), coin(100000))
 
 all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
@@ -88,6 +89,9 @@ acc_list_n_shard = AccountGroup(
     Account(
         "112t8rnby11gxmuz9M9YA5EQ7VEcFFC1g2PJkXTTLc6qvF4dQRdfJZtPfjwPi3FQghH7e5oXdXzWptDZXz6EKiXcty2PsFBm1rELqnzwNJwe"),
 )
+
+for acc in acc_list_1_shard+acc_list_n_shard:
+    acc.submit_key()
 
 
 def verify_sum_fee_prv_token(sum_fee_expected, token1, token2, pde_state_b4, pde_state_af):

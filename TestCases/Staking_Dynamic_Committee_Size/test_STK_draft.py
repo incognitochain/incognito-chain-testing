@@ -87,25 +87,30 @@ group_acc = STAKER_ACCOUNTS + COMMITTEE_ACCOUNTS
 
 
 def test_draft():
-    # acc = STAKER_ACCOUNTS[23]
-    # INFO(acc)
-    # INFO(acc.committee_public_k)
-    # beacon_bsd = SUT().get_beacon_best_state_detail_info()
-    # for acc in STAKER_ACCOUNTS:
-    # #     acc.stake().expect_no_error()
-    # #     acc.convert_token_to_v2()
-    #     beacon_bsd.get_auto_staking_committees(acc)
-    # # INFO()
+    STAKER_ACCOUNTS[20].stk_un_stake_tx()
+    # STAKER_ACCOUNTS[31].stk_un_stake_tx()
+    # STAKER_ACCOUNTS[9].stk_un_stake_tx()
+
+
+def test_check_auto_stake():
+    beacon_bsd = SUT().get_beacon_best_state_detail_info()
     i = 0
     for acc in STAKER_ACCOUNTS:
-        print(f'{acc.committee_public_k} => staker {i}.log\n\n')
+        string = f'{beacon_bsd.get_auto_staking_committees(acc)} => staker {i}\n'
+        # string += '{acc.private_key}\n'
+        INFO(string)
         i += 1
-    # #     INFO(acc.private_key)
-    # #     INFO()
+
+
+def test_create_cmd():
+    k = 0
+    n = '347_0913_0309'
+    for acc in STAKER_ACCOUNTS:
+        print(f'\n./incognito --datadir data/staker_{k} --rpclisten 0.0.0.0:{10335+k} --rpcwslisten 0.0.0.0:{19379+k} --listen 0.0.0.0:{10452+k} --miningkeys "{acc.validator_key}" --discoverpeersaddress 0.0.0.0:9330 --externaladdress 0.0.0.0:{10452+k} --loglevel debug --usecoindata --coindatapre=__coins__ --numindexerworkers=100 --norpcauth >> logs/{n}/staker_{k}.log 2> logs/{n}/staker_{k}.error &')
+        k += 1
 
 
 def test_convert():
-    # acc.convert_token_to_v2()
     tokens = ["ffd8d42dc40a8d166ea4848baf8b5f6e9fe0e9c30d60062eb7d44a8df9e00854",
               "c7545459764224a000a9b323850648acf271186238210ce474b505cd17cc93a0",
               "1d74e5e225e1f09ae38c496d3102aef464dcbd04ad3ac071e6e44077b8a740c9",
@@ -121,15 +126,23 @@ def test_convert():
               "61e1efbf6be9decc46fdf8250cdae5be12bee501b65f774a58af4513b645f6a3",
               "4fb87c00dbe3933ae73c4dc37a37db0bca9aa9f55a2776dbd59cca2b02e72fc4",
               "641e37731c151e8b93ed48f6044836edac1e21d518b11c491774ba10b89ca5e5",
-              "f3c421e4d7520936f3916a878ab361ef3fd6a831e81063ca3e7b80ab4d15a84e"]
+              "f3c421e4d7520936f3916a878ab361ef3fd6a831e81063ca3e7b80ab4d15a84e",
+              "e5032c083f0da67ca141331b6005e4a3740c50218f151a5e829e9d03227e33e2",
+              "a474ec7214b16ad6a6a355e732f2f511d8f2aa79cb4bd498ca46b05f3cfb0e53",
+              "61e1efbf6be9decc46fdf8250cdae5be12bee501b65f774a58af4513b60000aa"
+    ]
     for tok in tokens:
         COIN_MASTER.convert_token_to_v2(tok)
         Account(
             '112t8rnendREF3cg2vuRC248dFymXonwBC7TMmfppXEzz9wFziktHj8NhsGebcRmtquyg2zbytkecPMSHFBVcw4yJewv7E3J6cHgDzYiHoJj').convert_token_to_v2(
             tok)
+        Account(
+            '112t8rnX3VTd3MTWMpfbYP8HGY4ToAaLjrmUYzfjJBrAcb8iPLkNqvVDXWrLNiFV5yb2NBpR3FDZj3VW8GcLUwRdQ61hPMWP3YrREZAZ1UbH').convert_token_to_v2(
+            tok)
     COIN_MASTER.convert_token_to_v2()
     Account(
         '112t8rnendREF3cg2vuRC248dFymXonwBC7TMmfppXEzz9wFziktHj8NhsGebcRmtquyg2zbytkecPMSHFBVcw4yJewv7E3J6cHgDzYiHoJj').convert_token_to_v2()
+    Account('112t8rnX3VTd3MTWMpfbYP8HGY4ToAaLjrmUYzfjJBrAcb8iPLkNqvVDXWrLNiFV5yb2NBpR3FDZj3VW8GcLUwRdQ61hPMWP3YrREZAZ1UbH').convert_token_to_v2()
 
 
 def test_check_bal():
@@ -422,3 +435,44 @@ def test_check_run_node():
         except:
             pass
         i += 1
+
+
+def test_random_stake_stop():
+    while True:
+        a = random.randrange(0, 162)
+        tx = STAKER_ACCOUNTS[a].stake()
+        if tx.get_error_msg() is not None:
+            ERROR(f'Trx stake STK{a}: {tx.get_error_msg()}')
+        else:
+            INFO(f'Trx stake STK{a}: ====================================')
+        a = random.randrange(0, 162)
+        tx = STAKER_ACCOUNTS[a].stake()
+        if tx.get_error_msg() is not None:
+            ERROR(f'Trx stake STK{a}: {tx.get_error_msg()}')
+        else:
+            INFO(f'Trx stake STK{a}: ====================================')
+        b = random.randrange(0, 162)
+        tx = STAKER_ACCOUNTS[b].stk_un_stake_tx()
+        if tx.get_error_msg() is not None:
+            ERROR(f'Trx unstake STK{b}: {tx.get_error_msg()}')
+        else:
+            INFO(f'Trx unstake STK{b}: ====================================')
+        aa = random.randrange(0, 162)
+        tx = STAKER_ACCOUNTS[aa].stake()
+        if tx.get_error_msg() is not None:
+            ERROR(f'Trx stake STK{aa}: {tx.get_error_msg()}')
+        else:
+            INFO(f'Trx stake STK{aa}: ====================================')
+        aa = random.randrange(0, 162)
+        tx = STAKER_ACCOUNTS[aa].stake()
+        if tx.get_error_msg() is not None:
+            ERROR(f'Trx stake STK{aa}: {tx.get_error_msg()}')
+        else:
+            INFO(f'Trx stake STK{aa}: ====================================')
+        c = random.randrange(0, 162)
+        tx = STAKER_ACCOUNTS[c].stk_stop_auto_stake_me()
+        if tx.get_error_msg() is not None:
+            ERROR(f'Trx stop auto stake STK{c}: {tx.get_error_msg()}')
+        else:
+            INFO(f'Trx stop auto stake STK{c}: ====================================')
+

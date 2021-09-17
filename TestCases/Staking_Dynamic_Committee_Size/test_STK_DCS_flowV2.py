@@ -11,10 +11,10 @@ from TestCases.Staking_Dynamic_Committee_Size import get_staker_by_tx_id
 fix_node = ChainConfig.FIX_BLOCK_VALIDATOR
 max_shard_comm_size = ChainConfig.SHARD_COMMITTEE_SIZE
 staking_flowv2_height = 1
-enable_slashing_staking_flowV2 = 1
-staking_flowv3_height = 955
+enable_slashing_staking_flowV2 = 50
+staking_flowv3_height = 555
 # staking_flowv3_height = 100000000000000000
-slashingV2 = 1
+slashingV2 = 50
 cross_stake = False
 tracking_reward = False
 
@@ -81,15 +81,15 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
         shard_height[str(i)] = shard_bsd.get_shard_height()
         expect_total = 0
         count_vote_by_shard = {}
-    if beacon_height >= slashingV2:
-        expect_by_shard = {}
-        count_vote_by_shard = beacon_bs.get_number_of_shard_block()
-        expect_total = int(sum(count_vote_by_shard.values()) / ChainConfig.ACTIVE_SHARD)
-        for shard_id, value in count_vote_by_shard.items():
-            if value < expect_total:
-                expect_by_shard[shard_id] = expect_total
-            else:
-                expect_by_shard[shard_id] = value
+    # if beacon_height >= slashingV2:
+    expect_by_shard = {}
+    count_vote_by_shard = beacon_bs.get_number_of_shard_block()
+    expect_total = int(sum(count_vote_by_shard.values()) / ChainConfig.ACTIVE_SHARD)
+    for shard_id, value in count_vote_by_shard.items():
+        if value < expect_total:
+            expect_by_shard[shard_id] = expect_total
+        else:
+            expect_by_shard[shard_id] = value
     if beacon_height >= staking_flowv3_height:
         swapPercent = 8
     elif beacon_height >= staking_flowv2_height:
@@ -332,13 +332,9 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
             num_of_slash[shard] = min(num_of_swap_out[shard], len(b4_shard_missing_signature_penalty[shard]))
             num_of_swap_out_node_normal[shard] = max(num_of_swap_out[shard]-num_of_slash[shard], 0)
             num_of_swap_in[shard] = max_shard_comm_size - (len(b4_shard_committees[shard]) - num_of_swap_out[shard])
-
-    pending_validator_size = sum(len(committees) for committees in pending_validator.values())
-    b4_pending_validator_size = sum(len(committees) for committees in b4_pending_validator.values())
     pending_validator_list = []
     for committees in pending_validator.values():
         pending_validator_list += committees
-
     if current_height_in_epoch == random_time:
         num_of_assigned_candidates = min(len(b4_candidate_waiting_next_random), num_of_assigned_candidates)
         if not b4_candidate_waiting_current_random:
@@ -356,17 +352,23 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
 
     if b4_candidate_waiting_current_random:
         if beacon_height >= staking_flowv3_height:
+            syncing_validator_size = sum(len(committees) for committees in syncing_validator.values())
+            b4_syncing_validator_size = sum(len(committees) for committees in b4_syncing_validator.values())
             for shard, committees in syncing_validator.items():
                 for committee in committees:
-                    if committee not in b4_syncing_validator[shard]:
+                    if committee not in b4_syncing_validator.get(shard, []):
                         assert committee in b4_candidate_waiting_current_random, ERROR(committee)
-        else:
+            assert len(
+                b4_candidate_waiting_current_random) + b4_syncing_validator_size == syncing_validator_size
+        elif beacon_height >= staking_flowv2_height:
+            pending_validator_size = sum(len(committees) for committees in pending_validator.values())
+            b4_pending_validator_size = sum(len(committees) for committees in b4_pending_validator.values())
             for shard, committees in pending_validator.items():
                 for committee in committees:
                     if committee not in b4_pending_validator[shard]:
                         assert committee in b4_candidate_waiting_current_random, ERROR(committee)
-        assert len(
-            b4_candidate_waiting_current_random) + b4_pending_validator_size == pending_validator_size, f'{len(b4_candidate_waiting_current_random) + b4_pending_validator_size} == {pending_validator_size}'
+            assert len(
+                b4_candidate_waiting_current_random) + b4_pending_validator_size == pending_validator_size
         assert shard_committees == b4_shard_committees, ERROR(*shard_committees) and ERROR(*b4_shard_committees)
     elif b4_beacon_height % block_per_epoch < random_time < beacon_height % block_per_epoch:
         assert shard_committees == b4_shard_committees, ERROR(*shard_committees) and ERROR(*b4_shard_committees)
@@ -394,7 +396,8 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
                     if committee.is_auto_staking():
                         assert committee in pending_validator[shard]
     else:
-        # assert b4_pending_validator == pending_validator, ERROR(*b4_pending_validator) and ERROR(*pending_validator)
+        if staking_flowv2_height <= beacon_height <= staking_flowv3_height:
+            assert b4_pending_validator == pending_validator, ERROR(*b4_pending_validator) and ERROR(*pending_validator)
         assert shard_committees == b4_shard_committees, ERROR(*shard_committees) and ERROR(*b4_shard_committees)
 
     return epoch, reward_dict, candidate_waiting_next_random, candidate_waiting_current_random, pending_validator, syncing_validator, shard_committees, beacon_height, shard_missing_signature_penalty, shard_height

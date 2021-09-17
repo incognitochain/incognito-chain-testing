@@ -10,6 +10,7 @@ from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from TestCases.Staking import account_x, amount_stake_under_1750, \
     amount_stake_over_1750, account_y, account_t
+staking_flowv3 = False
 
 
 @pytest.mark.parametrize('amount_prv_stake', [
@@ -83,7 +84,13 @@ def test_stake_same_validator(staker1, staker2, validator):
             balance_before_stake_second = bal
 
     STEP(3.2, 'Check stake 2nd when acc in shard pending')
-    validator.stk_wait_till_i_am_in_shard_pending()
+    if staking_flowv3:
+        validator.stk_wait_till_i_am_in_sync_pool()
+        staker2.stake(validator).expect_error()
+        assert balance_before_stake_second == staker2.get_balance()
+
+    shard_pending, x = validator.stk_wait_till_i_am_in_shard_pending(sfv3=staking_flowv3)
+    assert shard_pending is not False
     staker2.stake(validator).expect_error()
     assert balance_before_stake_second == staker2.get_balance()
 
@@ -91,7 +98,7 @@ def test_stake_same_validator(staker1, staker2, validator):
     epoch_plus_n = validator.stk_wait_till_i_am_committee()
     beacon_bsd = SUT().get_beacon_best_state_detail_info()
     staked_shard = beacon_bsd.is_he_a_committee(validator)
-    assert staked_shard is not False
+    assert staked_shard == shard_pending
     staker2.stake(validator=validator, auto_re_stake=False).expect_error('This pubkey may staked already')
     assert balance_before_stake_second == staker2.get_balance()
 

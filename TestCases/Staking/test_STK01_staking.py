@@ -18,6 +18,7 @@ from Helpers.Time import WAIT
 from TestCases.Staking import *
 
 slashing_v2 = True
+staking_flowv3 = False
 
 
 @pytest.mark.parametrize("the_stake, validator, reward_receiver, auto_re_stake", [
@@ -64,17 +65,23 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
     beacon_state_after_stake = SUT().get_beacon_best_state_detail_info()
     assert beacon_state_after_stake.get_auto_staking_committees(validator) is auto_re_stake
 
-    STEP(2, f'Wait until the staker be assigned to shard pending')
-    validator.stk_wait_till_i_am_in_shard_pending()
-    beacon_bsd = SUT().get_beacon_best_state_detail_info()
-    staked_shard = beacon_bsd.is_he_in_shard_pending(validator)
+    STEP(2.1, f'Wait until the staker be assigned to shard pending')
+    if staking_flowv3:
+        staked_shard, x = validator.stk_wait_till_i_am_in_sync_pool()
+        the_stake.stake(validator, reward_receiver, auto_re_stake=auto_re_stake).expect_error()
+        shard_pending, xx = validator.stk_wait_till_i_am_in_shard_pending(sfv3=staking_flowv3)
+        assert staked_shard == shard_pending, ERROR('Wrong assign shard')
+    else:
+        staked_shard, x = validator.stk_wait_till_i_am_in_shard_pending()
     assert staked_shard is not False
+    the_stake.stake(validator, reward_receiver, auto_re_stake=auto_re_stake).expect_error()
 
     STEP(3, 'Stop auto staking')
     STEP(3.1, 'Verify stop auto staking success when auto_re_stake = True')
     epoch_plus_n = validator.stk_wait_till_i_am_committee()
     INFO('When validator in shard committee')
     if auto_re_stake:
+        the_stake.stake(validator, reward_receiver, auto_re_stake=auto_re_stake).expect_error()
         result_stop_auto_stake = the_stake.stk_stop_auto_stake_him(validator).subscribe_transaction()
         stop_auto_stake_fee = result_stop_auto_stake.get_fee()
         block_height = result_stop_auto_stake.get_block_height()
@@ -88,7 +95,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         stop_auto_stake_fee = 0
 
     STEP(3.2, 'Verify can not stop auto staking when auto_re_stake = False')
-    # INFO('When validator in shard pending')
+    the_stake.stake(validator, reward_receiver, auto_re_stake=auto_re_stake).expect_error()
     tx = the_stake.stk_stop_auto_stake_him(validator)
     try:
         tx.expect_error()

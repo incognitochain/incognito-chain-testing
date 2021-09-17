@@ -34,6 +34,7 @@ except IndexError:
 COIN_MASTER.top_up_if_lower_than(group_staker, coin(1), coin(5))
 token_receiver = Account(
     '112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA')
+token_receiver.submit_key()
 list_acc_x_shard = AccountGroup()
 for i in range(ChainConfig.ACTIVE_SHARD):
     try:

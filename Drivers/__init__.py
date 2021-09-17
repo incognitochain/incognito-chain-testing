@@ -55,7 +55,7 @@ class ResponseBase:
             if string is None:
                 return self.data()['Result']
             return self.data()['Result'].get(string, default)
-        except(KeyError, TypeError):
+        except(KeyError, TypeError, AttributeError):
             return None
 
     def get_error_msg(self):
