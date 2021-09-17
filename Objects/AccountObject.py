@@ -433,7 +433,7 @@ class Account:
         INFO(f"Waited {t}s but still not yet exist in waiting next random")
         return None
 
-    def stk_wait_till_i_am_in_shard_pending(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+    def stk_wait_till_i_am_in_shard_pending(self, timeout=ChainConfig.STK_WAIT_TIME_OUT, sfv3=False):
         INFO(f"Wait until {self.validator_key} exist in shard pending, timeout: {timeout}s")
         time_start = datetime.datetime.now()
         time_spent = 0
