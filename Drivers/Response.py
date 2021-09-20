@@ -174,7 +174,7 @@ class Response(RPCResponseBase):
         if tx_hash is None:
             raise AttributeError("Response does not contain tx hash")
 
-        return self._handler.get_tx_by_hash(self, tx_hash, time_out, interval)
+        return self._handler.get_tx_by_hash(tx_hash, time_out, interval)
 
     def get_trade_tx_status(self, tx_hash=None):
         """

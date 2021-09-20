@@ -260,12 +260,12 @@ class ResponseWithdrawStakingRewardStatus(ResponseStatusBase):
 
 
 class ResponseModifyParamStatus(ResponseStatusBase, PdeV3State.Param):
-    # def __init__(self, response=None, more_info=None, handler=None):
-    #     super().__init__(response=None, more_info=None, handler=None)
-    #     self.dict_data = self.get_result()
     @property
     def dict_data(self):
-        return self.get_result()
+        return self.get_result("Pdexv3Params")
+
+    def get_error(self):
+        return self.get_result("ErrorMsg")
 
 
 # ======================================================================================================================

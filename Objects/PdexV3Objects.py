@@ -184,50 +184,44 @@ class PdeV3State(RPCResponseBase):
             return all_order_obj
 
     class Param(BlockChainInfoBaseClass):
-        def get_error(self):
-            return self.dict_data.get("ErrorMsg")
-
-        def get_pde3_param(self):
-            return self.dict_data.get("Pdexv3Params")
-
         def get_default_fee_rate_bps(self):
-            return self.get_pde3_param()["DefaultFeeRateBPS"]
+            return self.dict_data["DefaultFeeRateBPS"]
 
         def get_fee_rate_bps(self, by_pool_pair=None):
-            all_rate = self.get_pde3_param()["FeeRateBPS"]
+            all_rate = self.dict_data["FeeRateBPS"]
             if by_pool_pair:
                 return all_rate.get(by_pool_pair)
             return all_rate
 
         def get_prv_discount_percent(self):
-            return self.get_pde3_param()["PRVDiscountPercent"]
+            return self.dict_data["PRVDiscountPercent"]
 
         def get_trading_protocol_fee_percent(self):
-            return self.get_pde3_param()["TradingProtocolFeePercent"]
+            return self.dict_data["TradingProtocolFeePercent"]
 
         def get_trading_staking_pool_reward_percent(self):
-            return self.get_pde3_param()["TradingStakingPoolRewardPercent"]
+            return self.dict_data["TradingStakingPoolRewardPercent"]
 
         def get_pdex_reward_pool_pair_share(self, by_pool_pair=None):
-            all_reward = self.get_pde3_param()["PDEXRewardPoolPairsShare"]
+            all_reward = self.dict_data["PDEXRewardPoolPairsShare"]
             if by_pool_pair:
                 return all_reward.get(by_pool_pair)
             return all_reward
 
         def get_staking_pool_share(self, by_token=None):
-            all_share = self.get_pde3_param()["StakingPoolsShare"]
+            all_share = self.dict_data["StakingPoolsShare"]
             if by_token:
                 return all_share.get(by_token)
             return all_share
 
         def get_staking_reward_token(self):
-            return self.get_pde3_param()["StakingRewardTokens"]
+            return self.dict_data["StakingRewardTokens"]
 
         def get_mint_nft_require_amount(self):
-            return self.get_pde3_param()["MintNftRequireAmount"]
+            return self.dict_data["MintNftRequireAmount"]
 
         def get_max_order_per_nft(self):
-            return self.get_pde3_param()["MaxOrdersPerNft"]
+            return self.dict_data["MaxOrdersPerNft"]
 
     class StakingPool(BlockChainInfoBaseClass):
         """"0000000000000000000000000000000000000000000000000000000000000004": {
