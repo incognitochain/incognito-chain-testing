@@ -25,7 +25,7 @@ class ResponseBase:
             log_str += f'{self.__str__()}' if response else ''
             Log.DEBUG(log_str, ResponseBase.__name__)
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memo=None):
         r = ResponseBase()
         r.response = copy.deepcopy(self.response)
         r.more_info = copy.deepcopy(self.more_info)
@@ -46,7 +46,7 @@ class ResponseBase:
         try:
             if type(self.response) is str:
                 return json.loads(self.response)  # response from WebSocket
-            return json.loads(self.response.text)  # response from rpc
+            return self.response.json()  # response from rpc
         except Exception as e:
             pass
 

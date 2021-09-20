@@ -15,12 +15,12 @@ class RPCResponseBase(ResponseBase):
             self.response = response.response
             self.more_info = response.more_info
             try:
-                handler = response.__handler
+                handler = response._handler
             except AttributeError:
                 handler = None
         else:
             super().__init__(response, more_info)
-            self.__handler = handler
+            self._handler = handler
 
     def expect_no_error(self, additional_msg_if_fail=''):
         """
@@ -50,13 +50,13 @@ class RPCResponseBase(ResponseBase):
         @return: self
         """
         if handler:
-            self.__handler = handler
+            self._handler = handler
             return self
         elif handler == 0:
-            if self.__handler:
+            if self._handler:
                 return self
         from Objects.IncognitoTestCase import SUT
-        self.__handler = SUT()
+        self._handler = SUT()
         return self
 
     def params(self):
@@ -143,7 +143,7 @@ class Response(RPCResponseBase):
         INFO(f'Subscribe to transaction tx_id = {tx_id}')
         from Objects.TransactionObjects import TransactionDetail
         try:
-            res = self.__handler.subscription().subscribe_pending_transaction(tx_id).get_result('Result')
+            res = self._handler.subscription().subscribe_pending_transaction(tx_id).get_result('Result')
             return TransactionDetail(res)
         except WebSocketTimeoutException:
             WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
@@ -174,7 +174,7 @@ class Response(RPCResponseBase):
         if tx_hash is None:
             raise AttributeError("Response does not contain tx hash")
 
-        return self.__handler.get_tx_by_hash(self, tx_hash, time_out, interval)
+        return self._handler.get_tx_by_hash(self, tx_hash, time_out, interval)
 
     def get_trade_tx_status(self, tx_hash=None):
         """
@@ -184,7 +184,7 @@ class Response(RPCResponseBase):
         self.req_to(0)
         tx_hash = self.expect_no_error().get_tx_id() if tx_hash is None else tx_hash
         try:
-            return self.__handler.dex().get_trade_status(tx_hash).get_result()
+            return self._handler.dex().get_trade_status(tx_hash).get_result()
         except KeyError:
             pass
 
