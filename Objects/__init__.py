@@ -24,3 +24,9 @@ class BlockChainInfoBaseClass(ABC):
 
     def __str__(self):
         return self.pretty_format()
+
+    def _1_item_dict_key(self):
+        return list(self.data.keys())[0]
+
+    def _1_item_dict_value(self):
+        return list(self.data.values())[0]

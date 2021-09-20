@@ -23,6 +23,7 @@ from Objects.BlockChainObjects import BlockChainCore
 from Objects.CoinObject import ListInChainToken, ListInChainBridgeToken
 from Objects.CommitteeState import CommitteeState
 from Objects.PdeObjects import PDEStateInfo
+from Objects.PdexV3Objects import PdeV3State
 from Objects.PortalObjects import PortalStateInfo
 from Objects.ShardBlock import ShardBlock
 from Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
@@ -66,7 +67,7 @@ class Node:
         if url is not None:
             self.parse_url(url)
         self._ssh_session = SshSession(self._address, self._username, self._password, self._ssh_key)
-        self._cache = {}
+        self._cache = {"rpc": {}}
 
     def __str__(self):
         return f"{self._get_rpc_url()} ws:{self._ws_port}"
@@ -74,12 +75,12 @@ class Node:
     def parse_url(self, url):
         import re
         regex = re.compile(
-            r'^(?:http|ftp)s?:\/\/'  # http:// or https://
+            r'^(?:http|ftp)s?://'  # http:// or https://
             r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
             r'localhost|'  # localhost...
             r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
             r'(?::\d+)?'  # optional port
-            r'(?:\/?|[\/?]\S+)$', re.IGNORECASE)
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         if re.match(regex, url) is None:
             raise SyntaxError(f'Url {url} is not in correct format')
 
@@ -122,30 +123,43 @@ class Node:
         return DexRpc(self._get_rpc_url())
 
     def dex_v3(self) -> DEXv3RPC:
-        return DEXv3RPC(self._get_rpc_url())
+
+        if not self._cache['rpc'].get('dex3'):
+            self._cache['rpc']['dex3'] = DEXv3RPC(self._get_rpc_url())
+        return self._cache['rpc']['dex3']
 
     def bridge(self) -> BridgeRpc:
         """
         Bridge APIs by RPC
         @return: BridgeRpc object
         """
-        return BridgeRpc(self._get_rpc_url())
+        if not self._cache['rpc'].get('bridge'):
+            self._cache['rpc']['bridge'] = BridgeRpc(self._get_rpc_url())
+        return self._cache['rpc']['bridge']
 
     def portal(self) -> PortalRpc:
-        return PortalRpc(self._get_rpc_url())
+        if not self._cache['rpc'].get('portal'):
+            self._cache['rpc']['portal'] = PortalRpc(self._get_rpc_url())
+        return self._cache['rpc']['portal']
 
     def subscription(self) -> SubscriptionWs:
         """
         Subscription APIs on web socket
         @return: SubscriptionWs object
         """
-        return SubscriptionWs(self._get_ws_url())
+        if not self._cache['rpc'].get('sub'):
+            self._cache['rpc']['sub'] = SubscriptionWs(self._get_ws_url())
+        return self._cache['rpc']['sub']
 
     def explore_rpc(self) -> ExploreRpc:
-        return ExploreRpc(self._get_rpc_url())
+        if not self._cache['rpc'].get('explore'):
+            self._cache['rpc']['explore'] = ExploreRpc(self._get_rpc_url())
+        return self._cache['rpc']['explore']
 
     def util_rpc(self) -> UtilsRpc:
-        return UtilsRpc(self._get_rpc_url())
+        if not self._cache['rpc'].get('util'):
+            self._cache['rpc']['util'] = UtilsRpc(self._get_rpc_url())
+        return self._cache['rpc']['util']
 
     def get_tx_by_hash(self, tx_hash, interval=10, time_out=120) -> TransactionDetail:
         """
@@ -215,14 +229,14 @@ class Node:
         return beacon_state_obj
 
     def get_latest_pde_state_info(self, beacon_height=None):
-        if beacon_height is None:
-            beacon_height = self.help_get_beacon_height()
-            INFO(f'Get LATEST PDE state at beacon height: {beacon_height}')
-        else:
-            INFO(f'Get PDE state at beacon height: {beacon_height}')
-
+        beacon_height = self.help_get_beacon_height() if not beacon_height else beacon_height
         pde_state = self.dex().get_pde_state(beacon_height)
         return PDEStateInfo(pde_state.get_result())
+
+    def get_pde3_state(self, beacon_height=None):
+        beacon_height = self.help_get_beacon_height() if not beacon_height else beacon_height
+        INFO(f'Get PDE3 state at beacon height: {beacon_height}')
+        return PdeV3State(self.dex_v3().get_pdev3_state(beacon_height))
 
     def get_block_chain_info(self):
         return BlockChainCore(self.system_rpc().get_block_chain_info().get_result())
@@ -243,27 +257,13 @@ class Node:
     def get_slashing_committee(self, epoch):
         return self.system_rpc().get_slashing_committee(epoch).get_result()
 
-    # def get_total_block_in_epoch(self, epoch):
-    #     return TotalBlock(self.system_rpc().get_total_block(epoch).get_result())
-    #
-    # def get_detail_blocks_of_epoch(self, shard_id, epoch, height=None):
-    #     raw_data = self.system_rpc().get_detail_blocks_of_epoch(shard_id, epoch).get_result()
-    #     list_obj = []
-    #     if height is not None:
-    #         try:
-    #             return DetailBlock(raw_data[height])
-    #         except KeyError:
-    #             ERROR(f'Epoch {epoch} does not have height {height}')
-    #     # else:
-    #     #     for info_block in raw_data.values():
-    #     #         list_obj.append(DetailBlock(block))
-
     def create_fork(self, block_fork_list, chain_id=1, num_of_branch=2, branch_tobe_continue=1):
         return self.system_rpc().create_fork(block_fork_list, chain_id, num_of_branch, branch_tobe_continue)
 
     def help_get_beacon_height(self):
-        chain_info = self.get_block_chain_info()
-        return chain_info.get_beacon_block().get_height()
+        latest_height = self.get_block_chain_info().get_beacon_block().get_height()
+        INFO(f"Latest beacon height = {latest_height}")
+        return latest_height
 
     def help_get_beacon_height_in_best_state_detail(self):
         beacon_height = self.get_beacon_best_state_info().get_beacon_height()
@@ -274,7 +274,7 @@ class Node:
         mem_pool_res = self.system_rpc().get_mem_pool()
         list_tx = mem_pool_res.get_result('ListTxs')
         mem_pool_size = mem_pool_res.get_result("Size")
-        INFO(f"There're {mem_pool_size} tx(s) in mem pool. Cleaning now...")
+        INFO(f"There are {mem_pool_size} tx(s) in mem pool. Cleaning now...")
         with ThreadPoolExecutor() as executor:
             for tx in list_tx:
                 executor.submit(self.system_rpc().remove_tx_in_mem_pool, tx['TxID'])

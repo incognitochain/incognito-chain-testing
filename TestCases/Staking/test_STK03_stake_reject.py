@@ -70,7 +70,7 @@ def test_stake_same_validator(staker1, staker2, validator):
         except:
             WAIT(40)
             ERROR(f'Trx stake be created, tx_id: {tx.get_tx_id()}')
-            res = tx.expect_no_error().get_transaction_by_hash(retry=False)
+            res = tx.expect_no_error().get_transaction_by_hash(time_out=0)
             if res.get_block_height():
                 fee = res.get_fee()
             else:

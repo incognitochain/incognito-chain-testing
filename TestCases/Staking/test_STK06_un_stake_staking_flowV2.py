@@ -121,7 +121,7 @@ def test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, auto
         if tx.get_tx_id() is not None:
             ERROR(f'Trx stop auto staking be created, tx_id: {tx.get_tx_id()}')
             WAIT(50)
-            res = tx.get_transaction_by_hash(retry=False)
+            res = tx.get_transaction_by_hash(time_out=0)
             if res.data:
                 fee = res.get_fee()
                 bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=-fee)

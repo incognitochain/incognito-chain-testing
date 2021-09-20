@@ -4,7 +4,6 @@ This package should contain all integration/business test.
 import sys
 
 from Configs.Constants import coin
-from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO_HEADLINE, INFO
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER, PORTAL_FEEDER, AccountGroup
@@ -32,24 +31,17 @@ COIN_MASTER.req_to(SUT())
 # -----------------------------------------
 INFO_HEADLINE("Setup from Testcase init", logger)
 
-# if ChainConfig.PRIVACY_VERSION == 2:
-#     COIN_MASTER.submit_key()
-#     PORTAL_FEEDER.submit_key()
-#
-# INFO("CONVERT to COIN V2", logger)
-# convert_tx = COIN_MASTER.convert_token_to_v2()
-# if convert_tx.get_error_msg() == "Method not found":
-#     ChainConfig.PRIVACY_VERSION = 1
-# elif convert_tx.get_error_msg() == "Can not create tx":
-#     ChainConfig.PRIVACY_VERSION = 2
-# else:
-#     ChainConfig.PRIVACY_VERSION = 2
-#     convert_tx.subscribe_transaction()
-#
+COIN_MASTER.submit_key()
+PORTAL_FEEDER.submit_key()
+for c in COIN_MASTER.list_unspent_coin():
+    if c.get_version() == 1:
+        INFO("CONVERT to COIN V2", logger)
+        COIN_MASTER.convert_token_to_v2().subscribe_transaction()
+        break
+ACCOUNTS.submit_key('ota')
+WAIT(60)
+
 if isinstance(ACCOUNTS, AccountGroup) or isinstance(ACCOUNTS, list):
     COIN_MASTER.top_up_if_lower_than(ACCOUNTS, coin(2), coin(5))
 
-# for acc in ACCOUNTS:
-#     acc.submit_key()
-# WAIT(60)
 INFO_HEADLINE("END setup from Testcase init", logger)

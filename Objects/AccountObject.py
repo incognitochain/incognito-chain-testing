@@ -155,7 +155,7 @@ class Account:
         copy_obj.ota_k = self.ota_k
         return copy_obj
 
-    def __deepcopy__(self, memo={}):
+    def __deepcopy__(self, memo=None):
         copy_obj = Account()
 
         copy_obj.private_key = copy.deepcopy(self.private_key)
@@ -975,10 +975,61 @@ class Account:
         else:
             return self.pde_trade_token_v2(token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy)
 
+    def pde3_add_order(self, nft_id, token_sell, pool_id, sell_amount, min_acceptable,
+                       tx_fee, tx_privacy):
+        return self.REQ_HANDLER.dex_v3().add_order(self.private_key, nft_id, token_sell, pool_id, sell_amount,
+                                                   min_acceptable, tx_fee, tx_privacy)
+
+    def pde3_withdraw_order(self, token_id, amount, nft_id, pair_id, order_id, tx_fee=-1, tx_privacy=1):
+        return self.REQ_HANDLER.dex_v3().withdraw_order(self.private_key, token_id, amount, nft_id, pair_id,
+                                                        order_id, tx_fee, tx_privacy)
+
+    def pde3_trade(self, token_sell, token_buy, sell_amount, min_acceptable, trade_path, trading_fee=100,
+                   use_prv_fee=True, tx_fee=-1, tx_privacy=1):
+        return self.REQ_HANDLER.dex_v3().trade(self.private_key, token_sell, token_buy, sell_amount, min_acceptable,
+                                               trade_path, trading_fee, use_prv_fee, tx_fee, tx_privacy)
+
+    def pde3_withdraw_lp_fee(self, receiver, token_amount, token_id, pool_pair_id, nft_id,
+                             token_tx_type=1, token_fee=0, token_name="", token_symbol=0,
+                             burning_tx=None, tx_fee=-1, tx_privacy=1):
+        return self.REQ_HANDLER.dex_v3() \
+            .withdraw_lp_fee(self.private_key, receiver.payment_key, token_amount, token_id, pool_pair_id, nft_id,
+                             token_tx_type, token_fee, token_name, token_symbol, burning_tx, tx_fee, tx_privacy)
+
+    def pde3_stake(self, stake_amount, staking_pool_id, nft_id, tx_fee=-1, tx_privacy=1):
+        return self.REQ_HANDLER.dex_v3() \
+            .stake(self.private_key, staking_pool_id, stake_amount, nft_id, tx_fee=tx_fee, tx_privacy=tx_privacy)
+
+    def pde3_unstake(self, unstake_amount, staking_pool_id, nft_id, tx_fee=-1, tx_privacy=1):
+        return self.REQ_HANDLER.dex_v3() \
+            .unstake(self.private_key, staking_pool_id, nft_id, unstake_amount, tx_fee=tx_fee, tx_privacy=tx_privacy)
+
+    def pde3_withdraw_staking_reward_to(self, receiver, staking_pool_id, nft_id, token_id, tx_fee=-1, tx_privacy=1):
+        return self.REQ_HANDLER.dex_v3() \
+            .withdraw_staking_reward(self.private_key, receiver.payment_key, staking_pool_id, nft_id, token_id,
+                                     tx_fee=tx_fee, tx_privacy=tx_privacy)
+
+    def pde3_withdraw_staking_reward_to_me(self, staking_pool_id, nft_id, token_id, tx_fee=-1, tx_privacy=1):
+        return self.pde3_withdraw_staking_reward_to(self, staking_pool_id, nft_id, token_id, tx_fee=-1, tx_privacy=1)
+
+    def pde3_add_liquidity(self, token_id, amount, amplifier, nft_id, pair_hash=None, pool_pair_id="", tx_fee=-1,
+                           tx_privacy=1):
+        return self.REQ_HANDLER.dex_v3() \
+            .add_liquidity(self.private_key, token_id, amount, amplifier, pool_pair_id, pair_hash, nft_id,
+                           tx_fee=tx_fee, tx_privacy=tx_privacy)
+
+    def pde3_withdraw_liquidity(self, pool_pair_id, nft_id, share_amount, tx_fee=-1, tx_privacy=1):
+        return self.REQ_HANDLER.dex_v3() \
+            .withdraw_liquidity(self.private_key, pool_pair_id, nft_id, share_amount, tx_fee=tx_fee,
+                                tx_privacy=tx_privacy)
+
+    def pde3_mint_nft(self, amount, token_id=PRV_ID, tx_fee=-1, tx_privacy=1):
+        return self.REQ_HANDLER.dex_v3() \
+            .mint_nft(self.private_key, amount, token_id, tx_fee, tx_privacy)
+
     def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=1, check_interval=10,
                                 timeout=100):
         """
-
         @param token_id:
         @param from_balance:
         @param least_change_amount: change at least this amount of token
@@ -1332,8 +1383,6 @@ class AccountGroup:
         return self.account_list[item]
 
     def __deepcopy__(self, memo=None):
-        if memo is None:
-            memo = {}
         copy_acc_group = AccountGroup()
         copy_acc_group.account_list = copy.deepcopy(self.account_list, memo)
         return copy_acc_group
