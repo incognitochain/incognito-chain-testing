@@ -37,7 +37,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
         def __init__(self, raw_data):
             super(PDEStateInfo.WaitingContribution, self).__init__(raw_data)
-            raw_data = copy.copy(self.data)
+            raw_data = copy.copy(self.dict_data)
             self.id, self.info = raw_data.popitem()
 
         def __str__(self):
@@ -88,7 +88,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
         def __init__(self, raw_data):
             super(PDEStateInfo.PoolPair, self).__init__(raw_data)
-            raw_data = copy.copy(self.data)
+            raw_data = copy.copy(self.dict_data)
             self.id, self.info = raw_data.popitem()
 
         def __str__(self):
@@ -125,7 +125,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
         def __init__(self, raw_data):
             super(PDEStateInfo.PdeShare, self).__init__(raw_data)
-            raw_data = copy.copy(self.data)
+            raw_data = copy.copy(self.dict_data)
             self.id, self.info = raw_data.popitem()
 
         def __str__(self):
@@ -160,7 +160,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
         def __init__(self, raw_data):
             super(PDEStateInfo.PdeReward, self).__init__(raw_data)
-            raw_data = copy.copy(self.data)
+            raw_data = copy.copy(self.dict_data)
             self.key, self.value = raw_data.popitem()
 
         def __str__(self):
@@ -210,7 +210,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         # self._get_pde_share_objects()
 
     def get_waiting_contributions(self):
-        raw_waiting_list = self.data['WaitingPDEContributions']
+        raw_waiting_list = self.dict_data['WaitingPDEContributions']
         waiting_contribute_objs = []
         for k, v in raw_waiting_list.items():
             waiting_contribute_data = {k: v}
@@ -259,7 +259,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
 
     def get_pde_pool_pairs(self):
         pool_pair_objs = []
-        pool_pair_raw = self.data['PDEPoolPairs']
+        pool_pair_raw = self.dict_data['PDEPoolPairs']
         for k, v in pool_pair_raw.items():
             pool_pair_data = {k: v}
             pool_pair_obj = PDEStateInfo.PoolPair(pool_pair_data)
@@ -275,7 +275,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
              f' {of_user}:{tok1}-{tok2}')
 
         reward_pool = []
-        reward_pool_raw = self.data['PDETradingFees']
+        reward_pool_raw = self.dict_data['PDETradingFees']
         for k, v in reward_pool_raw.items():
             reward_raw_data = {k: v}
             reward_obj = PDEStateInfo.PdeReward(reward_raw_data)
@@ -345,7 +345,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         DEBUG(f'Getting share of user and tokens at beacon height time stamp {self.get_beacon_time_stamp()}: '
               f'{inc_addr}:{tok1}-{tok2}')
 
-        pde_share_raw = self.data['PDEShares']
+        pde_share_raw = self.dict_data['PDEShares']
         pde_share_objs = []
         for k, v in pde_share_raw.items():
             pde_share_data = {k: v}
@@ -405,7 +405,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         return list_amount
 
     def get_beacon_time_stamp(self):
-        return self.data["BeaconTimeStamp"]
+        return self.dict_data["BeaconTimeStamp"]
 
     def get_rate_between_token(self, token1, token2):
         pool_pair = self.get_pde_pool_pairs()

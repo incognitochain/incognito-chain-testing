@@ -10,7 +10,7 @@ class CommitteeState(BlockChainInfoBaseClass):
         @return: if user not None, return True/False/None (if user not found in this auto staking list of this state).
         if user is None, return the whole autostaking list
         """
-        auto_staking_list = self.data['autoStaking']
+        auto_staking_list = self.dict_data['autoStaking']
         if user is None:
             return auto_staking_list
 
@@ -22,7 +22,7 @@ class CommitteeState(BlockChainInfoBaseClass):
         return None
 
     def _get_committee_list(self, list_index):
-        return self.data['committee'][str(list_index)]
+        return self.dict_data['committee'][str(list_index)]
 
     def get_shard_committee_list(self, shard_id):
         """
@@ -44,5 +44,5 @@ class CommitteeState(BlockChainInfoBaseClass):
         return len(self.get_beacon_committee_list())
 
     def count_num_of_shard(self):
-        all_committee_list = self.data['committee']
+        all_committee_list = self.dict_data['committee']
         return len(all_committee_list) - 1  # -1 of beacon committee list

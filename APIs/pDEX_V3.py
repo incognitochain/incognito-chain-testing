@@ -1,6 +1,7 @@
 from APIs import BaseRpcApi, unspecified
 from Configs import Constants
 from Drivers.Response import RPCResponseBase
+from Objects.PdexV3Objects import PdeV3State
 
 
 class ResponseStatusBase(RPCResponseBase):
@@ -258,51 +259,13 @@ class ResponseWithdrawStakingRewardStatus(ResponseStatusBase):
             raise SyntaxError("Only support query amount by token nor by receiver, not both")
 
 
-class ResponseModifyParamStatus(ResponseStatusBase):
-    def get_error(self):
-        return self.get_result("ErrorMsg")
-
-    def get_pde3_param(self):
-        return self.get_result("Pdexv3Params")
-
-    def get_default_fee_rate_bps(self):
-        return self.get_pde3_param()["DefaultFeeRateBPS"]
-
-    def get_fee_rate_bps(self, by_pool_pair=None):
-        all_rate = self.get_pde3_param()["FeeRateBPS"]
-        if by_pool_pair:
-            return all_rate.get(by_pool_pair)
-        return all_rate
-
-    def get_prv_discount_percent(self):
-        return self.get_pde3_param()["PRVDiscountPercent"]
-
-    def get_trading_protocol_fee_percent(self):
-        return self.get_pde3_param()["TradingProtocolFeePercent"]
-
-    def get_trading_staking_pool_reward_percent(self):
-        return self.get_pde3_param()["TradingStakingPoolRewardPercent"]
-
-    def get_pdex_reward_pool_pair_share(self, by_pool_pair=None):
-        all_reward = self.get_pde3_param()["PDEXRewardPoolPairsShare"]
-        if by_pool_pair:
-            return all_reward.get(by_pool_pair)
-        return all_reward
-
-    def get_staking_pool_share(self, by_token=None):
-        all_share = self.get_pde3_param()["StakingPoolsShare"]
-        if by_token:
-            return all_share.get(by_token)
-        return all_share
-
-    def get_staking_reward_token(self):
-        return self.get_pde3_param()["StakingRewardTokens"]
-
-    def get_mint_nft_require_amount(self):
-        return self.get_pde3_param()["MintNftRequireAmount"]
-
-    def get_max_order_per_nft(self):
-        return self.get_pde3_param()["MaxOrdersPerNft"]
+class ResponseModifyParamStatus(ResponseStatusBase, PdeV3State.Param):
+    # def __init__(self, response=None, more_info=None, handler=None):
+    #     super().__init__(response=None, more_info=None, handler=None)
+    #     self.dict_data = self.get_result()
+    @property
+    def dict_data(self):
+        return self.get_result()
 
 
 # ======================================================================================================================
@@ -536,7 +499,7 @@ class DEXv3RPC(BaseRpcApi):
 
     def get_modify_param_status(self, tx_id):
         return ResponseModifyParamStatus(
-            self.rpc_connection.with_method()
+            self.rpc_connection.with_method("pdexv3_getParamsModifyingStatus")
                 .with_params([{"ReqTxID": tx_id}]).execute())
 
     def get_pdev3_state(self, beacon_height):

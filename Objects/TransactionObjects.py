@@ -125,7 +125,7 @@ class TransactionDetail(BlockChainInfoBaseClass):
             @return:
             """
             from Objects.CoinObject import TxOutPut
-            raw_coins = self.data[coin_list_name]
+            raw_coins = self.dict_data[coin_list_name]
             list_coin_obj = []
             for raw in raw_coins:
                 try:
@@ -133,7 +133,7 @@ class TransactionDetail(BlockChainInfoBaseClass):
                 except KeyError:
                     coin_obj = TxOutPut(raw)
                 try:
-                    coin_obj.data['CoinDetailsEncrypted'] = raw['CoinDetailsEncrypted']
+                    coin_obj.dict_data['CoinDetailsEncrypted'] = raw['CoinDetailsEncrypted']
                 except KeyError:
                     pass
                 list_coin_obj.append(coin_obj)
@@ -164,7 +164,7 @@ class TransactionDetail(BlockChainInfoBaseClass):
 
         def __init__(self, raw_data):
             super(TransactionDetail.MetaData, self).__init__(raw_data)
-            self.data = json.loads(self.data)
+            self.data = json.loads(self.dict_data)
 
         def get_type(self):
             return self.data['Type']

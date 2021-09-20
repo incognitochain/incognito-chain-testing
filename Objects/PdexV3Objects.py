@@ -63,19 +63,19 @@ class PdeV3State(RPCResponseBase):
 
         class Share(BlockChainInfoBaseClass):
             def get_nft_id(self):
-                return list(self.data.keys())[0]
+                return list(self.dict_data.keys())[0]
 
             def get_amount(self):
-                return self.data[self.get_nft_id()]["Amount"]
+                return self.dict_data[self.get_nft_id()]["Amount"]
 
             def get_trading_fee(self, by_token=None):
-                all_fee = self.data[self.get_nft_id()]["TradingFees"]
+                all_fee = self.dict_data[self.get_nft_id()]["TradingFees"]
                 if by_token:
                     return all_fee[by_token]
                 return all_fee
 
             def get_last_lp_fee_per_share(self, by_token):
-                all_fee = self.data[self.get_nft_id()]["LastLPFeesPerShare"]
+                all_fee = self.dict_data[self.get_nft_id()]["LastLPFeesPerShare"]
                 if by_token:
                     return all_fee[by_token]
                 return all_fee
@@ -93,34 +93,34 @@ class PdeV3State(RPCResponseBase):
                         }"""
 
             def get_id(self):
-                return self.data["Id"]
+                return self.dict_data["Id"]
 
             def get_nft_id(self):
-                return self.data["NftID"]
+                return self.dict_data["NftID"]
 
             def get_token0_rate(self):
-                return self.data["Token0Rate"]
+                return self.dict_data["Token0Rate"]
 
             def get_token1_rate(self):
-                return self.data["Token1Rate"]
+                return self.dict_data["Token1Rate"]
 
             def get_token0_balance(self):
-                return self.data["Token0Balance"]
+                return self.dict_data["Token0Balance"]
 
             def get_token1_balance(self):
-                return self.data["Token1Balance"]
+                return self.dict_data["Token1Balance"]
 
             def get_trade_direction(self):
-                return self.data["TradeDirection"]
+                return self.dict_data["TradeDirection"]
 
             def get_fee(self):
-                return self.data["Fee"]
+                return self.dict_data["Fee"]
 
         def get_pool_pair_id(self):
-            return list(self.data.keys())[0]
+            return list(self.dict_data.keys())[0]
 
         def __pair_data(self):
-            return self.data[self.get_pool_pair_id()]
+            return self.dict_data[self.get_pool_pair_id()]
 
         def get_state(self):
             return self.__pair_data()["State"]
@@ -185,10 +185,10 @@ class PdeV3State(RPCResponseBase):
 
     class Param(BlockChainInfoBaseClass):
         def get_error(self):
-            return self.data.get("ErrorMsg")
+            return self.dict_data.get("ErrorMsg")
 
         def get_pde3_param(self):
-            return self.data.get("Pdexv3Params")
+            return self.dict_data.get("Pdexv3Params")
 
         def get_default_fee_rate_bps(self):
             return self.get_pde3_param()["DefaultFeeRateBPS"]
@@ -284,16 +284,16 @@ class PdeV3State(RPCResponseBase):
          },"""
 
         def __init__(self, data):
-            l_id = len(self.data.keys())
+            l_id = len(self.dict_data.keys())
             if l_id != 1:
                 raise ValueError(f"This waiting contribution has {l_id} id while expecting only 1: data {data}")
             super().__init__(data)
 
         def get_contribution_id(self):
-            return list(self.data.keys())[0]
+            return list(self.dict_data.keys())[0]
 
         def __contrib_info(self):
-            return self.data[self.get_contribution_id()]
+            return self.dict_data[self.get_contribution_id()]
 
         def get_pool_pair_id(self):
             return self.__contrib_info()["PoolPairID"]

@@ -23,7 +23,7 @@ class AllViewDetail(BlockChainInfoBaseClass):
     """
 
     def view_hash_follow_height(self):
-        list_raw = self.data
+        list_raw = self.dict_data
         dict_heights = {}
         for raw in list_raw:
             block = AllViewDetail.BlockView(raw)
@@ -43,16 +43,16 @@ class AllViewDetail(BlockChainInfoBaseClass):
 
     class BlockView(BlockChainInfoBaseClass):
         def get_block_hash(self):
-            return self.data['Hash']
+            return self.dict_data['Hash']
 
         def get_height(self):
-            return self.data['Height']
+            return self.dict_data['Height']
 
         def get_previous_block_hash(self):
-            return self.data['PreviousBlockHash']
+            return self.dict_data['PreviousBlockHash']
 
         def get_round(self):
-            return self.data['Round']
+            return self.dict_data['Round']
 
         def get_time(self):
-            return self.data['Timeslot']
+            return self.dict_data['Timeslot']

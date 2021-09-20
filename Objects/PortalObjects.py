@@ -14,16 +14,16 @@ from Objects import BlockChainInfoBaseClass
 class _PortalInfoBase(BlockChainInfoBaseClass):
 
     def get_status(self):
-        return self.data['Status']
+        return self.dict_data['Status']
 
     def get_token_id(self):
-        return self.data['TokenID']
+        return self.dict_data['TokenID']
 
     def get_amount(self):
-        return int(self.data['Amount'])
+        return int(self.dict_data['Amount'])
 
     def is_none(self):
-        if self.data is None:
+        if self.dict_data is None:
             return True
         return False
 
@@ -515,7 +515,7 @@ class PortalStateInfo(_PortalInfoBase):
             return tok_list
 
     def get_custodian_pool(self) -> List[CustodianInfo]:
-        custodian_pool = self.data['CustodianPool']
+        custodian_pool = self.dict_data['CustodianPool']
         custodian_list = [PortalStateInfo.CustodianInfo(value) for key, value in custodian_pool.items()]
         return custodian_list
 
@@ -535,9 +535,9 @@ class PortalStateInfo(_PortalInfoBase):
     def get_portal_rate(self, token_id=None):
         try:
             if token_id is None:
-                return self.data['FinalExchangeRatesState']['Rates']
+                return self.dict_data['FinalExchangeRatesState']['Rates']
             else:
-                return int(self.data['FinalExchangeRatesState']['Rates'][token_id]['Amount'])
+                return int(self.dict_data['FinalExchangeRatesState']['Rates'][token_id]['Amount'])
         except KeyError:
             ERROR(f'Cannot find portal rate of token {token_id}, assume rate = 0')
             return 0
@@ -585,7 +585,7 @@ class PortalStateInfo(_PortalInfoBase):
 
     def get_porting_waiting_req(self, token_id=None) -> List[PortingReqInfo]:
         req_list = []
-        req_data_raw = self.data['WaitingPortingRequests']
+        req_data_raw = self.dict_data['WaitingPortingRequests']
         for req_raw in req_data_raw.values():
             req = PortingReqInfo(req_raw)
             if token_id is not None and req.get_token_id() == token_id:
@@ -596,7 +596,7 @@ class PortalStateInfo(_PortalInfoBase):
 
     def get_redeem_waiting_req(self, token_id=None) -> List[RedeemReqInfo]:
         req_list = []
-        req_data_raw = self.data['WaitingRedeemRequests']
+        req_data_raw = self.dict_data['WaitingRedeemRequests']
         for req_raw in req_data_raw.values():
             req = RedeemReqInfo(req_raw)
             if token_id is not None and req.get_token_id() == token_id:
@@ -607,7 +607,7 @@ class PortalStateInfo(_PortalInfoBase):
 
     def get_redeem_matched_req(self, token_id=None, custodian=None) -> List[RedeemReqInfo]:
         req_list = []
-        req_data_raw = self.data['MatchedRedeemRequests']
+        req_data_raw = self.dict_data['MatchedRedeemRequests']
         for req_raw in req_data_raw.values():
             req = RedeemReqInfo(req_raw)
             if token_id is not None and req.get_token_id() == token_id:
@@ -628,7 +628,7 @@ class PortalStateInfo(_PortalInfoBase):
         return req_list
 
     def get_liquidation_pool(self) -> LiquidationPool:
-        pool_data = self.data['LiquidationPool']
+        pool_data = self.dict_data['LiquidationPool']
         return PortalStateInfo.LiquidationPool(pool_data)
 
     def help_get_highest_free_collateral_custodian(self):

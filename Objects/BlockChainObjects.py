@@ -112,10 +112,10 @@ Sample raw data:
 
 class BlockChainCore(BlockChainInfoBaseClass):
     def get_chain_name(self):
-        return self.data['ChainName']
+        return self.dict_data['ChainName']
 
     def _get_best_blocks_raw(self):
-        return self.data['BestBlocks']
+        return self.dict_data['BestBlocks']
 
     def get_beacon_block(self):
         return BlockChainCore.BlockChainBlock(self._get_best_blocks_raw()['-1'])
@@ -131,7 +131,7 @@ class BlockChainCore(BlockChainInfoBaseClass):
         only has this field since "Dynamic committee size"
         :return:
         """
-        return self.data['ActiveShards']
+        return self.dict_data['ActiveShards']
 
     def get_epoch_number(self):
         return self.get_beacon_block().get_epoch()
@@ -150,7 +150,7 @@ class BlockChainCore(BlockChainInfoBaseClass):
         return string
 
     def print_raw_data(self):
-        raw_json = json.dumps(self.data, indent=3)
+        raw_json = json.dumps(self.dict_data, indent=3)
         print(raw_json)
         return raw_json
 
@@ -163,31 +163,31 @@ class BlockChainCore(BlockChainInfoBaseClass):
 
     class BlockChainBlock(BlockChainInfoBaseClass):
         def get_height(self):
-            return self.data['Height']
+            return self.dict_data['Height']
 
         def get_hash(self):
-            return self.data['Hash']
+            return self.dict_data['Hash']
 
         def total_txs(self):
-            return self.data['TotalTxs']
+            return self.dict_data['TotalTxs']
 
         def get_block_producer(self):
-            return self.data['BlockProducer']
+            return self.dict_data['BlockProducer']
 
         def get_validation_data(self):
-            return self.data['ValidationData']
+            return self.dict_data['ValidationData']
 
         def get_epoch(self):
-            return self.data['Epoch']
+            return self.dict_data['Epoch']
 
         def get_time(self):
-            return self.data['Time']
+            return self.dict_data['Time']
 
         def get_remaining_block_epoch(self):
-            return self.data['RemainingBlockEpoch']
+            return self.dict_data['RemainingBlockEpoch']
 
         def get_epoch_block(self):
-            return self.data['EpochBlock']
+            return self.dict_data['EpochBlock']
 
         def __str__(self):
             return f'epoch: {self.get_epoch()} | height: {self.get_height()} | ' \

@@ -45,61 +45,61 @@ class CoinInfoPublic(BlockChainInfoBaseClass):
 
     def get_token_id(self):
         try:
-            return self.data["ID"]
+            return self.dict_data["ID"]
         except KeyError:
             pass
         try:
-            return self.data["TokenID"]
+            return self.dict_data["TokenID"]
         except KeyError:
             pass
-        return self.data["tokenId"]
+        return self.dict_data["tokenId"]
 
     def get_network(self):
-        return self.data['network']
+        return self.dict_data['network']
 
     def get_external_token_id(self):
-        return self.data['externalTokenId']
+        return self.dict_data['externalTokenId']
 
     def is_centralized(self):
-        return self.data['isCentralized']
+        return self.dict_data['isCentralized']
 
     def get_token_name(self):
-        return self.data["Name"]
+        return self.dict_data["Name"]
 
     def get_token_symbol(self):
-        return self.data["Symbol"]
+        return self.dict_data["Symbol"]
 
     def get_token_image(self):
-        return self.data["Image"]
+        return self.dict_data["Image"]
 
     def get_token_amount(self):
         try:
-            return self.data["Amount"]
+            return self.dict_data["Amount"]
         except KeyError:
             pass
         try:
-            return self.data["amount"]
+            return self.dict_data["amount"]
         except KeyError:
             pass
         return 0
 
     def is_privacy(self):
-        return self.data["IsPrivacy"]
+        return self.dict_data["IsPrivacy"]
 
     def is_bridge_token(self):
-        return self.data["IsBridgeToken"]
+        return self.dict_data["IsBridgeToken"]
 
     def get_list_txs(self):
-        return self.data["ListTxs"]
+        return self.dict_data["ListTxs"]
 
     def get_txs_count(self):
-        return self.data["CountTxs"]
+        return self.dict_data["CountTxs"]
 
     def get_initiator_pub_k(self):
-        return self.data["InitiatorPublicKey"]
+        return self.dict_data["InitiatorPublicKey"]
 
     def get_tx_info(self):
-        return self.data["TxInfo"]
+        return self.dict_data["TxInfo"]
 
 
 class BaseListTokenPublicInfo(ResponseExtractor):
@@ -198,52 +198,52 @@ class TxOutPut(BlockChainInfoBaseClass):
 
     def get_index(self):
         try:  # new
-            return self.data['Index']
+            return self.dict_data['Index']
         except KeyError:  # old coin has no index
             return None
 
     def get_public_key(self):
-        return self.data['PublicKey']
+        return self.dict_data['PublicKey']
 
     def get_commitment(self):
         try:
-            return self.data['CoinCommitment']
+            return self.dict_data['CoinCommitment']
         except KeyError:
-            return self.data['Commitment']
+            return self.dict_data['Commitment']
 
     def get_serial_num(self):
         try:  # old
-            return self.data['SerialNumber']
+            return self.dict_data['SerialNumber']
         except:  # new coin's SN is now key image
             return None
 
     def get_serial_num_derivator(self):
-        return self.data['SNDerivator']
+        return self.dict_data['SNDerivator']
 
     def get_randomness(self):
-        return self.data['Randomness']
+        return self.dict_data['Randomness']
 
     def get_value(self):
-        return int(self.data['Value'])
+        return int(self.dict_data['Value'])
 
     def get_info(self):
-        return self.data['Info']
+        return self.dict_data['Info']
 
     def get_detail_encrypted(self):
         try:  # old
-            return self.data['CoinDetailsEncrypted']
+            return self.dict_data['CoinDetailsEncrypted']
         except KeyError:  # new
             return None
 
     def get_key_image(self):
         try:  # new
-            return self.data['KeyImage']
+            return self.dict_data['KeyImage']
         except KeyError:  # old
             return None
 
     def get_version(self):
         try:
-            return int(self.data['Version'])
+            return int(self.dict_data['Version'])
         except KeyError:
             DEBUG('Error while get coin version. Assume ver=1')
             return 1

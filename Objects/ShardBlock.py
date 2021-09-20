@@ -34,78 +34,78 @@ class ShardBlock(BlockChainInfoBaseClass):
     """
 
     def get_block_hash(self):
-        return self.data['Hash']
+        return self.dict_data['Hash']
 
     def shard_id(self):
-        return self.data['ShardID']
+        return self.dict_data['ShardID']
 
     def get_height(self):
-        return self.data['Height']
+        return self.dict_data['Height']
 
     def get_confirmations(self):
-        return self.data['Confirmations']
+        return self.dict_data['Confirmations']
 
     def get_version(self):
-        return self.data['Version']
+        return self.dict_data['Version']
 
     def get_tx_root(self):
-        return self.data['TxRoot']
+        return self.dict_data['TxRoot']
 
     def get_time(self):
-        return self.data['Time']
+        return self.dict_data['Time']
 
     def get_previous_block_hash(self):
-        return self.data['PreviousBlockHash']
+        return self.dict_data['PreviousBlockHash']
 
     def get_next_block_hash(self):
-        return self.data['NextBlockHash']
+        return self.dict_data['NextBlockHash']
 
     def get_tx_hashes(self):
-        return self.data['TxHashes']
+        return self.dict_data['TxHashes']
 
     def get_txs(self):
-        return self.data['Txs']
+        return self.dict_data['Txs']
 
     def get_block_producer(self):
-        return self.data['BlockProducer']
+        return self.dict_data['BlockProducer']
 
     def get_validation_data(self):
-        return self.data['ValidationData']
+        return self.dict_data['ValidationData']
 
     def get_consensus_type(self):
-        return self.data['ConsensusType']
+        return self.dict_data['ConsensusType']
 
     def get_data(self):
-        return self.data['Data']
+        return self.dict_data['Data']
 
     def get_beacon_height(self):
-        return self.data['BeaconHeight']
+        return self.dict_data['BeaconHeight']
 
     def get_beacon_block_hash(self):
-        return self.data['BeaconBlockHash']
+        return self.dict_data['BeaconBlockHash']
 
     def get_round(self):
-        return self.data['Round']
+        return self.dict_data['Round']
 
     def get_epoch(self):
-        return self.data['Epoch']
+        return self.dict_data['Epoch']
 
     def get_reward(self):
-        return self.data['Reward']
+        return self.dict_data['Reward']
 
     def get_reward_beacon(self):
-        return self.data['RewardBeacon']
+        return self.dict_data['RewardBeacon']
 
     def get_fee(self):
-        return self.data['Fee']
+        return self.dict_data['Fee']
 
     def get_size(self):
-        return self.data['Size']
+        return self.dict_data['Size']
 
     def get_instruction(self):
         # todo: need clarification
-        return self.data['Instruction']
+        return self.dict_data['Instruction']
 
     def get_cross_shard_bitmap(self):
         # todo: need clarification
-        return self.data['CrossShardBitMap']
+        return self.dict_data['CrossShardBitMap']

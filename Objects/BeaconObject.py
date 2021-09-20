@@ -9,43 +9,43 @@ from Objects import BlockChainInfoBaseClass
 
 class BeaconBestStateBase(BlockChainInfoBaseClass):
     def get_block_hash(self):
-        return self.data["BestBlockHash"]
+        return self.dict_data["BestBlockHash"]
 
     def get_previous_block_hash(self):
-        return self.data["PreviousBestBlockHash"]
+        return self.dict_data["PreviousBestBlockHash"]
 
     def get_epoch(self):
-        return self.data["Epoch"]
+        return self.dict_data["Epoch"]
 
     def get_beacon_height(self):
-        return self.data["BeaconHeight"]
+        return self.dict_data["BeaconHeight"]
 
     def get_beacon_proposer_index(self):
-        return self.data["BeaconProposerIndex"]
+        return self.dict_data["BeaconProposerIndex"]
 
     def get_current_random_number(self):
-        return self.data["CurrentRandomNumber"]
+        return self.dict_data["CurrentRandomNumber"]
 
     def get_current_random_time_stamp(self):
-        return self.data["CurrentRandomTimeStamp"]
+        return self.dict_data["CurrentRandomTimeStamp"]
 
     def get_max_beacon_committee_size(self):
-        return self.data["MaxBeaconCommitteeSize"]
+        return self.dict_data["MaxBeaconCommitteeSize"]
 
     def get_min_beacon_committee_size(self):
-        return self.data["MinBeaconCommitteeSize"]
+        return self.dict_data["MinBeaconCommitteeSize"]
 
     def get_max_shard_committee_size(self):
-        return self.data["MaxShardCommitteeSize"]
+        return self.dict_data["MaxShardCommitteeSize"]
 
     def get_min_shard_committee_size(self):
-        return self.data["MinShardCommitteeSize"]
+        return self.dict_data["MinShardCommitteeSize"]
 
     def get_active_shard(self):
-        return self.data["ActiveShards"]
+        return self.dict_data["ActiveShards"]
 
     def get_shard_handle(self):
-        return self.data["ShardHandle"]
+        return self.dict_data["ShardHandle"]
 
     def get_missing_signature(self):
         pass
@@ -55,20 +55,20 @@ class BeaconBestStateBase(BlockChainInfoBaseClass):
 
     def get_best_shard_height(self, shard_number=None):
         if shard_number is not None:
-            return self.data['BestShardHeight'][str(shard_number)]
+            return self.dict_data['BestShardHeight'][str(shard_number)]
         else:
-            return self.data['BestShardHeight']
+            return self.dict_data['BestShardHeight']
 
     def get_candidate_beacon_waiting_current_random(self):
         # TODO: Will update after getting the data
-        return self.data["CandidateBeaconWaitingForCurrentRandom"]
+        return self.dict_data["CandidateBeaconWaitingForCurrentRandom"]
 
     def get_candidate_beacon_waiting_next_random(self):
         # TODO: Will update after getting the data
-        return self.data["CandidateBeaconWaitingForNextRandom"]
+        return self.dict_data["CandidateBeaconWaitingForNextRandom"]
 
     def get_reward_receiver(self):
-        return self.data["RewardReceiver"]
+        return self.dict_data["RewardReceiver"]
 
     @abstractmethod
     def print_committees(self):
@@ -122,17 +122,17 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         """
 
         def get_inc_public_key(self):
-            return self.data['IncPubKey']
+            return self.dict_data['IncPubKey']
 
         def get_bls(self):
-            return self.data['MiningPubKey']['bls']
+            return self.dict_data['MiningPubKey']['bls']
 
         def get_dsa(self):
-            return self.data['MiningPubKey']['dsa']
+            return self.dict_data['MiningPubKey']['dsa']
 
         def is_auto_staking(self):
             """@return: True/False/None"""
-            return self.data.get('IsAutoStake')
+            return self.dict_data.get('IsAutoStake')
 
         def __eq__(self, other):
             # !! ATTENTION. not compare auto staking info
@@ -156,13 +156,13 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
                      f"AutoStake {committee.is_auto_staking()}")
 
     def is_random_number(self):
-        return self.data["IsGetRandomNumber"]
+        return self.dict_data["IsGetRandomNumber"]
 
     def get_best_shard_hash(self, shard_number):
-        return self.data['BestShardHash'][str(shard_number)]
+        return self.dict_data['BestShardHash'][str(shard_number)]
 
     def get_beacon_committee(self):
-        raw_beacon_committee_list = self.data['BeaconCommittee']
+        raw_beacon_committee_list = self.dict_data['BeaconCommittee']
         beacon_committee_objs = []
         for obj in raw_beacon_committee_list:
             beacon_committee_obj = BeaconBestStateDetailInfo.Committee(obj)
@@ -170,7 +170,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         return beacon_committee_objs
 
     def get_beacon_pending_validator(self):
-        raw_beacon_pending_validator_list = self.data['BeaconPendingValidator']
+        raw_beacon_pending_validator_list = self.dict_data['BeaconPendingValidator']
         return self._parse_raw_list_to_shard_committee_list(raw_beacon_pending_validator_list)
 
     def get_shard_committees(self, shard_num=None, validator_number=None):
@@ -182,7 +182,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         Return list of BeaconBestStateDetailInfo.Committee obj if only shard_num is specify
         Return dict of {shard_num: BeaconBestStateDetailInfo.Committee} obj if only shard_num and validator_num are specify
         """
-        committee_dict_raw = self.data['ShardCommittee']  # get all committee in all shard
+        committee_dict_raw = self.dict_data['ShardCommittee']  # get all committee in all shard
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
             committee_raw = committee_dict_raw[str(shard_num)][validator_number]
@@ -197,7 +197,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             return dict_objs
 
     def get_shard_pending_validator(self, shard_num=None, validator_number=None):
-        committee_dict_raw = self.data['ShardPendingValidator']  # get all pending validator in all shard
+        committee_dict_raw = self.dict_data['ShardPendingValidator']  # get all pending validator in all shard
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
             committee_raw = committee_dict_raw[str(shard_num)][validator_number]
@@ -212,7 +212,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             return dict_objs
 
     def get_syncing_validators(self, shard_num=None, validator_number=None):
-        validators_dict_raw = self.data.get('SyncingValidator')  # get all syncing validators in all shard
+        validators_dict_raw = self.dict_data.get('SyncingValidator')  # get all syncing validators in all shard
         if validators_dict_raw is None:
             return
         if shard_num is not None and validator_number is not None:  # get a specific validator
@@ -248,7 +248,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         return object_list
 
     def _get_auto_staking_committee_raw(self, public_key):
-        raw_auto_staking_data = self.data['AutoStaking']
+        raw_auto_staking_data = self.dict_data['AutoStaking']
         for raw_datum in raw_auto_staking_data:
             pub_k_of_datum = raw_datum['IncPubKey']
             if pub_k_of_datum == public_key:
@@ -263,7 +263,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         """
         acc_pub_key = KeyExtractor.inc_public_k(account) if account is not None else None
         auto_staking_objs = []
-        raw_auto_staking_list_raw = self.data['AutoStaking']
+        raw_auto_staking_list_raw = self.dict_data['AutoStaking']
         for raw_data in raw_auto_staking_list_raw:
             auto_staking_obj = BeaconBestStateDetailInfo.Committee(raw_data)
             if auto_staking_obj.get_inc_public_key() == acc_pub_key:
@@ -282,7 +282,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         @param account: optional, Account object or public key (string) or BeaconBestStateDetailInfo.Committee
         @return:
         """
-        staking_tx_dict = self.data['StakingTx']
+        staking_tx_dict = self.dict_data['StakingTx']
         if account is None:
             return staking_tx_dict
         else:
@@ -301,7 +301,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         @param account: optional, Account object or public key (string) or BeaconBestStateDetailInfo.Committee
         @return:
         """
-        missing_signature_dict = self.data['MissingSignature']
+        missing_signature_dict = self.dict_data['MissingSignature']
         if account is None:
             return missing_signature_dict
         else:
@@ -324,7 +324,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         @param account: optional, Account object or public key (string) or BeaconBestStateDetailInfo.Committee
         @return:
         """
-        missing_signature_penalty_dict = self.data['MissingSignaturePenalty']
+        missing_signature_penalty_dict = self.dict_data['MissingSignaturePenalty']
         if account is None:
             return missing_signature_penalty_dict
         else:
@@ -423,7 +423,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         Function to get candidate shard waiting current random
         :return: a list candidate shard waiting current random objs
         """
-        candidate_shard_waiting_current_random_list_raw = self.data['CandidateShardWaitingForCurrentRandom']
+        candidate_shard_waiting_current_random_list_raw = self.dict_data['CandidateShardWaitingForCurrentRandom']
         return self._parse_raw_list_to_shard_committee_list(candidate_shard_waiting_current_random_list_raw)
 
     def get_candidate_shard_waiting_next_random(self):
@@ -432,7 +432,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         :return: a list candidate shard waiting next random objs
         :return:
         """
-        candidate_shard_waiting_next_random_list_raw = self.data['CandidateShardWaitingForNextRandom']
+        candidate_shard_waiting_next_random_list_raw = self.dict_data['CandidateShardWaitingForNextRandom']
         return self._parse_raw_list_to_shard_committee_list(candidate_shard_waiting_next_random_list_raw)
 
     def get_current_shard_committee_size(self, shard_number):
@@ -476,14 +476,14 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         return False
 
     def get_beacon_committee(self):
-        return self.data['BeaconCommittee']
+        return self.dict_data['BeaconCommittee']
 
     def get_candidate_shard_waiting_next_random(self):
-        candidate_shard_waiting_next_random_list_raw = self.data['CandidateShardWaitingForNextRandom']
+        candidate_shard_waiting_next_random_list_raw = self.dict_data['CandidateShardWaitingForNextRandom']
         return candidate_shard_waiting_next_random_list_raw
 
     def get_candidate_shard_waiting_current_random(self):
-        candidate_shard_waiting_current_random_list_raw = self.data['CandidateShardWaitingForCurrentRandom']
+        candidate_shard_waiting_current_random_list_raw = self.dict_data['CandidateShardWaitingForCurrentRandom']
         return candidate_shard_waiting_current_random_list_raw
 
     def get_shard_committees(self, shard_num=None, validator_number=None):
@@ -496,7 +496,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         Return list of committee public key if only shard_num is specify
         Return dict of {shard_num: list of committee public key} if only shard_num and validator_num are specify
         """
-        committee_dict_raw = self.data['ShardCommittee']  # get all committee in all shard
+        committee_dict_raw = self.dict_data['ShardCommittee']  # get all committee in all shard
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
             committee_public_key = committee_dict_raw[str(shard_num)][validator_number]
@@ -507,7 +507,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
             return committee_public_key_list
 
         elif shard_num is None and validator_number is None:  # get all committee in all shard
-            committee_public_key_dict = self.data['ShardCommittee']
+            committee_public_key_dict = self.dict_data['ShardCommittee']
             return committee_public_key_dict
 
     def get_current_shard_committee_size(self, shard_id):
@@ -521,7 +521,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
          If account not none, return True/False if account is found in the list.
          Return None if account not exist in the list
         """
-        auto_staking_dict_raw = self.data['AutoStaking']
+        auto_staking_dict_raw = self.dict_data['AutoStaking']
 
         if account is None:  # get all committee auto staking
             return auto_staking_dict_raw
@@ -545,7 +545,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         Return list of committee public key if only shard_num is specify
         Return dict of {shard_num: list of committee public key} if only shard_num and validator_num are specify
         """
-        committee_dict_raw = self.data['ShardPendingValidator']  # get all committee in all shard
+        committee_dict_raw = self.dict_data['ShardPendingValidator']  # get all committee in all shard
 
         if shard_num is not None and validator_number is not None:  # get a specific committee
             committee_public_key = committee_dict_raw[str(shard_num)][validator_number]
@@ -556,7 +556,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
             return committee_public_key_list
 
         elif shard_num is None and validator_number is None:  # get all committee in all shard
-            committee_public_key_dict = self.data['ShardPendingValidator']
+            committee_public_key_dict = self.dict_data['ShardPendingValidator']
             return committee_public_key_dict
 
     def get_syncing_validators(self, shard_num=None, validator_number=None):
@@ -569,7 +569,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         Return list of committee public key if only shard_num is specify
         Return dict of {shard_num: list of committee public key} if only shard_num and validator_num are specify
         """
-        validators_dict_raw = self.data.get('SyncingValidator')  # get all validators in all shard
+        validators_dict_raw = self.dict_data.get('SyncingValidator')  # get all validators in all shard
 
         if shard_num is not None and validator_number is not None:  # get a specific validator
             committee_public_key = validators_dict_raw[str(shard_num)][validator_number]
@@ -589,7 +589,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         @param account: optional, Account obj or committee_public_k
         @return:
         """
-        staking_tx_dict = self.data['StakingTx']
+        staking_tx_dict = self.dict_data['StakingTx']
         if account is None:
             return staking_tx_dict
         else:
@@ -608,7 +608,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         @param account: optional, Account obj or committee_public_k
         @return:
         """
-        missing_signature_dict = self.data['MissingSignature']
+        missing_signature_dict = self.dict_data['MissingSignature']
         if account is None:
             return missing_signature_dict
         else:
@@ -632,7 +632,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         @param account: optional, Account obj or committee_public_k
         @return:
         """
-        missing_signature_penalty_dict = self.data['MissingSignaturePenalty']
+        missing_signature_penalty_dict = self.dict_data['MissingSignaturePenalty']
         if account is None:
             return missing_signature_penalty_dict
         else:
@@ -648,7 +648,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         INFO(f"Missing Signature Penalty of {l6(acc_committee_pub_key)} (public-key) not found")
 
     def get_number_of_shard_block(self, shard_id=None):
-        raw_data = self.data["NumberOfShardBlock"]
+        raw_data = self.dict_data["NumberOfShardBlock"]
         if shard_id is not None:
             return raw_data[str(shard_id)]
         return raw_data
@@ -663,17 +663,17 @@ class BeaconBlock(BlockChainInfoBaseClass):
     class ShardState(BlockChainInfoBaseClass):
         class BlockInfo(BlockChainInfoBaseClass):
             def get_height(self):
-                return self.data['Height']
+                return self.dict_data['Height']
 
             def get_hash(self):
-                return self.data['Hash']
+                return self.dict_data['Hash']
 
             def get_cross_shard(self):
-                return self.data['CrossShard']
+                return self.dict_data['CrossShard']
 
         def get_blocks_info(self):
             info_list = []
-            for raw_info in self.data:
+            for raw_info in self.dict_data:
                 info = BeaconBlock.ShardState.BlockInfo(raw_info)
                 info_list.append(info)
             return info_list
@@ -738,10 +738,10 @@ class BeaconBlock(BlockChainInfoBaseClass):
                 pass  # todo
 
             def _get_reward_dict(self):
-                return self.data[self.get_type()]
+                return self.dict_data[self.get_type()]
 
             def get_type(self):
-                keys = self.data.keys()
+                keys = self.dict_data.keys()
                 for k in keys:
                     if "Reward" in k:
                         return k
@@ -767,36 +767,36 @@ class BeaconBlock(BlockChainInfoBaseClass):
                     return 0
 
             def get_public_k_to_pay_to(self):
-                return self.data['PayToPublicKey']
+                return self.dict_data['PayToPublicKey']
 
             def get_epoch(self):
-                return self.data['Epoch']
+                return self.dict_data['Epoch']
 
             def get_shard_id(self):
-                return self.data['ShardID']
+                return self.dict_data['ShardID']
 
             def get_txs_fee(self):
-                return self.data['TxsFee']
+                return self.dict_data['TxsFee']
 
             def get_shard_block_height(self):
-                return self.data['ShardBlockHeight']
+                return self.dict_data['ShardBlockHeight']
 
         def __str__(self):
-            return self.data
+            return self.dict_data
 
         def get_num_1(self):
-            return self.data[0]
+            return self.dict_data[0]
 
         def get_num_2(self):
-            return self.data[1]
+            return self.dict_data[1]
 
         def get_instruction_type(self):
             try:
-                inst_type = self.data[2]
+                inst_type = self.dict_data[2]
                 if "Inst" in inst_type:  # beaconRewardInst, devRewardInst, shardRewardInst, portalRewardInst
                     return inst_type
             except IndexError:
-                inst_type = self.data[0]
+                inst_type = self.dict_data[0]
 
             if type(inst_type) is str:  # unstake, return, swap_shard
                 return inst_type
@@ -805,52 +805,52 @@ class BeaconBlock(BlockChainInfoBaseClass):
 
         def get_instruction_detail(self):
             if self.get_instruction_type() == '':  # instruction has no type
-                inst_dict_raw = json.loads(self.data[2])
+                inst_dict_raw = json.loads(self.dict_data[2])
             else:
-                inst_dict_raw = json.loads(self.data[3])
+                inst_dict_raw = json.loads(self.dict_data[3])
 
             inst_detail_obj = BeaconBlock.BeaconInstruction.InstructionDetail(inst_dict_raw)
 
             return inst_detail_obj
 
     def get_hash(self):
-        return self.data["Hash"]
+        return self.dict_data["Hash"]
 
     def get_height(self):
-        return self.data['Height']
+        return self.dict_data['Height']
 
     def get_validation_data(self):
-        return self.data["ValidationData"]
+        return self.dict_data["ValidationData"]
 
     def get_block_producer(self):
-        return self.data["BlockProducer"]
+        return self.dict_data["BlockProducer"]
 
     def get_consensus_type(self):
-        return self.data["ConsensusType"]
+        return self.dict_data["ConsensusType"]
 
     def get_version(self):
-        return self.data["Version"]
+        return self.dict_data["Version"]
 
     def get_epoch(self):
-        return self.data["Epoch"]
+        return self.dict_data["Epoch"]
 
     def get_round(self):
-        return self.data["Round"]
+        return self.dict_data["Round"]
 
     def get_time(self):
-        return self.data["Time"]
+        return self.dict_data["Time"]
 
     def get_previous_block_hash(self):
-        return self.data["PreviousBlockHash"]
+        return self.dict_data["PreviousBlockHash"]
 
     def get_next_block_hash(self):
-        return self.data["NextBlockHash"]
+        return self.dict_data["NextBlockHash"]
 
     def get_size(self):
-        return self.data["Size"]
+        return self.dict_data["Size"]
 
     def get_shard_states(self, shard_id=None):
-        dict_raw_shard_state = self.data["ShardStates"]
+        dict_raw_shard_state = self.dict_data["ShardStates"]
         shard_state_list_obj = []
         for _id, state in dict_raw_shard_state.items():
             shard_state_obj = BeaconBlock.ShardState(state)
@@ -860,7 +860,7 @@ class BeaconBlock(BlockChainInfoBaseClass):
                 shard_state_list_obj.append(shard_state_obj)
 
     def get_instructions(self, inst_type=None):
-        list_raw_inst = self.data["Instructions"]
+        list_raw_inst = self.dict_data["Instructions"]
         list_obj_inst = []
         for raw_inst in list_raw_inst:
             obj_inst = BeaconBlock.BeaconInstruction(raw_inst)
