@@ -163,126 +163,126 @@ class TransactionDetail(BlockChainInfoBaseClass):
         """
 
         def __init__(self, raw_data):
-            super(TransactionDetail.MetaData, self).__init__(raw_data)
-            self.data = json.loads(self.dict_data)
+            super().__init__(raw_data)
+            self.dict_data = json.loads(self.dict_data)
 
         def get_type(self):
-            return self.data['Type']
+            return self.dict_data['Type']
 
         def get_sig(self):
-            return self.data['Sig']
+            return self.dict_data['Sig']
 
         def get_payment_address(self):
-            return self.data['PaymentAddress']
+            return self.dict_data['PaymentAddress']
 
         def get_payment_address_reward_receiver(self):
-            return self.data["RewardReceiverPaymentAddress"]
+            return self.dict_data["RewardReceiverPaymentAddress"]
 
         def get_funder_payment_address(self):
-            return self.data["FunderPaymentAddress"]
+            return self.dict_data["FunderPaymentAddress"]
 
         def get_amount(self):
-            return self.data['Amount']
+            return self.dict_data['Amount']
 
     def get_block_hash(self):
-        return self.data['BlockHash']
+        return self.dict_data['BlockHash']
 
     def get_block_height(self):
-        return self.data['BlockHeight']
+        return self.dict_data['BlockHeight']
 
     def get_tx_size(self):
-        return self.data['TxSize']
+        return self.dict_data['TxSize']
 
     def get_index(self):
-        return self.data['Index']
+        return self.dict_data['Index']
 
     def get_shard_id(self):
-        return self.data['ShardID']
+        return self.dict_data['ShardID']
 
     def get_hash(self):
-        return self.data['Hash']
+        return self.dict_data['Hash']
 
     def get_version(self):
-        return self.data['Version']
+        return self.dict_data['Version']
 
     def get_type(self):
-        return self.data['Type']
+        return self.dict_data['Type']
 
     def get_lock_time(self):
-        return self.data['LockTime']
+        return self.dict_data['LockTime']
 
     def get_fee(self):
-        return self.data['Fee']
+        return self.dict_data['Fee']
 
     def get_image(self):
-        return self.data['Image']
+        return self.dict_data['Image']
 
     def is_privacy(self):
-        return self.data['IsPrivacy']
+        return self.dict_data['IsPrivacy']
 
     def get_proof(self):
-        return self.data['Proof']
+        return self.dict_data['Proof']
 
     def get_prv_proof_detail(self):
         """
         prv proof
         :return:
         """
-        return TransactionDetail.TxDetailProof(self.data['ProofDetail'])
+        return TransactionDetail.TxDetailProof(self.dict_data['ProofDetail'])
 
     def get_input_coin_pub_key(self):
-        return self.data['InputCoinPubKey']
+        return self.dict_data['InputCoinPubKey']
 
     def get_sig_pub_key(self):
-        return self.data['SigPubKey']
+        return self.dict_data['SigPubKey']
 
     def get_sig(self):
-        return self.data['Sig']
+        return self.dict_data['Sig']
 
     def get_meta_data(self):
-        return TransactionDetail.MetaData(self.data['Metadata'])
+        return TransactionDetail.MetaData(self.dict_data['Metadata'])
 
     def get_custom_token_data(self):
-        return self.data['CustomTokenData']
+        return self.dict_data['CustomTokenData']
 
     def get_privacy_custom_token_id(self):
-        return self.data['PrivacyCustomTokenID']
+        return self.dict_data['PrivacyCustomTokenID']
 
     def get_privacy_custom_token_name(self):
-        return self.data['PrivacyCustomTokenName']
+        return self.dict_data['PrivacyCustomTokenName']
 
     def get_privacy_custom_token_symbol(self):
-        return self.data['PrivacyCustomTokenSymbol']
+        return self.dict_data['PrivacyCustomTokenSymbol']
 
     def get_privacy_custom_token_data(self):
-        return self.data['PrivacyCustomTokenData']
+        return self.dict_data['PrivacyCustomTokenData']
 
     def get_privacy_custom_token_proof_detail(self):
         """
         :return:
         """
-        return TransactionDetail.TxDetailProof(self.data['PrivacyCustomTokenProofDetail'])
+        return TransactionDetail.TxDetailProof(self.dict_data['PrivacyCustomTokenProofDetail'])
 
     def is_privacy_custom_token(self):
-        return self.data['PrivacyCustomTokenIsPrivacy']
+        return self.dict_data['PrivacyCustomTokenIsPrivacy']
 
     def get_privacy_custom_token_fee(self):
-        return self.data['PrivacyCustomTokenFee']
+        return self.dict_data['PrivacyCustomTokenFee']
 
     def is_in_mem_pool(self):
-        in_mem_pool = True if self.data["IsInMempool"] == 'true' else False
+        in_mem_pool = True if self.dict_data["IsInMempool"] == 'true' else False
         return in_mem_pool
 
     def is_in_block(self):
-        in_block = True if self.data["IsInBlock"] == 'true' else False
+        in_block = True if self.dict_data["IsInBlock"] == 'true' else False
         return in_block
 
     def get_info(self):
-        return self.data['Info']
+        return self.dict_data['Info']
 
     def get_tx_id(self):
         try:
-            return self.data['TxID']
+            return self.dict_data['TxID']
         except KeyError:
             return self.get_hash()
 
@@ -290,7 +290,7 @@ class TransactionDetail(BlockChainInfoBaseClass):
         if tx_hash is None:
             tx_hash = self.get_tx_id()
         from Objects.IncognitoTestCase import SUT
-        self.data = SUT().transaction().get_tx_by_hash(tx_hash).get_result()
+        self.dict_data = SUT().transaction().get_tx_by_hash(tx_hash).get_result()
         return self
 
     def __verify_privacy(self, privacy_flag, detail_proof, expected_privacy=True):
