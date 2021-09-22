@@ -1,6 +1,6 @@
 from APIs import BaseRpcApi, unspecified
 from Configs import Constants
-from Drivers.Response import RPCResponseBase
+from Drivers.Response import RPCResponseBase, RPCResponseWithTxHash
 from Objects.PdexV3Objects import PdeV3State
 
 
@@ -9,12 +9,9 @@ class ResponseStatusBase(RPCResponseBase):
         return self.get_result("Status")
 
 
-class ResponseTxBase(RPCResponseBase):
+class ResponseTxBase(RPCResponseWithTxHash):
     def get_base58_check_data(self):
         return self.response.get_result("Base58CheckData")
-
-    def get_tx_id(self):
-        return self.response.get_result("TxID")
 
     def get_shard_id(self):
         return self.response.get_result("ShardID")
@@ -507,7 +504,7 @@ class DEXv3RPC(BaseRpcApi):
             .with_params([{"BeaconHeight": beacon_height}]).execute()
 
     def add_liquidity(self, private_k, token_id, amount, amplifier, pool_pair_id="", pair_hash="", nft_id="",
-                      main_tx_receivers=None, tx_fee=-1, tx_privacy=1):
+                      main_tx_receivers=unspecified, tx_fee=-1, tx_privacy=1):
         """
         @param private_k:
         @param token_id:
@@ -521,13 +518,13 @@ class DEXv3RPC(BaseRpcApi):
         @param tx_privacy:
         @return:
         """
-        main_tx_receivers = {Constants.BURNING_ADDR: amount}
+        main_tx_receivers = {} if main_tx_receivers == unspecified else main_tx_receivers
         return ResponseAddLiquidity(self.rpc_connection.with_method("pdexv3_txAddLiquidity")
                                     .with_params([private_k, main_tx_receivers, tx_fee, tx_privacy,
                                                   {
                                                       "PoolPairID": pool_pair_id,
                                                       "TokenID": token_id,
-                                                      "TokenAmount": amount,
+                                                      "ContributedAmount": amount,
                                                       "PairHash": pair_hash,
                                                       "Amplifier": amplifier,
                                                       "NftID": nft_id

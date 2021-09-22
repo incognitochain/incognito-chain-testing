@@ -15,9 +15,9 @@ class RPCResponseBase(ResponseBase):
             self.response = response.response
             self.more_info = response.more_info
             try:
-                handler = response._handler
+                self._handler = response._handler
             except AttributeError:
-                handler = None
+                self._handler = None
         else:
             super().__init__(response, more_info)
             self._handler = handler
@@ -78,13 +78,28 @@ class RPCResponseBase(ResponseBase):
         return Response.StackTrace(self.data()['Error']['StackTrace'][0:512])
 
 
-class Response(RPCResponseBase):
+class RPCResponseWithTxHash(RPCResponseBase):
     def get_tx_id(self):
         return self.get_result("TxID")
 
     def get_shard_id(self):
         return self.get_result('ShardID')
 
+    def get_transaction_by_hash(self, interval=ChainConfig.BLOCK_TIME, time_out=120) -> TransactionDetail:
+        """
+        @param interval:
+        @param time_out: set = 0 to ignore interval, won't retry if got error in Response or block height = 0
+        @return: TransactionDetail, use TransactionDetail.is_none() to check if it's an empty object
+        """
+        self.req_to(0)
+        tx_hash = self.expect_no_error().get_tx_id()
+        if tx_hash is None:
+            raise AttributeError("Response does not contain tx hash")
+
+        return self._handler.get_tx_by_hash(tx_hash, interval, time_out)
+
+
+class Response(RPCResponseWithTxHash):
     def get_beacon_height(self):
         return self.get_result("BeaconHeight")
 
@@ -127,7 +142,7 @@ class Response(RPCResponseBase):
         return self.response.text == "503 Too busy.  Try again later."
 
     # !!!!!!!! Next actions base on response
-    def subscribe_transaction(self, tx_id=None):
+    def subscribe_transaction(self):
         """
         @deprecated: consider using get_transaction_by_hash instead
 
@@ -136,14 +151,10 @@ class Response(RPCResponseBase):
         :return: TransactionDetail Object
         """
         self.req_to(0)
-        if tx_id is None:
-            tx_id = self.expect_no_error().get_tx_id()
-        if tx_id is None:
-            raise ValueError("Tx id must not be none")
-        INFO(f'Subscribe to transaction tx_id = {tx_id}')
+        INFO(f'Subscribe to transaction tx_id = {self.get_tx_id()}')
         from Objects.TransactionObjects import TransactionDetail
         try:
-            res = self._handler.subscription().subscribe_pending_transaction(tx_id).get_result('Result')
+            res = self._handler.subscription().subscribe_pending_transaction(self.get_tx_id()).get_result('Result')
             return TransactionDetail(res)
         except WebSocketTimeoutException:
             WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
@@ -162,19 +173,6 @@ class Response(RPCResponseBase):
         if 'Init tx token fee params error' in stack_trace_msg:
             INFO('Transaction v2 no longer support paying fee with token')
             return True
-
-    def get_transaction_by_hash(self, time_out=120, interval=ChainConfig.BLOCK_TIME) -> TransactionDetail:
-        """
-        @param interval:
-        @param time_out: set = 0 to ignore interval, won't retry if got error in Response or block height = 0
-        @return: TransactionDetail, use TransactionDetail.is_none() to check if it's an empty object
-        """
-        self.req_to(0)
-        tx_hash = self.expect_no_error().get_tx_id()
-        if tx_hash is None:
-            raise AttributeError("Response does not contain tx hash")
-
-        return self._handler.get_tx_by_hash(tx_hash, time_out, interval)
 
     def get_trade_tx_status(self, tx_hash=None):
         """
@@ -212,8 +210,8 @@ class Response(RPCResponseBase):
             return self.stack_string
 
         def get_error_codes(self):
-            code_list = re.findall("(-[0-9]+: )", self.stack_string)
-            return (''.join([str(elem) for elem in code_list])).strip()
+            code_list = re.match("(-[0-9]+: )+", self.stack_string)
+            return code_list.group()
 
         def get_message(self):
             try:

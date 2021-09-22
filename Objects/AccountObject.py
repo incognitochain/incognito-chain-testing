@@ -1,5 +1,6 @@
 import copy
 import datetime
+import random
 import re
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
@@ -21,6 +22,7 @@ from Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 class Account:
     _cache_custodian_inf = 'custodian_info'
     _cache_bal = 'bal'
+    _cache_nft_id = 'nft_id'
 
     def set_remote_addr(self, addresses):
         """
@@ -83,7 +85,8 @@ class Account:
             self.view_k = \
             self.committee_public_k = None
         self.shard = kwargs.get('shard')
-        self.cache = {Account._cache_bal: {}}
+        self.cache = {Account._cache_bal: {},
+                      Account._cache_nft_id: []}
         if handler:
             self.REQ_HANDLER = handler
         else:
@@ -123,6 +126,10 @@ class Account:
     @property
     def incognito_addr(self):  # just an alias for payment key
         return self.payment_key
+
+    @property
+    def nft_ids(self):
+        return self.cache[Account._cache_nft_id]
 
     def is_empty(self):
         if self.private_key is None:
@@ -1012,10 +1019,10 @@ class Account:
     def pde3_withdraw_staking_reward_to_me(self, staking_pool_id, nft_id, token_id, tx_fee=-1, tx_privacy=1):
         return self.pde3_withdraw_staking_reward_to(self, staking_pool_id, nft_id, token_id, tx_fee=-1, tx_privacy=1)
 
-    def pde3_add_liquidity(self, token_id, amount, amplifier, nft_id, pair_hash=None, pool_pair_id="", tx_fee=-1,
+    def pde3_add_liquidity(self, token_id, amount, amplifier, nft_id, contribute_id, pool_pair_id="", tx_fee=-1,
                            tx_privacy=1):
         return self.REQ_HANDLER.dex_v3() \
-            .add_liquidity(self.private_key, token_id, amount, amplifier, pool_pair_id, pair_hash, nft_id,
+            .add_liquidity(self.private_key, token_id, str(amount), str(amplifier), pool_pair_id, contribute_id, nft_id,
                            tx_fee=tx_fee, tx_privacy=tx_privacy)
 
     def pde3_withdraw_liquidity(self, pool_pair_id, nft_id, share_amount, tx_fee=-1, tx_privacy=1):
@@ -1023,9 +1030,25 @@ class Account:
             .withdraw_liquidity(self.private_key, pool_pair_id, nft_id, share_amount, tx_fee=tx_fee,
                                 tx_privacy=tx_privacy)
 
-    def pde3_mint_nft(self, amount, token_id=PRV_ID, tx_fee=-1, tx_privacy=1):
-        return self.REQ_HANDLER.dex_v3() \
-            .mint_nft(self.private_key, amount, token_id, tx_fee, tx_privacy)
+    def pde3_mint_nft(self, amount=coin(1), token_id=PRV_ID, tx_fee=-1, tx_privacy=1, force=False):
+        if not force:
+            if self.nft_ids:
+                INFO(f"Already have NFT ID(s), return the first one now and will not mint more: \n {self.nft_ids}")
+                return self.nft_ids[0]
+        response = self.REQ_HANDLER.dex_v3() \
+            .mint_nft(self.private_key, amount, token_id, tx_fee=tx_fee, tx_privacy=tx_privacy)
+        tx_detail = response.get_transaction_by_hash()
+        wasted_time = 0
+        while wasted_time < ChainConfig.BLOCK_TIME * 5:
+            mint_status = self.REQ_HANDLER.dex_v3().get_mint_nft_status(response.get_tx_id())
+            nft_id = mint_status.get_nft_id()
+            WAIT(ChainConfig.BLOCK_TIME)
+            wasted_time += ChainConfig.BLOCK_TIME
+        if not nft_id:
+            raise TimeoutError(f'Waited {wasted_time}s, but cant get new nft id after tx was confirmed')
+        self.cache[Account._cache_nft_id].append(nft_id)
+        INFO(f"New DEX NFT ID: {nft_id}")
+        return nft_id
 
     def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=1, check_interval=10,
                                 timeout=100):
@@ -1467,6 +1490,9 @@ class AccountGroup:
         for acc in self.account_list:
             with ThreadPoolExecutor() as tpe:
                 tpe.submit(acc.convert_token_to_v2, token, fee)
+
+    def get_random_account(self):
+        return self.account_list[random.randrange(len(self.account_list))]
 
 
 def get_accounts_in_shard(shard_number: int, account_list=None):

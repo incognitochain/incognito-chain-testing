@@ -122,7 +122,7 @@ def test_un_stake_when_exist_pending(the_stake, validator, receiver_reward, auto
             ERROR(f'Trx stop auto staking be created, tx_id: {tx.get_tx_id()}')
             WAIT(50)
             res = tx.get_transaction_by_hash(time_out=0)
-            if res.data:
+            if res.dict_data:
                 fee = res.get_fee()
                 bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=-fee)
                 assert bal_af_un_stake == bal_af_stake - fee
@@ -180,7 +180,7 @@ def test_un_stake_when_exist_sync_pool(the_stake, validator, receiver_reward, au
             ERROR(f'Trx stop auto staking be created, tx_id: {tx.get_tx_id()}')
             WAIT(50)
             res = tx.get_transaction_by_hash(retry=False)
-            if res.data:
+            if res.dict_data:
                 fee = res.get_fee()
                 bal_af_un_stake = the_stake.wait_for_balance_change(from_balance=bal_af_stake, least_change_amount=-fee)
                 assert bal_af_un_stake == bal_af_stake - fee

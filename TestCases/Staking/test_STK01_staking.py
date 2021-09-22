@@ -112,7 +112,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         WAIT(40)
         ERROR(f'Trx unstake be created, tx_id: {tx.get_tx_id()}')
         res = tx.get_transaction_by_hash(time_out=0)
-        if res.data:
+        if res.dict_data:
             fee = res.get_fee()
         else:
             INFO('Transaction is rejected')

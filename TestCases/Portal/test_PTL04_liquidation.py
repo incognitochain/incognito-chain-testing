@@ -79,7 +79,7 @@ def test_liquidate(token, percent, waiting_redeem, expected):
 
     if expected == 'liquidated':
         INFO("liquidation pool estimated")
-        INFO(f"{estimated_liquidation_pool.data}")
+        INFO(f"{estimated_liquidation_pool.dict_data}")
         INFO("liquidation pool after")
         INFO(f"{PSI_after_test.get_liquidation_pool()}")
         INFO("liquidation pool before")

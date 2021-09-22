@@ -1,6 +1,8 @@
+import copy
 from typing import List
 
 from Drivers.Response import RPCResponseBase
+from Helpers import Logging
 from Objects import BlockChainInfoBaseClass
 
 
@@ -116,6 +118,12 @@ class PdeV3State(RPCResponseBase):
             def get_fee(self):
                 return self.dict_data["Fee"]
 
+            def get_rate(self):
+                if self.get_trade_direction() == 0:
+                    return self.get_token1_rate() / self.get_token0_rate()
+                else:
+                    return self.get_token0_rate() / self.get_token1_rate()
+
         def get_pool_pair_id(self):
             return list(self.dict_data.keys())[0]
 
@@ -131,17 +139,31 @@ class PdeV3State(RPCResponseBase):
         def get_state_token_id_1(self):
             return self.get_state()["Token1ID"]
 
-        def get_state_token_0_real_amount(self):
+        def get_state_token0_real_amount(self):
             return self.get_state()["Token0RealAmount"]
 
-        def get_state_token_1_real_amount(self):
+        def get_state_token1_real_amount(self):
             return self.get_state()["Token1RealAmount"]
 
-        def get_state_token_0_virtual_amount(self):
+        def get_real_amount(self, by_token_id):
+            if by_token_id == self.get_state_token_id_0():
+                return self.get_state_token0_real_amount()
+            if by_token_id == self.get_state_token_id_1():
+                return self.get_state_token1_real_amount()
+            Logging.WARNING(f"Token {by_token_id} does not belong to this pool")
+
+        def get_state_token0_virtual_amount(self):
             return self.get_state()["Token0VirtualAmount"]
 
-        def get_state_token_1_virtual_amount(self):
+        def get_state_token1_virtual_amount(self):
             return self.get_state()["Token1VirtualAmount"]
+
+        def get_virtual_amount(self, by_token_id):
+            if by_token_id == self.get_state_token_id_0():
+                return self.get_state_token0_virtual_amount()
+            if by_token_id == self.get_state_token_id_1():
+                return self.get_state_token1_virtual_amount()
+            Logging.WARNING(f"Token {by_token_id} does not belong to this pool")
 
         def get_amplifier(self):
             return self.get_state()["Amplifier"]
@@ -183,6 +205,15 @@ class PdeV3State(RPCResponseBase):
                 return None
             return all_order_obj
 
+        def _cal_trade_pool(self):
+            pass
+
+        def _cal_trade_order(self):
+            pass
+
+        def cal_trade(self):
+            pass
+
     class Param(BlockChainInfoBaseClass):
         def get_default_fee_rate_bps(self):
             return self.dict_data["DefaultFeeRateBPS"]
@@ -222,6 +253,32 @@ class PdeV3State(RPCResponseBase):
 
         def get_max_order_per_nft(self):
             return self.dict_data["MaxOrdersPerNft"]
+
+        def data_convert(self, to_class=str):
+            """
+            @param to_class: accept str or int only
+            @return: new dict which has all number converted to string
+            """
+            to_class = str if to_class == 'str' else to_class
+            to_class = int if to_class == 'int' else to_class
+            if not (to_class is str or to_class is int):
+                raise ValueError("to_class argument only accepts 'str' or 'int'")
+
+            def convert(d, to):
+                for key, value in d.items():
+                    if isinstance(value, dict):
+                        convert(value, to)
+                    elif isinstance(value, list):
+                        value = [convert(item, to) if isinstance(item, dict) else str(item) for item in value]
+                    else:
+                        try:
+                            d[key] = to(value)
+                        except ValueError:  # ignore if cannot convert
+                            pass
+
+            return_dict = copy.deepcopy(self.dict_data)
+            convert(return_dict, to_class)
+            return return_dict
 
     class StakingPool(BlockChainInfoBaseClass):
         """"0000000000000000000000000000000000000000000000000000000000000004": {
@@ -358,7 +415,11 @@ class PdeV3State(RPCResponseBase):
         return PdeV3State.Param(self.get_result("Params"))
 
     def get_pool_pair(self, **by):
-        by_token = by.get("token")
+        """
+        @param by: tokens (list of tokens), token0, token1, nft_id
+        @return:
+        """
+        by_tokens = by.get("tokens")
         by_token0 = by.get("token0")
         by_token1 = by.get("token1")
         by_nft = None
@@ -373,8 +434,9 @@ class PdeV3State(RPCResponseBase):
         return_list = []
         for obj in all_pool_pair_obj:
             included = True
-            if by_token:
-                included = included and by_token in [obj.get_state_token_id_0(), obj.get_state_token_id_1()]
+            if by_tokens:
+                included = included and (by_tokens == [obj.get_state_token_id_0(), obj.get_state_token_id_1()] or
+                                         by_tokens == [obj.get_state_token_id_1(), obj.get_state_token_id_0()])
             else:
                 if by_token0:
                     included = included and obj.get_state_token_id_0() == by_token0
@@ -385,3 +447,13 @@ class PdeV3State(RPCResponseBase):
             if included:
                 return_list.append(obj)
         return return_list
+
+    def estimate_direct_pool_trade(self, sell_amount, token_sell, token_buy):
+        direct_pool_rate = self.get_pool_pair(tokens=[token_sell, token_buy])
+        pass
+
+    def estimate_cross_pool_trade(self, sell_amount, token_sell, token_buy):
+        pass
+
+    def estimate_trade(self, sell_amount, token_sell, token_buy):
+        pass
