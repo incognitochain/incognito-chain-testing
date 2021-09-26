@@ -45,6 +45,9 @@ class ChainConfig:
     class Dex:
         MIN_PRV_IN_POOL_FOR_TOKEN_FEE = 10000000000000
 
+    class Dex3:
+        AMP_DECIMAL = 10000
+
     @staticmethod
     def is_first_height_of_epoch(height):
         """

@@ -1,3 +1,6 @@
+import math
+
+
 class PdeMath:
     @staticmethod
     def cal_withdraw_share(share_mount_withdraw, available_share, total_share, pde_pool):
@@ -105,76 +108,78 @@ class RewardMath:
 
 class Pde3Math:
     @staticmethod
-    def dmm_cal_trade(sell_amount, pool_token_sell, v_pool_token_sell, pool_token_buy, v_pool_token_buy):
+    def cal_trade_pool(sell_amount, pool_token_sell, v_pool_token_sell, pool_token_buy, v_pool_token_buy):
         """
         @param sell_amount:
         @param pool_token_sell:
         @param v_pool_token_sell:
         @param pool_token_buy:
         @param v_pool_token_buy:
-        @return:
+        @return: receiving_amount
         """
         k_virtual = int(v_pool_token_buy * v_pool_token_sell)
         receiving_amount = int(v_pool_token_buy - k_virtual / (v_pool_token_sell + sell_amount))
-        pool_token_sell_after = pool_token_sell + sell_amount
-        v_pool_token_sell_after = v_pool_token_sell + sell_amount
-        pool_token_buy_after = pool_token_buy - receiving_amount
-        v_pool_token_buy_after = v_pool_token_buy - receiving_amount
-        return (receiving_amount, pool_token_sell_after, v_pool_token_sell_after
-                , pool_token_buy_after, v_pool_token_buy_after)
+        return receiving_amount
 
     @staticmethod
-    def cal_contribution(x_contrib_amount, x0, y0, delta_x0, delta_y0):
+    def cal_contribution(x_contrib_amount, x, y):
         """
         https://docs.dmm.exchange/adding-liquidity-in-dmm/index.html
         Calculate amount of Y token require when contrib x amount of token X.
         Can be use to calculate share withdraw,
         then the x_contrib_amount is negative and equal amount of X token user want to withdraw
-        @param delta_y0:
-        @param delta_x0:
         @param x_contrib_amount: amount of X token contribute to the pool
-        @param x0: init balance of token X in pool
-        @param y0: init balance of token Y in pool
-        @return: amount of token Y must contribute, new x0, y0
+        @param x: current balance of token X in pool (x0 + delta_x0)
+        @param y: current balance of token Y in pool (y0 + delta_y0)
+        @return: amount of token Y must contribute, new x, y
         """
-        b = x_contrib_amount / (x0 + delta_x0)
-        y_contrib_amount = b * (y0 + delta_y0)
-        x0 += x_contrib_amount
-        y0 += y_contrib_amount
-        return y_contrib_amount, x0, y0
+        y_contrib_amount = int(x_contrib_amount * y / x)
+        return y_contrib_amount
 
     @staticmethod
-    def cal_contrib_both_end(first__tok_contrib_amount, second_tok_contrib_amount, x0, y0, delta_x0, delta_y0):
+    def cal_contrib_both_end(delta_x, delta_y, x, y):
         """
-        @param first__tok_contrib_amount:
-        @param second_tok_contrib_amount:
-        @param x0:
-        @param y0:
-        @param delta_x0:
-        @param delta_y0:
-        @return: first contrib return amount, second contrib return amount, new x0, new y0
+        @param delta_x: contribute amount of X token
+        @param delta_y: contribute amount of y token
+        @param x: current balance of token X in pool (x0 + delta_x0)
+        @param y: current balance of token Y in pool (y0 + delta_y0)
+        @return: accepted amount of X, accepted amount of Y
         """
-        second_tok_contrib_estimated, new_x0, new_y0 = \
-            Pde3Math.cal_contribution(first__tok_contrib_amount, x0, y0, delta_x0, delta_y0)
-        if second_tok_contrib_estimated < second_tok_contrib_amount:
-            return 0, second_tok_contrib_amount - second_tok_contrib_estimated, new_x0, new_y0
-
-        first_tok_contrib_estimated, new_y0, new_x0 = \
-            Pde3Math.cal_contribution(second_tok_contrib_amount, y0, x0, delta_y0, delta_x0)
-        if first_tok_contrib_estimated < first__tok_contrib_amount:
-            return first__tok_contrib_amount - first_tok_contrib_estimated, 0, new_x0, new_y0
+        accepted_y = min(delta_y, Pde3Math.cal_contribution(delta_x, x, y))
+        accepted_x = min(delta_x, Pde3Math.cal_contribution(delta_y, y, x))
+        return accepted_x, accepted_y
 
     @staticmethod
-    def cal_price_min_max(a, x0, y0, x_current_virtual_pool, y_current_virtual_pool):
+    def cal_contribution_virtual(delta_x, amp):
+        return amp * delta_x
+
+    @staticmethod
+    def cal_price_min_max(a, x, y, x_current_virtual_pool, y_current_virtual_pool):
         """
         @param a: amplifier
-        @param x0: init balance of token X in pool
-        @param y0: init balance of token Y in pool
+        @param x: current balance of token X in pool
+        @param y: current balance of token Y in pool
         @param x_current_virtual_pool:
         @param y_current_virtual_pool:
         @return: min and max price of token X over Y
         """
         virtual_k = x_current_virtual_pool * y_current_virtual_pool
-        p_min = pow(a * x0 - x0, 2) / virtual_k
-        p_max = virtual_k / pow(a * y0 - y0, 2)
+        p_min = pow(a * x - x, 2) / virtual_k
+        p_max = virtual_k / pow(a * y - y, 2)
         return p_min, p_max
+
+    @staticmethod
+    def cal_share_new_pool(amount_x, amount_y):
+        return int(math.sqrt(amount_x * amount_y))
+
+    @staticmethod
+    def cal_share_add_liquidity(current_total_share, delta_x, delta_y, x, y):
+        """
+        @param current_total_share:
+        @param delta_x: add amount of token X
+        @param delta_y: add amount of token Y
+        @param x: current balance of token X in pool
+        @param y: current balance of token Y in pool
+        @return: share amount of the contributed amount
+        """
+        return min((delta_x * current_total_share / x), (delta_y * current_total_share) / y)

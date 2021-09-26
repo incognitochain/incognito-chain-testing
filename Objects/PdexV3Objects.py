@@ -1,8 +1,10 @@
 import copy
 from typing import List
 
+from Configs.Configs import ChainConfig
 from Drivers.Response import RPCResponseBase
 from Helpers import Logging
+from Helpers.BlockChainMath import Pde3Math
 from Objects import BlockChainInfoBaseClass
 
 
@@ -64,20 +66,26 @@ class PdeV3State(RPCResponseBase):
             }"""
 
         class Share(BlockChainInfoBaseClass):
-            def get_nft_id(self):
+            @property
+            def nft_id(self):
                 return list(self.dict_data.keys())[0]
 
-            def get_amount(self):
-                return self.dict_data[self.get_nft_id()]["Amount"]
+            @property
+            def amount(self):
+                return self.dict_data[self.nft_id]["Amount"]
+
+            @amount.setter
+            def amount(self, amount):
+                self.dict_data[self.nft_id]["Amount"] = amount
 
             def get_trading_fee(self, by_token=None):
-                all_fee = self.dict_data[self.get_nft_id()]["TradingFees"]
+                all_fee = self.dict_data[self.nft_id]["TradingFees"]
                 if by_token:
                     return all_fee[by_token]
                 return all_fee
 
             def get_last_lp_fee_per_share(self, by_token):
-                all_fee = self.dict_data[self.get_nft_id()]["LastLPFeesPerShare"]
+                all_fee = self.dict_data[self.nft_id]["LastLPFeesPerShare"]
                 if by_token:
                     return all_fee[by_token]
                 return all_fee
@@ -130,66 +138,82 @@ class PdeV3State(RPCResponseBase):
         def __pair_data(self):
             return self.dict_data[self.get_pool_pair_id()]
 
-        def get_state(self):
-            return self.__pair_data()["State"]
+        def get_state(self, sub_key=None):
+            return self.__pair_data()["State"][sub_key] if sub_key else self.__pair_data()["State"]
 
-        def get_state_token_id_0(self):
-            return self.get_state()["Token0ID"]
+        def get_token0_id(self):
+            return self.get_state("Token0ID")
 
-        def get_state_token_id_1(self):
-            return self.get_state()["Token1ID"]
+        def get_token1_id(self):
+            return self.get_state("Token1ID")
 
-        def get_state_token0_real_amount(self):
-            return self.get_state()["Token0RealAmount"]
+        def get_token0_real_amount(self):
+            return self.get_state("Token0RealAmount")
 
-        def get_state_token1_real_amount(self):
-            return self.get_state()["Token1RealAmount"]
+        def get_token1_real_amount(self):
+            return self.get_state("Token1RealAmount")
 
         def get_real_amount(self, by_token_id):
-            if by_token_id == self.get_state_token_id_0():
-                return self.get_state_token0_real_amount()
-            if by_token_id == self.get_state_token_id_1():
-                return self.get_state_token1_real_amount()
+            if by_token_id == self.get_token0_id():
+                return self.get_token0_real_amount()
+            if by_token_id == self.get_token1_id():
+                return self.get_token1_real_amount()
             Logging.WARNING(f"Token {by_token_id} does not belong to this pool")
 
-        def get_state_token0_virtual_amount(self):
-            return self.get_state()["Token0VirtualAmount"]
+        def get_token0_virtual_amount(self):
+            return self.get_state("Token0VirtualAmount")
 
-        def get_state_token1_virtual_amount(self):
-            return self.get_state()["Token1VirtualAmount"]
+        def get_token1_virtual_amount(self):
+            return self.get_state("Token1VirtualAmount")
 
         def get_virtual_amount(self, by_token_id):
-            if by_token_id == self.get_state_token_id_0():
-                return self.get_state_token0_virtual_amount()
-            if by_token_id == self.get_state_token_id_1():
-                return self.get_state_token1_virtual_amount()
+            if by_token_id == self.get_token0_id():
+                return self.get_token0_virtual_amount()
+            if by_token_id == self.get_token1_id():
+                return self.get_token1_virtual_amount()
             Logging.WARNING(f"Token {by_token_id} does not belong to this pool")
 
         def get_amplifier(self):
-            return self.get_state()["Amplifier"]
+            return self.get_state("Amplifier")
 
-        def get_share_amount(self):
-            return self.get_state()["ShareAmount"]
+        @property
+        def total_share_amount(self):
+            return self.get_state("ShareAmount")
+
+        @total_share_amount.setter
+        def total_share_amount(self, amount):
+            self.dict_data[self.get_pool_pair_id()]["State"]["ShareAmount"] = amount
 
         def get_lp_fee_per_share(self, by_token=None):
-            all_fee = self.get_state()["LPFeesPerShare"]
+            all_fee = self.get_state("LPFeesPerShare")
             return all_fee[by_token] if by_token else all_fee
 
         def get_protocol_fee(self, by_token=None):
-            all_fee = self.get_state()["ProtocolFees"]
+            all_fee = self.get_state("ProtocolFees")
             return all_fee[by_token] if by_token else all_fee
 
         def get_staking_pool_fee(self, by_token=None):
-            all_fee = self.get_state()["StakingPoolFees"]
+            all_fee = self.get_state("StakingPoolFees")
             return all_fee[by_token] if by_token else all_fee
 
+        def get_creator_nft_id(self):
+            return self.get_pool_pair_id().split('-')[-1]
+
         def get_share(self, by_nft_id=None):
+            """
+            @param by_nft_id: leave default (None) to get all share object
+            @return: if by_nft_id, return Share object, else return list of Share objects
+            """
             all_share = self.__pair_data()["Shares"]
             if by_nft_id:
                 try:
                     return PdeV3State.PoolPairData.Share({by_nft_id: all_share[by_nft_id]})
                 except (KeyError, AttributeError):
-                    return None
+                    empty_share = {by_nft_id: {
+                        "Amount": 0,
+                        "TradingFees": {},
+                        "LastLPFeesPerShare": {}}}
+                    return PdeV3State.PoolPairData.Share(empty_share)
             all_share_obj = []
             for nft_id, share_data in all_share.items():
                 all_share_obj.append(PdeV3State.PoolPairData.Share({nft_id: share_data}))
@@ -205,8 +229,67 @@ class PdeV3State(RPCResponseBase):
                 return None
             return all_order_obj
 
-        def _cal_trade_pool(self):
-            pass
+        def set_real_pool(self, token, balance):
+            if self.get_token0_id() == token:
+                self.get_state()["Token0RealAmount"] = balance
+            if self.get_token1_id() == token:
+                self.get_state()["Token1RealAmount"] = balance
+
+        def set_virtual_pool(self, token, balance):
+            if self.get_token0_id() == token:
+                self.get_state()["Token0VirtualAmount"] = balance
+            if self.get_token1_id() == token:
+                self.get_state()["Token1VirtualAmount"] = balance
+
+        def cal_trade_pool(self, sell_amount, token_sell, token_buy):
+            pool_sell = self.get_real_amount(token_sell)
+            pool_buy = self.get_real_amount(token_buy)
+            v_pool_sell = self.get_virtual_amount(token_sell)
+            v_pool_buy = self.get_virtual_amount(token_buy)
+            buy_amount = Pde3Math.cal_trade_pool(sell_amount, pool_sell, v_pool_sell, pool_buy, v_pool_buy)
+            new_pool_obj = self.clone()
+            new_pool_obj.set_virtual_pool(token_sell, v_pool_sell + sell_amount)
+            new_pool_obj.set_virtual_pool(token_buy, v_pool_buy - buy_amount)
+            new_pool_obj.set_real_pool(token_sell, pool_sell + sell_amount)
+            new_pool_obj.set_real_pool(token_buy, pool_buy - buy_amount)
+            return buy_amount, new_pool_obj
+
+        def predict_pool_when_add_liquidity(self, amount_dict, nft_id):
+            """
+            @param amount_dict:
+            @param nft_id:
+            @return: Share object after contribution, return amount dict {token x: x return, token y: y return}
+            """
+            all_tok = list(amount_dict.keys())
+            if not (self.get_token0_id() in all_tok and self.get_token1_id() in all_tok):
+                raise ValueError(f"""Wrong input tokens, cannot calculate.
+                Current pair is {self.get_pool_pair_id()}
+                While input tokens are: {all_tok}""")
+            token_x, token_y = all_tok
+            delta_x, delta_y = amount_dict[token_x], amount_dict[token_y]
+            current_virtual_x, current_virtual_y = self.get_virtual_amount(token_x), self.get_virtual_amount(token_y)
+            current_real_x, current_real_y = self.get_real_amount(token_x), self.get_real_amount(token_y)
+            amp = self.get_amplifier()
+            x, y = self.get_real_amount(token_x), self.get_real_amount(token_y)
+            accepted_x, accepted_y = Pde3Math.cal_contrib_both_end(delta_x, delta_y, x, y)
+            accepted_virtual_x = Pde3Math.cal_contribution_virtual(accepted_x, amp / ChainConfig.Dex3.AMP_DECIMAL)
+            accepted_virtual_y = Pde3Math.cal_contribution_virtual(accepted_y, amp / ChainConfig.Dex3.AMP_DECIMAL)
+            return_amount = {token_x: delta_x - accepted_x, token_y: delta_y - accepted_y}
+            # predict the pool
+            new_pool_obj: PdeV3State.PoolPairData = self.clone()
+            new_pool_obj.set_real_pool(token_x, current_real_x + accepted_x)
+            new_pool_obj.set_real_pool(token_y, current_real_y + accepted_y)
+            new_pool_obj.set_virtual_pool(token_x, current_virtual_x + accepted_virtual_x)
+            new_pool_obj.set_virtual_pool(token_y, current_virtual_y + accepted_virtual_y)
+            share_added = Pde3Math.cal_share_add_liquidity(self.total_share_amount, accepted_x, accepted_y, x, y)
+            new_pool_obj.total_share_amount += share_added
+            # predict owner's share
+            existing_share = new_pool_obj.get_share(nft_id)
+            existing_share.amount += share_added
+            return new_pool_obj, return_amount
+
+        def cal_sum_share(self):
+            return sum([x.amount for x in self.get_share()])
 
         def _cal_trade_order(self):
             pass
@@ -220,9 +303,7 @@ class PdeV3State(RPCResponseBase):
 
         def get_fee_rate_bps(self, by_pool_pair=None):
             all_rate = self.dict_data["FeeRateBPS"]
-            if by_pool_pair:
-                return all_rate.get(by_pool_pair)
-            return all_rate
+            return all_rate.get(by_pool_pair) if by_pool_pair else all_rate
 
         def get_prv_discount_percent(self):
             return self.dict_data["PRVDiscountPercent"]
@@ -235,15 +316,11 @@ class PdeV3State(RPCResponseBase):
 
         def get_pdex_reward_pool_pair_share(self, by_pool_pair=None):
             all_reward = self.dict_data["PDEXRewardPoolPairsShare"]
-            if by_pool_pair:
-                return all_reward.get(by_pool_pair)
-            return all_reward
+            return all_reward.get(by_pool_pair) if by_pool_pair else all_reward
 
         def get_staking_pool_share(self, by_token=None):
             all_share = self.dict_data["StakingPoolsShare"]
-            if by_token:
-                return all_share.get(by_token)
-            return all_share
+            return all_share.get(by_token) if by_token else all_share
 
         def get_staking_reward_token(self):
             return self.dict_data["StakingRewardTokens"]
@@ -377,9 +454,7 @@ class PdeV3State(RPCResponseBase):
         @return:
         """
         all_nft = self.get_result("NftIDs")
-        if by_nft_id:
-            return all_nft.get(by_nft_id)
-        return all_nft
+        return all_nft.get(by_nft_id) if by_nft_id else all_nft
 
     def get_waiting_contribution(self, by_contrib_id=None, by_token_id=None, by_nft_id=None):
         all_waiting = self.get_result("WaitingContributions")
@@ -393,8 +468,7 @@ class PdeV3State(RPCResponseBase):
                 included = included and obj.get_token_id() == by_token_id
             if by_nft_id:
                 included = included and obj.get_nft_id() == by_nft_id
-            if included:
-                filtered_result.append(obj)
+            filtered_result.append(obj) if included else None
 
     def get_staking_pools(self, by_token=None, by_nft_id=None) -> List[StakingPool]:
         all_pool = self.get_result("StakingPools")
@@ -406,9 +480,7 @@ class PdeV3State(RPCResponseBase):
                 included = included and obj.get_token_id() == by_token
             if by_nft_id:
                 included = included and obj.get_stakers(by_nft_id)
-            if included:
-                return_list.append(obj)
-
+            return_list.append(obj) if included else None
         return return_list
 
     def get_params(self):
@@ -416,36 +488,37 @@ class PdeV3State(RPCResponseBase):
 
     def get_pool_pair(self, **by):
         """
-        @param by: tokens (list of tokens), token0, token1, nft_id
+        @param by: id, tokens (list of tokens), token0, token1, nft_id, amplifier
         @return:
         """
         by_tokens = by.get("tokens")
         by_token0 = by.get("token0")
         by_token1 = by.get("token1")
-        by_nft = None
-        for nft_name in ["nft", "nftid", "nft_id"]:
-            by_nft = by.get(nft_name)
-            if by_nft:
-                break
-        all_pool_pair = self.get_result("PoolPairs")
-        all_pool_pair_obj = [PdeV3State.PoolPairData({pair_id: pair_data})
-                             for pair_id, pair_data in all_pool_pair.items()]
-
+        by_id = by.get("id")
+        by_nft = ''.join([by.get(key, "") for key in ["nft", "nftid", "nft_id"]])
+        by_amp = by.get("amp")
+        all_pp = self.get_result("PoolPairs")
+        all_pp_obj = [PdeV3State.PoolPairData({pair_id: pair_data}) for pair_id, pair_data in all_pp.items()]
         return_list = []
-        for obj in all_pool_pair_obj:
+        if by_id:
+            for obj in all_pp_obj:
+                if obj.get_pool_pair_id() == by_id:
+                    return obj
+        for obj in all_pp_obj:
             included = True
             if by_tokens:
-                included = included and (by_tokens == [obj.get_state_token_id_0(), obj.get_state_token_id_1()] or
-                                         by_tokens == [obj.get_state_token_id_1(), obj.get_state_token_id_0()])
+                included = included and (by_tokens == [obj.get_token0_id(), obj.get_token1_id()] or
+                                         by_tokens == [obj.get_token1_id(), obj.get_token0_id()])
             else:
                 if by_token0:
-                    included = included and obj.get_state_token_id_0() == by_token0
+                    included = included and obj.get_token0_id() == by_token0
                 if by_token1:
-                    included = included and obj.get_state_token_id_0() == by_token1
+                    included = included and obj.get_token0_id() == by_token1
             if by_nft:
                 included = included and obj.get_share(by_nft)
-            if included:
-                return_list.append(obj)
+            if by_amp:
+                included = included and obj.get_amplifier() == by_amp
+            return_list.append(obj) if included else None
         return return_list
 
     def estimate_direct_pool_trade(self, sell_amount, token_sell, token_buy):
