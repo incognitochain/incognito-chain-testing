@@ -133,8 +133,7 @@ class Pde3Math:
         @param y: current balance of token Y in pool (y0 + delta_y0)
         @return: amount of token Y must contribute, new x, y
         """
-        y_contrib_amount = int(x_contrib_amount * y / x)
-        return y_contrib_amount
+        return int(x_contrib_amount * y / x)
 
     @staticmethod
     def cal_contrib_both_end(delta_x, delta_y, x, y):
@@ -147,11 +146,11 @@ class Pde3Math:
         """
         accepted_y = min(delta_y, Pde3Math.cal_contribution(delta_x, x, y))
         accepted_x = min(delta_x, Pde3Math.cal_contribution(delta_y, y, x))
-        return accepted_x, accepted_y
+        return int(accepted_x), int(accepted_y)
 
     @staticmethod
     def cal_contribution_virtual(delta_x, amp):
-        return amp * delta_x
+        return int(amp * delta_x)
 
     @staticmethod
     def cal_price_min_max(a, x, y, x_current_virtual_pool, y_current_virtual_pool):
@@ -166,7 +165,7 @@ class Pde3Math:
         virtual_k = x_current_virtual_pool * y_current_virtual_pool
         p_min = pow(a * x - x, 2) / virtual_k
         p_max = virtual_k / pow(a * y - y, 2)
-        return p_min, p_max
+        return int(p_min), int(p_max)
 
     @staticmethod
     def cal_share_new_pool(amount_x, amount_y):
@@ -182,4 +181,4 @@ class Pde3Math:
         @param y: current balance of token Y in pool
         @return: share amount of the contributed amount
         """
-        return min((delta_x * current_total_share / x), (delta_y * current_total_share) / y)
+        return min(int(delta_x * current_total_share / x), int(delta_y * current_total_share) / y)
