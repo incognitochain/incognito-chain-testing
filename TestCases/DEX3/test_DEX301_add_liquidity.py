@@ -66,25 +66,27 @@ def test_add_liquidity_first_time(contributor, token_x, token_y, amplifier):
     print(pool_predict)
     assert new_pool_pair2 == pool_predict
 
-    @pytest.mark.dependency(depends=["test_add_liquidity_first_time"])
-    @pytest.mark.parametrize("contributor,nft_id, token_x, token_y, pair_id, amplifier", [
-        (token_owner, token_owner.nft_ids[0], token_X, token_Y, "", 200),
-    ])
-    def test_add_liquidity_no_trade_with_return(contributor, nft_id, token_x, token_y, pair_id, amplifier):
-        # todo: continue here, not yet complete
-        pde_state_b4 = SUT().get_pde3_state()
-        pool_b4_add = pde_state_b4.get_pool_pair(tokens=[token_x, token_y])
-        pool_b4 = pde_state_b4.get_pool_pair(tokens=[token_x, token_y], nft=nft_id)[0]
-        share_b4 = pool_b4.get_share(by_nft_id=nft_id)
-        pair_id = pool_b4.get_pool_pair_id() if not pair_id else pair_id
-        amount_x = coin(5000)
-        amount_y = coin(30000)
-        contrib_id = f"{token_x[-6:]}-{token_y[-6:]}-{get_current_date_time()}"
-        Logging.STEP(1, f"Contribute {token_x}")
-        contributor.pde3_add_liquidity(token_x, amount_x, amplifier, nft_id, contrib_id, pair_id)
-        Logging.STEP(2, f"Contribute {token_y}")
-        contributor.pde3_add_liquidity(token_y, amount_y, amplifier, nft_id, contrib_id, pair_id)
-        Logging.STEP(3, f"Verify pool")
 
-    def test_withdraw_liquidity():
-        pass
+@pytest.mark.dependency(depends=["test_add_liquidity_first_time"])
+@pytest.mark.parametrize("contributor,nft_id, token_x, token_y, pair_id, amplifier", [
+    (token_owner, token_owner.nft_ids[0], token_X, token_Y, "", 200),
+])
+def test_add_liquidity_no_trade_with_return(contributor, nft_id, token_x, token_y, pair_id, amplifier):
+    # todo: continue here, not yet complete
+    pde_state_b4 = SUT().get_pde3_state()
+    pool_b4_add = pde_state_b4.get_pool_pair(tokens=[token_x, token_y])
+    pool_b4 = pde_state_b4.get_pool_pair(tokens=[token_x, token_y], nft=nft_id)[0]
+    share_b4 = pool_b4.get_share(by_nft_id=nft_id)
+    pair_id = pool_b4.get_pool_pair_id() if not pair_id else pair_id
+    amount_x = coin(5000)
+    amount_y = coin(30000)
+    contrib_id = f"{token_x[-6:]}-{token_y[-6:]}-{get_current_date_time()}"
+    Logging.STEP(1, f"Contribute {token_x}")
+    contributor.pde3_add_liquidity(token_x, amount_x, amplifier, nft_id, contrib_id, pair_id)
+    Logging.STEP(2, f"Contribute {token_y}")
+    contributor.pde3_add_liquidity(token_y, amount_y, amplifier, nft_id, contrib_id, pair_id)
+    Logging.STEP(3, f"Verify pool")
+
+
+def test_withdraw_liquidity():
+    pass
