@@ -204,8 +204,8 @@ class Pde3Math:
         Calculate distance of a pool to a specific order
         @param x_virtual: current virtual balance of token X of the pool (sell)
         @param y_virtual: current virtual balance of token Y of the pool (buy)
-        @param x_order: current virtual balance of token X of the order
-        @param y_order: current virtual balance of token Y of the pool
+        @param x_order: current balance of token X of the order (sell)
+        @param y_order: current balance of token Y of the order (buy)
         @return:
         """
         return int(abs(math.sqrt(x_virtual * y_virtual * x_order / y_order) - x_virtual))
