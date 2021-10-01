@@ -182,3 +182,30 @@ class Pde3Math:
         @return: share amount of the contributed amount
         """
         return min(int(delta_x * current_total_share / x), int(delta_y * current_total_share) / y)
+
+    @staticmethod
+    def cal_withdraw_share(delta_s, x, y):
+        """
+
+        @param delta_s: amount of share to be withdraw
+        @param x: current balance of token X in pool
+        @param y: current balance of token Y in pool
+        @return: amount or token X and Y receive
+        """
+        percent = delta_s / math.sqrt(x * y)
+        x_receive = int(x * percent)
+        y_receive = int(y * percent)
+        return x_receive, y_receive
+
+    @staticmethod
+    def cal_distance_to_order_book(x_virtual, y_virtual, x_order, y_order):
+        """
+        #todo: need more clarification, which one is buy/sell from order book
+        Calculate distance of a pool to a specific order
+        @param x_virtual: current virtual balance of token X of the pool (sell)
+        @param y_virtual: current virtual balance of token Y of the pool (buy)
+        @param x_order: current virtual balance of token X of the order
+        @param y_order: current virtual balance of token Y of the pool
+        @return:
+        """
+        return int(abs(math.sqrt(x_virtual * y_virtual * x_order / y_order) - x_virtual))

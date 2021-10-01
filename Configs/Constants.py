@@ -104,3 +104,10 @@ class Status:
         class WithdrawFee:
             ACCEPTED = 1
             REJECTED = 2
+
+    class DexV3:
+        class Order:
+            ACCEPT = 1
+            REFUND = 0
+
+

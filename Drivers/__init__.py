@@ -31,6 +31,9 @@ class ResponseBase:
         r.more_info = copy.deepcopy(self.more_info)
         return r
 
+    def clone(self):
+        return self.__deepcopy__()
+
     def __str__(self):
         return f'\n{json.dumps(self.data(), indent=3)}'
 

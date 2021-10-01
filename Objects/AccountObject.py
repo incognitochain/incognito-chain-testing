@@ -987,9 +987,13 @@ class Account:
             return self.pde_trade_token_v2(token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy)
 
     def pde3_add_order(self, nft_id, token_sell, pool_id, sell_amount, min_acceptable,
-                       tx_fee, tx_privacy):
-        return self.REQ_HANDLER.dex_v3().add_order(self.private_key, nft_id, token_sell, pool_id, sell_amount,
-                                                   min_acceptable, tx_fee, tx_privacy)
+                       tx_fee=-1, tx_privacy=1):
+        INFO(f"Adding order to order book\n"
+             f"In pool {pool_id}\n"
+             f"Selling {sell_amount} of {token_sell}\n"
+             f"Min acceptable: {min_acceptable}")
+        return self.REQ_HANDLER.dex_v3().add_order(self.private_key, nft_id, token_sell, pool_id, str(sell_amount),
+                                                   str(min_acceptable), tx_fee=tx_fee, tx_privacy=tx_privacy)
 
     def pde3_withdraw_order(self, token_id, amount, nft_id, pair_id, order_id, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3().withdraw_order(self.private_key, token_id, amount, nft_id, pair_id,
@@ -1032,8 +1036,10 @@ class Account:
             .add_liquidity(self.private_key, token_id, str(amount), str(amplifier), pool_pair_id, contribute_id, nft_id,
                            tx_fee=tx_fee, tx_privacy=tx_privacy)
 
-    def pde3_withdraw_liquidity(self, pool_pair_id, share_amount, nft_id=None, tx_fee=-1, tx_privacy=1):
+    def pde3_withdraw_liquidity(self, share_amount, pool_pair_id, nft_id=None, tx_fee=-1, tx_privacy=1):
         nft_id = nft_id if nft_id else self.nft_ids[0]
+        INFO(f"PDE3 Withdraw liquidity, private k: {self.private_key[-6:]}, NFTID {nft_id}\n\t"
+             f"pair: {pool_pair_id}")
         return self.REQ_HANDLER.dex_v3() \
             .withdraw_liquidity(self.private_key, pool_pair_id, nft_id, share_amount, tx_fee=tx_fee,
                                 tx_privacy=tx_privacy)
