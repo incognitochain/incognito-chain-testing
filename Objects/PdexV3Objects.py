@@ -393,7 +393,7 @@ class PdeV3State(RPCResponseBase):
                 self.get_virtual_amount(tok_sell_index), self.get_virtual_amount(tok_buy_index), x_sell, y_buy)
 
         def predict_pool_after_trade(self, sell_amount, token_sell):
-            """
+            """ NOTICE that AMM pool must not be Null []
             @param sell_amount:
             @param token_sell:
             @return: receive amount and Pool status after trade
@@ -441,12 +441,12 @@ class PdeV3State(RPCResponseBase):
             while sell_amount > 0 and left_orders:
                 next_order = left_orders[-1]
                 receive, remain = next_order.trade(sell_amount)
-                sell_amount = remain
+
                 if next_order.is_completed():
                     left_orders.pop()
-                distance = predicted_pool.cal_distant_to_order(token_sell, left_orders[-1])
+                    distance = predicted_pool.cal_distant_to_order(token_sell, left_orders[-1])
                 total_receive += receive
-
+                sell_amount = remain
                 if 0 < sell_amount <= distance:
                     total_receive += predicted_pool.cal_trade_receive(sell_amount, token_sell)
                     sell_amount = 0
