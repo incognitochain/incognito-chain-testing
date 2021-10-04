@@ -104,7 +104,7 @@ class PdeV3State(RPCResponseBase):
                         }"""
 
             def __str__(self):
-                return f"   Order ID: {self.get_id()} \n   " \
+                return f"   Order ID: {self.get_id()} \n      " \
                        f"NFT ID: {self.get_nft_id()} \n      " \
                        f"Balance sell|buy: {self.get_balance_token_sell()} | {self.get_balance_token_buy()}\n      " \
                        f"Rate sell|buy   : {self.get_rate_token_sell()} | {self.get_rate_token_buy()}. " \
@@ -178,14 +178,14 @@ class PdeV3State(RPCResponseBase):
                 @return: receive amount, remain amount also update the current balance of the order object
                 """
                 Logging.INFO(f"Calculate trade receive, remain and predict order after trade\n{self}")
-                amount = min(sell_amount, self.get_balance_token_sell())
-                receive_amount = int(amount * self.get_buy_rate())
+                used_amount = min(sell_amount, self.get_rate_token_buy() - self.get_balance_token_buy())
+                receive_amount = round(used_amount * self.get_buy_rate())
                 bal_sell_remain = self.get_balance_token_sell() - receive_amount
-                bal_buy_remain = self.get_balance_token_buy() + amount
-                remain = min(0, sell_amount - amount)
+                bal_buy_remain = self.get_balance_token_buy() + used_amount
+                remain = sell_amount - used_amount
                 self._set_balance(bal_sell_remain, bal_buy_remain)
-                Logging.INFO(f"Trade amount {sell_amount}, remain {remain}")
-                Logging.INFO(f"Order after trade: \n\t"
+                Logging.INFO(f"Trade amount {sell_amount}, used: {used_amount}, remain {remain}")
+                Logging.INFO(f"Order after trade: \n"
                              f"{self}")
                 return receive_amount, remain
 
@@ -405,7 +405,7 @@ class PdeV3State(RPCResponseBase):
             token_sell_index = self._get_token_index(token_sell)
             token_buy_index = abs(1 - token_sell_index)
             amm_rate = predicted_pool.get_pool_rate(token_sell)
-            orders = sorted(self.get_order_books(direction=token_buy_index), key=lambda o: o.get_buy_rate())
+            orders = sorted(predicted_pool.get_order_books(direction=token_buy_index), key=lambda o: o.get_buy_rate())
             if not orders:
                 receive_amount = predicted_pool.cal_trade_receive(sell_amount, token_sell)
                 return receive_amount, predicted_pool
@@ -426,11 +426,11 @@ class PdeV3State(RPCResponseBase):
             while sell_amount > 0 and right_orders:
                 best_order = right_orders[-1]
                 Logging.INFO(
-                    f"Trading best rate order book first {best_order.get_id()}, rate {best_order.get_buy_rate()}")
+                    f"Trading best rate order book {best_order.get_id()}, rate {best_order.get_buy_rate()}")
                 Logging.DEBUG(best_order)
                 receive, remain = best_order.trade_this_order(sell_amount)
                 sell_amount = remain  # more explicit than receive, sell_amount = best_order.trade(sell_amount)
-                total_receive = +receive
+                total_receive += receive
                 print(f"after trade order: {total_receive}, remain {remain}")
                 if best_order.is_completed():
                     right_orders.pop()

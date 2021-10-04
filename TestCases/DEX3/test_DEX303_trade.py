@@ -119,5 +119,6 @@ token_x = "0000000000000000000000000000000000000000000000000000000000000004"
 token_y = "92f9e5aa0683568d041af306d8b029f919bb1cd432241fd751b6f0a8ac0ccc98"
 
 pool_b4 = PdeV3State.PoolPairData(data)
-print("AMM RATE ",pool_b4.get_pool_rate(token_x))
-receive, pool_predict = pool_b4.predict_pool_after_trade(850, token_x)
+print("AMM RATE ", pool_b4.get_pool_rate(token_x))
+receive, pool_predict = pool_b4.predict_pool_after_trade(3977, token_x)
+print(receive)
