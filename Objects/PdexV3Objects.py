@@ -123,7 +123,7 @@ class PdeV3State(RPCResponseBase):
 
             def _set_balance(self, bal_sell, bal_buy):
                 self.dict_data[f"Token{self.get_trade_direction()}Balance"] = bal_sell
-                self.dict_data[f"Token{abs(1 - self.get_trade_direction())}Balance"] = bal_buy
+                self.dict_data[f"Token{1 - self.get_trade_direction()}Balance"] = bal_buy
 
             def get_trade_direction(self):
                 return self.dict_data["TradeDirection"]
@@ -173,13 +173,11 @@ class PdeV3State(RPCResponseBase):
                 @param sell_amount:
                 @return: receive amount, remain amount also update the current balance of the order object
                 """
-                Logging.INFO(f"Calculate trade receive, remain and predict order after trade")
-                bal_sell = self.get_balance_token_sell()
-                bal_buy = self.get_balance_token_buy()
-                amount = min(sell_amount, bal_sell)
-                receive_amount = int(amount * bal_buy / bal_sell)
-                bal_sell_remain = min(0, bal_sell - sell_amount)
-                bal_buy_remain = min(0, bal_buy - receive_amount)
+                Logging.INFO(f"Calculate trade receive, remain and predict order after trade\n{self}")
+                amount = min(sell_amount, self.get_balance_token_sell())
+                receive_amount = int(amount * self.get_order_rate())
+                bal_sell_remain = self.get_balance_token_sell() - amount
+                bal_buy_remain = self.get_balance_token_buy() + receive_amount
                 remain = min(0, sell_amount - amount)
                 self._set_balance(bal_sell_remain, bal_buy_remain)
                 Logging.INFO(f"Trade amount {sell_amount}, remain {remain}")
@@ -226,7 +224,7 @@ class PdeV3State(RPCResponseBase):
             elif self.get_token_id(1) == token:
                 return 1
             else:
-                raise ValueError(f"Token {token}, does not belong to this pool.")
+                raise ValueError(f"Token {token}, does not belong to this pool.\n{self.get_pool_pair_id()}")
 
         def is_empty_pool(self):
             return self.total_share_amount == 0 and self.amplifier == 0
@@ -245,7 +243,8 @@ class PdeV3State(RPCResponseBase):
             @param index:
             @return: Token id by index, or both if index is unspecified (None)
             """
-            return self.get_state(f"Token{index}ID") if index else tuple(self.get_state(f"Token{i}ID") for i in [1, 2])
+            return self.get_state(f"Token{index}ID") if index is not None \
+                else tuple(self.get_state(f"Token{i}ID") for i in [0, 1])
 
         def get_real_amount(self, by_token_id):
             """
@@ -401,7 +400,7 @@ class PdeV3State(RPCResponseBase):
             predicted_pool = self.clone()
             token_sell_index = self._get_token_index(token_sell)
             token_buy_index = abs(1 - token_sell_index)
-            amm_rate = predicted_pool.get_pool_rate()
+            amm_rate = predicted_pool.get_pool_rate(token_sell)
             orders = sorted(self.get_order_books(direction=token_buy_index), key=lambda o: o.get_order_rate())
             if not orders:
                 receive_amount = predicted_pool.cal_trade_receive(sell_amount, token_sell)
@@ -410,9 +409,14 @@ class PdeV3State(RPCResponseBase):
             right_orders, left_orders = [], []
             for order in orders:
                 right_orders.append(order) if order.get_order_rate() >= amm_rate else left_orders.append(order)
-            print(left_orders)
+
             print("=" * 80)
-            print(right_orders)
+            [print(o) for o in left_orders]
+            print("=" * 80)
+            [print(o) for o in right_orders]
+            print("=" * 80)
+            print("Sell amount: ", sell_amount)
+
             total_receive = 0
             # trade right orders first
             while sell_amount > 0 and right_orders:
@@ -423,6 +427,7 @@ class PdeV3State(RPCResponseBase):
                 receive, remain = best_order.trade(sell_amount)
                 sell_amount = remain  # more explicit than receive, sell_amount = best_order.trade(sell_amount)
                 total_receive = +receive
+                print(f"after trade order: {total_receive}, remain {remain}")
                 if best_order.is_completed():
                     right_orders.pop()
 

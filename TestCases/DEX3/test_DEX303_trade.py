@@ -1,3 +1,4 @@
+from Objects.PdexV3Objects import PdeV3State
       # sell   buy
 o1 = [1000, 1900]
         # sell      buy
@@ -10,7 +11,6 @@ o5 = [1000, 2050]
 o6 = [1000, 2000]
 o7 = [950, 1805]
 
-from Objects.PdexV3Objects import PdeV3State
 
 data = {
     "pair1": {

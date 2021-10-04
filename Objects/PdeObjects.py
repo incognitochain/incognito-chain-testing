@@ -3,8 +3,8 @@ import json
 import re
 from typing import List
 
-from Configs.Constants import PRV_ID
 from Configs.Configs import ChainConfig
+from Configs.Constants import PRV_ID
 from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import INFO, WARNING, DEBUG, ERROR
 from Helpers.TestHelper import l6, KeyExtractor
@@ -32,7 +32,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             return self.get_amount() == other.get_amount() and \
                    self.get_contributor_address() == other.get_contributor_address() and \
                    self.get_pair_id() == other.get_pair_id() and \
-                   self.get_token_id() == other.get_token_id() and \
+                   self.get_token_id() == other._get_token_by_index() and \
                    self.get_tx_req_id() == other.get_tx_req_id()
 
         def __init__(self, raw_data):
@@ -257,13 +257,20 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                  f'is not in PDE contribution waiting list with pair id: {pair_id}')
         return contribution_list
 
-    def get_pde_pool_pairs(self):
+    def get_pde_pool_pairs(self, **by):
+        by_tokens = by.get("tokens")
         pool_pair_objs = []
         pool_pair_raw = self.dict_data['PDEPoolPairs']
         for k, v in pool_pair_raw.items():
+            include = True
             pool_pair_data = {k: v}
             pool_pair_obj = PDEStateInfo.PoolPair(pool_pair_data)
-            pool_pair_objs.append(pool_pair_obj)
+            if by_tokens:
+                matched = sum([x in [pool_pair_obj.get_token1_id(), pool_pair_obj.get_token2_id()] for x in by_tokens]) \
+                          == len(by_tokens)
+                include = include and matched
+            if include:
+                pool_pair_objs.append(pool_pair_obj)
         return pool_pair_objs
 
     def _get_contributor_reward_objects(self, user=None, token1=None, token2=None):

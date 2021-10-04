@@ -200,7 +200,6 @@ class Pde3Math:
     @staticmethod
     def cal_distance_to_order_book(x_virtual, y_virtual, x_order, y_order):
         """
-        #todo: need more clarification, which one is buy/sell from order book => khanhj: done
         Calculate distance of a pool to a specific order
         @param x_virtual: current virtual balance of token X of the pool (sell)
         @param y_virtual: current virtual balance of token Y of the pool (buy)

@@ -118,9 +118,9 @@ def test_add_liquidity_no_trade_with_return(contributor, nft_id, contribution, p
     assert new_pool_pair == predict_pool
 
 
-@pytest.mark.dependency(depends=["test_add_liquidity_first_time"])
 @pytest.mark.parametrize("contributor,nft_id, with_draw_percent, pair_id", [
-    (TOKEN_OWNER, TOKEN_OWNER.nft_ids[0], 0.1, "INIT_PAIR_IDS"),
+    pytest.param(TOKEN_OWNER, TOKEN_OWNER.nft_ids[0], 0.1, "INIT_PAIR_IDS",
+                 marks=pytest.mark.dependency(depends=["test_add_liquidity_first_time"])),
 ])
 def test_withdraw_liquidity(contributor, nft_id, with_draw_percent, pair_id):
     # TODO: not yet done
@@ -137,5 +137,6 @@ def test_withdraw_liquidity(contributor, nft_id, with_draw_percent, pair_id):
     tx = contributor.pde3_withdraw_liquidity(with_draw_amount, pair_id, nft_id)
     fee = tx.get_transaction_by_hash().get_fee()
 
+    Logging.STEP(2, "Checking status")
     WAIT(3 * ChainConfig.BLOCK_TIME)
     status = SUT().dex_v3().get_withdraw_liquidity_status(tx.get_tx_id())
