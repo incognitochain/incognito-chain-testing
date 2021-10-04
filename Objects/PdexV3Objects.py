@@ -177,7 +177,7 @@ class PdeV3State(RPCResponseBase):
                 @param sell_amount:
                 @return: receive amount, remain amount also update the current balance of the order object
                 """
-                Logging.INFO(f"Calculate trade receive, remain and predict order after trade\n{self}")
+                Logging.INFO(f"\n  Calculate trade receive, remain and predict order after trade\n{self}")
                 used_amount = min(sell_amount, self.get_rate_token_buy() - self.get_balance_token_buy())
                 receive_amount = round(used_amount * self.get_buy_rate())
                 bal_sell_remain = self.get_balance_token_sell() - receive_amount
@@ -393,7 +393,7 @@ class PdeV3State(RPCResponseBase):
                 x_sell = tok_sell_bal
                 y_buy = tok_buy_bal
             return Pde3Math.cal_distance_to_order_book(
-                self.get_virtual_amount(tok_sell_index), self.get_virtual_amount(tok_buy_index), x_sell, y_buy)
+                self.get_virtual_amount(tok_sell_index), self.get_virtual_amount(tok_buy_index), y_buy, x_sell)
 
         def predict_pool_after_trade(self, sell_amount, token_sell):
             """ NOTICE that AMM pool must not be Null []
@@ -436,40 +436,36 @@ class PdeV3State(RPCResponseBase):
                     right_orders.pop()
 
             # trade amm with amount = distance to next order
-            if left_orders:
+            while sell_amount > 0 and left_orders:
                 next_order = left_orders[-1]
+                print(f"next ORDER: {next_order}")
                 distance = predicted_pool.cal_distant_to_order(token_sell, next_order)
+                print(f"Distance : {distance}")
                 if 0 < sell_amount <= distance:
-                    Logging.INFO(f"Trade {sell_amount} with pool")
+                    Logging.INFO(f"**Trade {sell_amount} (sell-amount) with pool**")
                     total_receive += predicted_pool.cal_trade_receive(sell_amount, token_sell)
                     sell_amount = 0
                     return total_receive, predicted_pool
                 elif sell_amount > distance:
-                    Logging.INFO(f"Trade {distance} with pool")
+                    Logging.INFO(f"**Trade {distance} (distance) with pool**")
                     total_receive += predicted_pool.cal_trade_receive(distance, token_sell)
                     sell_amount -= distance
 
                 # trade left orders
-                while sell_amount > 0:
-                    Logging.INFO(f"Trade left orders list")
-                    next_order = left_orders[-1]
-                    receive, remain = next_order.trade_this_order(sell_amount)
 
-                    if next_order.is_completed():
-                        left_orders.pop()
-                        distance = predicted_pool.cal_distant_to_order(token_sell, left_orders[-1])
-                    total_receive += receive
-                    sell_amount = remain
-                    if 0 < sell_amount <= distance:
-                        total_receive += predicted_pool.cal_trade_receive(sell_amount, token_sell)
-                        sell_amount = 0
-                        return total_receive, predicted_pool
-                    elif sell_amount > distance:
-                        total_receive += predicted_pool.cal_trade_receive(distance, token_sell)
-                        sell_amount -= distance
+                Logging.INFO(f"**Trade {sell_amount} w left orders list")
+
+                receive, remain = next_order.trade_this_order(sell_amount)
+
+                if next_order.is_completed():
+                    left_orders.pop()
+                    # print(f"aa left order = {left_orders}")
+
+                total_receive += receive
+                sell_amount = remain
 
             if sell_amount > 0:
-                Logging.INFO(f"Still have token left to trade, continue trading with pool")
+                Logging.INFO(f"Still have token left to trade, continue trading {sell_amount} with pool")
                 total_receive += predicted_pool.cal_trade_receive(sell_amount, token_sell)
 
             return total_receive, predicted_pool
