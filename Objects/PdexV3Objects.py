@@ -172,7 +172,7 @@ class PdeV3State(RPCResponseBase):
                              f"Rate buy: {self.get_rate_token_buy()}")
                 return check
 
-            def trade(self, sell_amount):
+            def trade_this_order(self, sell_amount):
                 """
                 @param sell_amount:
                 @return: receive amount, remain amount also update the current balance of the order object
@@ -180,8 +180,8 @@ class PdeV3State(RPCResponseBase):
                 Logging.INFO(f"Calculate trade receive, remain and predict order after trade\n{self}")
                 amount = min(sell_amount, self.get_balance_token_sell())
                 receive_amount = int(amount * self.get_buy_rate())
-                bal_sell_remain = self.get_balance_token_sell() - amount
-                bal_buy_remain = self.get_balance_token_buy() + receive_amount
+                bal_sell_remain = self.get_balance_token_sell() - receive_amount
+                bal_buy_remain = self.get_balance_token_buy() + amount
                 remain = min(0, sell_amount - amount)
                 self._set_balance(bal_sell_remain, bal_buy_remain)
                 Logging.INFO(f"Trade amount {sell_amount}, remain {remain}")
@@ -428,7 +428,7 @@ class PdeV3State(RPCResponseBase):
                 Logging.INFO(
                     f"Trading best rate order book first {best_order.get_id()}, rate {best_order.get_buy_rate()}")
                 Logging.DEBUG(best_order)
-                receive, remain = best_order.trade(sell_amount)
+                receive, remain = best_order.trade_this_order(sell_amount)
                 sell_amount = remain  # more explicit than receive, sell_amount = best_order.trade(sell_amount)
                 total_receive = +receive
                 print(f"after trade order: {total_receive}, remain {remain}")
@@ -449,24 +449,24 @@ class PdeV3State(RPCResponseBase):
                     total_receive += predicted_pool.cal_trade_receive(distance, token_sell)
                     sell_amount -= distance
 
-            # trade left orders
-            while sell_amount > 0 and left_orders:
-                Logging.INFO(f"Trade left orders list")
-                next_order = left_orders[-1]
-                receive, remain = next_order.trade(sell_amount)
+                # trade left orders
+                while sell_amount > 0:
+                    Logging.INFO(f"Trade left orders list")
+                    next_order = left_orders[-1]
+                    receive, remain = next_order.trade_this_order(sell_amount)
 
-                if next_order.is_completed():
-                    left_orders.pop()
-                    distance = predicted_pool.cal_distant_to_order(token_sell, left_orders[-1])
-                total_receive += receive
-                sell_amount = remain
-                if 0 < sell_amount <= distance:
-                    total_receive += predicted_pool.cal_trade_receive(sell_amount, token_sell)
-                    sell_amount = 0
-                    return total_receive, predicted_pool
-                elif sell_amount > distance:
-                    total_receive += predicted_pool.cal_trade_receive(distance, token_sell)
-                    sell_amount -= distance
+                    if next_order.is_completed():
+                        left_orders.pop()
+                        distance = predicted_pool.cal_distant_to_order(token_sell, left_orders[-1])
+                    total_receive += receive
+                    sell_amount = remain
+                    if 0 < sell_amount <= distance:
+                        total_receive += predicted_pool.cal_trade_receive(sell_amount, token_sell)
+                        sell_amount = 0
+                        return total_receive, predicted_pool
+                    elif sell_amount > distance:
+                        total_receive += predicted_pool.cal_trade_receive(distance, token_sell)
+                        sell_amount -= distance
 
             if sell_amount > 0:
                 Logging.INFO(f"Still have token left to trade, continue trading with pool")
