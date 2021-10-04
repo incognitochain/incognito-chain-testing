@@ -17,10 +17,10 @@ data = {
         "State": {
             "Token0ID": "0000000000000000000000000000000000000000000000000000000000000004",
             "Token1ID": "92f9e5aa0683568d041af306d8b029f919bb1cd432241fd751b6f0a8ac0ccc98",
-            "Token0RealAmount": 10000,
-            "Token1RealAmount": 5000,
-            "Token0VirtualAmount": 20000,
-            "Token1VirtualAmount": 10000,
+            "Token0RealAmount": 5000,
+            "Token1RealAmount": 10000,
+            "Token0VirtualAmount": 10000,
+            "Token1VirtualAmount": 20000,
             "Amplifier": 20000,
             "ShareAmount": 1000000000,
             "LPFeesPerShare": {
@@ -119,4 +119,5 @@ token_x = "0000000000000000000000000000000000000000000000000000000000000004"
 token_y = "92f9e5aa0683568d041af306d8b029f919bb1cd432241fd751b6f0a8ac0ccc98"
 
 pool_b4 = PdeV3State.PoolPairData(data)
+print("AMM RATE ",pool_b4.get_pool_rate(token_x))
 receive, pool_predict = pool_b4.predict_pool_after_trade(850, token_x)
