@@ -6,8 +6,8 @@ TOKEN_OWNER = ACCOUNTS[0]
 INIT_PAIR_IDS = []
 POOL_X0 = 0
 POOL_Y0 = 0
-TOKEN_X = "15a5d111eb5c03f259fafe140cdefbda9d7400cd2b3ab592b0476d979ef1f950"
-TOKEN_Y = "3afb065181239a8c731c9d3e0f8933fb87830276050b55d1a17a55ac274884f8"
+TOKEN_X = "12665208fd4b325c7936468def1ea852b7d47a6cef065d766b0a1638ef4f0f51" # AUTO-pADA
+TOKEN_Y = "9db780c5a82240d38411eef30ceb49f2da68b2de0eb8dfac98aee3552e022421" # AUTO-pBTC
 
 # ---------------------------- SET UP -------------------------------
 ACCOUNTS.pde3_get_nft_ids()
