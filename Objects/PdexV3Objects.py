@@ -337,14 +337,16 @@ class PdeV3State(RPCResponseBase):
             by_direction = by.get("direction", by.get("trade_direction"))
             by_token_sell = by.get("token_sell", by.get("sell"))
             return_obj_list = []
-            include = True
             for obj in all_order_obj:
+                include = True
                 if by_nft_id:
                     include = include and obj.get_nft_id() == by_nft_id
                 if by_direction is not None:
                     include = include and obj.get_trade_direction() == by_direction
+                    print(f"by dir {obj.get_id()}: {include}")
                 if by_token_sell:
                     include = include and obj.get_trade_direction() == self._get_token_index(by_token_sell)
+                print("final ", include)
                 return_obj_list.append(obj) if include else None
 
             return return_obj_list
@@ -401,8 +403,8 @@ class PdeV3State(RPCResponseBase):
             @param token_sell:
             @return: receive amount and Pool status after trade
             """
-            predicted_pool = self.clone()
-            token_sell_index = self._get_token_index(token_sell)
+            predicted_pool: PdeV3State.PoolPairData = self.clone()
+            token_sell_index = predicted_pool._get_token_index(token_sell)
             token_buy_index = abs(1 - token_sell_index)
             amm_rate = predicted_pool.get_pool_rate(token_sell)
             orders = sorted(predicted_pool.get_order_books(direction=token_buy_index), key=lambda o: o.get_buy_rate())
@@ -414,12 +416,12 @@ class PdeV3State(RPCResponseBase):
             for order in orders:
                 right_orders.append(order) if order.get_buy_rate() >= amm_rate else left_orders.append(order)
 
-            print("left ", "=" * 80)
-            [print(o) for o in left_orders]
-            print("right ", "=" * 80)
-            [print(o) for o in right_orders]
-            print("=" * 80)
-            print("Sell amount: ", sell_amount)
+            Logging.INFO(f"LEFT {'=' * 40}")
+            [Logging.INFO(f"{o.get_id()} {o.get_buy_rate()}") for o in left_orders]
+            Logging.INFO(f"RIGHT {'=' * 40}")
+            [Logging.INFO(f"{o.get_id()} {o.get_buy_rate()}") for o in right_orders]
+            Logging.INFO("=" * 80)
+            Logging.INFO(f"Sell amount: {sell_amount}")
 
             total_receive = 0
             # trade right orders first
@@ -429,18 +431,18 @@ class PdeV3State(RPCResponseBase):
                     f"Trading best rate order book {best_order.get_id()}, rate {best_order.get_buy_rate()}")
                 Logging.DEBUG(best_order)
                 receive, remain = best_order.trade_this_order(sell_amount)
-                sell_amount = remain  # more explicit than receive, sell_amount = best_order.trade(sell_amount)
                 total_receive += receive
-                print(f"after trade order: {total_receive}, remain {remain}")
+                Logging.INFO(f"After trade order: traded {sell_amount}, remain {remain}, sum receive {total_receive}")
+                sell_amount = remain  # more explicit than receive, sell_amount = best_order.trade(sell_amount)
                 if best_order.is_completed():
                     right_orders.pop()
 
-            # trade amm with amount = distance to next order
             while sell_amount > 0 and left_orders:
+                # trade amm with amount = distance to next order
                 next_order = left_orders[-1]
-                print(f"next ORDER: {next_order}")
+                Logging.INFO(f"next ORDER: {next_order}")
                 distance = predicted_pool.cal_distant_to_order(token_sell, next_order)
-                print(f"Distance : {distance}")
+                Logging.INFO(f"Distance : {distance}")
                 if 0 < sell_amount <= distance:
                     Logging.INFO(f"**Trade {sell_amount} (sell-amount) with pool**")
                     total_receive += predicted_pool.cal_trade_receive(sell_amount, token_sell)
@@ -452,14 +454,10 @@ class PdeV3State(RPCResponseBase):
                     sell_amount -= distance
 
                 # trade left orders
-
                 Logging.INFO(f"**Trade {sell_amount} w left orders list")
-
                 receive, remain = next_order.trade_this_order(sell_amount)
-
                 if next_order.is_completed():
                     left_orders.pop()
-                    # print(f"aa left order = {left_orders}")
 
                 total_receive += receive
                 sell_amount = remain
