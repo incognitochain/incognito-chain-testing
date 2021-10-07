@@ -41,6 +41,36 @@ data = {
         "Orderbook": {
             "orders": [
                 {
+                    "Id": "o8",
+                    "NftID": "ef72a79eaa139376068e2e6ac949ded22ee6aa1262794802ea59d2402e635961",
+                    "Token0Rate": 1010,
+                    "Token1Rate": 1900,
+                    "Token0Balance": 1010,
+                    "Token1Balance": 0,
+                    "TradeDirection": 0,
+                    "Fee": 0
+                },
+                {
+                    "Id": "o9",
+                    "NftID": "ef72a79eaa139376068e2e6ac949ded22ee6aa1262794802ea59d2402e635961",
+                    "Token0Rate": 1070,
+                    "Token1Rate": 1970,
+                    "Token0Balance": 1070,
+                    "Token1Balance": 0,
+                    "TradeDirection": 0,
+                    "Fee": 0
+                },
+                {
+                    "Id": "o0",
+                    "NftID": "ef72a79eaa139376068e2e6ac949ded22ee6aa1262794802ea59d2402e635961",
+                    "Token0Rate": 1100,
+                    "Token1Rate": 1900,
+                    "Token0Balance": 1100,
+                    "Token1Balance": 0,
+                    "TradeDirection": 0,
+                    "Fee": 0
+                },
+                {
                     "Id": "o1",
                     "NftID": "ef72a79eaa139376068e2e6ac949ded22ee6aa1262794802ea59d2402e635961",
                     "Token0Rate": 1000,
@@ -121,5 +151,5 @@ token_y = "92f9e5aa0683568d041af306d8b029f919bb1cd432241fd751b6f0a8ac0ccc98"
 pool_b4 = PdeV3State.PoolPairData(data)
 print("AMM RATE ", pool_b4.get_pool_rate(token_x))
 receive, pool_predict = pool_b4.predict_pool_after_trade(7259, token_x)
-print(receive)
-# print (pool_predict)
+print(f"out {receive}")
+print (pool_predict)
