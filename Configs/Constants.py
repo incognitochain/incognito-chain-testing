@@ -110,4 +110,5 @@ class Status:
             ACCEPT = 1
             REFUND = 0
 
-
+        class ShareWithdraw:
+            SUCCESS = 1

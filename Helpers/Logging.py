@@ -10,7 +10,7 @@ _STEP_LVL = 12
 
 log_level_console = _STEP_LVL
 
-_now = datetime.now().strftime("%d%m%y_%H%M%S")
+_now = datetime.now().strftime("%y%m%d_%H%M%S")
 _log_file_full = f'run_{_now}.log'
 _log_file_short = f'run_{_now}_short.log'
 

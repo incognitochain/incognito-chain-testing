@@ -117,40 +117,46 @@ class Pde3Math:
         @param v_pool_token_buy:
         @return: receiving_amount
         """
-        k_virtual = int(v_pool_token_buy * v_pool_token_sell)
+        k_virtual = v_pool_token_buy * v_pool_token_sell
         receiving_amount = int(v_pool_token_buy - k_virtual / (v_pool_token_sell + sell_amount))
         return receiving_amount
 
     @staticmethod
-    def cal_contribution(x_contrib_amount, x, y):
+    def cal_contribution_other_end(delta_x, x, y):
         """
         https://docs.dmm.exchange/adding-liquidity-in-dmm/index.html
         Calculate amount of Y token require when contrib x amount of token X.
         Can be use to calculate share withdraw,
         then the x_contrib_amount is negative and equal amount of X token user want to withdraw
-        @param x_contrib_amount: amount of X token contribute to the pool
+        @param delta_x: amount of X token contribute to the pool
         @param x: current balance of token X in pool (x0 + delta_x0)
         @param y: current balance of token Y in pool (y0 + delta_y0)
-        @return: amount of token Y must contribute, new x, y
+        @return: delta_y (amount of token Y must contribute)
         """
-        return int(x_contrib_amount * y / x)
+        return int(delta_x * y / x)
 
     @staticmethod
-    def cal_contrib_both_end(delta_x, delta_y, x, y):
+    def cal_contrib_both_end(current_total_share, delta_x, delta_y, x, y):
         """
+        @param current_total_share:
         @param delta_x: contribute amount of X token
         @param delta_y: contribute amount of y token
         @param x: current balance of token X in pool (x0 + delta_x0)
         @param y: current balance of token Y in pool (y0 + delta_y0)
         @return: accepted amount of X, accepted amount of Y
         """
-        accepted_y = min(delta_y, Pde3Math.cal_contribution(delta_x, x, y))
-        accepted_x = min(delta_x, Pde3Math.cal_contribution(delta_y, y, x))
-        return int(accepted_x), int(accepted_y)
+
+        delta_share = min(delta_x * current_total_share / x, delta_y * current_total_share / y)
+        accepted_y = min(delta_y, Pde3Math.cal_contribution_other_end(delta_x, x, y))
+        accepted_x = min(delta_x, Pde3Math.cal_contribution_other_end(delta_y, y, x))
+        return int(accepted_x), int(accepted_y), delta_share
 
     @staticmethod
-    def cal_contribution_virtual(delta_x, amp):
-        return int(amp * delta_x)
+    def cal_virtual_after_contribution(current_virtual, current_total_share, new_total_share):
+        """
+        Calculate new virtual amount of pool after contribution
+        """
+        return int(current_virtual * new_total_share / current_total_share)
 
     @staticmethod
     def cal_price_min_max(a, x, y, x_current_virtual_pool, y_current_virtual_pool):
@@ -172,32 +178,6 @@ class Pde3Math:
         return int(math.sqrt(amount_x * amount_y))
 
     @staticmethod
-    def cal_share_add_liquidity(current_total_share, delta_x, delta_y, x, y):
-        """
-        @param current_total_share:
-        @param delta_x: add amount of token X
-        @param delta_y: add amount of token Y
-        @param x: current balance of token X in pool
-        @param y: current balance of token Y in pool
-        @return: share amount of the contributed amount
-        """
-        return min(int(delta_x * current_total_share / x), int(delta_y * current_total_share) / y)
-
-    @staticmethod
-    def cal_withdraw_share(delta_s, x, y):
-        """
-
-        @param delta_s: amount of share to be withdraw
-        @param x: current balance of token X in pool
-        @param y: current balance of token Y in pool
-        @return: amount or token X and Y receive
-        """
-        percent = delta_s / math.sqrt(x * y)
-        x_receive = int(x * percent)
-        y_receive = int(y * percent)
-        return x_receive, y_receive
-
-    @staticmethod
     def cal_distance_to_order_book(x_virtual, y_virtual, x_order, y_order):
         """
         Calculate distance of a pool to a specific order
@@ -208,3 +188,16 @@ class Pde3Math:
         @return:
         """
         return int(abs(math.sqrt(x_virtual * y_virtual * x_order / y_order) - x_virtual))
+
+    @staticmethod
+    def cal_withdraw_share(delta_s, x, y, current_share):
+        """
+        @param delta_s: amount of share to be withdraw
+        @param x: current balance of token X in pool
+        @param y: current balance of token Y in pool
+        @param current_share:
+        @return: amount or token X and Y receive
+        """
+        x_receive = int(x * delta_s / current_share)
+        y_receive = int(y * delta_s / current_share)
+        return x_receive, y_receive

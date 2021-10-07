@@ -1047,24 +1047,26 @@ class Account:
     def pde3_mint_nft(self, amount=coin(1), token_id=PRV_ID, tx_fee=-1, tx_privacy=1, force=False):
         if not force:
             if self.nft_ids:
-                INFO(f"Already have NFT ID(s), return the first one now and will not mint more: \n {self.nft_ids}")
+                INFO(f"{self.private_key[-6:]} Already have NFT ID(s), "
+                     f"return the first one now and will not mint more: \n {self.nft_ids}")
                 return self.nft_ids[0]
         response = self.REQ_HANDLER.dex_v3() \
             .mint_nft(self.private_key, amount, token_id, tx_fee=tx_fee, tx_privacy=tx_privacy)
         tx_detail = response.get_transaction_by_hash()
         wasted_time = 0
         while True:
-            mint_status = self.REQ_HANDLER.dex_v3().get_mint_nft_status(response.get_tx_id())
-            nft_id = mint_status.get_nft_id()
-            if wasted_time < ChainConfig.BLOCK_TIME * 5:
-                break
             WAIT(ChainConfig.BLOCK_TIME)
             wasted_time += ChainConfig.BLOCK_TIME
+            mint_status = self.REQ_HANDLER.dex_v3().get_mint_nft_status(response.get_tx_id())
+            nft_id = mint_status.get_nft_id()
+            if nft_id:
+                INFO(f"{self.private_key[-6:]} New DEX NFT ID: {nft_id}")
+                return nft_id
+            if wasted_time > ChainConfig.BLOCK_TIME * 5:
+                break
         if not nft_id:
-            raise TimeoutError(f'Waited {wasted_time}s, but cant get new nft id after tx was confirmed')
-        self.save_nft_id(nft_id)
-        INFO(f"New DEX NFT ID: {nft_id}")
-        return nft_id
+            INFO(f'Waited {wasted_time}s, but cant get new nft id after tx was confirmed')
+            return None
 
     def pde3_get_my_nft_ids(self, pde_state=None):
         all_my_custom_token = self.list_owned_custom_token()
@@ -1072,6 +1074,7 @@ class Account:
         for token in all_my_custom_token.__iter__():
             if pde_state.get_nft_id(token.get_token_id()):
                 self.save_nft_id(token.get_token_id())
+        INFO(f"Get {self.private_key[-6:]} NFT id from pde state.\n   found: {self.nft_ids}")
         return self.nft_ids
 
     def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=1, check_interval=10,

@@ -2,7 +2,6 @@ import copy
 import json
 from typing import List
 
-from Configs.Configs import ChainConfig
 from Drivers.Response import RPCResponseBase
 from Helpers import Logging
 from Helpers.BlockChainMath import Pde3Math
@@ -190,7 +189,7 @@ class PdeV3State(RPCResponseBase):
                 return receive_amount, remain
 
         @staticmethod
-        def make_empty_pool(token_list, nft_ids):
+        def make_up_a_pool(token_list, nft_ids):
             if len(token_list) != 2:
                 raise ValueError(f"Expected 2 tokens while get {token_list}")
             nft_ids = nft_ids if isinstance(nft_ids, list) else [nft_ids]
@@ -211,7 +210,7 @@ class PdeV3State(RPCResponseBase):
                     },
                     "Shares": share_data,
                     "Orderbook": {
-                        "orders": []
+                        # "orders": []
                     },
                     "LpFeesPerShare": {},
                     "ProtocolFees": {},
@@ -230,8 +229,14 @@ class PdeV3State(RPCResponseBase):
             else:
                 raise ValueError(f"Token {token}, does not belong to this pool.\n{self.get_pool_pair_id()}")
 
+        def is_made_up_pool(self):
+            """check if the pool is made up by self.make_up_a_pool()"""
+            return self.total_share_amount == self.amplifier == 0 and self.get_pool_pair_id() == "unknown"
+
         def is_empty_pool(self):
-            return self.total_share_amount == 0 and self.amplifier == 0
+            """check if the pool is withdrawn completely"""
+            return self.total_share_amount == self.get_real_amount(0) == self.get_real_amount(1) == \
+                   self.get_virtual_amount(0) == self.get_virtual_amount(1) == 0
 
         def get_pool_pair_id(self):
             return list(self.dict_data.keys())[0]
@@ -401,16 +406,15 @@ class PdeV3State(RPCResponseBase):
             """ NOTICE that AMM pool must not be Null []
             @param sell_amount:
             @param token_sell:
-            @return: receive amount and Pool status after trade
+            @return: receive amount
             """
-            predicted_pool: PdeV3State.PoolPairData = self.clone()
-            token_sell_index = predicted_pool._get_token_index(token_sell)
+            token_sell_index = self._get_token_index(token_sell)
             token_buy_index = abs(1 - token_sell_index)
-            amm_rate = predicted_pool.get_pool_rate(token_sell)
-            orders = sorted(predicted_pool.get_order_books(direction=token_buy_index), key=lambda o: o.get_buy_rate())
+            amm_rate = self.get_pool_rate(token_sell)
+            orders = sorted(self.get_order_books(direction=token_buy_index), key=lambda o: o.get_buy_rate())
             if not orders:
-                receive_amount = predicted_pool.cal_trade_receive(sell_amount, token_sell)
-                return receive_amount, predicted_pool
+                receive_amount = self.cal_trade_receive(sell_amount, token_sell)
+                return receive_amount, self
 
             right_orders, left_orders = [], []
             for order in orders:
@@ -441,16 +445,16 @@ class PdeV3State(RPCResponseBase):
                 # trade amm with amount = distance to next order
                 next_order = left_orders[-1]
                 Logging.INFO(f"next ORDER: {next_order}")
-                distance = predicted_pool.cal_distant_to_order(token_sell, next_order)
+                distance = self.cal_distant_to_order(token_sell, next_order)
                 Logging.INFO(f"Distance : {distance}")
                 if 0 < sell_amount <= distance:
                     Logging.INFO(f"**Trade {sell_amount} (sell-amount) with pool**")
-                    total_receive += predicted_pool.cal_trade_receive(sell_amount, token_sell)
+                    total_receive += self.cal_trade_receive(sell_amount, token_sell)
                     sell_amount = 0
-                    return total_receive, predicted_pool
+                    return total_receive, self
                 elif sell_amount > distance:
                     Logging.INFO(f"**Trade {distance} (distance) with pool**")
-                    total_receive += predicted_pool.cal_trade_receive(distance, token_sell)
+                    total_receive += self.cal_trade_receive(distance, token_sell)
                     sell_amount -= distance
 
                 # trade left orders
@@ -464,16 +468,16 @@ class PdeV3State(RPCResponseBase):
 
             if sell_amount > 0:
                 Logging.INFO(f"Still have token left to trade, continue trading {sell_amount} with pool")
-                total_receive += predicted_pool.cal_trade_receive(sell_amount, token_sell)
+                total_receive += self.cal_trade_receive(sell_amount, token_sell)
 
-            return total_receive, predicted_pool
+            return total_receive
 
         def predict_pool_when_add_liquidity(self, amount_dict, nft_id, amp=0):
             """
             @param amp: only use when the self.is_empty_pool() == True (first time contribution), ignore otherwise
             @param amount_dict:
             @param nft_id:
-            @return: Share object after contribution, return amount dict {token x: x return, token y: y return}
+            @return: amount dict {token x: x return, token y: y return}
             """
             all_tok = list(amount_dict.keys())
             if not (self.get_token_id(0) in all_tok and self.get_token_id(1) in all_tok):
@@ -482,43 +486,40 @@ class PdeV3State(RPCResponseBase):
                                  f"While input tokens are: {all_tok}")
             token_x, token_y = all_tok
             delta_x, delta_y = amount_dict[token_x], amount_dict[token_y]
-            current_virtual_x, current_virtual_y = self.get_virtual_amount(token_x), self.get_virtual_amount(token_y)
+            virtual_x, virtual_y = self.get_virtual_amount(token_x), self.get_virtual_amount(token_y)
             current_real_x, current_real_y = self.get_real_amount(token_x), self.get_real_amount(token_y)
-            if self.is_empty_pool():  # first time contribute
+            if self.is_made_up_pool():  # first time contribute
                 Logging.INFO("First time contribution for this pair\n\t"
                              f"{self.get_pool_pair_id()}\n\t"
                              f"NFT ID = {nft_id}")
                 self.amplifier = amp
                 accepted_x, accepted_y = delta_x, delta_y
-                share_added = Pde3Math.cal_share_new_pool(accepted_x, accepted_y)
+                delta_share = Pde3Math.cal_share_new_pool(accepted_x, accepted_y)
             else:
                 Logging.INFO("Contribute more to this pair")
                 x, y = self.get_real_amount(token_x), self.get_real_amount(token_y)
-                accepted_x, accepted_y = Pde3Math.cal_contrib_both_end(delta_x, delta_y, x, y)
-                share_added = Pde3Math.cal_share_add_liquidity(self.total_share_amount, accepted_x, accepted_y, x,
-                                                               y)
-            accepted_virtual_x = Pde3Math.cal_contribution_virtual(accepted_x,
-                                                                   self.amplifier / ChainConfig.Dex3.AMP_DECIMAL)
-            accepted_virtual_y = Pde3Math.cal_contribution_virtual(accepted_y,
-                                                                   self.amplifier / ChainConfig.Dex3.AMP_DECIMAL)
+                accepted_x, accepted_y, delta_share = \
+                    Pde3Math.cal_contrib_both_end(self.total_share_amount, delta_x, delta_y, x, y)
+            new_total_share = self.total_share_amount + delta_share
+            new_virtual_x = Pde3Math.cal_virtual_after_contribution(virtual_x, self.total_share_amount, new_total_share)
+            new_virtual_y = Pde3Math.cal_virtual_after_contribution(virtual_y, self.total_share_amount, new_total_share)
             return_amount = {token_x: delta_x - accepted_x, token_y: delta_y - accepted_y}
             # predict the pool
-            new_pool_obj: PdeV3State.PoolPairData = self.clone()
-            new_pool_obj.set_real_pool(token_x, current_real_x + accepted_x)
-            new_pool_obj.set_real_pool(token_y, current_real_y + accepted_y)
-            new_pool_obj.set_virtual_pool(token_x, current_virtual_x + accepted_virtual_x)
-            new_pool_obj.set_virtual_pool(token_y, current_virtual_y + accepted_virtual_y)
-            new_pool_obj.total_share_amount += share_added
+            self.set_real_pool(token_x, current_real_x + accepted_x)
+            self.set_real_pool(token_y, current_real_y + accepted_y)
+            self.set_virtual_pool(token_x, new_virtual_x)
+            self.set_virtual_pool(token_y, new_virtual_y)
+            self.total_share_amount += delta_share
             # predict contributor's share
-            existing_share = new_pool_obj.get_share(nft_id)
-            existing_share.amount += share_added
+            existing_share = self.get_share(nft_id)
+            existing_share.amount += delta_share
             Logging.INFO("Predicted pool after adding liquidity \n\t"
                          f"Contributed: \n\t\t {json.dumps(amount_dict, indent=3)}\n\t"
                          f"Return:\n\t\t {json.dumps(return_amount, indent=3)}\n\t"
                          f"Accepted:\n\t\t {json.dumps({token_x: accepted_x, token_y: accepted_y}, indent=3)}\n\t"
                          f"Old | Added | New total share: "
-                         f"{self.total_share_amount} | {share_added} | {new_pool_obj.total_share_amount}")
-            return new_pool_obj, return_amount
+                         f"{self.total_share_amount} | {delta_share} | {self.total_share_amount}")
+            return return_amount
 
         def get_pool_rate(self, token_sell):
             token_buy_index = 1 - self._get_token_index(token_sell)
@@ -534,22 +535,34 @@ class PdeV3State(RPCResponseBase):
             """
             @param withdraw_amount:
             @param nft_id:
-            @return: dict receive {token x: amount, token y: amount}, predicted pool after withdraw
+            @return: dict receive {token x: amount, token y: amount}
             """
-            predicted_pool = self.clone()
-            token_x, token_y = predicted_pool.get_token_id(0), predicted_pool.get_token_id(1)
-            x_real = predicted_pool.get_real_amount(token_x)
-            y_real = predicted_pool.get_real_amount(token_y)
-            x_receive, y_receive = Pde3Math.cal_withdraw_share(withdraw_amount, x_real, y_real)
-            predicted_pool.set_real_pool(token_x, x_real - x_receive)
-            predicted_pool.set_real_pool(token_y, y_real - y_receive)
-            predicted_pool.set_virtual_pool(token_x, x_real - x_receive * predicted_pool.amplifier)
-            predicted_pool.set_virtual_pool(token_y, x_real - x_receive * predicted_pool.amplifier)
-            predicted_pool.total_share_amount = predicted_pool.cal_share_by_real_pool()
+            token_x, token_y = self.get_token_id(0), self.get_token_id(1)
+            my_share = self.get_share(nft_id)
+            my_current_share = my_share.amount
+            withdraw_able = min(withdraw_amount, my_current_share)
+            x_real = self.get_real_amount(token_x)
+            y_real = self.get_real_amount(token_y)
+            x_virtual = self.get_virtual_amount(token_x)
+            y_virtual = self.get_virtual_amount(token_y)
+            Logging.INFO(f"NFT: {nft_id}\n\t"
+                         f"Want to withdraw share {withdraw_amount}, while has {my_current_share}, "
+                         f"able to withdraw {withdraw_able}")
+            x_receive, y_receive = Pde3Math.cal_withdraw_share(withdraw_able, x_real, y_real, self.total_share_amount)
+            x_real_new = x_real - x_receive
+            y_real_new = y_real - y_receive
+            remain_share_total = self.total_share_amount - withdraw_able
+            self.set_real_pool(token_x, x_real_new)
+            self.set_real_pool(token_y, y_real_new)
+            x_virtual_new = max(x_real_new, int(remain_share_total * x_virtual / self.total_share_amount))
+            y_virtual_new = max(y_real_new, int(remain_share_total * y_virtual / self.total_share_amount))
+            self.set_virtual_pool(token_x, x_virtual_new)
+            self.set_virtual_pool(token_y, y_virtual_new)
+            self.total_share_amount = remain_share_total
             # update user share
-            share = predicted_pool.get_share(nft_id)
-            share.amount -= withdraw_amount
-            return {token_x: x_receive, token_y: y_receive}, predicted_pool
+            my_share = self.get_share(nft_id)
+            my_share.amount -= withdraw_able
+            return {token_x: x_receive, token_y: y_receive}
 
     class Param(BlockChainInfoBaseClass):
         def get_default_fee_rate_bps(self):
@@ -775,3 +788,8 @@ class PdeV3State(RPCResponseBase):
                 included = included and obj.amplifier == by_amp
             return_list.append(obj) if included else None
         return return_list
+
+    def pre_dict_state_after_trade(self, sell_token, sell_amount, trade_path):
+        for pair_id in trade_path:
+            pool = self.get_pool_pair(id=pair_id)
+            pool.predict_pool_after_trade(sell_amount, sell_token)
