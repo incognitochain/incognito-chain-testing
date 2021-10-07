@@ -2,6 +2,7 @@ import copy
 import json
 from typing import List
 
+from Configs.Configs import ChainConfig
 from Drivers.Response import RPCResponseBase
 from Helpers import Logging
 from Helpers.BlockChainMath import Pde3Math
@@ -9,6 +10,9 @@ from Objects import BlockChainInfoBaseClass
 
 
 class PdeV3State(RPCResponseBase):
+    def __eq__(self, other):
+        return self.data() == other.data() if isinstance(other, PdeV3State) else False
+
     class PoolPairData(BlockChainInfoBaseClass):
         """"{
             "0000000000000000000000000000000000000000000000000000000000000004-1411bdcae86863b0c09d94de0c6617d6729f0c5b550f6aac236931b8989207c1-de7cee45ee7be4f179592feaf79b1fbc5c1e96baad5bcb17d265b08bf32cf09e": {
@@ -329,7 +333,10 @@ class PdeV3State(RPCResponseBase):
             @param by: id, nft_id (nft or nftid), direction, token_sell (or sell)
             @return:
             """
-            all_order = self.pair_data()["Orderbook"]["orders"]
+            try:
+                all_order = self.pair_data()["Orderbook"]["orders"]
+            except KeyError:
+                return []
             all_order_obj = [PdeV3State.PoolPairData.Order(order) for order in all_order]
             by_id = by.get("id")
             if by_id:
@@ -488,21 +495,25 @@ class PdeV3State(RPCResponseBase):
             delta_x, delta_y = amount_dict[token_x], amount_dict[token_y]
             virtual_x, virtual_y = self.get_virtual_amount(token_x), self.get_virtual_amount(token_y)
             current_real_x, current_real_y = self.get_real_amount(token_x), self.get_real_amount(token_y)
-            if self.is_made_up_pool():  # first time contribute
+            if self.total_share_amount == 0:  # first time contribute
                 Logging.INFO("First time contribution for this pair\n\t"
                              f"{self.get_pool_pair_id()}\n\t"
                              f"NFT ID = {nft_id}")
                 self.amplifier = amp
                 accepted_x, accepted_y = delta_x, delta_y
                 delta_share = Pde3Math.cal_share_new_pool(accepted_x, accepted_y)
+                new_virtual_x = accepted_x * amp / ChainConfig.Dex3.AMP_DECIMAL
+                new_virtual_y = accepted_y * amp / ChainConfig.Dex3.AMP_DECIMAL
             else:
                 Logging.INFO("Contribute more to this pair")
                 x, y = self.get_real_amount(token_x), self.get_real_amount(token_y)
                 accepted_x, accepted_y, delta_share = \
                     Pde3Math.cal_contrib_both_end(self.total_share_amount, delta_x, delta_y, x, y)
-            new_total_share = self.total_share_amount + delta_share
-            new_virtual_x = Pde3Math.cal_virtual_after_contribution(virtual_x, self.total_share_amount, new_total_share)
-            new_virtual_y = Pde3Math.cal_virtual_after_contribution(virtual_y, self.total_share_amount, new_total_share)
+                new_total_share = self.total_share_amount + delta_share
+                new_virtual_x = Pde3Math.cal_virtual_after_contribution(virtual_x, self.total_share_amount,
+                                                                        new_total_share)
+                new_virtual_y = Pde3Math.cal_virtual_after_contribution(virtual_y, self.total_share_amount,
+                                                                        new_total_share)
             return_amount = {token_x: delta_x - accepted_x, token_y: delta_y - accepted_y}
             # predict the pool
             self.set_real_pool(token_x, current_real_x + accepted_x)
@@ -790,6 +801,10 @@ class PdeV3State(RPCResponseBase):
         return return_list
 
     def pre_dict_state_after_trade(self, sell_token, sell_amount, trade_path):
+        receive = 0
         for pair_id in trade_path:
+            Logging.INFO(f"Trade with pair: \n   {pair_id}")
             pool = self.get_pool_pair(id=pair_id)
-            pool.predict_pool_after_trade(sell_amount, sell_token)
+            receive = pool.predict_pool_after_trade(sell_amount, sell_token)
+            sell_amount = receive
+        return receive

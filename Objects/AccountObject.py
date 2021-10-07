@@ -1002,7 +1002,8 @@ class Account:
     def pde3_trade(self, token_sell, token_buy, sell_amount, min_acceptable, trade_path, trading_fee=100,
                    use_prv_fee=True, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3().trade(self.private_key, token_sell, token_buy, sell_amount, min_acceptable,
-                                               trade_path, trading_fee, use_prv_fee, tx_fee, tx_privacy)
+                                               trade_path, trading_fee, use_prv_fee,
+                                               tx_fee=tx_fee, tx_privacy=tx_privacy)
 
     def pde3_withdraw_lp_fee(self, receiver, token_amount, token_id, pool_pair_id, nft_id,
                              token_tx_type=1, token_fee=0, token_name="", token_symbol=0,
