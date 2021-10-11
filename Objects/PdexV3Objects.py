@@ -2,7 +2,10 @@ import copy
 import json
 from typing import List
 
+from deepdiff import DeepDiff
+
 from Configs.Configs import ChainConfig
+from Configs.Constants import PRV_ID
 from Drivers.Response import RPCResponseBase
 from Helpers import Logging
 from Helpers.BlockChainMath import Pde3Math
@@ -11,7 +14,18 @@ from Objects import BlockChainInfoBaseClass
 
 class PdeV3State(RPCResponseBase):
     def __eq__(self, other):
-        return self.data() == other.data() if isinstance(other, PdeV3State) else False
+        # for now, only compare part of the pool, not everything
+        if not isinstance(other, self.__class__):
+            Logging.INFO("Other object is not a PDE state")
+            return False
+        excludes = [r"\['BeaconTimeStamp'\]",
+                    r"\['ProtocolFees'\]", r"\['LpFeesPerShare'\]", r"\['StakingPoolFees'\]", r"\['TradingFees'\]",
+                    r"\['LastLPFeesPerShare'\]", r"\['StakingPools'\]"]
+        diff = DeepDiff(self.get_result(), other.get_result(), exclude_regex_paths=excludes, math_epsilon=10)
+        if diff:
+            Logging.INFO(f"\n{diff.pretty()}")
+            return False
+        return True
 
     class PoolPairData(BlockChainInfoBaseClass):
         """"{
@@ -242,6 +256,9 @@ class PdeV3State(RPCResponseBase):
             return self.total_share_amount == self.get_real_amount(0) == self.get_real_amount(1) == \
                    self.get_virtual_amount(0) == self.get_virtual_amount(1) == 0
 
+        def is_token_in_pool(self, token):
+            return self.get_token_id(0) == token or self.get_token_id(0) == token
+
         def get_pool_pair_id(self):
             return list(self.dict_data.keys())[0]
 
@@ -364,31 +381,43 @@ class PdeV3State(RPCResponseBase):
             return return_obj_list
 
         def set_real_pool(self, token, balance):
-            if self.get_token_id(0) == token:
+            """
+            @param token: token ir or index
+            @param balance:
+            @return:
+            """
+            if self.get_token_id(0) == token or token == 0:
                 self.get_state()["Token0RealAmount"] = balance
-            if self.get_token_id(1) == token:
+            if self.get_token_id(1) == token or token == 1:
                 self.get_state()["Token1RealAmount"] = balance
 
         def set_virtual_pool(self, token, balance):
-            if self.get_token_id(0) == token:
+            """
+            @param token: token id or index
+            @param balance:
+            @return:
+            """
+            if self.get_token_id(0) == token or token == 0:
                 self.get_state()["Token0VirtualAmount"] = balance
-            if self.get_token_id(1) == token:
+            if self.get_token_id(1) == token or token == 1:
                 self.get_state()["Token1VirtualAmount"] = balance
 
-        def cal_trade_receive(self, sell_amount, sell_token):
+        def estimate_trade_receive(self, sell_amount, sell_token):
+            """ just estimate amm trade receive amount, do nothing to the pool"""
             if sell_token == self.get_token_id(1):
                 buy__token = self.get_token_id(0)
             elif sell_token == self.get_token_id(0):
                 buy__token = self.get_token_id(1)
             else:
                 raise ValueError(f"Sell token {sell_token} does not belong to this pool pair")
+            return Pde3Math.cal_trade_pool(sell_amount,
+                                           self.get_real_amount(sell_token), self.get_virtual_amount(sell_token),
+                                           self.get_real_amount(buy__token), self.get_virtual_amount(buy__token))
 
-            token_buy_index = 1 - self._get_token_index(sell_token)
-            token_buy = self.get_token_id(token_buy_index)
-            receive_amount = Pde3Math \
-                .cal_trade_pool(sell_amount,
-                                self.get_real_amount(sell_token), self.get_virtual_amount(sell_token),
-                                self.get_real_amount(buy__token), self.get_virtual_amount(buy__token))
+        def cal_amm_trade_n_update_pool(self, sell_amount, sell_token):
+            """ calculate amm trade receive and update the amm pool accordingly """
+            receive_amount = self.estimate_trade_receive(sell_amount, sell_token)
+            token_buy = 1 - self._get_token_index(sell_token)
             self.set_real_pool(sell_token, self.get_real_amount(sell_token) + sell_amount)
             self.set_virtual_pool(sell_token, self.get_virtual_amount(sell_token) + sell_amount)
             self.set_real_pool(token_buy, self.get_real_amount(token_buy) - receive_amount)
@@ -415,13 +444,19 @@ class PdeV3State(RPCResponseBase):
             @param token_sell:
             @return: receive amount
             """
+            Logging.INFO(f"Predicting trade with pool: {self.get_pool_pair_id()}\n\t"
+                         f"Sell {sell_amount} of {token_sell[-6:]}. Pool b4 trade: \n"
+                         f"{self.pretty_format()}")
             token_sell_index = self._get_token_index(token_sell)
             token_buy_index = abs(1 - token_sell_index)
             amm_rate = self.get_pool_rate(token_sell)
             orders = sorted(self.get_order_books(direction=token_buy_index), key=lambda o: o.get_buy_rate())
             if not orders:
-                receive_amount = self.cal_trade_receive(sell_amount, token_sell)
-                return receive_amount, self
+                Logging.INFO("Found no matching order, trade with AMM pool only")
+                receive_amount = self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
+                Logging.INFO(f"Done predicting trading, total receive: {receive_amount}. Pool after trade: \n"
+                             f"{self.pretty_format()}")
+                return receive_amount
 
             right_orders, left_orders = [], []
             for order in orders:
@@ -438,8 +473,7 @@ class PdeV3State(RPCResponseBase):
             # trade right orders first
             while sell_amount > 0 and right_orders:
                 best_order = right_orders[-1]
-                Logging.INFO(
-                    f"Trading best rate order book {best_order.get_id()}, rate {best_order.get_buy_rate()}")
+                Logging.INFO(f"Trading best rate order book {best_order.get_id()}, rate {best_order.get_buy_rate()}")
                 Logging.DEBUG(best_order)
                 receive, remain = best_order.trade_this_order(sell_amount)
                 total_receive += receive
@@ -451,17 +485,18 @@ class PdeV3State(RPCResponseBase):
             while sell_amount > 0 and left_orders:
                 # trade amm with amount = distance to next order
                 next_order = left_orders[-1]
-                Logging.INFO(f"next ORDER: {next_order}")
                 distance = self.cal_distant_to_order(token_sell, next_order)
-                Logging.INFO(f"Distance : {distance}")
+                Logging.INFO(f"next ORDER: {next_order}. Distance : {distance}")
                 if 0 < sell_amount <= distance:
                     Logging.INFO(f"**Trade {sell_amount} (sell-amount) with pool**")
-                    total_receive += self.cal_trade_receive(sell_amount, token_sell)
+                    total_receive += self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
                     sell_amount = 0
-                    return total_receive, self
+                    Logging.INFO(f"Done predicting trading, total receive: {total_receive}. Pool after trade: \n"
+                                 f"{self.pretty_format()}")
+                    return total_receive
                 elif sell_amount > distance:
                     Logging.INFO(f"**Trade {distance} (distance) with pool**")
-                    total_receive += self.cal_trade_receive(distance, token_sell)
+                    total_receive += self.cal_amm_trade_n_update_pool(distance, token_sell)
                     sell_amount -= distance
 
                 # trade left orders
@@ -475,8 +510,10 @@ class PdeV3State(RPCResponseBase):
 
             if sell_amount > 0:
                 Logging.INFO(f"Still have token left to trade, continue trading {sell_amount} with pool")
-                total_receive += self.cal_trade_receive(sell_amount, token_sell)
+                total_receive += self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
 
+            Logging.INFO(f"Done predicting trading, total receive: {total_receive}. Pool after trade:\n"
+                         f"{self.pretty_format()}")
             return total_receive
 
         def predict_pool_when_add_liquidity(self, amount_dict, nft_id, amp=0):
@@ -800,11 +837,48 @@ class PdeV3State(RPCResponseBase):
             return_list.append(obj) if included else None
         return return_list
 
-    def pre_dict_state_after_trade(self, sell_token, sell_amount, trade_path):
+    def pre_dict_state_after_trade(self, sell_token, token_buy, sell_amount, trade_path):
+        """
+        @param sell_token:
+        @param token_buy:
+        @param sell_amount:
+        @param trade_path: must be properly sorted
+        @return:
+        """
         receive = 0
         for pair_id in trade_path:
             Logging.INFO(f"Trade with pair: \n   {pair_id}")
             pool = self.get_pool_pair(id=pair_id)
             receive = pool.predict_pool_after_trade(sell_amount, sell_token)
             sell_amount = receive
+            sell_token = pool.get_token_id(1 - pool._get_token_index(sell_token))
         return receive
+
+    def cal_min_trading_fee(self, pool_id_trade, sell_amount, sell_token, use_prv):
+        """
+        @param pool_id_trade:
+        @param sell_amount:
+        @param sell_token:
+        @param use_prv:
+        @return: min trading fee in PRV/sell token, depend on use_prv is true/false
+        """
+        pool_trade = self.get_pool_pair(id=pool_id_trade)
+        params = self.get_params()
+        fee_rate = params.get_fee_rate_bps(pool_id_trade)
+        fee_rate = fee_rate if fee_rate else params.get_default_fee_rate_bps()
+        if use_prv:
+            prv_discount = params.get_prv_discount_percent()
+            if sell_token == PRV_ID:
+                return int((sell_amount * fee_rate / 100) * (100 - prv_discount) / 100)
+            elif pool_trade.is_token_in_pool(PRV_ID):
+                prv_receive = pool_trade.estimate_trade_receive(sell_amount, sell_token)
+                return int((prv_receive * fee_rate / 100) * (100 - prv_discount) / 100)
+            else:
+                pool_to_cal_fee = self.get_pool_pair(tokens=[sell_token, PRV_ID])
+                # todo, what if there's more than 1
+                if not pool_to_cal_fee:
+                    Logging.INFO(f"Selling token {sell_token} but cannot find pair Token-Prv to estimate min fee")
+                    return None
+        else:  # token fee
+            # todo continue
+            pass

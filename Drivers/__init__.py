@@ -26,10 +26,7 @@ class ResponseBase:
             Log.DEBUG(log_str, ResponseBase.__name__)
 
     def __deepcopy__(self, memo=None):
-        r = ResponseBase()
-        r.response = copy.deepcopy(self.response)
-        r.more_info = copy.deepcopy(self.more_info)
-        return r
+        return self.__class__(copy.deepcopy(self.response), copy.deepcopy(self.more_info))
 
     def clone(self):
         return self.__deepcopy__()

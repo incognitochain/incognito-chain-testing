@@ -14,12 +14,20 @@ test_pool = "15a5d111eb5c03f259fafe140cdefbda9d7400cd2b3ab592b0476d979ef1f950-" 
 
 
 @pytest.mark.parametrize("user, nft_id,, pair_id, token_sell, sell_amount, min_acceptable", [
-    # (ACCOUNTS[2], ACCOUNTS[2].nft_ids[0],INIT_PAIR_IDS[0], TOKEN_X, 10000, 10000),
-    # (ACCOUNTS[2], ACCOUNTS[2].nft_ids[0],INIT_PAIR_IDS[0], TOKEN_X, 10000, 10000),
-    # (ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], test_pool, TOKEN_X, 10000, 10000),
-    (ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "non-exist pool", TOKEN_X, 10000, 10000),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[0]", TOKEN_X, 10000, 10000,
+                 marks=pytest.mark.dependency(
+                     depends=['Testcases/DEX3/test_DEX301_ad_liquidity.py::test_add_liquidity_first_time'],
+                     scope='session')),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[0]", TOKEN_X, 10000, 10000,
+                 marks=pytest.mark.dependency(
+                     depends=['Testcases/DEX3/test_DEX301_ad_liquidity.py::test_add_liquidity_first_time'],
+                     scope='session')),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], test_pool, TOKEN_X, 10000, 10000),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "non-exist pool", TOKEN_X, 10000, 10000),
 ])
 def test_add_order(user: Account, nft_id, pair_id, token_sell, sell_amount, min_acceptable):
+    if "INIT_PAIR_IDS" in pair_id:
+        pair_id = eval(pair_id)
     pde_b4 = SUT().get_pde3_state()
     pool_b4 = pde_b4.get_pool_pair(id=pair_id)
 

@@ -999,8 +999,10 @@ class Account:
         return self.REQ_HANDLER.dex_v3().withdraw_order(self.private_key, token_id, amount, nft_id, pair_id,
                                                         order_id, tx_fee, tx_privacy)
 
-    def pde3_trade(self, token_sell, token_buy, sell_amount, min_acceptable, trade_path, trading_fee=100,
+    def pde3_trade(self, token_sell, token_buy, sell_amount, min_acceptable, trade_path, trading_fee,
                    use_prv_fee=True, tx_fee=-1, tx_privacy=1):
+        INFO(f"PDE3 - {self.private_key[-6:]} request trading {sell_amount} of {token_sell[-6:]} for {token_buy[-6:]}, "
+             f"PRV trading fee {use_prv_fee}, amount {trading_fee} via \n   {trade_path}")
         return self.REQ_HANDLER.dex_v3().trade(self.private_key, token_sell, token_buy, sell_amount, min_acceptable,
                                                trade_path, trading_fee, use_prv_fee,
                                                tx_fee=tx_fee, tx_privacy=tx_privacy)
@@ -1522,10 +1524,10 @@ class AccountGroup:
     def get_random_account(self):
         return self.account_list[random.randrange(len(self.account_list))]
 
-    def pde3_mint_nft(self):
+    def pde3_mint_nft(self, force=False):
         with ThreadPoolExecutor() as e:
             for acc in self:
-                e.submit(acc.pde3_mint_nft)
+                e.submit(acc.pde3_mint_nft, force)
         return self
 
     def pde3_get_nft_ids(self):

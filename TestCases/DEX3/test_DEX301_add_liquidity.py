@@ -12,7 +12,7 @@ from Objects.PdexV3Objects import PdeV3State
 from TestCases.DEX3 import TOKEN_X, TOKEN_Y, TOKEN_OWNER, INIT_PAIR_IDS
 
 
-@pytest.mark.dependency()
+@pytest.mark.dependency(scope='session')
 @pytest.mark.parametrize("contributor,nft_id, contribution, amplifier", [
     (TOKEN_OWNER, TOKEN_OWNER.nft_ids[0], {TOKEN_X: coin(1000), TOKEN_Y: coin(2100)}, 20000),
     (TOKEN_OWNER, TOKEN_OWNER.nft_ids[0], {TOKEN_X: coin(1000), PRV_ID: coin(2100)}, 20000),
@@ -85,21 +85,22 @@ def test_add_liquidity_first_time(contributor, nft_id, contribution, amplifier):
 
 @pytest.mark.parametrize("contributor,nft_id, contribution, pair_id, amplifier", [
     pytest.param(
-        ACCOUNTS[1], ACCOUNTS[1].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS", 200000,
+        ACCOUNTS[1], ACCOUNTS[1].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[0]", 200000,
         marks=pytest.mark.dependency(name="test_add_liquidity_first_time")
     ),
     pytest.param(
-        ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS", 200000,
+        ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[0]", 200000,
         marks=pytest.mark.dependency(name="test_add_liquidity_first_time")
     ),
     pytest.param(
-        ACCOUNTS[3], ACCOUNTS[3].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS", 200000,
+        ACCOUNTS[3], ACCOUNTS[3].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[0]", 200000,
         marks=pytest.mark.dependency(name="test_add_liquidity_first_time")
     ),
 
 ])
 def test_add_liquidity_no_trade_with_return(contributor, nft_id, contribution, pair_id, amplifier):
-    pair_id = INIT_PAIR_IDS[0] if pair_id == "INIT_PAIR_IDS" else pair_id
+    if "INIT_PAIR_IDS" in pair_id:
+        pair_id = eval(pair_id)
     pde_state_b4 = SUT().get_pde3_state()
     token_x, token_y = contribution.keys()
     if pair_id:

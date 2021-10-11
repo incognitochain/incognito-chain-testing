@@ -1,3 +1,4 @@
+import json
 import re
 from abc import ABC
 
@@ -14,13 +15,18 @@ class RPCResponseBase(ResponseBase):
         if isinstance(response, ResponseBase):  # for casting object
             self.response = response.response
             self.more_info = response.more_info
+            self.__response_json = json.loads(self.response) if type(self.response) is str else self.response.json()
             try:
                 self._handler = response._handler
             except AttributeError:
                 self._handler = None
         else:
+            self.__response_json = json.loads(response) if type(response) is str else response.json()
             super().__init__(response, more_info)
             self._handler = handler
+
+    def data(self):
+        return self.__response_json
 
     def expect_no_error(self, additional_msg_if_fail=''):
         """

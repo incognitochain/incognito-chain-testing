@@ -2,12 +2,8 @@ from Configs.Constants import coin
 from Objects.IncognitoTestCase import ACCOUNTS
 
 # declaration
-test_pair = '4a380dd28b431f320f062f9ea7cd6942a700feb4c98553987f7a6b9ea48774d8-' \
-            '634d4c6591c79f029b261c3663af77efc5ee60fcc4b6a0d7823a114180ea2e1f-' \
-            'd19ed28ae13d6ec46004a0bfe654518331e667ea7865c986a7dae7388dcfae9d'
 TOKEN_OWNER = ACCOUNTS[0]
-# INIT_PAIR_IDS = []
-INIT_PAIR_IDS = [test_pair]
+INIT_PAIR_IDS = []
 POOL_X0 = 0
 POOL_Y0 = 0
 TOKEN_X = "634d4c6591c79f029b261c3663af77efc5ee60fcc4b6a0d7823a114180ea2e1f"
