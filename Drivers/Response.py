@@ -101,7 +101,7 @@ class RPCResponseWithTxHash(RPCResponseBase):
         tx_hash = self.expect_no_error().get_tx_id()
         if tx_hash is None:
             raise AttributeError("Response does not contain tx hash")
-
+        INFO(f"Getting transaction hash: {tx_hash}")
         return self._handler.get_tx_by_hash(tx_hash, interval, time_out)
 
 
@@ -290,6 +290,7 @@ class ResponseExtractor(ABC):
         @param Class: Class of which each element of the object list belong to
         @return:
         """
+        response.expect_no_error()
         for raw_tok_info in response.get_result(key_to_extract):
             obj = Class(raw_tok_info)
             self.info_obj_list.append(obj)

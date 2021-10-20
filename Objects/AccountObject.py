@@ -16,6 +16,7 @@ from Helpers.Logging import INFO, INFO_HEADLINE, WARNING, ERROR
 from Helpers.TestHelper import l6, KeyExtractor, ChainHelper
 from Helpers.Time import WAIT, get_current_date_time
 from Objects.CoinObject import TxOutPut, ListOwnedToken, ListPrvTXO
+from Objects.PdexV3Objects import PdeV3State
 from Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 
 
@@ -133,6 +134,7 @@ class Account:
 
     def save_nft_id(self, nft_id):
         self.nft_ids.append(nft_id) if nft_id not in self.nft_ids else None
+        self.nft_ids.sort()
         return self
 
     def is_empty(self):
@@ -194,6 +196,12 @@ class Account:
     def __hash__(self):
         # for using Account object as 'key' in dictionary
         return int(str(self.private_key).encode('utf8').hex(), 16)
+
+    def __me(self):
+        return f"(PrvK {self.private_key[-6:]})"
+
+    def __to_me(self):
+        return f"(PayK {self.payment_key[-6:]})"
 
     def clone(self):
         return self.__deepcopy__()
@@ -343,7 +351,7 @@ class Account:
             raise Exception("Validator key is not specified")
 
         INFO(
-            f'{l6(self.private_key)} Stake for {l6(validator.validator_key)} and reward: {l6(receiver_reward.payment_key)}')
+            f'{self.__me()} Stake for {l6(validator.validator_key)} and reward: {l6(receiver_reward.payment_key)}')
         return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, validator.payment_key, validator.validator_key,
                                                 receiver_reward.payment_key, stake_amount, auto_re_stake,
@@ -555,7 +563,7 @@ class Account:
         from_cache = kwargs.get('cache', False)
         if from_cache:
             bal = self.cache[Account._cache_bal].get(token_id, 0)
-            INFO(f"Private k = {l6(self.private_key)}, token id = {l6(token_id)}, bal from cache = {coin(bal, False)} ")
+            INFO(f"{self.__me()}, token id = {l6(token_id)}, bal from cache = {coin(bal, False)} ")
             return bal
         result = self.REQ_HANDLER.transaction().get_custom_token_balance(self.private_key, token_id)
         while True:
@@ -572,12 +580,18 @@ class Account:
                 break
         balance = result.get_result() if result.get_result() else 0
         self.cache[Account._cache_bal][token_id] = balance
-        INFO(f"Private k = {l6(self.private_key)}, token id = {l6(token_id)}, bal = {coin(balance, False)} ")
+        INFO(f"Private k = {self.__me()}, token id = {l6(token_id)}, bal = {coin(balance, False)} ")
         return balance
+
+    def get_assets(self):
+        assets = {PRV_ID: self.get_balance()}
+        for token in self.list_owned_custom_token():
+            token_id = token.get_token_id()
+            assets = {token_id: self.get_balance(token_id)}
+        return assets
 
     def send_public_token(self, token_id, amount, receiver, password=None, memo=None):
         """
-
         @param token_id:
         @param amount:
         @param receiver: Account or remote address
@@ -606,7 +620,7 @@ class Account:
         """
         response = self.REQ_HANDLER.transaction(). \
             send_transaction(self.private_key, {receiver_account.payment_key: amount}, fee, privacy)
-        log_msg = f'From: {l6(self.private_key)}. Sent {amount} prv to: {l6(receiver_account.payment_key)}'
+        log_msg = f'From: {self.__me()}. Sent {amount} prv to: {receiver_account.__to_me()}'
         try:
             log_msg += f', tx {response.get_tx_id()}'
         except TypeError:
@@ -629,9 +643,9 @@ class Account:
         @return:
         """
         send_param = dict()
-        INFO(f"{l6(self.private_key)} sending prv to multiple accounts: --------------------------------------------- ")
+        INFO(f"{self.__me()} sending prv to multiple accounts: --------------------------------------------- ")
         for acc, amount in dict_to_account_and_amount.items():
-            INFO(f'{amount} prv to (shard|private_k|payment_k) {acc.shard}|{l6(acc.private_key)}|{l6(acc.payment_key)}')
+            INFO(f'{amount} prv to shard {acc.shard} | {acc.__me()} | {acc.__to_me()}')
             send_param[acc.payment_key] = amount
         INFO("---------------------------------------------------------------------------------- ")
 
@@ -690,11 +704,11 @@ class Account:
         return None
 
     def subscribe_cross_output_coin(self, timeout=120):
-        INFO(f'{l6(self.private_key)} Subscribe cross output coin')
+        INFO(f'{self.__me()} Subscribe cross output coin')
         return self.REQ_HANDLER.subscription().subscribe_cross_output_coin_by_private_key(self.private_key, timeout)
 
     def subscribe_cross_output_token(self, timeout=120):
-        INFO(f'{l6(self.private_key)} Subscribe cross output token')
+        INFO(f'{self.__me()} Subscribe cross output token')
         return self.REQ_HANDLER.subscription().subscribe_cross_custom_token_privacy_by_private_key(
             self.private_key, timeout)
 
@@ -740,22 +754,22 @@ class Account:
 
     def pde_contribute(self, token_id, amount, pair_id):
         if token_id == PRV_ID:
-            INFO(f'{l6(self.private_key)} Contribute PRV, amount: {amount}, pair id = {pair_id}')
+            INFO(f'{self.__me()} Contribute PRV, amount: {amount}, pair id = {pair_id}')
             return self.REQ_HANDLER.dex().contribute_prv(self.private_key, self.payment_key, amount,
                                                          pair_id, TestConfig.TX_VER)
         else:
-            INFO(f'{l6(self.private_key)} Contribute token: {l6(token_id)}, amount = {amount}, pair id = {pair_id}')
+            INFO(f'{self.__me()} Contribute token: {l6(token_id)}, amount = {amount}, pair id = {pair_id}')
             return self.REQ_HANDLER.dex().contribute_token(self.private_key, self.payment_key, token_id,
                                                            amount, pair_id, TestConfig.TX_VER)
 
     def pde_contribute_v2(self, token_id, amount, pair_id):
         if token_id == PRV_ID:
-            INFO(f'{l6(self.private_key)} Contribute PRV V2, amount: {amount}, pair id = {pair_id}')
+            INFO(f'{self.__me()} Contribute PRV V2, amount: {amount}, pair id = {pair_id}')
 
             return self.REQ_HANDLER.dex().contribute_prv_v2(self.private_key, self.payment_key, amount,
                                                             pair_id, TestConfig.TX_VER)
         else:
-            INFO(f'{l6(self.private_key)} Contribute token V2: {l6(token_id)}, amount = {amount}, pair id = {pair_id}')
+            INFO(f'{self.__me()} Contribute token V2: {l6(token_id)}, amount = {amount}, pair id = {pair_id}')
             return self.REQ_HANDLER.dex().contribute_token_v2(self.private_key, self.payment_key, token_id,
                                                               amount, pair_id, TestConfig.TX_VER)
 
@@ -883,7 +897,7 @@ class Account:
             return result
         else:
             reward = result.get(token_id, 0)
-        INFO(f"Payment key = {l6(self.payment_key)}, {token_id[-6:]} reward = {coin(reward, False)}")
+        INFO(f"Payment key = {self.__to_me()}, {token_id[-6:]} reward = {coin(reward, False)}")
         return reward
 
     def stk_withdraw_reward_to(self, reward_receiver, token_id=PRV_ID, tx_fee=0, tx_version=TestConfig.TX_VER,
@@ -945,7 +959,7 @@ class Account:
         return False
 
     def pde_trade_token(self, token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee=0):
-        INFO(f'User {l6(self.payment_key)}: '
+        INFO(f'User {self.__to_me()}: '
              f'Trade {sell_amount} of token {token_id_to_sell[-6:]} for {token_id_to_buy[-6:]} '
              f'trading fee={trading_fee}')
         return self.REQ_HANDLER.dex().trade_token(self.private_key, self.payment_key, token_id_to_sell,
@@ -953,7 +967,7 @@ class Account:
                                                   tx_ver=TestConfig.TX_VER)
 
     def pde_trade_prv(self, amount_to_sell, token_id_to_buy, min_amount_to_buy, trading_fee=0):
-        INFO(f'User {l6(self.payment_key)}: '
+        INFO(f'User {self.__to_me()}: '
              f'Trade {amount_to_sell} of PRV for {token_id_to_buy[-6:]}')
         return self.REQ_HANDLER.dex().trade_prv(self.private_key, self.payment_key, amount_to_sell,
                                                 token_id_to_buy, min_amount_to_buy, trading_fee, TestConfig.TX_VER)
@@ -965,7 +979,7 @@ class Account:
             return self.pde_trade_token(token_id_to_sell, sell_amount, token_id_to_buy, min_amount_to_buy, trading_fee)
 
     def pde_trade_prv_v2(self, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
-        INFO(f'User {l6(self.payment_key)}: '
+        INFO(f'User {self.__to_me()}: '
              f'Trade {amount_to_sell} PRV for {l6(token_to_buy)} trading fee={trading_fee}, '
              f'min acceptable={min_amount_to_buy}')
         return self.REQ_HANDLER.dex().trade_prv_v2(self.private_key, self.payment_key, amount_to_sell,
@@ -973,7 +987,7 @@ class Account:
                                                    tx_ver=TestConfig.TX_VER)
 
     def pde_trade_token_v2(self, token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
-        INFO(f'User {l6(self.payment_key)}: '
+        INFO(f'User {self.__to_me()}: '
              f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]} trading fee={trading_fee} '
              f'min acceptable={min_amount_to_buy}')
         return self.REQ_HANDLER.dex().trade_token_v2(self.private_key, self.payment_key, token_to_sell,
@@ -986,18 +1000,35 @@ class Account:
         else:
             return self.pde_trade_token_v2(token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy)
 
-    def pde3_add_order(self, nft_id, token_sell, pool_id, sell_amount, min_acceptable,
+    def pde3_add_order(self, nft_id, token_sell, token_buy, pool_id, sell_amount, min_acceptable,
                        tx_fee=-1, tx_privacy=1):
-        INFO(f"Adding order to order book\n"
-             f"In pool {pool_id}\n"
-             f"Selling {sell_amount} of {token_sell}\n"
+        INFO(f"Adding order to order book\n   "
+             f"In pool {pool_id}\n   "
+             f"Selling {sell_amount} of {token_sell} to buy {token_buy}\n   "
              f"Min acceptable: {min_acceptable}")
-        return self.REQ_HANDLER.dex_v3().add_order(self.private_key, nft_id, token_sell, pool_id, str(sell_amount),
-                                                   str(min_acceptable), tx_fee=tx_fee, tx_privacy=tx_privacy)
+        return self.REQ_HANDLER.dex_v3() \
+            .add_order(self.private_key, nft_id, token_sell, token_buy, pool_id, str(sell_amount),
+                       str(min_acceptable), tx_fee=tx_fee, tx_privacy=tx_privacy)
 
-    def pde3_withdraw_order(self, token_id, amount, nft_id, pair_id, order_id, tx_fee=-1, tx_privacy=1):
-        return self.REQ_HANDLER.dex_v3().withdraw_order(self.private_key, token_id, amount, nft_id, pair_id,
-                                                        order_id, tx_fee, tx_privacy)
+    def pde3_withdraw_order(self, pool_pair, order, nft_id, token_id_list, amount, tx_fee=-1, tx_privacy=1):
+        if isinstance(pool_pair, PdeV3State.PoolPairData):
+            pair_id = pool_pair.get_pool_pair_id()
+        elif isinstance(pool_pair, str):
+            pair_id = pool_pair
+        else:
+            raise RuntimeError(f"pool_pair param is {type(pool_pair)} ,not PdeV3State.PoolPairData or string")
+        if isinstance(order, PdeV3State.PoolPairData.Order):
+            order_id = order.get_id()
+            order.get_nft_id()
+        elif isinstance(order, str):
+            order_id = order
+        else:
+            raise RuntimeError(f"order param is {type(order)} ,not PdeV3State.PoolPairData.Order or string")
+        token_id_list = token_id_list if isinstance(token_id_list, list) else [token_id_list]
+        INFO(f"{self.__me()} nft: {nft_id[-6:]} Withdrawing {amount} from order {order_id}")
+        return self.REQ_HANDLER.dex_v3().withdraw_order(self.private_key, pair_id, order_id, nft_id,
+                                                        token_id_list, int(amount), tx_fee=tx_fee,
+                                                        tx_privacy=tx_privacy)
 
     def pde3_trade(self, token_sell, token_buy, sell_amount, min_acceptable, trade_path, trading_fee,
                    use_prv_fee=True, tx_fee=-1, tx_privacy=1):
@@ -1012,7 +1043,8 @@ class Account:
                              burning_tx=None, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3() \
             .withdraw_lp_fee(self.private_key, receiver.payment_key, token_amount, token_id, pool_pair_id, nft_id,
-                             token_tx_type, token_fee, token_name, token_symbol, burning_tx, tx_fee, tx_privacy)
+                             token_tx_type, token_fee, token_name, token_symbol, burning_tx,
+                             tx_fee=tx_fee, tx_privacy=tx_privacy)
 
     def pde3_stake(self, stake_amount, staking_pool_id, nft_id, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3() \
@@ -1050,12 +1082,23 @@ class Account:
     def pde3_mint_nft(self, amount=coin(1), token_id=PRV_ID, tx_fee=-1, tx_privacy=1, force=False):
         if not force:
             if self.nft_ids:
-                INFO(f"{self.private_key[-6:]} Already have NFT ID(s), "
+                INFO(f"{self.__me()} Already have NFT ID(s), "
                      f"return the first one now and will not mint more: \n {self.nft_ids}")
                 return self.nft_ids[0]
+        INFO(f"{self.__me()} request minting new PDEX NFT ID")
         response = self.REQ_HANDLER.dex_v3() \
             .mint_nft(self.private_key, amount, token_id, tx_fee=tx_fee, tx_privacy=tx_privacy)
-        tx_detail = response.get_transaction_by_hash()
+        try:
+            tx_detail = response.get_transaction_by_hash()
+        except AssertionError:
+            ERROR(f"{response.get_error_msg()}\n"
+                  f"{response.get_error_trace().get_message()}\n"
+                  f"{response.params().data}")
+            return None
+        except AttributeError as e:
+            ERROR(f"{e}")
+            return None
+
         wasted_time = 0
         while True:
             WAIT(ChainConfig.BLOCK_TIME)
@@ -1063,20 +1106,21 @@ class Account:
             mint_status = self.REQ_HANDLER.dex_v3().get_mint_nft_status(response.get_tx_id())
             nft_id = mint_status.get_nft_id()
             if nft_id:
-                INFO(f"{self.private_key[-6:]} New DEX NFT ID: {nft_id}")
+                INFO(f"{self.__me()} New DEX NFT ID: {nft_id}")
                 return nft_id
             if wasted_time > ChainConfig.BLOCK_TIME * 5:
                 break
         if not nft_id:
-            INFO(f'Waited {wasted_time}s, but cant get new nft id after tx was confirmed')
+            INFO(f'{self.__me()} waited {wasted_time}s, but cant get new nft id after tx was confirmed')
             return None
 
     def pde3_get_my_nft_ids(self, pde_state=None):
         all_my_custom_token = self.list_owned_custom_token()
-        pde_state = self.REQ_HANDLER.get_pde3_state() if not pde_state else pde_state
+        pde_state = self.REQ_HANDLER.pde3_get_state() if not pde_state else pde_state
+        self.nft_ids.clear()
         for token in all_my_custom_token.__iter__():
             if pde_state.get_nft_id(token.get_token_id()):
-                self.save_nft_id(token.get_token_id())
+                self.nft_ids.append(token.get_token_id())
         INFO(f"Get {self.private_key[-6:]} NFT id from pde state.\n   found: {self.nft_ids}")
         return self.nft_ids
 
@@ -1094,7 +1138,7 @@ class Account:
             from_balance = self.get_balance(token_id)
             WAIT(check_interval)
             timeout -= check_interval
-        INFO(f'Wait for token {l6(token_id)} of {l6(self.private_key)} '
+        INFO(f'Wait for token {l6(token_id)} of {self.__me()} '
              f'balance to change at least: {least_change_amount}. From {from_balance}')
         bal_new = None
         while timeout >= 0:
@@ -1102,19 +1146,19 @@ class Account:
             change_amount = bal_new - from_balance
             if least_change_amount is None:  # just change, does not mater + or -
                 if bal_new != from_balance:
-                    INFO(f'Balance token {l6(token_id)} of {l6(self.private_key)} changes: {change_amount}')
+                    INFO(f'Balance token {l6(token_id)} of {self.__me()} changes: {change_amount}')
                     return bal_new
             elif least_change_amount >= 0:  # case balance increase
                 if bal_new >= from_balance + least_change_amount:
-                    INFO(f'Balance token {l6(token_id)} of {l6(self.private_key)} changes: {change_amount}')
+                    INFO(f'Balance token {l6(token_id)} of {self.__me()} changes: {change_amount}')
                     return bal_new
             else:  # case balance decrease
                 if bal_new <= from_balance + least_change_amount:
-                    INFO(f'Balance token {l6(token_id)} of {l6(self.private_key)} changes: {change_amount}')
+                    INFO(f'Balance token {l6(token_id)} of {self.__me()} changes: {change_amount}')
                     return bal_new
             WAIT(check_interval)
             timeout -= check_interval
-        INFO(f'Balance token {l6(token_id)} of {l6(self.private_key)} not change a bit')
+        INFO(f'Balance token {l6(token_id)} of {self.__me()} not change a bit')
         return bal_new
 
     #######
@@ -1122,7 +1166,7 @@ class Account:
     #######
     def portal_create_exchange_rate(self, rate_dict: dict):
         INFO()
-        INFO(f'Portal | User {l6(self.payment_key)} | create rate')
+        INFO(f'Portal | User {self.__to_me()} | create rate')
         for key, value in rate_dict.items():  # convert dict value to string
             rate_dict[key] = str(value)
         return self.REQ_HANDLER.portal(). \
@@ -1130,7 +1174,7 @@ class Account:
 
     def portal_create_porting_request(self, token_id, amount, porting_fee=None, register_id=None):
         INFO()
-        INFO(f'Portal | User {l6(self.payment_key)} | create porting req | amount {coin(amount, False)}')
+        INFO(f'Portal | User {self.__to_me()} | create porting req | amount {coin(amount, False)}')
         if porting_fee is None:
             beacon_height = self.REQ_HANDLER.help_get_beacon_height()
             porting_fee = self.REQ_HANDLER.portal().get_porting_req_fees(
@@ -1147,7 +1191,7 @@ class Account:
 
     def portal_add_collateral(self, collateral, ptoken, remote_addr=None):
         INFO()
-        INFO(f'Portal | Custodian {l6(self.payment_key)} | '
+        INFO(f'Portal | Custodian {self.__to_me()} | '
              f'Add collateral to become custodian: {coin(collateral, False)}')
         remote_addr = self.get_remote_addr(ptoken) if remote_addr is None else remote_addr
         return self.REQ_HANDLER.portal().create_n_send_tx_with_custodian_deposit(
@@ -1161,7 +1205,7 @@ class Account:
         return self.portal_add_collateral(collateral, ptoken, remote_addr)
 
     def portal_let_me_take_care_this_redeem(self, redeem_id, do_assert=True):
-        INFO(f"{l6(self.payment_key)} will take this redeem: {redeem_id}")
+        INFO(f"{self.__to_me()} will take this redeem: {redeem_id}")
         req_tx = self.REQ_HANDLER.portal().create_n_send_tx_with_req_matching_redeem(self.private_key,
                                                                                      self.payment_key,
                                                                                      redeem_id)
@@ -1177,7 +1221,7 @@ class Account:
     def portal_req_redeem_my_token(self, token_id, redeem_amount, redeem_fee=None, privacy=True):
         INFO()
         redeem_id = f"{l6(token_id)}_{get_current_date_time()}"
-        INFO(f'Portal | User (payment k) {l6(self.payment_key)} | req redeem token |'
+        INFO(f'Portal | User (payment k) {self.__to_me()} | req redeem token |'
              f' ID: {redeem_id} | Amount: {redeem_amount} | token: {l6(token_id)}')
 
         beacon_height = self.REQ_HANDLER.help_get_beacon_height()
@@ -1191,7 +1235,7 @@ class Account:
                                              token_id, redeem_amount, redeem_fee, redeem_id, privacy)
 
     def portal_withdraw_my_collateral(self, amount):
-        INFO(f'Portal | Custodian {l6(self.payment_key)} | Withdraw collateral: {amount}')
+        INFO(f'Portal | Custodian {self.__to_me()} | Withdraw collateral: {amount}')
         return self.REQ_HANDLER.portal().create_n_send_custodian_withdraw_req(self.private_key,
                                                                               self.payment_key,
                                                                               amount)
@@ -1204,7 +1248,7 @@ class Account:
         """
         if psi is None:
             psi = self.REQ_HANDLER.get_latest_portal_state_info()
-        INFO(f"Withdraw all collateral of {l6(self.payment_key)}")
+        INFO(f"Withdraw all collateral of {self.__to_me()}")
         my_custodian_info = psi.get_custodian_info_in_pool(self)
         if my_custodian_info is None:
             INFO("I'm not even a custodian")
@@ -1225,7 +1269,7 @@ class Account:
         @return:
         """
         INFO()
-        INFO(f'Portal | User {l6(self.payment_key)} | req for ported token')
+        INFO(f'Portal | User {self.__to_me()} | req for ported token')
         return self.REQ_HANDLER.portal().create_n_send_tx_with_req_ptoken(self.private_key,
                                                                           self.payment_key,
                                                                           porting_id, token_id, amount,
@@ -1245,7 +1289,7 @@ class Account:
         return psi.get_custodian_info_in_pool(self)
 
     def portal_wait_my_lock_collateral_to_change(self, token_id, from_amount=None, check_rate=30, timeout=180):
-        INFO(f'Wait for my lock collateral change, {l6(self.payment_key)}, token {l6(token_id)}')
+        INFO(f'Wait for my lock collateral change, {self.__to_me()}, token {l6(token_id)}')
         my_custodian_stat = self.portal_get_my_custodian_info()
         if my_custodian_stat is None:
             INFO("You're not even a custodian")
@@ -1273,7 +1317,7 @@ class Account:
             portal_state_info = self.REQ_HANDLER.get_latest_portal_state_info()
 
         sum_amount = portal_state_info.sum_collateral_porting_waiting(token_id, self)
-        INFO(f'{l6(self.payment_key)} sum all waiting porting req collateral of token {l6(token_id)}: {sum_amount}')
+        INFO(f'{self.__to_me()} sum all waiting porting req collateral of token {l6(token_id)}: {sum_amount}')
         return sum_amount
 
     def portal_sum_my_matched_redeem_req_holding_token(self, token_id, portal_state_info=None):
@@ -1281,11 +1325,11 @@ class Account:
             portal_state_info = self.REQ_HANDLER.get_latest_portal_state_info()
 
         sum_amount = portal_state_info.sum_holding_token_matched_redeem_req(token_id, self)
-        INFO(f'{l6(self.payment_key)} sum all waiting redeem holding token of {l6(token_id)}: {sum_amount}')
+        INFO(f'{self.__to_me()} sum all waiting redeem holding token of {l6(token_id)}: {sum_amount}')
         return sum_amount
 
     def portal_req_unlock_collateral(self, token_id, amount_redeem, redeem_id, proof):
-        INFO(f'{l6(self.payment_key)} request unlock collateral: {l6(token_id)} {amount_redeem} {redeem_id}')
+        INFO(f'{self.__to_me()} request unlock collateral: {l6(token_id)} {amount_redeem} {redeem_id}')
         return self.REQ_HANDLER.portal(). \
             create_n_send_tx_with_req_unlock_collateral(self.private_key, self.payment_key, token_id, amount_redeem,
                                                         redeem_id, proof)
@@ -1377,7 +1421,7 @@ class Account:
 
             else:
                 # tx should be succeed
-                send_tx.expect_no_error().subscribe_transaction()
+                send_tx.expect_no_error().get_transaction_by_hash()
                 start = mid
                 mid += each
                 wasted_time = 0
@@ -1409,6 +1453,10 @@ class Account:
 
     def submit_key_authorize(self, from_height=0, re_index=False, access_token=ChainConfig.ACCESS_TOKEN):
         return self.REQ_HANDLER.transaction().submit_key_authorized(self.ota_k, access_token, from_height, re_index)
+
+    @staticmethod
+    def new():
+        pass
 
 
 class AccountGroup:
@@ -1524,35 +1572,23 @@ class AccountGroup:
     def get_random_account(self):
         return self.account_list[random.randrange(len(self.account_list))]
 
-    def pde3_mint_nft(self, force=False):
+    def pde3_mint_nft(self, amount=coin(1), token_id=PRV_ID, tx_fee=-1, tx_privacy=1, force=False):
         with ThreadPoolExecutor() as e:
-            for acc in self:
-                e.submit(acc.pde3_mint_nft, force)
+            for acc in self:  # bug IC-1519
+                # e.submit(acc.pde3_mint_nft, amount, token_id, tx_fee, tx_privacy, force)
+                acc.pde3_mint_nft(amount, token_id, tx_fee, tx_privacy, force)
         return self
 
     def pde3_get_nft_ids(self):
         with ThreadPoolExecutor() as e:
-            pde_state = self[0].REQ_HANDLER.get_pde3_state()
+            pde_state = self[0].REQ_HANDLER.pde3_get_state()
             for acc in self:
                 e.submit(acc.pde3_get_my_nft_ids, pde_state)
         return self
 
-
-def get_accounts_in_shard(shard_number: int, account_list=None):
-    """ @deprecated
-    iterate through accounts in account_list, check if they're in the same shard_number
-
-    @param shard_number: shard id to check
-    @param account_list: account list to check, by default it's TestData
-    @return: list of Account which is in the same shard_number
-    """
-    if account_list is None:
-        from Objects.IncognitoTestCase import ACCOUNTS
-        account_list = ACCOUNTS
-    if type(account_list) is AccountGroup:
-        return account_list.get_accounts_in_shard(shard_number)
-    else:
-        return AccountGroup(*account_list).get_accounts_in_shard(shard_number)
+    @staticmethod
+    def new(num_of_acc=8):
+        pass
 
 
 PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K, handler="nomad")

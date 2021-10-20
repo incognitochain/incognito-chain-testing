@@ -2,6 +2,10 @@ import copy
 import json
 from abc import ABC
 
+from deepdiff import DeepDiff
+
+from Helpers import Logging
+
 
 class BlockChainInfoBaseClass(ABC):
     def __init__(self, dict_data=None):
@@ -15,7 +19,11 @@ class BlockChainInfoBaseClass(ABC):
         return clone
 
     def __eq__(self, other):
-        return self.dict_data == other.dict_data
+        diff = DeepDiff(self.dict_data, other.dict_data)
+        if diff:
+            Logging.INFO(f"\n{diff.pretty()}", self.__class__.__name__)
+            return False
+        return True
 
     def __ne__(self, other):
         return self.dict_data != other.dict_data

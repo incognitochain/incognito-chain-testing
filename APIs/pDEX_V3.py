@@ -279,19 +279,20 @@ class DEXv3RPC(BaseRpcApi):
         return ResponseWithdrawOrderStatus(
             self.rpc_connection.with_method('pdexv3_getWithdrawOrderStatus').with_params([tx_id]).execute())
 
-    def add_order(self, private_k, nft_id, token_sell, pool_pair_id, sell_amount, min_acceptable, main_tx_receiver=None,
-                  tx_fee=-1, tx_privacy=1):
+    def add_order(self, private_k, nft_id, token_sell, token_buy, pool_pair_id, sell_amount, min_acceptable,
+                  main_tx_receiver=None, tx_fee=-1, tx_privacy=1):
         return ResponseAddOrder(
             self.rpc_connection.with_method('pdexv3_txAddOrder')
                 .with_params([private_k, main_tx_receiver, tx_fee, tx_privacy,
                               {"TokenToSell": token_sell,
+                               "TokenToBuy": token_buy,
                                "PoolPairID": pool_pair_id,
                                "NftID": nft_id,
                                "SellAmount": sell_amount,
                                "MinAcceptableAmount": min_acceptable}
                               ]).execute())
 
-    def withdraw_order(self, private_k, token_id_list, amount, nft_id, pair_id, order_id,
+    def withdraw_order(self, private_k, pair_id, order_id,  nft_id, token_id_list, amount,
                        main_tx_receiver=None, tx_fee=-1, tx_privacy=1):
         return ResponseWithdraw(
             self.rpc_connection.with_method('pdexv3_txWithdrawOrder')

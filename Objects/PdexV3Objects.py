@@ -206,6 +206,9 @@ class PdeV3State(RPCResponseBase):
                              f"{self}")
                 return receive_amount, remain
 
+        def __hash__(self):
+            return int(str(self.get_pool_pair_id()).encode('utf8').hex(), 16)
+
         @staticmethod
         def make_up_a_pool(token_list, nft_ids):
             if len(token_list) != 2:
@@ -335,11 +338,7 @@ class PdeV3State(RPCResponseBase):
                 try:
                     return PdeV3State.PoolPairData.Share({by_nft_id: all_share[by_nft_id]})
                 except (KeyError, AttributeError):
-                    empty_share = {by_nft_id: {
-                        "Amount": 0,
-                        "TradingFees": {},
-                        "LastLPFeesPerShare": {}}}
-                    return PdeV3State.PoolPairData.Share(empty_share)
+                    return None
             all_share_obj = []
             for nft_id, share_data in all_share.items():
                 all_share_obj.append(PdeV3State.PoolPairData.Share({nft_id: share_data}))
@@ -375,7 +374,6 @@ class PdeV3State(RPCResponseBase):
                     print(f"by dir {obj.get_id()}: {include}")
                 if by_token_sell:
                     include = include and obj.get_trade_direction() == self._get_token_index(by_token_sell)
-                print("final ", include)
                 return_obj_list.append(obj) if include else None
 
             return return_obj_list
@@ -528,14 +526,14 @@ class PdeV3State(RPCResponseBase):
                 raise ValueError(f"Wrong input tokens, cannot calculate.\n"
                                  f"Current pair is {self.get_pool_pair_id()}\n"
                                  f"While input tokens are: {all_tok}")
+            Logging.INFO(f"Predicting contribution to pair \n   {self.get_pool_pair_id()} \n   "
+                         f"{nft_id}")
             token_x, token_y = all_tok
             delta_x, delta_y = amount_dict[token_x], amount_dict[token_y]
             virtual_x, virtual_y = self.get_virtual_amount(token_x), self.get_virtual_amount(token_y)
             current_real_x, current_real_y = self.get_real_amount(token_x), self.get_real_amount(token_y)
             if self.total_share_amount == 0:  # first time contribute
-                Logging.INFO("First time contribution for this pair\n\t"
-                             f"{self.get_pool_pair_id()}\n\t"
-                             f"NFT ID = {nft_id}")
+                Logging.INFO("First time contribution for this pair")
                 self.amplifier = amp
                 accepted_x, accepted_y = delta_x, delta_y
                 delta_share = Pde3Math.cal_share_new_pool(accepted_x, accepted_y)
@@ -557,16 +555,20 @@ class PdeV3State(RPCResponseBase):
             self.set_real_pool(token_y, current_real_y + accepted_y)
             self.set_virtual_pool(token_x, new_virtual_x)
             self.set_virtual_pool(token_y, new_virtual_y)
+            old_total_share = self.total_share_amount
             self.total_share_amount += delta_share
             # predict contributor's share
             existing_share = self.get_share(nft_id)
+            if not existing_share:
+                self.__add_new_share(nft_id)
+                existing_share = self.get_share(nft_id)
             existing_share.amount += delta_share
             Logging.INFO("Predicted pool after adding liquidity \n\t"
                          f"Contributed: \n\t\t {json.dumps(amount_dict, indent=3)}\n\t"
                          f"Return:\n\t\t {json.dumps(return_amount, indent=3)}\n\t"
                          f"Accepted:\n\t\t {json.dumps({token_x: accepted_x, token_y: accepted_y}, indent=3)}\n\t"
                          f"Old | Added | New total share: "
-                         f"{self.total_share_amount} | {delta_share} | {self.total_share_amount}")
+                         f"{old_total_share} | {delta_share} | {self.total_share_amount}")
             return return_amount
 
         def get_pool_rate(self, token_sell):
@@ -611,6 +613,37 @@ class PdeV3State(RPCResponseBase):
             my_share = self.get_share(nft_id)
             my_share.amount -= withdraw_able
             return {token_x: x_receive, token_y: y_receive}
+
+        def __add_new_share(self, nft_id):
+            empty_share = {
+                "Amount": 0,
+                "TradingFees": {},
+                "LastLPFeesPerShare": {}}
+            self.pair_data()["Shares"][nft_id] = empty_share
+
+        def get_token_sell_of_order(self, order):
+            if isinstance(order, PdeV3State.PoolPairData.Order):
+                order_id = order.get_id()
+            elif isinstance(order, str):
+                order_id = order
+            else:
+                raise RuntimeError(f"order parameter must be PdeV3State.PoolPairData.Order object or string")
+            order_in_pool = self.get_order_books(id=order_id)
+            if order_in_pool:
+                return self.get_token_id(order_in_pool.get_trade_direction())
+            raise RuntimeError(f"Order {order_id} is not in this pool \t   {self.get_pool_pair_id()}")
+
+        def get_token_buy_of_order(self, order):
+            if isinstance(order, PdeV3State.PoolPairData.Order):
+                order_id = order.get_id()
+            elif isinstance(order, str):
+                order_id = order
+            else:
+                raise RuntimeError(f"order parameter must be PdeV3State.PoolPairData.Order object or string")
+            order_in_pool = self.get_order_books(id=order_id)
+            if order_in_pool:
+                return self.get_token_id(1 - order_in_pool.get_trade_direction())
+            raise RuntimeError(f"Order {order_id} is not in this pool \t   {self.get_pool_pair_id()}")
 
     class Param(BlockChainInfoBaseClass):
         def get_default_fee_rate_bps(self):
@@ -837,6 +870,33 @@ class PdeV3State(RPCResponseBase):
             return_list.append(obj) if included else None
         return return_list
 
+    def get_order(self, **by):
+        """ return Order object and pool pair id which match the search param:
+        @param by: nft (nftid/nft_id) tokens(list), id(order_id/orderid)
+        @return: dictionary {pool id: order list
+        """
+        by_tokens = by.get("tokens")
+        by_nft_id = by.get("nft", by.get("nftid", by.get("nft_id")))
+        by_id = by.get("id", by.get("order_id"))
+        if by_id:
+            all_pools = self.get_pool_pair()
+            for pool in all_pools:
+                order = pool.get_order_books(id=by_id)
+                if order:
+                    return pool, order
+
+        result = {}
+        pools_by_token = self.get_pool_pair(tokens=by_tokens)
+        for pool in pools_by_token:
+            order_list = []
+            if by_nft_id:
+                pools_by_token_n_nft = pool.get_order_books(nft_id=by_nft_id)
+                if pools_by_token_n_nft:
+                    order_list += pools_by_token_n_nft
+            if order_list:
+                result[pool] = order_list
+        return result
+
     def pre_dict_state_after_trade(self, sell_token, token_buy, sell_amount, trade_path):
         """
         @param sell_token:
@@ -846,7 +906,7 @@ class PdeV3State(RPCResponseBase):
         @return:
         """
         receive = 0
-        for pair_id in trade_path:
+        for pair_id in Pde3Math.sort_trade_path(sell_token, trade_path):
             Logging.INFO(f"Trade with pair: \n   {pair_id}")
             pool = self.get_pool_pair(id=pair_id)
             receive = pool.predict_pool_after_trade(sell_amount, sell_token)
@@ -854,31 +914,18 @@ class PdeV3State(RPCResponseBase):
             sell_token = pool.get_token_id(1 - pool._get_token_index(sell_token))
         return receive
 
-    def cal_min_trading_fee(self, pool_id_trade, sell_amount, sell_token, use_prv):
+    def cal_min_trading_fee(self, sell_amount, sell_token, trade_path, use_prv=True):
         """
-        @param pool_id_trade:
+        @param trade_path:
         @param sell_amount:
         @param sell_token:
         @param use_prv:
         @return: min trading fee in PRV/sell token, depend on use_prv is true/false
         """
-        pool_trade = self.get_pool_pair(id=pool_id_trade)
-        params = self.get_params()
-        fee_rate = params.get_fee_rate_bps(pool_id_trade)
-        fee_rate = fee_rate if fee_rate else params.get_default_fee_rate_bps()
-        if use_prv:
-            prv_discount = params.get_prv_discount_percent()
-            if sell_token == PRV_ID:
-                return int((sell_amount * fee_rate / 100) * (100 - prv_discount) / 100)
-            elif pool_trade.is_token_in_pool(PRV_ID):
-                prv_receive = pool_trade.estimate_trade_receive(sell_amount, sell_token)
-                return int((prv_receive * fee_rate / 100) * (100 - prv_discount) / 100)
-            else:
-                pool_to_cal_fee = self.get_pool_pair(tokens=[sell_token, PRV_ID])
-                # todo, what if there's more than 1
-                if not pool_to_cal_fee:
-                    Logging.INFO(f"Selling token {sell_token} but cannot find pair Token-Prv to estimate min fee")
-                    return None
-        else:  # token fee
-            # todo continue
-            pass
+        trade_path = Pde3Math.sort_trade_path(sell_token, trade_path)
+        pde_param = self.get_params()
+        total_fee_rate = sum([pde_param.get_fee_rate_bps(pair_id) if pde_param.get_fee_rate_bps(pair_id)
+                              else pde_param.get_default_fee_rate_bps() for pair_id in trade_path])
+        final_fee_rate = total_fee_rate * (100 - pde_param.get_prv_discount_percent()) / 100 \
+            if sell_token == PRV_ID or use_prv else total_fee_rate
+        return int(final_fee_rate * sell_amount / 100)

@@ -37,3 +37,4 @@ urllib3
 virtualenv
 websocket-client
 pytest_dependency
+deepdiff
