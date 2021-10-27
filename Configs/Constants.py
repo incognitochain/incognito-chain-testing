@@ -106,9 +106,27 @@ class Status:
             REJECTED = 2
 
     class DexV3:
-        class Order:
+        class AddLiquidity:
+            WAITING = 1
+            MATCH = 2
+            REFUND = 3
+            MATCH_N_REFUND = 4
+
+        class WithdrawLiquidity:
             ACCEPT = 1
+
+        class AddOrder:
             REFUND = 0
+            ACCEPT = 1
+
+        class WithdrawOrder:
+            REJECT = 0
+            ACCEPT = 1
 
         class ShareWithdraw:
+            SUCCESS = 1
+            REJECT = 2
+
+        class Trade:
+            REJECT = 0
             SUCCESS = 1

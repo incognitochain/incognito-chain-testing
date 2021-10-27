@@ -1,5 +1,17 @@
 from Configs.Constants import PBNB_ID
 from Objects.AccountObject import Account, AccountGroup
+# -----------------------------------------
+# this block of codes is for bypassing the testbed loading procedure in IncognitoTestCase for Sanity test module
+try:
+    # noinspection PyProtectedMember
+    full_node_url = sys._xoptions.get('fullNodeUrl')
+    # noinspection PyProtectedMember
+    ws_port = int(sys._xoptions.get('wsPort'))
+    SUT.full_node = Node().parse_url(full_node_url)
+    SUT.full_node.set_web_socket_port(ws_port)
+    TestBed.REQUEST_HANDLER = SUT.full_node
+except:
+    pass
 
 account_0 = Account(  # must in SHARD 0
     '112t8rnbNst56EFVhefVgQcJVqASQPevVGmkb2Mdnhm61uyktU5ZuWbZ1KGAp7w7U4fUyz4XZxBVmaUifsjsLxYbkhtkff5YwQptNxELRVcX'). \

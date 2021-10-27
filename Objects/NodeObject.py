@@ -123,43 +123,30 @@ class Node:
         return DexRpc(self._get_rpc_url())
 
     def dex_v3(self) -> DEXv3RPC:
-
-        if not self._cache['rpc'].get('dex3'):
-            self._cache['rpc']['dex3'] = DEXv3RPC(self._get_rpc_url())
-        return self._cache['rpc']['dex3']
+        return DEXv3RPC(self._get_rpc_url())
 
     def bridge(self) -> BridgeRpc:
         """
         Bridge APIs by RPC
         @return: BridgeRpc object
         """
-        if not self._cache['rpc'].get('bridge'):
-            self._cache['rpc']['bridge'] = BridgeRpc(self._get_rpc_url())
-        return self._cache['rpc']['bridge']
+        return BridgeRpc(self._get_rpc_url())
 
     def portal(self) -> PortalRpc:
-        if not self._cache['rpc'].get('portal'):
-            self._cache['rpc']['portal'] = PortalRpc(self._get_rpc_url())
-        return self._cache['rpc']['portal']
+        return PortalRpc(self._get_rpc_url())
 
     def subscription(self) -> SubscriptionWs:
         """
         Subscription APIs on web socket
         @return: SubscriptionWs object
         """
-        if not self._cache['rpc'].get('sub'):
-            self._cache['rpc']['sub'] = SubscriptionWs(self._get_ws_url())
-        return self._cache['rpc']['sub']
+        return SubscriptionWs(self._get_ws_url())
 
     def explore_rpc(self) -> ExploreRpc:
-        if not self._cache['rpc'].get('explore'):
-            self._cache['rpc']['explore'] = ExploreRpc(self._get_rpc_url())
-        return self._cache['rpc']['explore']
+        return ExploreRpc(self._get_rpc_url())
 
     def util_rpc(self) -> UtilsRpc:
-        if not self._cache['rpc'].get('util'):
-            self._cache['rpc']['util'] = UtilsRpc(self._get_rpc_url())
-        return self._cache['rpc']['util']
+        return UtilsRpc(self._get_rpc_url())
 
     def get_tx_by_hash(self, tx_hash, interval=10, time_out=120) -> TransactionDetail:
         """
@@ -178,11 +165,11 @@ class Node:
             result = TransactionDetail(tx_detail.get_result())
 
         while time_out > 0:
-            WAIT(interval)
-            time_out -= interval
             if not tx_detail.get_error_msg() and tx_detail.get_result('BlockHeight'):
                 result = TransactionDetail(tx_detail.get_result())
                 break
+            WAIT(interval)
+            time_out -= interval
             tx_detail = self.transaction().get_tx_by_hash(tx_hash)
         return result
 

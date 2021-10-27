@@ -22,8 +22,7 @@ class RpcConnection:
 
         self._headers = RpcConnection.DEFAULT_HEADER if headers is None else headers
         self._base_url = url
-        self._payload = {"jsonrpc": json_rpc,
-                         "id": id_num}
+        self._payload = {"jsonrpc": json_rpc, "id": id_num}
 
     def with_id(self, new_id):
         self._payload['id'] = new_id
@@ -46,8 +45,8 @@ class RpcConnection:
         return self
 
     def execute(self):
-        Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(self._payload, indent=3)}')
         try:
+            Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(self._payload, indent=3)}')
             response = requests.post(self._base_url, data=json.dumps(self._payload),
                                      headers=self._headers, timeout=RpcConnection.DEFAULT_TIMEOUT)
         except NewConnectionError:

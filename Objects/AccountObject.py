@@ -2,6 +2,7 @@ import copy
 import datetime
 import random
 import re
+import time
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
@@ -590,6 +591,12 @@ class Account:
             assets = {token_id: self.get_balance(token_id)}
         return assets
 
+    def sum_my_utxo(self, token_id=PRV_ID):
+        try:
+            return sum([t.get_value() for t in self.list_unspent_coin(token_id)])
+        except AttributeError:
+            return 0
+
     def send_public_token(self, token_id, amount, receiver, password=None, memo=None):
         """
         @param token_id:
@@ -858,12 +865,14 @@ class Account:
     ########
     # BRIDGE
     ########
-    def issue_centralize_token(self, token_id, token_name, amount):
+    def issue_centralize_token(self, receiver, token_id, token_name, amount):
         """
             initialize a new centralize token
             @return: Response Object
         """
-        return self.REQ_HANDLER.bridge().issue_centralized_bridge_token(DAO_PRIVATE_K, self.payment_key, token_id,
+        receiver = receiver.payment_key if isinstance(receiver, Account) else receiver
+        INFO(f'{self.__me()} issue {amount} of {token_id[-6:]} to {receiver[-6:]}')
+        return self.REQ_HANDLER.bridge().issue_centralized_bridge_token(self.private_key, receiver, token_id,
                                                                         token_name, amount)
 
     def withdraw_centralize_token(self, token_id, amount_custom_token):
@@ -1032,6 +1041,7 @@ class Account:
 
     def pde3_trade(self, token_sell, token_buy, sell_amount, min_acceptable, trade_path, trading_fee,
                    use_prv_fee=True, tx_fee=-1, tx_privacy=1):
+        trade_path = [trade_path] if isinstance(trade_path, str) else trade_path
         INFO(f"PDE3 - {self.private_key[-6:]} request trading {sell_amount} of {token_sell[-6:]} for {token_buy[-6:]}, "
              f"PRV trading fee {use_prv_fee}, amount {trading_fee} via \n   {trade_path}")
         return self.REQ_HANDLER.dex_v3().trade(self.private_key, token_sell, token_buy, sell_amount, min_acceptable,
@@ -1066,15 +1076,20 @@ class Account:
                            tx_privacy=1):
         nft_id = nft_id if nft_id else self.nft_ids[0]
         INFO(f"Contributing {amount} of {token_id}\n\t"
-             f"NFT: {nft_id} | Amp: {amplifier}")
+             f"NFT: {nft_id} | Amp: {amplifier} | contrib id: {contribute_id}")
         return self.REQ_HANDLER.dex_v3() \
             .add_liquidity(self.private_key, token_id, str(amount), str(amplifier), pool_pair_id, contribute_id, nft_id,
                            tx_fee=tx_fee, tx_privacy=tx_privacy)
 
-    def pde3_withdraw_liquidity(self, share_amount, pool_pair_id, nft_id=None, tx_fee=-1, tx_privacy=1):
+    def pde3_withdraw_liquidity(self, pool_pair_id, share_amount=None, nft_id=None, tx_fee=-1, tx_privacy=1):
         nft_id = nft_id if nft_id else self.nft_ids[0]
-        INFO(f"PDE3 Withdraw liquidity, private k: {self.private_key[-6:]}, NFTID {nft_id}\n\t"
-             f"pair: {pool_pair_id}")
+        if share_amount is None:
+            pde = self.REQ_HANDLER.pde3_get_state()
+            pp = pde.get_pool_pair(id=pool_pair_id)
+            share_amount = pp.get_share(nft_id).amount
+        INFO(f"PDE3 Withdraw liquidity, private k: {self.private_key[-6:]}, NFT ID {nft_id}\n   "
+             f"pair: {pool_pair_id}\n   "
+             f"share amount withdraw: {share_amount}")
         return self.REQ_HANDLER.dex_v3() \
             .withdraw_liquidity(self.private_key, pool_pair_id, nft_id, share_amount, tx_fee=tx_fee,
                                 tx_privacy=tx_privacy)
@@ -1111,7 +1126,7 @@ class Account:
             if wasted_time > ChainConfig.BLOCK_TIME * 5:
                 break
         if not nft_id:
-            INFO(f'{self.__me()} waited {wasted_time}s, but cant get new nft id after tx was confirmed')
+            INFO(f"{self.__me()} waited {wasted_time}s, but can't get new nft id after tx was confirmed")
             return None
 
     def pde3_get_my_nft_ids(self, pde_state=None):
@@ -1575,8 +1590,9 @@ class AccountGroup:
     def pde3_mint_nft(self, amount=coin(1), token_id=PRV_ID, tx_fee=-1, tx_privacy=1, force=False):
         with ThreadPoolExecutor() as e:
             for acc in self:  # bug IC-1519
-                # e.submit(acc.pde3_mint_nft, amount, token_id, tx_fee, tx_privacy, force)
-                acc.pde3_mint_nft(amount, token_id, tx_fee, tx_privacy, force)
+                time.sleep(0.5)
+                e.submit(acc.pde3_mint_nft, amount, token_id, tx_fee, tx_privacy, force)
+                # acc.pde3_mint_nft(amount, token_id, tx_fee, tx_privacy, force)
         return self
 
     def pde3_get_nft_ids(self):

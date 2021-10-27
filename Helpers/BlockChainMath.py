@@ -1,4 +1,5 @@
 import math
+import copy
 
 
 class PdeMath:
@@ -149,7 +150,7 @@ class Pde3Math:
         delta_share = min(delta_x * current_total_share / x, delta_y * current_total_share / y)
         accepted_y = min(delta_y, Pde3Math.cal_contribution_other_end(delta_x, x, y))
         accepted_x = min(delta_x, Pde3Math.cal_contribution_other_end(delta_y, y, x))
-        return int(accepted_x), int(accepted_y), delta_share
+        return int(accepted_x), int(accepted_y), int(delta_share)
 
     @staticmethod
     def cal_virtual_after_contribution(current_virtual, current_total_share, new_total_share):
@@ -201,3 +202,24 @@ class Pde3Math:
         x_receive = int(x * delta_s / current_share)
         y_receive = int(y * delta_s / current_share)
         return x_receive, y_receive
+
+    @staticmethod
+    def sort_trade_path(token_sell, trade_path):
+        """
+        sort trade path in case the paths are not in order BUT MUST have enough necessary pairs to complete the trade.
+        the path must also contains no redundant or duplicate pairs
+        USE WITH CAUTION!
+        """
+        trade_path_unsorted = copy.deepcopy(trade_path)
+        trade_path_sorted = []
+        token = token_sell
+        while trade_path_unsorted:
+            for pair in trade_path_unsorted:
+                if token in pair:
+                    trade_path_sorted.append(pair)
+                    tokens_in_pair = pair.split('-')[:2]
+                    print(tokens_in_pair)
+                    token = tokens_in_pair[1 - tokens_in_pair.index(token)]
+                    trade_path_unsorted.remove(pair)
+                    break
+        return trade_path_sorted

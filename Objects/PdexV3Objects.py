@@ -1,6 +1,6 @@
 import copy
 import json
-from typing import List
+from typing import List, Union
 
 from deepdiff import DeepDiff
 
@@ -21,7 +21,7 @@ class PdeV3State(RPCResponseBase):
         excludes = [r"\['BeaconTimeStamp'\]",
                     r"\['ProtocolFees'\]", r"\['LpFeesPerShare'\]", r"\['StakingPoolFees'\]", r"\['TradingFees'\]",
                     r"\['LastLPFeesPerShare'\]", r"\['StakingPools'\]"]
-        diff = DeepDiff(self.get_result(), other.get_result(), exclude_regex_paths=excludes, math_epsilon=10)
+        diff = DeepDiff(self.get_result(), other.get_result(), exclude_regex_paths=excludes, math_epsilon=0)
         if diff:
             Logging.INFO(f"\n{diff.pretty()}")
             return False
@@ -304,6 +304,9 @@ class PdeV3State(RPCResponseBase):
         @amplifier.setter
         def amplifier(self, amp):
             self.dict_data[self.get_pool_pair_id()]["State"]["Amplifier"] = amp
+
+        def get_amp(self, to_float=False):
+            return self.amplifier / ChainConfig.Dex3.AMP_DECIMAL if to_float else self.amplifier
 
         @property
         def total_share_amount(self):
@@ -645,16 +648,30 @@ class PdeV3State(RPCResponseBase):
                 return self.get_token_id(1 - order_in_pool.get_trade_direction())
             raise RuntimeError(f"Order {order_id} is not in this pool \t   {self.get_pool_pair_id()}")
 
+        def print_pool(self):
+            msg = f"{self.get_token_id(0)[-6:]}-{self.get_token_id(1)[-6:]}, " \
+                  f"real: {self.get_real_amount(0)}-{self.get_real_amount(1)}, " \
+                  f"virt: {self.get_virtual_amount(0)}-{self.get_virtual_amount(1)}, " \
+                  f"amp: {self.get_amp(to_float=True)}"
+            print(msg)
+            return msg
+
     class Param(BlockChainInfoBaseClass):
-        def get_default_fee_rate_bps(self):
-            return self.dict_data["DefaultFeeRateBPS"]
+        def get_default_fee_rate_bps(self, to_float=False):
+            return self.dict_data["DefaultFeeRateBPS"] / ChainConfig.Dex3.FEE_RATE_DECIMAL \
+                if to_float else self.dict_data["DefaultFeeRateBPS"]
 
-        def get_fee_rate_bps(self, by_pool_pair=None):
+        def get_fee_rate_bps(self, by_pool_pair=None, to_float=False):
             all_rate = self.dict_data["FeeRateBPS"]
-            return all_rate.get(by_pool_pair) if by_pool_pair else all_rate
+            if by_pool_pair:
+                return all_rate.get(by_pool_pair) / ChainConfig.Dex3.FEE_RATE_DECIMAL if to_float else \
+                    all_rate.get(by_pool_pair)
+            else:
+                return all_rate
 
-        def get_prv_discount_percent(self):
-            return self.dict_data["PRVDiscountPercent"]
+        def get_prv_discount_percent(self, to_float=False):
+            return self.dict_data["PRVDiscountPercent"] / ChainConfig.Dex3.FEE_RATE_DECIMAL if to_float else \
+                self.dict_data["PRVDiscountPercent"]
 
         def get_trading_protocol_fee_percent(self):
             return self.dict_data["TradingProtocolFeePercent"]
@@ -760,16 +777,16 @@ class PdeV3State(RPCResponseBase):
          },"""
 
         def __init__(self, data):
-            l_id = len(self.dict_data.keys())
+            l_id = len(data.keys())
             if l_id != 1:
                 raise ValueError(f"This waiting contribution has {l_id} id while expecting only 1: data {data}")
             super().__init__(data)
 
         def get_contribution_id(self):
-            return list(self.dict_data.keys())[0]
+            return self._1_item_dict_key()
 
         def __contrib_info(self):
-            return self.dict_data[self.get_contribution_id()]
+            return self._1_item_dict_value()
 
         def get_pool_pair_id(self):
             return self.__contrib_info()["PoolPairID"]
@@ -831,10 +848,10 @@ class PdeV3State(RPCResponseBase):
             return_list.append(obj) if included else None
         return return_list
 
-    def get_params(self):
+    def get_pde_params(self):
         return PdeV3State.Param(self.get_result("Params"))
 
-    def get_pool_pair(self, **by):
+    def get_pool_pair(self, **by) -> Union[PoolPairData, List[PoolPairData]]:
         """
         @param by: id, tokens (list of tokens, max 2), token0, token1, nft_id, amplifier
         @return:
@@ -905,6 +922,7 @@ class PdeV3State(RPCResponseBase):
         @param trade_path: must be properly sorted
         @return:
         """
+        trade_path = [trade_path] if isinstance(trade_path, str) else trade_path
         receive = 0
         for pair_id in Pde3Math.sort_trade_path(sell_token, trade_path):
             Logging.INFO(f"Trade with pair: \n   {pair_id}")
@@ -922,10 +940,12 @@ class PdeV3State(RPCResponseBase):
         @param use_prv:
         @return: min trading fee in PRV/sell token, depend on use_prv is true/false
         """
+        trade_path = [trade_path] if isinstance(trade_path, str) else trade_path
         trade_path = Pde3Math.sort_trade_path(sell_token, trade_path)
-        pde_param = self.get_params()
-        total_fee_rate = sum([pde_param.get_fee_rate_bps(pair_id) if pde_param.get_fee_rate_bps(pair_id)
-                              else pde_param.get_default_fee_rate_bps() for pair_id in trade_path])
-        final_fee_rate = total_fee_rate * (100 - pde_param.get_prv_discount_percent()) / 100 \
+        pde_param = self.get_pde_params()
+        # todo, not yet complete, single trade path works but not multi-trade path
+        total_fee_rate = sum([pde_param.get_fee_rate_bps(pair_id, to_float=True) if pde_param.get_fee_rate_bps(pair_id)
+                              else pde_param.get_default_fee_rate_bps(to_float=True) for pair_id in trade_path])
+        final_fee_rate = total_fee_rate * (1 - pde_param.get_prv_discount_percent(to_float=True)) \
             if sell_token == PRV_ID or use_prv else total_fee_rate
-        return int(final_fee_rate * sell_amount / 100)
+        return int(final_fee_rate * sell_amount)

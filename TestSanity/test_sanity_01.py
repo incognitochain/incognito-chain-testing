@@ -10,7 +10,7 @@ from Helpers.Time import WAIT, get_current_date_time
 from Objects.AccountObject import PORTAL_FEEDER, COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from Objects.PortalObjects import DepositTxInfo, PortingReqInfo
-from TestCases.Sanity import account_0, account_1, account_11, fixed_validators, auto_stake_list
+from TestSanity import account_0, account_1, account_11, fixed_validators, auto_stake_list
 
 COIN_MASTER.top_up_if_lower_than(account_0, coin(3600), coin(3601))
 P___TOKEN = 'e4ee6277935d280728de8724ab24e4aa227d36672ac1aed2153ec5a2c3297b41'

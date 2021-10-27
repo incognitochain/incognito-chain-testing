@@ -47,6 +47,8 @@ class ChainConfig:
 
     class Dex3:
         AMP_DECIMAL = 10000
+        FEE_RATE_DECIMAL = 10000
+        TRADE_PATH_MAX_LEN = 3
 
     @staticmethod
     def is_first_height_of_epoch(height):

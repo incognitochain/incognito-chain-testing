@@ -2,6 +2,7 @@ import inspect
 import logging.config
 import os
 import sys
+import threading
 from datetime import datetime
 
 _FMT_WIDTH = 100
@@ -44,7 +45,7 @@ def _log(logger_name=None):
     """
     if not logger_name:
         # Gets the name of the class / method from where this method is called
-        logger_name = os.path.basename(inspect.stack()[2][1])[:20]
+        logger_name = f"{threading.currentThread().getName()}:{os.path.basename(inspect.stack()[2][1])[:20]}"
     line = {'line': inspect.stack()[2][2]}
     try:
         logger = LOGGERS[logger_name]

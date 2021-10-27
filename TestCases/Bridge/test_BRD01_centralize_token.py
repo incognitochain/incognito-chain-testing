@@ -1,12 +1,11 @@
-from Configs.Constants import DAO_PRIVATE_K
 from Helpers.Logging import *
-from Helpers.Time import get_current_date_time, WAIT
+from Helpers.Time import get_current_date_time
+from Objects.AccountObject import COIN_MASTER
 
-from Objects.AccountObject import get_accounts_in_shard
-from Objects.IncognitoTestCase import SUT
+from Objects.IncognitoTestCase import SUT, ACCOUNTS
 
 # sender_account = get_accounts_in_shard(0)[1]
-receiver_account = get_accounts_in_shard(5)[0]
+receiver_account = ACCOUNTS.get_accounts_in_shard(5)[0]
 # init_sender_balance = sender_account.get_balance()
 # init_receiver_balance = receiver_account.get_balance()
 
@@ -54,7 +53,7 @@ def test_init_centralize_token():
     assert receiver_bal_b4 == 0, "receiver balance is <> 0"
 
     STEP(2, "init new token")
-    receiver_account.issue_centralize_token(token_id, token_name, token_amount).subscribe_transaction()
+    COIN_MASTER.issue_centralize_token(receiver_account, token_id, token_name, token_amount).subscribe_transaction()
     INFO(f"new token id: {token_id} initialized")
 
     STEP(3, "check receiver balance after init token")
@@ -99,7 +98,7 @@ def test_burn_centralize_token():
     receiver_account.burn_token(token_id, burning_amount).subscribe_transaction()
 
     STEP(4, "check user balance after burn token")
-    user_bal_af = receiver_account.wait_for_balance_change(token_id,from_balance=user_bal_b4)
+    user_bal_af = receiver_account.wait_for_balance_change(token_id, from_balance=user_bal_b4)
     INFO(f"user balance: {user_bal_af}")
     assert user_bal_b4 - user_bal_af == burning_amount, "user balance after burn is NOT correct"
 
@@ -139,7 +138,7 @@ def test_withdraw_centralize_token():
     receiver_account.withdraw_centralize_token(token_id, withdraw_amount).subscribe_transaction()
 
     STEP(4, "check user balance after withdraw token")
-    user_bal_af = receiver_account.wait_for_balance_change(token_id,from_balance=user_bal_b4)
+    user_bal_af = receiver_account.wait_for_balance_change(token_id, from_balance=user_bal_b4)
     INFO(f"user balance: {user_bal_af}")
     assert user_bal_b4 - user_bal_af == withdraw_amount, "user balance after withdraw is NOT correct"
 
