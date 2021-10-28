@@ -86,13 +86,13 @@ def test_add_liquidity_first_time(contributor, nft_id, contribution, amplifier):
 
 @pytest.mark.parametrize("contributor,nft_id, contribution, pair_id, amplifier", [
     pytest.param(
-        ACCOUNTS[1], ACCOUNTS[1].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[0]", 200000,
+        ACCOUNTS[1], ACCOUNTS[1].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[1]", 200000,
         marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
     pytest.param(
-        ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[0]", 200000,
+        ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[1]", 200000,
         marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
     pytest.param(
-        ACCOUNTS[3], ACCOUNTS[3].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[0]", 200000,
+        ACCOUNTS[3], ACCOUNTS[3].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[1]", 200000,
         marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
 ])
 def test_add_liquidity_no_trade_with_return(contributor, nft_id, contribution, pair_id, amplifier):
@@ -128,15 +128,16 @@ def test_add_liquidity_no_trade_with_return(contributor, nft_id, contribution, p
 
 
 @pytest.mark.parametrize("contributor,nft_id, with_draw_percent, pair_id", [
-    pytest.param(ACCOUNTS[3], ACCOUNTS[3].nft_ids[0], 0.1, "INIT_PAIR_IDS",
+    pytest.param(ACCOUNTS[3], ACCOUNTS[3].nft_ids[0], 0.1, "INIT_PAIR_IDS[1]",
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
-    pytest.param(ACCOUNTS[2], ACCOUNTS[3].nft_ids[0], 1, "INIT_PAIR_IDS",
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], 1, "INIT_PAIR_IDS[1]",
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
-    pytest.param(ACCOUNTS[1], ACCOUNTS[3].nft_ids[0], 1.1, "INIT_PAIR_IDS",
+    pytest.param(ACCOUNTS[1], ACCOUNTS[1].nft_ids[0], 1.1, "INIT_PAIR_IDS[1]",
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
 ])
 def test_withdraw_liquidity(contributor: Account, nft_id, with_draw_percent, pair_id):
-    pair_id = INIT_PAIR_IDS[0] if pair_id == "INIT_PAIR_IDS" else pair_id
+    if "INIT_PAIR_IDS" in pair_id:
+        pair_id = eval(pair_id)
     pde_b4 = SUT().pde3_get_state()
     pool_b4 = pde_b4.get_pool_pair(id=pair_id)
     token_x, token_y = pool_b4.get_token_id()
@@ -161,7 +162,7 @@ def test_withdraw_liquidity(contributor: Account, nft_id, with_draw_percent, pai
     bal_x_af = contributor.wait_for_balance_change(token_x, from_balance=bal_x_b4)
     bal_y_af = contributor.wait_for_balance_change(token_y, from_balance=bal_y_b4)
 
-    Logging.STEP(3, "Check pool")
+    Logging.STEP(4, "Check pool")
     pool_predict = pool_b4.clone()
     return_amounts = pool_predict.predict_pool_after_withdraw_share(withdraw_amount, nft_id)
     pool_af = SUT().pde3_get_state().get_pool_pair(id=pair_id)

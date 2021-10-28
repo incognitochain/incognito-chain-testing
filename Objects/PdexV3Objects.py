@@ -288,14 +288,12 @@ class PdeV3State(RPCResponseBase):
                 return self.get_state("Token0RealAmount")
             if by_token_id == self.get_token_id(1) or by_token_id == 1:
                 return self.get_state("Token1RealAmount")
-            Logging.WARNING(f"Token {by_token_id} does not belong to this pool")
 
         def get_virtual_amount(self, by_token_id):
             if by_token_id == self.get_token_id(0) or by_token_id == 0:
                 return self.get_state("Token0VirtualAmount")
             if by_token_id == self.get_token_id(1) or by_token_id == 1:
                 return self.get_state("Token1VirtualAmount")
-            Logging.WARNING(f"Token {by_token_id} does not belong to this pool")
 
         @property
         def amplifier(self):
@@ -862,6 +860,7 @@ class PdeV3State(RPCResponseBase):
         by_id = by.get("id", by.get("pair_id", by.get("pool_id", by.get("pairid", by.get("poolid")))))
         by_nft = by.get("nft_id", by.get("nft", by.get("nftid")))
         by_amp = by.get("amp")
+        by_size = by.get("size")
         all_pp = self.get_result("PoolPairs")
         all_pp_obj = [PdeV3State.PoolPairData({pair_id: pair_data}) for pair_id, pair_data in all_pp.items()]
         return_list = []
@@ -884,6 +883,10 @@ class PdeV3State(RPCResponseBase):
                 included = included and obj.get_share(by_nft)
             if by_amp:
                 included = included and obj.amplifier == by_amp
+            if by_size:
+                t1, t2 = by_size.keys()
+                size = {t1: obj.get_real_amount(t1), t2: obj.get_real_amount(t2)}
+                included = included and size == by_size
             return_list.append(obj) if included else None
         return return_list
 

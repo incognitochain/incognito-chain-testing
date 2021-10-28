@@ -4,8 +4,6 @@ from Objects.IncognitoTestCase import ACCOUNTS
 # declaration
 TOKEN_OWNER = ACCOUNTS[0]
 INIT_PAIR_IDS = []
-POOL_X0 = 0
-POOL_Y0 = 0
 TOKEN_X = "634d4c6591c79f029b261c3663af77efc5ee60fcc4b6a0d7823a114180ea2e1f"
 TOKEN_Y = "4a380dd28b431f320f062f9ea7cd6942a700feb4c98553987f7a6b9ea48774d8"
 

@@ -1122,6 +1122,7 @@ class Account:
             nft_id = mint_status.get_nft_id()
             if nft_id:
                 INFO(f"{self.__me()} New DEX NFT ID: {nft_id}")
+                self.save_nft_id(nft_id)
                 return nft_id
             if wasted_time > ChainConfig.BLOCK_TIME * 5:
                 break
@@ -1466,6 +1467,9 @@ class Account:
         ERROR(error) if error else INFO(submit_response.get_result())
         return self
 
+    def submit_key_info(self):
+        return self.REQ_HANDLER.transaction().submit_key_info(self.ota_k).get_result()
+
     def submit_key_authorize(self, from_height=0, re_index=False, access_token=ChainConfig.ACCESS_TOKEN):
         return self.REQ_HANDLER.transaction().submit_key_authorized(self.ota_k, access_token, from_height, re_index)
 
@@ -1576,7 +1580,14 @@ class AccountGroup:
     def submit_key(self, key_type='private'):
         for acc in self.account_list:
             with ThreadPoolExecutor() as tpe:
+                time.sleep(0.3)
                 tpe.submit(acc.submit_key, key_type)
+        wait_time, each_wait = 0, 5
+        for acc in self.account_list:
+            wait_time += each_wait if acc.submit_key_info() == Status.SubmitKey.WAITING else 0
+        if wait_time:
+            INFO("Indexing is in progress, wait!!!")
+            WAIT(wait_time)
         return self
 
     def convert_token_to_v2(self, token=PRV_ID, fee=-1):
@@ -1590,7 +1601,7 @@ class AccountGroup:
     def pde3_mint_nft(self, amount=coin(1), token_id=PRV_ID, tx_fee=-1, tx_privacy=1, force=False):
         with ThreadPoolExecutor() as e:
             for acc in self:  # bug IC-1519
-                time.sleep(0.5)
+                time.sleep(0.3)
                 e.submit(acc.pde3_mint_nft, amount, token_id, tx_fee, tx_privacy, force)
                 # acc.pde3_mint_nft(amount, token_id, tx_fee, tx_privacy, force)
         return self

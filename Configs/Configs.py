@@ -1,19 +1,8 @@
 class TestConfig:
     KEY_VERSION = 2  # payment key version [1 or 2]
     TX_VER = 2
-    # TEST_BED = 'Jenkins'
-    # TEST_BED = 'BMNet'
-    # TEST_BED = 'local_adung'
-    TEST_BED = 'TestNet2'
-    # TEST_BED = 'TestNet'
-    # TEST_BED = 'local55_124'
-    # TEST_BED = 'MainNet'
-    # TEST_BED = 'BMNet'
-    # TEST_BED = 'local134'
-    # TEST_BED = 'privacy_v2'
-    # TEST_BED = 'acc3k'
-    TEST_DATA = 'Account_Hang_full'
-    # TEST_DATA = 'account_sample'
+    TEST_BED = 'TestNet'
+    TEST_DATA = 'account_sample'
 
 
 class ChainConfig:

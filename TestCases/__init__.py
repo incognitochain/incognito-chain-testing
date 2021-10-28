@@ -12,19 +12,6 @@ from Objects.NodeObject import Node
 from Objects.TestBedObject import TestBed
 
 logger = "Test Init"
-# -----------------------------------------
-# this block of codes is for bypassing the testbed loading procedure in IncognitoTestCase for Sanity test module
-try:
-    # noinspection PyProtectedMember
-    full_node_url = sys._xoptions.get('fullNodeUrl')
-    # noinspection PyProtectedMember
-    ws_port = int(sys._xoptions.get('wsPort'))
-    SUT.full_node = Node().parse_url(full_node_url)
-    SUT.full_node.set_web_socket_port(ws_port)
-    TestBed.REQUEST_HANDLER = SUT.full_node
-except:
-    pass
-
 # update SUT
 PORTAL_FEEDER.req_to(SUT())
 COIN_MASTER.req_to(SUT())
@@ -39,7 +26,6 @@ for c in COIN_MASTER.list_unspent_coin():
         COIN_MASTER.convert_token_to_v2().subscribe_transaction()
         break
 ACCOUNTS.submit_key('ota')
-WAIT(60)
 
 if isinstance(ACCOUNTS, AccountGroup) or isinstance(ACCOUNTS, list):
     COIN_MASTER.top_up_if_lower_than(ACCOUNTS, coin(2), coin(5))
