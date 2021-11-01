@@ -459,7 +459,7 @@ class PdeV3State(RPCResponseBase):
             """
             Logging.INFO(f"Predicting trade with pool: {self.get_pool_pair_id()}\n\t"
                          f"Sell {sell_amount} of {token_sell[-6:]}. Pool b4 trade: \n"
-                         f"{self.pretty_format()}")
+                         f"{self.print_pool()}")
             token_sell_index = self._get_token_index(token_sell)
             token_buy_index = abs(1 - token_sell_index)
             amm_rate = self.get_pool_rate(token_sell)
@@ -468,7 +468,7 @@ class PdeV3State(RPCResponseBase):
                 Logging.INFO("Found no matching order, trade with AMM pool only")
                 receive_amount = self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
                 Logging.INFO(f"Done predicting trading, total receive: {receive_amount}. Pool after trade: \n"
-                             f"{self.pretty_format()}")
+                             f"{self.print_pool()}")
                 return receive_amount
 
             right_orders, left_orders = [], []
@@ -660,11 +660,16 @@ class PdeV3State(RPCResponseBase):
                 return self.get_token_id(1 - order_in_pool.get_trade_direction())
             raise RuntimeError(f"Order {order_id} is not in this pool \t   {self.get_pool_pair_id()}")
 
-        def print_pool(self):
+        def print_pool(self, short=True):
             msg = f"{self.get_token_id(0)[-6:]}-{self.get_token_id(1)[-6:]}, " \
                   f"real: {self.get_real_amount(0)}-{self.get_real_amount(1)}, " \
                   f"virt: {self.get_virtual_amount(0)}-{self.get_virtual_amount(1)}, " \
                   f"amp: {self.get_amp(to_float=True)}"
+            if not short:
+                for share in self.get_share():
+                    msg += f"\n    "
+                    msg += f"{share.nft_id} : {share.amount}"
+
             print(msg)
             return msg
 

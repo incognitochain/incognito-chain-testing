@@ -147,13 +147,17 @@ def test_withdraw_liquidity():
     receives = pp_predict.predict_pool_after_withdraw_share(my_share_info.amount - 10, TOKEN_OWNER.nft_ids[0])
     bal_prv_b4 = TOKEN_OWNER.sum_my_utxo()
     bal_tok_b4 = TOKEN_OWNER.sum_my_utxo(TOKEN_ID)
-    TOKEN_OWNER.pde3_withdraw_liquidity(PAIR_ID, my_share_info.amount - 10).get_transaction_by_hash()
+    tx_fee = TOKEN_OWNER.pde3_withdraw_liquidity(PAIR_ID, my_share_info.amount - 10).get_transaction_by_hash().get_fee()
     pde_af = SUT().pde3_get_state()
     pde_af.get_pool_pair(id=PAIR_ID).print_pool()
     bal_prv_af = TOKEN_OWNER.wait_for_balance_change(PRV_ID)
     bal_tok_af = TOKEN_OWNER.sum_my_utxo(TOKEN_ID)
     INFO(f"""
-        real token received vs estimated:  {bal_tok_af - bal_tok_b4} == {receives[TOKEN_ID]}
-        real PRV received vs estimated:    {bal_prv_af - bal_prv_b4} == {receives[PRV_ID]}
+        real token received:  {bal_tok_af - bal_tok_b4}
+                  estimated:  {receives[TOKEN_ID]}
+                             
+        real PRV received:    {bal_prv_af - bal_prv_b4 - tx_fee}
+                estimated:    {receives[PRV_ID]}
+                
         pool predicted == real pool after? {pp_predict == pde_af.get_pool_pair(id=PAIR_ID)}
     """)
