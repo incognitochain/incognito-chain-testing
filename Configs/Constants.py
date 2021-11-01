@@ -20,11 +20,6 @@ ADDR_10MIL = \
     '112t8rnX6L6keA9b4WeM1Ay3BjVkaeib2zv1fw3sLnrmbLSgXwNbBdhnhXiKT28ZhAgoa4RByXhzY5uLe8WxQXpLjR4LmqLz61VKz6mh5PfX'
 
 
-class GoNum:
-    U_INT64_max = 18446744073709551615
-    INT64_max = 9223372036854775808
-
-
 def coin(amount, nano=True):
     """
     :param amount:

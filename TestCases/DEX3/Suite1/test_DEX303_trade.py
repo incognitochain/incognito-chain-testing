@@ -8,7 +8,7 @@ from Helpers import Logging
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT, ACCOUNTS
-from TestCases.DEX3 import TOKEN_Y, TOKEN_X, TOKEN_OWNER
+from TestCases.DEX3.Suite1 import TOKEN_Y, TOKEN_X, TOKEN_OWNER
 
 pde = SUT().pde3_get_state()
 param = pde.get_pde_params()
@@ -18,8 +18,8 @@ default_prv_fee_rate = param.get_default_fee_rate_bps(to_float=True) \
                        * (1 - param.get_prv_discount_percent(to_float=True))
 trading_fee_prv_min = int(amount * default_prv_fee_rate)
 trading_fee_tok_min = int(amount * default_tok_fee_rate)
-trading_fee_prv = trading_fee_prv_min + 10
-trading_fee_tok = trading_fee_tok_min + 10
+trading_fee_prv = 2 * trading_fee_prv_min
+trading_fee_tok = 2 * trading_fee_tok_min
 PRV_fee = True
 token_fee = False
 PAIR_X_Y = '215c042e09db3ff2fe8902374e33ed5239bff871d88a208ed2cccaabc92e3f98-' \
@@ -55,28 +55,28 @@ PATH_A_D = [PAIR_A_C, PAIR_B_C, PAIR_B_D]
 
 
 @pytest.mark.parametrize("trader, token_sell, token_buy, sell_amount, trade_fee, fee_type, trade_path", [
-    # pytest.param(ACCOUNTS[-1], TOKEN_X, TOKEN_Y, amount, trading_fee_prv, PRV_fee, "[INIT_PAIR_IDS[1]]",
-    # marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
-    # ),
-    # pytest.param(ACCOUNTS[-1], PRV_ID, TOKEN_X, amount, trading_fee_prv, PRV_fee, "auto",
-    # marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
-    # ),
-    # pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, trading_fee_tok, token_fee, "[INIT_PAIR_IDS[1]]",
-    #              marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
-    #              ),
+    pytest.param(ACCOUNTS[-1], TOKEN_X, TOKEN_Y, amount, trading_fee_prv, PRV_fee, "[INIT_PAIR_IDS[1]]",
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
+    pytest.param(ACCOUNTS[-1], PRV_ID, TOKEN_X, amount, trading_fee_prv, PRV_fee, "auto",
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
+    pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, trading_fee_tok, token_fee, "[INIT_PAIR_IDS[1]]",
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
     pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, trading_fee_prv_min, PRV_fee, "[INIT_PAIR_IDS[1]]",
-                 # marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),  # use min fee PRV
     pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, trading_fee_tok_min, token_fee, "[INIT_PAIR_IDS[1]]",
-                 # marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),  # use min fee TOKEN
 
     # Cross pool
-    # pytest.param(ACCOUNTS[-1], PRV_ID, TOKEN_Y, amount, 2 * trading_fee_prv, PRV_fee, "INIT_PAIR_IDS",
-    #              marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
-    #              ),
+    pytest.param(ACCOUNTS[-1], PRV_ID, TOKEN_Y, amount, 2 * trading_fee_prv, PRV_fee, "INIT_PAIR_IDS",
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
     pytest.param(ACCOUNTS[-1], PRV_ID, TOKEN_Y, amount, 2 * trading_fee_tok, token_fee, "INIT_PAIR_IDS",
-                 # marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),
 
     # cross-pool, manual input pair

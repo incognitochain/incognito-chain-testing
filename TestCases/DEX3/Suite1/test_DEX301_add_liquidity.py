@@ -9,7 +9,7 @@ from Helpers.Time import get_current_date_time, WAIT
 from Objects.AccountObject import Account, COIN_MASTER
 from Objects.IncognitoTestCase import SUT, ACCOUNTS
 from Objects.PdexV3Objects import PdeV3State
-from TestCases.DEX3 import TOKEN_X, TOKEN_Y, TOKEN_OWNER, INIT_PAIR_IDS
+from TestCases.DEX3.Suite1 import TOKEN_X, TOKEN_Y, TOKEN_OWNER, INIT_PAIR_IDS
 
 
 @pytest.mark.dependency(scope='session', name="add_liquidity")

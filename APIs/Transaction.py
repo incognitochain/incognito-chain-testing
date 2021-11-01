@@ -384,8 +384,8 @@ class TransactionRpc(BaseRpcApi):
         """
         return self.rpc_connection.with_method('submitkey').with_params([key]).execute()
 
-    def asd(self, key):
-        return self.rpc_connection.with_method('getkeysubmissioninfo').with_params([key]).execute()
+    def submit_key_info(self, ota_key):
+        return self.rpc_connection.with_method('getkeysubmissioninfo').with_params([ota_key]).execute()
 
     def submit_key_authorized(self, ota_key, access_token, block_height=0, re_index=False):
         """

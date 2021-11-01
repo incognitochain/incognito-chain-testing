@@ -293,26 +293,11 @@ class Account:
         response = self.REQ_HANDLER.transaction().list_output_coin(self.payment_key, self.read_only_key, token_id)
         return ListPrvTXO(response)
 
-    def list_unspent_coin(self, token_id=PRV_ID, from_height=0):
+    def list_utxo(self, token_id=PRV_ID, from_height=0):
         raw_response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key, token_id, from_height)
         return ListPrvTXO(raw_response)
 
-    def list_unspent_token(self, token_id=None, from_height=0):
-        obj_coins = []
-        token_list = [] if token_id is None else [token_id]
-        if not token_id:
-            for token_info in self.list_owned_custom_token():
-                token_list.append(token_info.get_token_id())
-
-        for token in token_list:
-            raw_response = self.REQ_HANDLER.transaction(). \
-                list_unspent_output_tokens(self.private_key, token, from_height).expect_no_error()
-            raw_coins = raw_response.get_result('Outputs')[self.private_key]
-            for raw_coin in raw_coins:
-                obj_coins.append(TxOutPut(raw_coin))
-        return obj_coins
-
-    def print_all_unspent_coin(self, token_id=None):
+    def print_utxo(self, token_id=None):
         """
         for @debug purpose
         @param token_id:
@@ -320,16 +305,16 @@ class Account:
         """
         if not token_id:
             print_data = f'+ {PRV_ID}'
-            for c in self.list_unspent_coin():
+            for c in self.list_utxo():
                 print_data += f'\n   {c}'
 
             for token in self.list_owned_custom_token():
                 print_data += f'\n+ {token}'
-                for c in self.list_unspent_coin(token.get_token_id()):
+                for c in self.list_utxo(token.get_token_id()):
                     print_data += f'\n   {c}'
         else:
             print_data = f'\n+ {token_id}'
-            for c in self.list_unspent_coin(token_id):
+            for c in self.list_utxo(token_id):
                 print_data += f'\n   {c}'
         print(print_data)
 
@@ -593,9 +578,13 @@ class Account:
 
     def sum_my_utxo(self, token_id=PRV_ID):
         try:
-            return sum([t.get_value() for t in self.list_unspent_coin(token_id)])
+            return sum([t.get_value() for t in self.list_utxo(token_id)])
         except AttributeError:
             return 0
+
+    def wait_for_new_utxo(self, token_id=PRV_ID):
+        my_utxo = self.list_utxo(token_id)
+        my_utxo = self.list_unspent_token(token_id)
 
     def send_public_token(self, token_id, amount, receiver, password=None, memo=None):
         """
@@ -934,8 +923,7 @@ class Account:
             if contribution.get_contributor_address() == self.payment_key and contribution.get_token_id() != PRV_ID:
                 INFO(f"{contribution} belong to current user and waiting for PRV, so cannot use PRV to clean up")
             else:
-                self.pde_contribute(PRV_ID, 100,
-                                    contribution.get_pair_id()).subscribe_transaction()
+                self.pde_contribute(PRV_ID, 100, contribution.get_pair_id()).subscribe_transaction()
 
     def pde_wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         INFO(f"Wait until token {l6(token_id)} is in waiting for contribution")
@@ -1136,9 +1124,18 @@ class Account:
         self.nft_ids.clear()
         for token in all_my_custom_token.__iter__():
             if pde_state.get_nft_id(token.get_token_id()):
-                self.nft_ids.append(token.get_token_id())
+                self.save_nft_id(token.get_token_id())
         INFO(f"Get {self.private_key[-6:]} NFT id from pde state.\n   found: {self.nft_ids}")
         return self.nft_ids
+
+    def pde3_clean_all_waiting_contribution(self, pde_state=None):
+        pde_state = self.REQ_HANDLER.pde3_get_state() if pde_state is None else pde_state
+        for contribution in pde_state.get_waiting_contribution():
+            for nft in pde_state.get_nft_id().keys():
+                if nft != contribution.get_nft_id():
+                    break
+            self.pde3_add_liquidity(PRV_ID, 100, contribution.get_amplifier(), contribution.get_contribution_id(),
+                                    nft, contribution.get_pool_pair_id()).get_transaction_by_hash()
 
     def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=1, check_interval=10,
                                 timeout=100):
@@ -1452,12 +1449,8 @@ class Account:
         @return:
         """
         key_type = key_type.lower()
-        if key_type == 'private':
-            key = self.private_key
-        elif key_type == 'ota':
-            key = self.ota_k
-        else:
-            key = None
+        k_map = {'private': self.private_key, 'ota': self.ota_k}
+        key = k_map.get(key_type)
         INFO(f'Submit {key_type} key for indexing coin {l6(key)}')
         submit_response = self.REQ_HANDLER.transaction().submit_key(key)
         try:

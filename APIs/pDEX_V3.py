@@ -77,23 +77,20 @@ class ResponseMintNftStatus(ResponseStatusBase):
 
 
 class ResponseContributeStatus(ResponseStatusBase):
-    def get_token0_contribute_amount(self):
-        return self.get_result("Token0ContributedAmount")
+    def get_token_contribute_amount(self, index_or_token_id):
+        if index_or_token_id in [self.get_token_id(0), 0]:
+            return self.get_result("Token0ContributedAmount")
+        if index_or_token_id in [self.get_token_id(1), 1]:
+            return self.get_result("Token1ContributedAmount")
 
-    def get_token0_returned_amount(self):
-        return self.get_result("Token0ReturnedAmount")
+    def get_token_returned_amount(self, index_or_token_id):
+        if index_or_token_id in [self.get_token_id(0), 0]:
+            return self.get_result("Token0ReturnedAmount")
+        if index_or_token_id in [self.get_token_id(1), 1]:
+            return self.get_result("Token1ReturnedAmount")
 
-    def get_token0_id(self):
-        return self.get_result("Token0ID")
-
-    def get_token1_contribute_amount(self):
-        return self.get_result("Token1ContributedAmount")
-
-    def get_token1_returned_amount(self):
-        return self.get_result("Token1ReturnedAmount")
-
-    def get_token1_id(self):
-        return self.get_result("Token1ID")
+    def get_token_id(self, index):
+        return self.get_result(f"Token{index}ID")
 
 
 class ResponseWithdrawLiquidityStatus(ResponseStatusBase):
@@ -292,7 +289,7 @@ class DEXv3RPC(BaseRpcApi):
                                "MinAcceptableAmount": min_acceptable}
                               ]).execute())
 
-    def withdraw_order(self, private_k, pair_id, order_id,  nft_id, token_id_list, amount,
+    def withdraw_order(self, private_k, pair_id, order_id, nft_id, token_id_list, amount,
                        main_tx_receiver=None, tx_fee=-1, tx_privacy=1):
         return ResponseWithdraw(
             self.rpc_connection.with_method('pdexv3_txWithdrawOrder')

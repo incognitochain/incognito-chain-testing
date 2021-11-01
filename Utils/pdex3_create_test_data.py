@@ -1,5 +1,9 @@
-# run like a normal test case: ./run.sh testbed testdata path/to/this/script
-from Configs.Constants import GoNum, PDEX_ID
+# run like a normal test case: ./run.sh [testbed] [testdata] path/to/this/script
+#                          or: ./run.sh [testbed] - path/to/this/script
+#                         to ignore [testdata] since it won't be used
+import pytest
+
+from Configs.Constants import PDEX_ID
 from Objects.AccountObject import *
 from Objects.IncognitoTestCase import SUT
 
@@ -37,7 +41,7 @@ def mint_tokens():
         token_ids, token_name = t['id'], t['name']
         if not COIN_MASTER.sum_my_utxo(token_ids):
             tx = COIN_MASTER.issue_centralize_token(COIN_MASTER, token_ids, token_name,
-                                                    int(GoNum.INT64_max / 2)).get_transaction_by_hash()
+                                                    pow(2, 62)).get_transaction_by_hash()
     for t in TOK:
         COIN_MASTER.wait_for_balance_change(t['id'], 0)
 
@@ -63,15 +67,18 @@ def contribute(contrib_data, test=False):
 
 def print_pair_id(contrib_data):
     pde = SUT().pde3_get_state()
+    pairs = []
     for c in contrib_data:
         pool_size = c['size']
         a = c['amp']
         token_ids = list(pool_size.keys())
         try:
             pair_id = pde.get_pool_pair(size=pool_size, amp=a)[0].get_pool_pair_id()
+            pairs.append(pair_id)
         except:
             pair_id = f"try again: {token_ids}"
         print(f"ID: {pair_id}")
+    return pairs
 
 
 contrib = [
@@ -103,8 +110,13 @@ contrib_2 = [
     {"size": {pETH: d9(25), pWETH: d9(25)}, 'amp': amp(100)},
 ]
 
+
 # MAIN
-mint_tokens()
-contribute(contrib_2, test=False)
-WAIT(ChainConfig.BLOCK_TIME * 5)
-print_pair_id(contrib_2)
+@pytest.mark.parametrize("contribute_data", [
+    contrib_2,
+])
+def test_create_data(contribute_data):
+    mint_tokens()
+    contribute(contribute_data, test=False)
+    WAIT(ChainConfig.BLOCK_TIME * 5)
+    return print_pair_id(contribute_data)

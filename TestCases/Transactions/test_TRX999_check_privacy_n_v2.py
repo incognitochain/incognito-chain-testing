@@ -90,7 +90,7 @@ def test_check_all_coin_v2():
 
     for acc in ACCOUNTS:
         INFO_HEADLINE(f'Checking all coin and token of {l6(acc.payment_key)}')
-        for coin in acc.list_unspent_coin():
+        for coin in acc.list_utxo():
             INFO(f'coin: {coin}')
             assert coin.get_version() == 2, 'Coin is not v2'
 

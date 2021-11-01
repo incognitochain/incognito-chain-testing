@@ -39,7 +39,7 @@ def no_setup_module():
         defrag.subscribe_transaction()
     for acc in [shard1_sender1, shard1_sender2]:
         num = 0
-        list_coin = acc.list_unspent_coin()
+        list_coin = acc.list_utxo()
         for coin in list_coin:
             if int(coin.get_value()) >= amount * 2:
                 num += 1

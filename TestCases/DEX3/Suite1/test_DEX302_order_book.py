@@ -6,7 +6,7 @@ from Helpers import Logging
 from Helpers.Time import WAIT
 from Objects.AccountObject import Account
 from Objects.IncognitoTestCase import ACCOUNTS, SUT
-from TestCases.DEX3 import TOKEN_X, TOKEN_Y, INIT_PAIR_IDS
+from TestCases.DEX3.Suite1 import TOKEN_X, TOKEN_Y, INIT_PAIR_IDS
 
 test_pool = '978ed7a54fea614c7dd65eac6abcc3520b5128a9ee1f6ff19d5d9bb382979357-' \
             'c5c896f9ae266fca6c62b5e9392d56b61dcf5263cd932664de9359f8fd26d679-' \
@@ -15,22 +15,30 @@ test_pool = '978ed7a54fea614c7dd65eac6abcc3520b5128a9ee1f6ff19d5d9bb382979357-' 
 
 @pytest.mark.dependency()
 @pytest.mark.parametrize("user, nft_id, pair_id, token_sell, token_buy, sell_amount, min_acceptable", [
-    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[0]", TOKEN_X, TOKEN_Y, 10000, 10000,
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
-    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[0]", TOKEN_Y, TOKEN_X, 10000, 10000,
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
-    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[0]", TOKEN_Y, TOKEN_X, 10000, 10000,
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
-    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[0]", TOKEN_X, TOKEN_Y, 10000, 10000,
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
-    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[1]", TOKEN_X, PRV_ID, 10000, 10000,
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
-    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[1]", PRV_ID, TOKEN_X, 10000, 10000,
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
-    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[1]", PRV_ID, TOKEN_X, 10000, 10000,
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
-    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[1]", TOKEN_X, PRV_ID, 10000, 10000,
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[1]", TOKEN_X, TOKEN_Y, 10000, 10000,
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[1]", TOKEN_Y, TOKEN_X, 10000, 10000,
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[1]", TOKEN_Y, TOKEN_X, 10000, 10000,
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[1]", TOKEN_X, TOKEN_Y, 10000, 10000,
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[0]", TOKEN_X, PRV_ID, 10000, 10000,
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[0]", PRV_ID, TOKEN_X, 10000, 10000,
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[0]", PRV_ID, TOKEN_X, 10000, 10000,
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
+    pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], "INIT_PAIR_IDS[0]", TOKEN_X, PRV_ID, 10000, 10000,
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
 
     # pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], test_pool, TOKEN_X, TOKEN_Y, 10000, 10000),
     # pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], test_pool, TOKEN_Y, TOKEN_X, 10000, 10000),
@@ -42,19 +50,27 @@ def test_add_order(user: Account, nft_id, pair_id, token_sell, token_buy, sell_a
         pair_id = eval(pair_id)
 
     pde_b4 = SUT().pde3_get_state()
+    pde_param = pde_b4.get_pde_params()
+    sum_my_order = sum([count for count in [len(orders) for pp, orders in pde_b4.get_order(nft_id=nft_id).items()]])
     pool_b4 = pde_b4.get_pool_pair(id=pair_id)
     bal_sell_b4 = user.get_balance(token_sell)
     bal_prv_b4 = user.get_balance()
 
     Logging.STEP(1, "Add order")
     add_tx = user.pde3_add_order(nft_id, token_sell, token_buy, pair_id, sell_amount, min_acceptable)
-    tx_fee = add_tx.get_transaction_by_hash()
+    tx_fee = add_tx.get_transaction_by_hash().get_fee()
 
     Logging.STEP(2, "Check order status")
     WAIT(ChainConfig.BLOCK_TIME * 3)
     stat = SUT().dex_v3().get_add_order_status(add_tx.get_tx_id())
+    if sum_my_order == pde_param.get_max_order_per_nft():
+        Logging.INFO(f"Order limit is reached, refund")
+        assert stat.get_status() == Status.DexV3.AddOrder.REFUND
+        fee = tx_fee if token_sell == PRV_ID else 0
+        assert bal_sell_b4 - fee == user.wait_for_balance_change(token_sell, user.get_balance(token_sell))
+        return
     if pool_b4:  # pool exist
-        Logging.INFO("Pool exist, order's accepted")
+        Logging.INFO("Pool exist, order should be accepted")
         assert stat.get_status() == Status.DexV3.AddOrder.ACCEPT
         order_id = stat.get_order_id()
         pde = SUT().pde3_get_state()
@@ -103,12 +119,16 @@ def test_withdraw_un_traded_order(user: Account, nft_id, amount_percent, ):
         Logging.WARNING(f"NO order found which belong to NFT {nft_to_find}, skip test")
         pytest.skip(f"NO order found which belong to NFT {nft_to_find}")
     pool, orders = my_orders.popitem()
-    amount_withdraw = orders[0].get_balance_token_sell() / 10
+    amount_withdraw = int(orders[0].get_balance_token_sell() * amount_percent)
     token_sell = pool.get_token_sell_of_order(orders[0])
+    bal_sel_b4 = user.get_balance(token_sell)
     token_buy = pool.get_token_buy_of_order(orders[0])
     bal_buy_b4 = user.get_balance(token_buy)
-    bal_sel_b4 = user.get_balance(token_sell)
-
+    Logging.INFO(f"""
+        {pool}
+        {orders[0]}
+        token sell/buy: {token_sell} - {token_buy}
+    """)
     Logging.STEP(1, "Issue withdraw order request")
     tx_withdraw = user.pde3_withdraw_order(pool, orders[0], user.nft_ids[0], token_sell, amount_withdraw)
     assert tx_withdraw.get_transaction_by_hash().is_confirmed()
@@ -116,21 +136,18 @@ def test_withdraw_un_traded_order(user: Account, nft_id, amount_percent, ):
     Logging.STEP(2, "Checking withdraw status")
     WAIT(ChainConfig.BLOCK_TIME * 5)
     status_info = SUT().dex_v3().get_withdraw_order_status(tx_withdraw.get_tx_id())
-    if amount_percent <= 1:
-        assert status_info.get_status() == Status.DexV3.WithdrawOrder.ACCEPT
-        amount = status_info.get_amount()
-        Logging.STEP(3, "Withdraw success. Verify balance")
-        bal_sel_af = user.get_balance(token_sell)
-        bal_buy_af = user.get_balance(token_buy)
-        assert bal_buy_af == bal_buy_b4
-        assert bal_sel_af == bal_sel_b4 + amount
-    else:
-        assert status_info.get_status() == Status.DexV3.WithdrawOrder.REJECT
-        Logging.STEP(3, "Over-withdraw. Verify balance")
-        bal_sel_af = user.get_balance(token_sell)
-        bal_buy_af = user.get_balance(token_buy)
-        assert bal_buy_af == bal_buy_b4
-        assert bal_sel_af == bal_sel_b4
+    assert status_info.get_status() == Status.DexV3.WithdrawOrder.ACCEPT
+    receive_amount = status_info.get_amount()
+    Logging.STEP(3, "Withdraw success. Verify balance")
+    bal_sel_af = user.get_balance(token_sell)
+    bal_buy_af = user.get_balance(token_buy)
+    Logging.INFO(f"""
+        bal buy b4|af: {bal_buy_b4}-{bal_buy_af}
+        bal sel b4|af: {bal_sel_b4}-{bal_sel_af}
+    """)
+    assert bal_buy_af == bal_buy_b4
+    assert bal_sel_af == bal_sel_b4 + receive_amount
+    assert receive_amount == amount_withdraw if amount_percent <= 1 else receive_amount < amount_withdraw
 
 
 def test_withdraw_half_traded_order():
