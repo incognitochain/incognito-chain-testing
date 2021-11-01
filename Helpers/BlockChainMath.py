@@ -1,5 +1,5 @@
-import math
 import copy
+import math
 
 
 class PdeMath:
@@ -210,6 +210,8 @@ class Pde3Math:
         the path must also contains no redundant or duplicate pairs
         USE WITH CAUTION!
         """
+        if len(trade_path) <= 1:
+            return trade_path
         trade_path_unsorted = copy.deepcopy(trade_path)
         trade_path_sorted = []
         token = token_sell

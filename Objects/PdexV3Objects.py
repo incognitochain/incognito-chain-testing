@@ -939,7 +939,6 @@ class PdeV3State(RPCResponseBase):
         """
         trade_path = [trade_path] if isinstance(trade_path, str) else trade_path
         receive = 0
-        breakpoint()
         for pair_id in Pde3Math.sort_trade_path(sell_token, trade_path):
             Logging.INFO(f"Trade with pair: \n   {pair_id}")
             pool = self.get_pool_pair(id=pair_id)

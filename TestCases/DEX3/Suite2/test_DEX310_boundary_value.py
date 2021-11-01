@@ -6,14 +6,15 @@ from Helpers import TestHelper
 from Helpers.Logging import INFO
 from Helpers.TestHelper import make_random_word
 from Helpers.Time import WAIT
-from Objects.AccountObject import COIN_MASTER
+from Objects.AccountObject import COIN_MASTER, Account
 from Objects.IncognitoTestCase import SUT, ACCOUNTS
 
 TOKEN_OWNER = ACCOUNTS[0]
-TOKEN_ID = 'de30000000000000000000000000000000000000000000000000301021202725'
+TOKEN_ID = '0000000000000000000000000000000000000000000000000000301021202725'
 PAIR_ID = '0000000000000000000000000000000000000000000000000000000000000004-' \
-          '0000000000000000000000000000000000000000000000000000291021141914-' \
-          '909029b7b913dd85fe12f58611682d4485bb18d10272438bc619ba6f1888c92c.'
+          '0000000000000000000000000000000000000000000000000000301021202725-' \
+          '6baab7c747fded4ab823e6f8661f5e1b1c4a52e8f3ec7327bd2e677a925219d6.'
+
 go_uint64_max = pow(2, 64) - 1
 go_int64_max = pow(2, 63) - 1
 
@@ -79,7 +80,7 @@ def test_add_liquidity_big_num():
     INFO(f"""{pp.get_pool_pair_id()}
         1st + 2nd contrib tok         : {tok_1st_contrib} + {tok_2nd_accepted} = {all_tok_contrib}
         1st + 2nd contrib PRV         : {prv_1st_contrib} + {prv_2nd_accepted} = {all_prv_contrib}
-                
+
         real amount tok in pool: {pp.get_real_amount(TOKEN_ID)}
                     contributed: {all_tok_contrib}
         virt amount tok in pool: {pp.get_virtual_amount(TOKEN_ID)}
@@ -97,51 +98,62 @@ def test_add_liquidity_big_num():
     """)
 
 
-@pytest.mark.parametrize("trader, tok_sell, tok_buy, sell_amount", [
-    # pytest.param(TOKEN_OWNER, PRV_ID, TOKEN_ID, coin(10),
-    #              marks=pytest.mark.dependency(depends=['big_liquidity'])
-    #              ),
-    pytest.param(TOKEN_OWNER, TOKEN_ID, PRV_ID, coin(10),
-                 # marks=pytest.mark.dependency(depends=['big_liquidity'])
+@pytest.mark.parametrize("trader, tok_sell, tok_buy, sell_amount, description", [
+    pytest.param(TOKEN_OWNER, TOKEN_ID, PRV_ID, coin(10), "UINT64 limit reached, trade should fail",
+                 marks=pytest.mark.dependency(depends=['big_liquidity'])
                  ),
+    pytest.param(TOKEN_OWNER, PRV_ID, TOKEN_ID, coin(10), "not yet reach UNIT64 limit, trade should pass",
+                 marks=pytest.mark.dependency(depends=['big_liquidity'])
+                 )
 ])
-def test_trade_big_num_single_path(trader, tok_sell, tok_buy, sell_amount):
+def test_trade_big_num_single_path(trader: Account, tok_sell, tok_buy, sell_amount, description):
     pde_b4 = SUT().pde3_get_state()
-    estimated_receive = pde_b4.pre_dict_state_after_trade(tok_sell, tok_buy, sell_amount, PAIR_ID)
-    trading_fee = pde_b4.cal_min_trading_fee(sell_amount, tok_sell, PAIR_ID) + 1000
+    pde_predict = pde_b4.clone()
+    trading_fee = 2 * pde_predict.cal_min_trading_fee(sell_amount, tok_sell, PAIR_ID)
+    estimated_receive = pde_predict.pre_dict_state_after_trade(tok_sell, tok_buy, sell_amount, PAIR_ID)
     COIN_MASTER.top_up_if_lower_than(trader, sell_amount, 1.5 * sell_amount)
 
-    bal_buy_b4 = trader.get_balance(tok_buy)
+    bal_buy_b4 = trader.sum_my_utxo(tok_buy)
     tx = trader.pde3_trade(tok_sell, tok_buy, sell_amount, 1, PAIR_ID, trading_fee)
     assert tx.get_transaction_by_hash().is_confirmed()
     WAIT(ChainConfig.BLOCK_TIME * 5)
     status_info = SUT().dex_v3().get_trade_status(tx.get_tx_id())
+    found_utxo = False
+    for utxo in trader.list_utxo(tok_buy):
+        if utxo.get_value() == status_info.get_buy_mount():
+            found_utxo = True
     status = status_info.get_status()
-    bal_tok_after = TOKEN_OWNER.wait_for_balance_change(tok_buy, bal_buy_b4)
+    bal_tok_after = TOKEN_OWNER.sum_my_utxo(tok_buy)
     real_received = bal_tok_after - bal_buy_b4
     off = real_received - estimated_receive
     pde_af = SUT().pde3_get_state()
     INFO(f"""
-        Trade status success?        {status == Status.DexV3.Trade.SUCCESS}
-        Real received vs expected:   {real_received} - {estimated_receive} = {off}
+        Trade status success?        {status == Status.DexV3.Trade.SUCCESS} {description}
+        Real received vs expected:   {real_received} - {estimated_receive} (= {off})
         Amount receive status:       {status_info.get_buy_mount()}
-        Real PDE state == predicted? {pde_af == pde_b4}
+        Found the same utxo?         {found_utxo}
+        Real PDE state af == predicted? {pde_af == pde_predict}
+        Real PDE state after == before? {pde_af == pde_b4}
     """)
-    # assert status == Status.DexV3.Trade.SUCCESS
-    # assert bal_tok_after - bal_tok_b4 == receive
-    # assert pde_af == pde_b4
 
 
-# @pytest.mark.dependency(depends=['big_liquidity', 'test_trade_big_num'])
+@pytest.mark.dependency(depends=['big_liquidity', 'test_trade_big_num'])
 def test_withdraw_liquidity():
     pde_b4 = SUT().pde3_get_state()
-    pp_predict = pde_b4.get_pool_pair(id=PAIR_ID).clone()
-    my_share_info = pp_predict.get_share(TOKEN_OWNER.nft_ids[0])
-    receives = pp_predict.predict_pool_after_withdraw_share(my_share_info.amount - 10)
-    bal_tok_b4 = TOKEN_OWNER.get_balance(TOKEN_ID)
-    TOKEN_OWNER.pde3_withdraw_liquidity(PAIR_ID).get_transaction_by_hash()
-    bal_tok_af = TOKEN_OWNER.wait_for_balance_change(TOKEN_ID, bal_tok_b4)
+    TOKEN_OWNER.pde3_get_my_nft_ids(pde_b4)
+    pp_b4 = pde_b4.get_pool_pair(id=PAIR_ID).clone()
+    pp_predict = pp_b4.clone()
+    my_share_info = pp_b4.get_share(TOKEN_OWNER.nft_ids[0])
+    receives = pp_predict.predict_pool_after_withdraw_share(my_share_info.amount - 10, TOKEN_OWNER.nft_ids[0])
+    bal_prv_b4 = TOKEN_OWNER.sum_my_utxo()
+    bal_tok_b4 = TOKEN_OWNER.sum_my_utxo(TOKEN_ID)
+    TOKEN_OWNER.pde3_withdraw_liquidity(PAIR_ID, my_share_info.amount - 10).get_transaction_by_hash()
     pde_af = SUT().pde3_get_state()
     pde_af.get_pool_pair(id=PAIR_ID).print_pool()
-    assert bal_tok_af - bal_tok_b4 == receives[TOKEN_ID]
-    assert pp_predict == pde_af.get_pool_pair(id=PAIR_ID)
+    bal_prv_af = TOKEN_OWNER.wait_for_balance_change(PRV_ID)
+    bal_tok_af = TOKEN_OWNER.sum_my_utxo(TOKEN_ID)
+    INFO(f"""
+        real token received vs estimated:  {bal_tok_af - bal_tok_b4} == {receives[TOKEN_ID]}
+        real PRV received vs estimated:    {bal_prv_af - bal_prv_b4} == {receives[PRV_ID]}
+        pool predicted == real pool after? {pp_predict == pde_af.get_pool_pair(id=PAIR_ID)}
+    """)
