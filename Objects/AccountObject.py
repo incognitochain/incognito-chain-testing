@@ -16,7 +16,7 @@ from Helpers import TestHelper
 from Helpers.Logging import INFO, INFO_HEADLINE, WARNING, ERROR
 from Helpers.TestHelper import l6, KeyExtractor, ChainHelper
 from Helpers.Time import WAIT, get_current_date_time
-from Objects.CoinObject import TxOutPut, ListOwnedToken, ListPrvTXO
+from Objects.CoinObject import ListOwnedToken, ListPrvTXO
 from Objects.PdexV3Objects import PdeV3State
 from Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 
@@ -1069,17 +1069,28 @@ class Account:
             .add_liquidity(self.private_key, token_id, str(amount), str(amplifier), pool_pair_id, contribute_id, nft_id,
                            tx_fee=tx_fee, tx_privacy=tx_privacy)
 
-    def pde3_withdraw_liquidity(self, pool_pair_id, share_amount=None, nft_id=None, tx_fee=-1, tx_privacy=1):
+    def pde3_withdraw_liquidity(self, pool, share_amount=None, nft_id=None, tx_fee=-1, tx_privacy=1):
+        """
+        @param pool: pool pair id or PoolPairData object
+        @param share_amount: share amount to withdraw, leave None to withdraw all
+        @param nft_id: NFT ID, leave None to use default NFT (self.nft_ids[0])
+        @param tx_fee:
+        @param tx_privacy:
+        @return:
+        """
         nft_id = nft_id if nft_id else self.nft_ids[0]
-        if share_amount is None:
-            pde = self.REQ_HANDLER.pde3_get_state()
-            pp = pde.get_pool_pair(id=pool_pair_id)
-            share_amount = pp.get_share(nft_id).amount
+        if isinstance(pool, PdeV3State.PoolPairData):
+            pair_id = pool.get_pool_pair_id()
+            share_amount = pool.get_share(nft_id).amount if share_amount is None else share_amount
+        else:
+            pair_id = pool
+            share_amount = self.REQ_HANDLER.pde3_get_state().get_pool_pair(id=pool).get_share(nft_id).amount \
+                if share_amount is None else share_amount
         INFO(f"PDE3 Withdraw liquidity, private k: {self.private_key[-6:]}, NFT ID {nft_id}\n   "
-             f"pair: {pool_pair_id}\n   "
+             f"pair: {pair_id}\n   "
              f"share amount withdraw: {share_amount}")
         return self.REQ_HANDLER.dex_v3() \
-            .withdraw_liquidity(self.private_key, pool_pair_id, nft_id, share_amount, tx_fee=tx_fee,
+            .withdraw_liquidity(self.private_key, pair_id, nft_id, str(share_amount), tx_fee=tx_fee,
                                 tx_privacy=tx_privacy)
 
     def pde3_mint_nft(self, amount=coin(1), token_id=PRV_ID, tx_fee=-1, tx_privacy=1, force=False):

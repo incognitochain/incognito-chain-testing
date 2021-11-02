@@ -147,7 +147,7 @@ def test_withdraw_liquidity():
     receives = pp_predict.predict_pool_after_withdraw_share(my_share_info.amount - 10, TOKEN_OWNER.nft_ids[0])
     bal_prv_b4 = TOKEN_OWNER.sum_my_utxo()
     bal_tok_b4 = TOKEN_OWNER.sum_my_utxo(TOKEN_ID)
-    tx_fee = TOKEN_OWNER.pde3_withdraw_liquidity(PAIR_ID, my_share_info.amount - 10).get_transaction_by_hash().get_fee()
+    tx_fee = TOKEN_OWNER.pde3_withdraw_liquidity(pp_b4).get_transaction_by_hash().get_fee()
     pde_af = SUT().pde3_get_state()
     pde_af.get_pool_pair(id=PAIR_ID).print_pool()
     bal_prv_af = TOKEN_OWNER.wait_for_balance_change(PRV_ID)
