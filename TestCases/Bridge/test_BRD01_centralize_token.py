@@ -4,7 +4,6 @@ from Objects.AccountObject import COIN_MASTER
 
 from Objects.IncognitoTestCase import SUT, ACCOUNTS
 
-# sender_account = get_accounts_in_shard(0)[1]
 receiver_account = ACCOUNTS.get_accounts_in_shard(5)[0]
 # init_sender_balance = sender_account.get_balance()
 # init_receiver_balance = receiver_account.get_balance()

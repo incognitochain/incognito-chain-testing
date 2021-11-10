@@ -361,7 +361,8 @@ class Account:
             create_and_send_staking_transaction(self.private_key, self.payment_key, self.validator_key,
                                                 self.payment_key, stake_amount, auto_re_stake, tx_version)
 
-    def stake_someone_reward_me(self, someone, stake_amount=None, auto_re_stake=False, tx_version=TestConfig.TX_VER):
+    def stake_someone_reward_me(self, someone, stake_amount=ChainConfig.STK_AMOUNT, auto_re_stake=False,
+                                tx_version=TestConfig.TX_VER):
         """
 
         @return:
@@ -371,7 +372,8 @@ class Account:
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
                                                 self.payment_key, stake_amount, auto_re_stake, tx_version)
 
-    def stake_someone_reward_him(self, someone, stake_amount=None, auto_re_stake=True, tx_version=TestConfig.TX_VER):
+    def stake_someone_reward_him(self, someone, stake_amount=ChainConfig.STK_AMOUNT, auto_re_stake=True,
+                                 tx_version=TestConfig.TX_VER):
         """
 
         @return:
@@ -1036,6 +1038,11 @@ class Account:
                                                trade_path, trading_fee, use_prv_fee,
                                                tx_fee=tx_fee, tx_privacy=tx_privacy)
 
+    def pde3_make_raw_trade_tx(self, token_sell, token_buy, sell_amount, min_acceptable, trade_path, trading_fee,
+                               use_prv_fee=True):
+        return self.REQ_HANDLER.pde3_make_trade_tx(self.private_key, token_sell, token_buy, sell_amount,
+                                                   min_acceptable, trade_path, trading_fee, use_prv_fee)
+
     def pde3_withdraw_lp_fee(self, receiver, token_amount, token_id, pool_pair_id, nft_id,
                              token_tx_type=1, token_fee=0, token_name="", token_symbol=0,
                              burning_tx=None, tx_fee=-1, tx_privacy=1):
@@ -1454,7 +1461,7 @@ class Account:
         for acc, amount in receiver.items():
             acc.wait_for_balance_change(token_id, from_balance=bal_receiver_b4_dict[acc])
 
-    def submit_key(self, key_type='private'):
+    def submit_key(self, key_type='ota'):
         """
         @param key_type: private or ota
         @return:
@@ -1471,7 +1478,7 @@ class Account:
         ERROR(error) if error else INFO(submit_response.get_result())
         return self
 
-    def submit_key_info(self):
+    def submit_key_status(self):
         return self.REQ_HANDLER.transaction().submit_key_info(self.ota_k).get_result()
 
     def submit_key_authorize(self, from_height=0, re_index=False, access_token=ChainConfig.ACCESS_TOKEN):
@@ -1581,17 +1588,25 @@ class AccountGroup:
             balance_result[acc] = thread.result()
         return balance_result
 
-    def submit_key(self, key_type='private'):
-        for acc in self.account_list:
+    def submit_key(self, key_type='ota'):
+        to_submit = []
+        wait_time, each_wait, max_wait = 0, 5, 300
+        submit_statuses = {}
+        INFO(f"Getting key submit status...")
+        for acc in self:
             with ThreadPoolExecutor() as tpe:
-                time.sleep(0.3)
+                t = tpe.submit(acc.submit_key_status)
+                submit_statuses[acc] = t
+        for acc, future in submit_statuses.items():
+            if future.result() == Status.SubmitKey.NOT_SUBMITTED:
+                to_submit.append(acc)
+                wait_time += each_wait
+        for acc in to_submit:
+            with ThreadPoolExecutor() as tpe:
                 tpe.submit(acc.submit_key, key_type)
-        wait_time, each_wait = 0, 5
-        for acc in self.account_list:
-            wait_time += each_wait if acc.submit_key_info() == Status.SubmitKey.WAITING else 0
         if wait_time:
-            INFO("Indexing is in progress, wait!!!")
-            WAIT(wait_time)
+            INFO(f"Indexing is in progress, wait for {min(wait_time, max_wait)}!!!")
+            WAIT(min(wait_time, max_wait))
         return self
 
     def convert_token_to_v2(self, token=PRV_ID, fee=-1):
@@ -1616,6 +1631,18 @@ class AccountGroup:
             for acc in self:
                 e.submit(acc.pde3_get_my_nft_ids, pde_state)
         return self
+
+    def pde3_make_raw_trade_txs(self, token_sell, token_buy, trade_amount, min_acceptable, trade_path,
+                                trade_fee):
+        INFO("Making multiple raw trade tx with same amount, fee, path...")
+        futures = {}
+        raw_txs = {}
+        with ThreadPoolExecutor() as tpe:
+            for acc in self:
+                t = tpe.submit(acc.pde3_make_raw_trade_tx, token_sell, token_buy, trade_amount, min_acceptable,
+                               trade_path, trade_fee)
+                futures[acc] = t
+        return {acc: t.result()[1] for acc, t in futures.items()}
 
     @staticmethod
     def new(num_of_acc=8):

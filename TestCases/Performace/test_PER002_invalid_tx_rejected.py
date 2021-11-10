@@ -3,15 +3,14 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 from Drivers.Response import Response
 from Helpers.Logging import *
-from Objects.AccountObject import get_accounts_in_shard
-from Objects.IncognitoTestCase import SUT
+from Objects.IncognitoTestCase import SUT, ACCOUNTS
 from TestCases.Performace import account_list
 
 dict_tx_save_fullnode = dict()
 dict_tx_save_shard = dict()
 # sender_account_payment_address_list = []
-sender_account_list = get_accounts_in_shard(0, account_list)
-receiver_account = get_accounts_in_shard(1, account_list)[0]
+sender_account_list = ACCOUNTS.get_accounts_in_shard(0, account_list)
+receiver_account = ACCOUNTS.get_accounts_in_shard(1, account_list)[0]
 
 
 def setup_function():

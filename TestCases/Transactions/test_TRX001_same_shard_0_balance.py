@@ -1,7 +1,8 @@
 import pytest
 
 from Helpers.Logging import *
-from Objects.AccountObject import get_accounts_in_shard, Account
+from Objects.AccountObject import Account
+from Objects.IncognitoTestCase import ACCOUNTS
 
 sender_account: Account = None
 receiver_account: Account = None
@@ -12,8 +13,8 @@ init_receiver_balance = None
 def setup_module():
     global sender_account, receiver_account, init_sender_balance, init_receiver_balance
     INFO("Set-up")
-    sender_account = get_accounts_in_shard(5)[0]
-    receiver_account = get_accounts_in_shard(5)[1]
+    sender_account = ACCOUNTS.get_accounts_in_shard(5)[0]
+    receiver_account = ACCOUNTS.get_accounts_in_shard(5)[1]
     init_sender_balance = sender_account.get_balance()
     init_receiver_balance = receiver_account.get_balance()
     if init_sender_balance > 0:

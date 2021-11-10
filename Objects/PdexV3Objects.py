@@ -271,6 +271,12 @@ class PdeV3State(RPCResponseBase):
         def get_pool_pair_id(self):
             return list(self.dict_data.keys())[0]
 
+        def get_real_pool_size(self):
+            return {self.get_token_id(0): self.get_real_amount(0), self.get_token_id(1): self.get_real_amount(1)}
+
+        def get_virtual_pool_size(self):
+            return {self.get_token_id(0): self.get_virtual_amount(0), self.get_token_id(1): self.get_virtual_amount(1)}
+
         def pair_data(self):
             return self.dict_data[self.get_pool_pair_id()]
 

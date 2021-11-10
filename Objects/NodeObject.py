@@ -1,5 +1,8 @@
+import json
 import os
 import re
+import subprocess
+import sys
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from APIs.Bridge import BridgeRpc
@@ -157,7 +160,7 @@ class Node:
         """
         if tx_hash is None:
             raise ValueError("Tx id must not be none")
-
+        INFO(f"Getting transaction hash: {tx_hash}")
         tx_detail = self.transaction().get_tx_by_hash(tx_hash)
         if tx_detail.get_error_msg():
             result = TransactionDetail()
@@ -224,6 +227,38 @@ class Node:
         beacon_height = self.help_get_beacon_height() if not beacon_height else beacon_height
         INFO(f'Get PDE3 state at beacon height: {beacon_height}')
         return PdeV3State(self.dex_v3().get_pdev3_state(beacon_height))
+
+    def pde3_make_trade_tx(self, private_key, token_sell, token_buy, sell_amount, min_acceptable, trade_path,
+                           trading_fee, use_prv_fee=True):
+        """
+        @param private_key:
+        @param token_sell:
+        @param token_buy:
+        @param sell_amount:
+        @param min_acceptable:
+        @param trade_path: list of pair id
+        @param trading_fee:
+        @param use_prv_fee:
+        @return: tuple(tx hash, raw tx)
+        """
+        _path = f'{os.getcwd()}/bin'
+        _exe_name = 'pde3-make-trade-tx'
+        _binary = {'darwin': f'{_path}/{_exe_name}-mac',
+                   'linux': f'{_path}/{_exe_name}-linux',
+                   '*': f'{_path}/{_exe_name}-win'}
+        exe = _binary.get(sys.platform, _binary["*"])
+        INFO(f"Making trade tx: private k: {private_key[-6:]}, sell-buy {token_sell[-6:]}-{token_buy[-6:]}, "
+             f"amount: {sell_amount}, path len: {len(trade_path)}")
+        command = [exe, f'-url={self._get_rpc_url()}', f'-pk={private_key}', f'-s={token_sell}', f'-b={token_buy}',
+                   f'-sa={sell_amount}', f'-ea={min_acceptable}', f'-tf={trading_fee}', f'-tp={",".join(trade_path)}',
+                   f'-prvFee={use_prv_fee}']
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE,
+                                   universal_newlines=True)
+        stdout, stderr = process.communicate()
+        if "Error" in stdout:
+            raise RuntimeError(stdout)
+        output = json.loads(stdout)
+        return output['Hash'], output['Transaction']
 
     def get_block_chain_info(self):
         return BlockChainCore(self.system_rpc().get_block_chain_info().get_result())
@@ -477,9 +512,12 @@ class Node:
     def is_local_host(self):
         return self._address == Node.default_address
 
-    def send_proof(self, proof):
-        INFO('Sending proof')
-        return self.transaction().send_tx(proof)
+    def send_proof(self, proof, tx_type='prv'):
+        # INFO('Sending proof')
+        if tx_type == "prv":
+            return self.transaction().send_prv_tx(proof)
+        else:
+            return self.transaction().send_token_tx(proof)
 
     def get_mem_pool_txs(self):
         response = self.system_rpc().get_mem_pool()

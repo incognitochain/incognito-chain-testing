@@ -188,6 +188,9 @@ class TransactionDetail(BlockChainInfoBaseClass):
         return self.dict_data['BlockHash']
 
     def get_block_height(self):
+        """
+        @return: shard block height NOT BEACON BLOCK HEIGHT
+        """
         return self.dict_data['BlockHeight']
 
     def get_tx_size(self):

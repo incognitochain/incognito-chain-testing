@@ -10,22 +10,10 @@ beacon = Beacon([
     Node(address=addr, rpc_port=20003, ws_port=30003, node_name='beacon0')
 ])
 
-shard_list = [Shard([Node(address=addr, rpc_port=20004, ws_port=30004, node_name='shard0-0',
-                          # validator=Account(
-                          #     private_key='112t8rnXB47RhSdyVRU41TEf78nxbtWGtmjutwSp9YqsNaCpFxQGXcnwcXTtBkCGDk1KLBRBeWMvb2aXG5SeDUJRHtFV8jTB3weHEkbMJ1AL')
-                          ),
-                     Node(address=addr, rpc_port=20005, ws_port=30005, node_name='shard0-1',
-                          # validator=Account(
-                          #     private_key='112t8rnXVdfBqBMigSs5fm9NSS8rgsVVURUxArpv6DxYmPZujKqomqUa2H9wh1zkkmDGtDn2woK4NuRDYnYRtVkUhK34TMfbUF4MShSkrCw5')
-                          ),
-                     Node(address=addr, rpc_port=20006, ws_port=30006, node_name='shard0-2',
-                          # validator=Account(
-                          #     private_key='112t8rnXi8eKJ5RYJjyQYcFMThfbXHgaL6pq5AF5bWsDXwfsw8pqQUreDv6qgWyiABoDdphvqE7NFr9K92aomX7Gi5Nm1e4tEoV3qRLVdfSR')
-                          ),
-                     Node(address=addr, rpc_port=20007, ws_port=30007, node_name='shard0-3',
-                          # validator=Account(
-                          #     private_key='112t8rnY42xRqJghQX3zvhgEa2ZJBwSzJ46SXyVQEam1yNpN4bfAqJwh1SsobjHAz8wwRvwnqJBfxrbwUuTxqgEbuEE8yMu6F14QmwtwyM43')
-                          ),
+shard_list = [Shard([Node(address=addr, rpc_port=20004, ws_port=30004, node_name='shard0-0'),
+                     Node(address=addr, rpc_port=20005, ws_port=30005, node_name='shard0-1'),
+                     Node(address=addr, rpc_port=20006, ws_port=30006, node_name='shard0-2'),
+                     Node(address=addr, rpc_port=20007, ws_port=30007, node_name='shard0-3'),
                      ]),
               Shard([Node(address=addr, rpc_port=20008, ws_port=30008, node_name='shard1-0'),
                      Node(address=addr, rpc_port=20009, ws_port=30009, node_name='shard1-1'),

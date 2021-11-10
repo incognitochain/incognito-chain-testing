@@ -1,7 +1,8 @@
 import pytest
 
 from Helpers.Logging import *
-from Objects.AccountObject import get_accounts_in_shard, Account
+from Objects.AccountObject import Account
+from Objects.IncognitoTestCase import ACCOUNTS
 
 sender_account = Account()
 receiver_account = Account()
@@ -10,8 +11,8 @@ send_amount = None
 
 def setup_module():
     global sender_account, receiver_account, send_amount
-    sender_account = get_accounts_in_shard(5)[0]
-    receiver_account = get_accounts_in_shard(5)[1]
+    sender_account = ACCOUNTS.get_accounts_in_shard(5)[0]
+    receiver_account = ACCOUNTS.get_accounts_in_shard(5)[1]
     send_amount = 1000
 
 

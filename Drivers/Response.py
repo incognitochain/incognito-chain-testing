@@ -101,7 +101,6 @@ class RPCResponseWithTxHash(RPCResponseBase):
         tx_hash = self.expect_no_error().get_tx_id()
         if tx_hash is None:
             raise AttributeError("Response does not contain tx hash")
-        INFO(f"Getting transaction hash: {tx_hash}")
         return self._handler.get_tx_by_hash(tx_hash, interval, time_out)
 
 

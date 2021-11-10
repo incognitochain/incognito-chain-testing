@@ -2,9 +2,13 @@ import json
 from abc import abstractmethod
 
 from Configs.Constants import PRV_ID
-from Helpers.Logging import INFO
+from Helpers.Logging import INFO, DEBUG
 from Helpers.TestHelper import l6, KeyExtractor
 from Objects import BlockChainInfoBaseClass
+
+
+class InstructionType:
+    PDE3_TRADE = "285"
 
 
 class BeaconBestStateBase(BlockChainInfoBaseClass):
@@ -672,11 +676,7 @@ class BeaconBlock(BlockChainInfoBaseClass):
                 return self.dict_data['CrossShard']
 
         def get_blocks_info(self):
-            info_list = []
-            for raw_info in self.dict_data:
-                info = BeaconBlock.ShardState.BlockInfo(raw_info)
-                info_list.append(info)
-            return info_list
+            return [BeaconBlock.ShardState.BlockInfo(raw_info) for raw_info in self.dict_data]
 
         def get_smallest_block_height(self):
             info_list = self.get_blocks_info()
@@ -790,7 +790,7 @@ class BeaconBlock(BlockChainInfoBaseClass):
         def get_num_2(self):
             return self.dict_data[1]
 
-        def get_instruction_type(self):
+        def get_instruction_description(self):
             try:
                 inst_type = self.dict_data[2]
                 if "Inst" in inst_type:  # beaconRewardInst, devRewardInst, shardRewardInst, portalRewardInst
@@ -804,7 +804,7 @@ class BeaconBlock(BlockChainInfoBaseClass):
             return ''
 
         def get_instruction_detail(self):
-            if self.get_instruction_type() == '':  # instruction has no type
+            if self.get_instruction_description() == '':  # instruction has no type
                 inst_dict_raw = json.loads(self.dict_data[2])
             else:
                 inst_dict_raw = json.loads(self.dict_data[3])
@@ -812,6 +812,9 @@ class BeaconBlock(BlockChainInfoBaseClass):
             inst_detail_obj = BeaconBlock.BeaconInstruction.InstructionDetail(inst_dict_raw)
 
             return inst_detail_obj
+
+        def get_instruction_type(self):
+            return self.dict_data[0]
 
     def get_hash(self):
         return self.dict_data["Hash"]
@@ -850,14 +853,18 @@ class BeaconBlock(BlockChainInfoBaseClass):
         return self.dict_data["Size"]
 
     def get_shard_states(self, shard_id=None):
-        dict_raw_shard_state = self.dict_data["ShardStates"]
-        shard_state_list_obj = []
-        for _id, state in dict_raw_shard_state.items():
-            shard_state_obj = BeaconBlock.ShardState(state)
-            if shard_id is not None and _id == str(shard_id):
-                return shard_state_obj
-            elif shard_id is None:
-                shard_state_list_obj.append(shard_state_obj)
+        """
+        @param shard_id:
+        @return: state of shard_id or dict {shard_id: state}
+        """
+        if shard_id is not None:
+            try:
+                return BeaconBlock.ShardState(self.dict_data["ShardStates"][str(shard_id)])
+            except KeyError:
+                DEBUG(f"Not found shard state of shard {shard_id} in beacon block {self.get_height()}")
+                return None
+        else:
+            return {shard: BeaconBlock.ShardState(raw) for shard, raw in self.dict_data["ShardStates"].items()}
 
     def get_instructions(self, inst_type=None):
         list_raw_inst = self.dict_data["Instructions"]
@@ -871,10 +878,18 @@ class BeaconBlock(BlockChainInfoBaseClass):
 
         list_obj_inst_w_type = []
         for inst in list_obj_inst:
-            if inst_type in inst.get_instruction_type():
+            if inst_type in inst.get_instruction_description():
                 list_obj_inst_w_type.append(inst)
 
         return list_obj_inst_w_type
+
+    def get_pde3_trade_instructions(self):
+        list_raw_inst = self.dict_data["Instructions"]
+        list_inst_obj = []
+        for raw_inst in list_raw_inst:
+            if raw_inst[0] == "285":
+                list_inst_obj.append(BeaconBlock.BeaconInstruction(raw_inst))
+        return list_inst_obj
 
     def get_transaction_reward_from_instruction(self, token=None):
         """

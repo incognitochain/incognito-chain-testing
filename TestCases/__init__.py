@@ -20,7 +20,7 @@ for c in COIN_MASTER.list_utxo():
         INFO("CONVERT to COIN V2", logger)
         COIN_MASTER.convert_token_to_v2().subscribe_transaction()
         break
-ACCOUNTS.submit_key('ota')
+ACCOUNTS.submit_key('ota') if len(ACCOUNTS) <= 100 else None
 
 if isinstance(ACCOUNTS, AccountGroup) or isinstance(ACCOUNTS, list):
     COIN_MASTER.top_up_if_lower_than(ACCOUNTS, coin(2), coin(5))

@@ -8,8 +8,8 @@ from Configs.Configs import ChainConfig
 from Configs.Constants import coin, PRV_ID
 from Helpers.Logging import *
 from Helpers.Time import get_current_date_time, WAIT
-from Objects.AccountObject import get_accounts_in_shard, COIN_MASTER
-from Objects.IncognitoTestCase import SUT
+from Objects.AccountObject import COIN_MASTER
+from Objects.IncognitoTestCase import SUT, ACCOUNTS
 
 token_init_amount = coin(1000000)
 # contribute rate 1:2
@@ -24,10 +24,10 @@ token_amount_to_send = random.randrange(1000, 2000)
 custom_token_id = None
 
 # custom_token_id = '6564ca30b24901c90b446b297e347f6811d8322dfbcd7df9286716aa2116ec16'
-account_init = get_accounts_in_shard(5)[0]
+account_init = ACCOUNTS.get_accounts_in_shard(5)[0]
 sender_account = account_init
-receiver_account = get_accounts_in_shard(5)[1]
-receiver_x_shard = get_accounts_in_shard(0)[0]
+receiver_account = ACCOUNTS.get_accounts_in_shard(5)[1]
+receiver_x_shard = ACCOUNTS.get_accounts_in_shard(0)[0]
 token_fee = 1400000
 
 

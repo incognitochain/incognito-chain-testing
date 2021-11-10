@@ -8,6 +8,10 @@ from Objects.AccountObject import *
 from Objects.IncognitoTestCase import SUT
 
 COIN_MASTER.req_to(SUT())
+submit_key_status = SUT().transaction().submit_key_info(COIN_MASTER.ota_k)
+if submit_key_status.get_result() == Status.SubmitKey.NOT_SUBMITTED:
+    COIN_MASTER.submit_key()
+    WAIT(60)
 
 
 def amp(num):

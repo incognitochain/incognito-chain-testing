@@ -123,6 +123,9 @@ class BlockChainCore(BlockChainInfoBaseClass):
     def get_shard_block(self, shard_num=None):
         return BlockChainCore.BlockChainBlock(self._get_best_blocks_raw()[str(shard_num)])
 
+    def get_all_height(self):
+        return {i: raw['Height'] for i, raw in self._get_best_blocks_raw().items()}
+
     def get_num_of_shard(self):
         return len(self._get_best_blocks_raw()) - 1  # block "-1" is beacon block
 

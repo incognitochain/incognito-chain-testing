@@ -2,7 +2,7 @@ import pytest
 
 from Helpers.Logging import *
 from Objects.AccountObject import *
-from Objects.IncognitoTestCase import SUT
+from Objects.IncognitoTestCase import SUT, ACCOUNTS
 
 """
 Test case: Send PRV
@@ -12,8 +12,8 @@ Test case: Send PRV
 @pytest.mark.parametrize('send_amount,shard_id', [(100, 2), (1000, 4), (1010, 4)])
 @pytest.mark.run
 def test_05_send_prv_no_privacy_same_shard_auto_fee(send_amount, shard_id):
-    account_sender = get_accounts_in_shard(shard_id)[0]
-    account_receiver = get_accounts_in_shard(shard_id)[1]
+    account_sender = ACCOUNTS.get_accounts_in_shard(shard_id)[0]
+    account_receiver = ACCOUNTS.get_accounts_in_shard(shard_id)[1]
     full_node = SUT.full_node
 
     print("""

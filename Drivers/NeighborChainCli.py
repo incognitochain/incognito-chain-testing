@@ -32,13 +32,11 @@ class BnbCli:
     _bnb_host = 'data-seed-pre-0-s1.binance.org'
     _bnb_rpc_port = 443
     _bnb_rpc_protocol = 'https'
-    _path = f'{os.getcwd()}/IncognitoChain/bin'
-    if sys.platform == 'darwin':
-        tbnbcli = f'{_path}/tbnbcli-mac'
-    elif sys.platform == 'linux':
-        tbnbcli = f'{_path}/tbnbcli-linux'
-    else:
-        tbnbcli = f'{_path}/tbnbcli-win'
+    _path = f'{os.getcwd()}/bin'
+    _binary = {'darwin': f'{_path}/tbnbcli-mac',
+               'linux': f'{_path}/tbnbcli-linux',
+               '*': f'{_path}/tbnbcli-win'}
+    tbnbcli = _binary.get(sys.platform, _binary["*"])
 
     def __init__(self, cmd=tbnbcli, chain_id="Binance-Chain-Ganges", node=None):
         if node is None:
