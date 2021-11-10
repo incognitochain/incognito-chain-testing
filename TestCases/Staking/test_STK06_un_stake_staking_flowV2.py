@@ -2,14 +2,16 @@
 
 import pytest
 
-from Configs.Constants import coin
 from Configs.Configs import ChainConfig
+from Configs.Constants import coin
 from Helpers.Logging import INFO, STEP, ERROR
 from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from TestCases.Staking import account_x, account_y, account_t
+
+staking_flowv3 = True  # True if staking flow v3 is enable in chain config, or else, False
 
 
 @pytest.mark.parametrize("the_stake, validator, receiver_reward, auto_re_stake", [

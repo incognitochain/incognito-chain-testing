@@ -23,13 +23,12 @@ def setup_module():
 
 def teardown_module():
     INFO("Tear-down")
-    if init_sender_balance == 0:
-        receiver_account.send_prv_to(sender_account, init_sender_balance, privacy=0).subscribe_transaction()
-    if receiver_account.shard != sender_account.shard:
-        try:
-            sender_account.subscribe_cross_output_coin()
-        except:
-            pass
+    sender_bal = sender_account.get_balance()
+    if sender_bal != init_sender_balance:
+        receiver_bal = receiver_account.get_balance()
+        receiver_account.send_prv_to(sender_account, receiver_bal - init_receiver_balance,
+                                     privacy=0).get_transaction_by_hash()
+        sender_account.wait_for_balance_change(from_balance=sender_bal)
 
 
 @pytest.mark.parametrize('fee,privacy', [
