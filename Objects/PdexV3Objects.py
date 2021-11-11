@@ -23,7 +23,9 @@ class PdeV3State(RPCResponseBase):
                     r"\['LastLPFeesPerShare'\]", r"\['StakingPools'\]"]
         diff = DeepDiff(self.get_result(), other.get_result(), exclude_regex_paths=excludes, math_epsilon=0)
         if diff:
-            Logging.INFO(f"\n{diff.pretty()}")
+            diff_info = '    ' + '\n    '.join(diff.pretty().split('\n'))
+            Logging.INFO(f"There are different when comparing PDE states\n"
+                         f"{diff_info}")
             return False
         return True
 
@@ -271,6 +273,10 @@ class PdeV3State(RPCResponseBase):
         def get_pool_pair_id(self):
             return list(self.dict_data.keys())[0]
 
+        def __pool_id_short(self):
+            id_split = list(self.dict_data.keys())[0].split('-')
+            return f"{id_split[0][-6:]}-{id_split[1][-6:]}-{id_split[2]}"
+
         def get_real_pool_size(self):
             return {self.get_token_id(0): self.get_real_amount(0), self.get_token_id(1): self.get_real_amount(1)}
 
@@ -463,40 +469,40 @@ class PdeV3State(RPCResponseBase):
             @param token_sell:
             @return: receive amount
             """
-            Logging.INFO(f"Predicting trade with pool: {self.get_pool_pair_id()}\n\t"
-                         f"Sell {sell_amount} of {token_sell[-6:]}. Pool b4 trade: \n"
-                         f"{self.print_pool()}")
+            Logging.INFO(f"Predicting trade with pool: {self.__pool_id_short()}\n    "
+                         f"Sell {sell_amount} of {token_sell[-6:]}. Pool b4 trade: \n    "
+                         f"{self.pretty()}")
             token_sell_index = self._get_token_index(token_sell)
             token_buy_index = abs(1 - token_sell_index)
             amm_rate = self.get_pool_rate(token_sell)
             orders = sorted(self.get_order_books(direction=token_buy_index), key=lambda o: o.get_buy_rate())
             if not orders:
-                Logging.INFO("Found no matching order, trade with AMM pool only")
+                Logging.DEBUG("Found no matching order, trade with AMM pool only")
                 receive_amount = self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
-                Logging.INFO(f"Done predicting trading, total receive: {receive_amount}. Pool after trade: \n"
-                             f"{self.print_pool()}")
+                Logging.INFO(f"Done predicting trading, total receive: {receive_amount}. Pool after trade: \n    "
+                             f"{self.pretty()}")
                 return receive_amount
 
             right_orders, left_orders = [], []
             for order in orders:
                 right_orders.append(order) if order.get_buy_rate() >= amm_rate else left_orders.append(order)
 
-            Logging.INFO(f"LEFT {'=' * 40}")
-            [Logging.INFO(f"{o.get_id()} {o.get_buy_rate()}") for o in left_orders]
-            Logging.INFO(f"RIGHT {'=' * 40}")
-            [Logging.INFO(f"{o.get_id()} {o.get_buy_rate()}") for o in right_orders]
-            Logging.INFO("=" * 80)
-            Logging.INFO(f"Sell amount: {sell_amount}")
+            Logging.DEBUG(f"LEFT {'=' * 40}")
+            [Logging.DEBUG(f"{o.get_id()} {o.get_buy_rate()}") for o in left_orders]
+            Logging.DEBUG(f"RIGHT {'=' * 40}")
+            [Logging.DEBUG(f"{o.get_id()} {o.get_buy_rate()}") for o in right_orders]
+            Logging.DEBUG("=" * 80)
+            Logging.DEBUG(f"Sell amount: {sell_amount}")
 
             total_receive = 0
             # trade right orders first
             while sell_amount > 0 and right_orders:
                 best_order = right_orders[-1]
-                Logging.INFO(f"Trading best rate order book {best_order.get_id()}, rate {best_order.get_buy_rate()}")
+                Logging.DEBUG(f"Trading best rate order book {best_order.get_id()}, rate {best_order.get_buy_rate()}")
                 Logging.DEBUG(best_order)
                 receive, remain = best_order.trade_this_order(sell_amount)
                 total_receive += receive
-                Logging.INFO(f"After trade order: traded {sell_amount}, remain {remain}, sum receive {total_receive}")
+                Logging.DEBUG(f"After trade order: traded {sell_amount}, remain {remain}, sum receive {total_receive}")
                 sell_amount = remain  # more explicit than receive, sell_amount = best_order.trade(sell_amount)
                 if best_order.is_completed():
                     right_orders.pop()
@@ -505,21 +511,21 @@ class PdeV3State(RPCResponseBase):
                 # trade amm with amount = distance to next order
                 next_order = left_orders[-1]
                 distance = self.cal_distant_to_order(token_sell, next_order)
-                Logging.INFO(f"next ORDER: {next_order}. Distance : {distance}")
+                Logging.DEBUG(f"next ORDER: {next_order}. Distance : {distance}")
                 if 0 < sell_amount <= distance:
-                    Logging.INFO(f"**Trade {sell_amount} (sell-amount) with pool**")
+                    Logging.DEBUG(f"**Trade {sell_amount} (sell-amount) with pool**")
                     total_receive += self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
                     sell_amount = 0
-                    Logging.INFO(f"Done predicting trading, total receive: {total_receive}. Pool after trade: \n"
-                                 f"{self.pretty_format()}")
+                    Logging.DEBUG(f"Done predicting trading, total receive: {total_receive}. Pool after trade: \n"
+                                  f"{self.pretty()}")
                     return total_receive
                 elif sell_amount > distance:
-                    Logging.INFO(f"**Trade {distance} (distance) with pool**")
+                    Logging.DEBUG(f"**Trade {distance} (distance) with pool**")
                     total_receive += self.cal_amm_trade_n_update_pool(distance, token_sell)
                     sell_amount -= distance
 
                 # trade left orders
-                Logging.INFO(f"**Trade {sell_amount} w left orders list")
+                Logging.DEBUG(f"**Trade {sell_amount} w left orders list")
                 receive, remain = next_order.trade_this_order(sell_amount)
                 if next_order.is_completed():
                     left_orders.pop()
@@ -528,11 +534,11 @@ class PdeV3State(RPCResponseBase):
                 sell_amount = remain
 
             if sell_amount > 0:
-                Logging.INFO(f"Still have token left to trade, continue trading {sell_amount} with pool")
+                Logging.DEBUG(f"Still have token left to trade, continue trading {sell_amount} with pool")
                 total_receive += self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
 
             Logging.INFO(f"Done predicting trading, total receive: {total_receive}. Pool after trade:\n"
-                         f"{self.pretty_format()}")
+                         f"{self.pretty()}")
             return total_receive
 
         def predict_pool_when_add_liquidity(self, amount_dict, nft_id, amp=0):
@@ -666,7 +672,7 @@ class PdeV3State(RPCResponseBase):
                 return self.get_token_id(1 - order_in_pool.get_trade_direction())
             raise RuntimeError(f"Order {order_id} is not in this pool \t   {self.get_pool_pair_id()}")
 
-        def print_pool(self, short=True):
+        def pretty(self, short=True):
             msg = f"{self.get_token_id(0)[-6:]}-{self.get_token_id(1)[-6:]}, " \
                   f"real: {self.get_real_amount(0)}-{self.get_real_amount(1)}, " \
                   f"virt: {self.get_virtual_amount(0)}-{self.get_virtual_amount(1)}, " \
@@ -676,7 +682,6 @@ class PdeV3State(RPCResponseBase):
                     msg += f"\n    "
                     msg += f"{share.nft_id} : {share.amount}"
 
-            print(msg)
             return msg
 
     class Param(BlockChainInfoBaseClass):
@@ -951,7 +956,6 @@ class PdeV3State(RPCResponseBase):
         trade_path = [trade_path] if isinstance(trade_path, str) else trade_path
         receive = 0
         for pair_id in Pde3Math.sort_trade_path(sell_token, trade_path):
-            Logging.INFO(f"Trade with pair: \n   {pair_id}")
             pool = self.get_pool_pair(id=pair_id)
             receive = pool.predict_pool_after_trade(sell_amount, sell_token)
             sell_amount = receive

@@ -1625,9 +1625,10 @@ class AccountGroup:
                 # acc.pde3_mint_nft(amount, token_id, tx_fee, tx_privacy, force)
         return self
 
-    def pde3_get_nft_ids(self):
-        with ThreadPoolExecutor() as e:
+    def pde3_get_nft_ids(self, pde_state=None):
+        if not pde_state:
             pde_state = self[0].REQ_HANDLER.pde3_get_state()
+        with ThreadPoolExecutor() as e:
             for acc in self:
                 e.submit(acc.pde3_get_my_nft_ids, pde_state)
         return self

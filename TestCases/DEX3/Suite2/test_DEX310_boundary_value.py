@@ -149,7 +149,7 @@ def test_withdraw_liquidity():
     bal_tok_b4 = TOKEN_OWNER.sum_my_utxo(TOKEN_ID)
     tx_fee = TOKEN_OWNER.pde3_withdraw_liquidity(pp_b4).get_transaction_by_hash().get_fee()
     pde_af = SUT().pde3_get_state()
-    pde_af.get_pool_pair(id=PAIR_ID).print_pool()
+    pde_af.get_pool_pair(id=PAIR_ID).pretty()
     bal_prv_af = TOKEN_OWNER.wait_for_balance_change(PRV_ID)
     bal_tok_af = TOKEN_OWNER.sum_my_utxo(TOKEN_ID)
     INFO(f"""

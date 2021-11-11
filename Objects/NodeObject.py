@@ -514,7 +514,7 @@ class Node:
 
     def send_proof(self, proof, tx_type='prv'):
         # INFO('Sending proof')
-        if tx_type == "prv":
+        if tx_type in ["prv", PRV_ID]:
             return self.transaction().send_prv_tx(proof)
         else:
             return self.transaction().send_token_tx(proof)
