@@ -931,3 +931,10 @@ class BeaconBlock(BlockChainInfoBaseClass):
         for key, value in all_inst.items():
             sum_reward += value
         return sum_reward
+
+    def is_tx_in_instructions(self, tx_id):
+        instructions = self.get_instructions()
+        for inst in instructions:
+            if tx_id in json.dumps(inst.dict_data):
+                return True
+        return False

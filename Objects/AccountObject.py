@@ -999,8 +999,9 @@ class Account:
         else:
             return self.pde_trade_token_v2(token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy)
 
-    def pde3_add_order(self, nft_id, token_sell, token_buy, pool_id, sell_amount, min_acceptable,
+    def pde3_add_order(self, token_sell, token_buy, pool_id, sell_amount, min_acceptable, nft_id=None,
                        tx_fee=-1, tx_privacy=1):
+        nft_id = self.nft_ids[0] if not nft_id else nft_id
         INFO(f"Adding order to order book\n   "
              f"In pool {pool_id}\n   "
              f"Selling {sell_amount} of {token_sell} to buy {token_buy}\n   "

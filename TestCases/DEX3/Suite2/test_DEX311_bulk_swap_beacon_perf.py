@@ -1,28 +1,21 @@
 """
 Assume that the tokens were minted and the pairs were added using Utils/pdex3_create_test_data.py
 """
+import copy
 import json
+import random
+from concurrent.futures import ThreadPoolExecutor
 
+import pytest
+
+from Configs.Configs import ChainConfig
+from Configs.Constants import PRV_ID, coin, Status
+from Configs.TokenIds import pUSDC, pWETH, pUSDT, pETH
 from Helpers import Logging
-from Objects.IncognitoTestCase import ACCOUNTS
-from Utils.pdex3_create_test_data import *
-
-Logging.INFO_HEADLINE("Setup bulk swap")
-pde = SUT().pde3_get_state()
-PATH1 = [pde.get_pool_pair(tokens=[PRV_ID, pUSDC])[0].get_pool_pair_id()]
-trace5 = [PRV_ID, pDAI, pUSDT, pETH, pWETH]
-trace6 = [pUSDT, pDAI, PRV_ID, pUSDC, pUSDT, pETH]
-PATH4 = []
-PATH5 = []
-Logging.INFO("Making path 5")
-for i in range(len(trace5) - 1):
-    token1, token2 = trace5[i], trace5[i + 1]
-    PATH4.append(pde.get_pool_pair(tokens=[token1, token2])[0].get_pool_pair_id())
-
-Logging.INFO("Making path 6")
-for i in range(len(trace6) - 1):
-    token1, token2 = trace6[i], trace6[i + 1]
-    PATH5.append(pde.get_pool_pair(tokens=[token1, token2])[0].get_pool_pair_id())
+from Helpers.Time import WAIT
+from Objects.AccountObject import COIN_MASTER, AccountGroup
+from Objects.IncognitoTestCase import ACCOUNTS, SUT
+from TestCases.DEX3.Suite2 import PATH4, PATH1, PATH5
 
 Logging.INFO("Submitting key to each shard...")
 for i in range(len(ACCOUNTS)):
@@ -30,11 +23,10 @@ for i in range(len(ACCOUNTS)):
     node = i % len(SUT.shards[shard])
     ACCOUNTS[i].req_to(SUT.shards[shard][node])  # attaching each account to its own shard
 ACCOUNTS.submit_key()
-Logging.INFO_HEADLINE("Setup bulk swap. DONE!")
 
 
 @pytest.mark.parametrize("trade_path, token_sell, token_buy", [
-    # (PATH1, PRV_ID, pUSDC),
+    (PATH1, PRV_ID, pUSDC),
     (PATH4, PRV_ID, pWETH),
 ])
 def test_stress_beacon_bulk_swap_no_split(trade_path, token_sell, token_buy):

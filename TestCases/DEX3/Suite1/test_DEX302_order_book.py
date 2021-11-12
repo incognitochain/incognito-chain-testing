@@ -57,7 +57,7 @@ def test_add_order(user: Account, nft_id, pair_id, token_sell, token_buy, sell_a
     bal_prv_b4 = user.get_balance()
 
     Logging.STEP(1, "Add order")
-    add_tx = user.pde3_add_order(nft_id, token_sell, token_buy, pair_id, sell_amount, min_acceptable)
+    add_tx = user.pde3_add_order(token_sell, token_buy, pair_id, sell_amount, min_acceptable, nft_id)
     tx_fee = add_tx.get_transaction_by_hash().get_fee()
 
     Logging.STEP(2, "Check order status")

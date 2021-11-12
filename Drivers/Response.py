@@ -152,7 +152,6 @@ class Response(RPCResponseWithTxHash):
         @deprecated: consider using get_transaction_by_hash instead
 
         Subscribe transaction by tx_id
-        :param tx_id: if not specified, use tx id from self
         :return: TransactionDetail Object
         """
         self.req_to(0)
@@ -164,10 +163,10 @@ class Response(RPCResponseWithTxHash):
         except WebSocketTimeoutException:
             WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
             return self.get_transaction_by_hash(time_out=0)
-        except (WebSocketBadStatusException,
-                ConnectionRefusedError) as status_err:  # in case full node does not have web socket enabled
+        except (WebSocketBadStatusException, ConnectionRefusedError) as status_err:
+            # in case full node does not have web socket enabled
             WARNING(f"Encounter web socket bad status exception: {status_err}. Now get transaction by hash instead")
-            return self.get_transaction_by_hash(time_out=0)
+            return self.get_transaction_by_hash()
 
     def is_transaction_v2_error_appears(self):
         try:

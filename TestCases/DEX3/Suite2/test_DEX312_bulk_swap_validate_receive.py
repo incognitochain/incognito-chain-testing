@@ -5,27 +5,12 @@ from typing import List
 
 import pytest
 
+from Configs.Constants import PRV_ID
+from Configs.TokenIds import pUSDC
 from Helpers import Logging
 from Objects.AccountObject import AccountGroup, Account, COIN_MASTER
 from Objects.IncognitoTestCase import ACCOUNTS, SUT
-from Utils.pdex3_create_test_data import PRV_ID, pDAI, pUSDT, pETH, pWETH, pUSDC
-
-Logging.INFO_HEADLINE("Setup bulk swap")
-pde = SUT().pde3_get_state()
-PATH1 = [pde.get_pool_pair(tokens=[PRV_ID, pUSDC])[0].get_pool_pair_id()]
-trace5 = [PRV_ID, pDAI, pUSDT, pETH, pWETH]
-trace6 = [pUSDT, pDAI, PRV_ID, pUSDC, pUSDT, pETH]
-PATH4 = []
-PATH5 = []
-Logging.INFO("Making path 5")
-for i in range(len(trace5) - 1):
-    token1, token2 = trace5[i], trace5[i + 1]
-    PATH4.append(pde.get_pool_pair(tokens=[token1, token2])[0].get_pool_pair_id())
-
-Logging.INFO("Making path 6")
-for i in range(len(trace6) - 1):
-    token1, token2 = trace6[i], trace6[i + 1]
-    PATH5.append(pde.get_pool_pair(tokens=[token1, token2])[0].get_pool_pair_id())
+from TestCases.DEX3.Suite2 import PATH1
 
 
 class BulkSwapData:
@@ -130,10 +115,10 @@ def test_bulk_swap_same_amount_diff_fee(traders, token_sell, token_buy, trade_am
     for acc in traders:
         real_receive = traders_bal_buy_af[acc] - traders_bal_buy_b4[acc]
         estimate_receive = estimated_receives[acc]
-        BAL_REC_COMPARE += f"{real_receive} vs {estimated_receives[acc]} ? {real_receive == estimate_receive}\n"
-    Logging.INFO(f"Summary: \n"
-                 f"Is pde state b4      = af? {pde_b4 == pde_af}\n"
-                 f"Is pde state predict = af? {pde_predict == pde_af}\n"
-                 f"real receive vs expected receive:\n"
+        BAL_REC_COMPARE += f"    {real_receive} vs {estimated_receives[acc]} ? {real_receive == estimate_receive}\n"
+    Logging.INFO(f"Summary: \n    "
+                 f"Is pde state b4      = af? {pde_b4 == pde_af}\n    "
+                 f"Is pde state predict = af? {pde_predict == pde_af}\n    "
+                 f"real receive vs expected receive:\n    "
                  f"{BAL_REC_COMPARE}"
                  )
