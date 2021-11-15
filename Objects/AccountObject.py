@@ -1156,6 +1156,9 @@ class Account:
             self.pde3_add_liquidity(PRV_ID, 100, contribution.get_amplifier(), contribution.get_contribution_id(),
                                     nft, contribution.get_pool_pair_id()).get_transaction_by_hash()
 
+    def pde3_modify_param(self, new_config):
+        return self.REQ_HANDLER.dex_v3().modify_param(self.payment_key, new_config)
+
     def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=1, check_interval=10,
                                 timeout=100):
         """
