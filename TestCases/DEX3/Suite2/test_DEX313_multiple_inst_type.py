@@ -20,6 +20,7 @@ def no_setup_function():
     try:
         pair_id = pde.get_pool_pair(nft_id=COIN_MASTER.nft_ids[0], tokens=[PRV_ID, pUSDC])[0].get_pool_pair_id()
     except IndexError:
+        pass
         # contribute
         # contrib_id = f"DAO_contrib_RPV_pUSDC_setup_{get_current_date_time()}"
         # COIN_MASTER.pde3_add_liquidity()
@@ -40,12 +41,12 @@ def test_multiple_tx_type_in_a_block():
     tpf = []
     b_height_b4 = SUT().help_get_beacon_height()
     with ThreadPoolExecutor() as tpe:
-        tpf.append(tpe.submit(COIN_MASTER.pde3_modify_param(pde_param)))
+        tpf.append(tpe.submit(COIN_MASTER.pde3_modify_param, pde_param.data_convert(str)))
         tpf.append(tpe.submit(BOOKER.pde3_add_order, pUSDC, PRV_ID, PATH1[0], 1000, 2000))
         tpf.append(tpe.submit(TRADER.pde3_trade, pUSDC, PRV_ID, int(1.34e8), 1, PATH1, int(1.34e6)))
         tpf.append(tpe.submit(HOLDER.pde3_add_liquidity, PRV_ID, int(2e9), 20000, contrib_id, pool_pair_id=PATH1[0]))
 
-    tx_hashes = [r.result().get_tx_id() for r in tpf]
+    tx_hashes = [r.result().expect_no_error().get_tx_id() for r in tpf]
     for tx in tx_hashes:
         SUT().get_tx_by_hash(tx)
     WAIT(ChainConfig.BLOCK_TIME * 3)

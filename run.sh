@@ -8,18 +8,13 @@ if [ $1 = "clear" ] || [ $1 = "clean" ]; then
   exit
 fi
 
-test_bed=$1
-test_data=$2
-html_report="reports/$(date '+%Y.%m.%d-%H.%M.%S')-${test_bed}-${test_data}.html"
-xoption=""
-
-if [ "$test_bed" != "-" ]; then
-  echo " !!! Using test bed: $test_bed"
-  xoption+="-XtestBed=$test_bed "
+if [ "$1" != "-" ]; then
+  echo " !!! Using test bed: $1"
+  export TESTBED=$1
 fi
-if [ "$test_data" != "-" ]; then
-  echo " !!! Using test data: $test_data"
-  xoption+="-XtestData=$test_data "
+if [ "$2" != "-" ]; then
+  echo " !!! Using test data: $2"
+  export TESTDATA=$2
 fi
 
 param4=""
@@ -29,6 +24,8 @@ if [ -z "$4" ]; then
 else
   param4="-k $4"
 fi
+
+html_report="reports/$(date '+%Y.%m.%d-%H.%M.%S')-${TESTBED}-${TESTDATA}.html"
+
 set -x
-$python $xoption -m pytest -vv \
-  --show-capture=stderr --capture=tee-sys -v --html="$html_report" --self-contained-html $3 $param4
+$python -m pytest -vv --show-capture=stderr --capture=tee-sys -v --html="$html_report" --self-contained-html $3 $param4

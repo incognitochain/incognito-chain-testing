@@ -135,7 +135,7 @@ class ResponseStake(ResponseStatusBase):
     pass  # nothing to add
 
 
-class ResponseModifyParam(ResponseStatusBase):
+class ResponseModifyParam(RPCResponseWithTxHash):
     pass  # nothing to add
 
 

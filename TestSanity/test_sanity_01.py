@@ -2,8 +2,8 @@ import random
 
 import pytest
 
-from Configs.Constants import coin, PBNB_ID, Status, PRV_ID, PBTC_ID
 from Configs.Configs import ChainConfig
+from Configs.Constants import coin, PBNB_ID, Status, PRV_ID, PBTC_ID
 from Helpers.Logging import STEP, INFO, ERROR
 from Helpers.TestHelper import ChainHelper, l6
 from Helpers.Time import WAIT, get_current_date_time
@@ -321,7 +321,7 @@ def test_06_dex_v1():
                    BRD_TOKEN: coin(3000)}
 
     STEP(0, 'Get pde state before')
-    pde_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_b4 = SUT().get_latest_pde_state_info()
 
     STEP(1, 'Contribue ptoken')
     pair_id = f'{l6(P___TOKEN)}-{l6(BRD_TOKEN)}-{get_current_date_time()}'
@@ -334,7 +334,7 @@ def test_06_dex_v1():
 
     STEP(3, 'Verify rate')
     WAIT(40)
-    pde_af_contribute = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_af_contribute = SUT().get_latest_pde_state_info()
     rate_b4 = pde_b4.get_rate_between_token(P___TOKEN, BRD_TOKEN)
     rate_af = pde_af_contribute.get_rate_between_token(P___TOKEN, BRD_TOKEN)
     assert rate_b4[0] + PDE_RATE_V1[P___TOKEN] == rate_af[0]
@@ -362,13 +362,13 @@ def test_07_dex_v2():
                            BRD_TOKEN: coin(20000)}
 
     STEP(1.1, f'Contribute dex v2 token {l6(PRV_ID)}_{l6(P___TOKEN)}, expect success')
-    pde_b4 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_b4 = SUT().get_latest_pde_state_info()
     pair_id = f'{l6(PRV_ID)}-{l6(P___TOKEN)}-{get_current_date_time()}'
     contribute_tx_1 = COIN_MASTER.pde_contribute_v2(PRV_ID, PDE_RATE_V2_RPV_TOK[PRV_ID], pair_id). \
         expect_no_error().subscribe_transaction()
     WAIT(30)
     INFO(f'Check pde state, make sure the token is in waiting contribution list')
-    pde_state_1 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_1 = SUT().get_latest_pde_state_info()
     assert pde_state_1.find_waiting_contribution_of_user(COIN_MASTER, pair_id, PRV_ID) != [], \
         "not found in waiting contribution list"
 
@@ -376,12 +376,12 @@ def test_07_dex_v2():
         expect_no_error().subscribe_transaction()
     WAIT(30)
     INFO(f'Check pde state, pair id must be out of waiting list')
-    pde_state_2 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_2 = SUT().get_latest_pde_state_info()
     assert pde_state_2.find_waiting_contribution_of_user(COIN_MASTER, pair_id=pair_id) == []
 
     STEP(1.2, f'Check pde pool pair')
     real_contrib_prv, real_contrib_tok, refund_prv, refund_tok = pde_b4.cal_contribution(PDE_RATE_V2_RPV_TOK)
-    pde_af = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_af = SUT().get_latest_pde_state_info()
     rate_af = pde_af.get_rate_between_token(PRV_ID, P___TOKEN)
     rate_b4 = pde_b4.get_rate_between_token(PRV_ID, P___TOKEN)
     INFO(f'Rate b4 and after: {rate_b4} - {rate_af}')
@@ -400,14 +400,14 @@ def test_07_dex_v2():
         expect_no_error().subscribe_transaction()
     WAIT(30)
     INFO(f'Check pde state, make sure the token is in waiting contribution list')
-    pde_state_1 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_1 = SUT().get_latest_pde_state_info()
     assert pde_state_1.find_waiting_contribution_of_user(COIN_MASTER, pair_id, BRD_TOKEN) != []
     INFO(f'Contribute token {l6(P___TOKEN)}')
     contribute_tx_2 = COIN_MASTER.pde_contribute_v2(P___TOKEN, PDE_RATE_V2_BRD_TOK[P___TOKEN], pair_id). \
         expect_no_error().subscribe_transaction()
     WAIT(30)
     INFO(f'Check pde state, pair id must be out of waiting list')
-    pde_state_2 = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state_2 = SUT().get_latest_pde_state_info()
     assert pde_state_2.find_waiting_contribution_of_user(COIN_MASTER, pair_id=pair_id) == []
 
     STEP(2.2, f'Check balance')
@@ -424,7 +424,7 @@ def test_07_dex_v2():
 
     # -------------------------------------- trade
     STEP(3, f'Trade v2 prv with token {l6(P___TOKEN)}, expect success')
-    pde_b4_trade = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_b4_trade = SUT().get_latest_pde_state_info()
     bal_prv_b4_trade = COIN_MASTER.get_balance()
     bal_tok_b4_trade = COIN_MASTER.get_balance(P___TOKEN)
     trading_fee = random.randrange(1000, 10000)
@@ -469,7 +469,7 @@ def test_08_transaction_ptoken(token, privacy):
     token = P___TOKEN if token == 'new_ptoken' else token
     # __________________________________________________
 
-    pde = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde = SUT().get_latest_pde_state_info()
     if not pde.can_token_use_for_fee(token):
         pytest.skip(f'Cannot use token to pay fee')
 
@@ -503,7 +503,7 @@ def test_07_pdex_withdraw_contribution():
     bal_brd_b4 = COIN_MASTER.get_balance(BRD_TOKEN)
     bal_ptk_b4 = COIN_MASTER.get_balance(P___TOKEN)
     bal_prv_b4 = COIN_MASTER.get_balance()
-    pde_state = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state = SUT().get_latest_pde_state_info()
     pde_pool = pde_state.get_rate_between_token(BRD_TOKEN, P___TOKEN)
     pde_share = pde_state.get_pde_shares_amount(COIN_MASTER, BRD_TOKEN, P___TOKEN)
     withdraw_tx = COIN_MASTER.pde_withdraw_contribution(
@@ -520,7 +520,7 @@ def test_07_pdex_withdraw_contribution():
     STEP(2, f'Withdraw reward {l6(PRV_ID)}-{l6(P___TOKEN)}')
     WAIT(30)
     bal_prv_b4 = COIN_MASTER.get_balance()
-    pde_state = SUT.REQUEST_HANDLER.get_latest_pde_state_info()
+    pde_state = SUT().get_latest_pde_state_info()
     reward_amount = pde_state.get_contributor_reward_amount(COIN_MASTER, PRV_ID, P___TOKEN)
     withdraw_tx = COIN_MASTER.pde_withdraw_reward_v2(PRV_ID, P___TOKEN, reward_amount). \
         expect_no_error().subscribe_transaction()
@@ -544,7 +544,7 @@ def test_09_stop_staking(stake_funder, the_staked):
     the_staked.stk_wait_till_i_am_swapped_out_of_committee()
 
     STEP(3, 'Check committee again')
-    beacon_bsd = SUT.REQUEST_HANDLER.get_beacon_best_state_detail_info()
+    beacon_bsd = SUT().get_beacon_best_state_detail_info()
     assert beacon_bsd.is_he_a_committee(the_staked) is False
 
 

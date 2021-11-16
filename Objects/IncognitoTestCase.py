@@ -1,41 +1,27 @@
-import sys
+import os
 
-from Configs.Configs import TestConfig, ChainConfig
+from Configs.Configs import TestConfig
 from Helpers.Logging import WARNING, ERROR
 from Objects.AccountObject import AccountGroup
 from Objects.TestBedObject import *
 
-# get command args
-# noinspection PyProtectedMember
-PARAMS = sys._xoptions
-
 # option to skip loading testbed and test data from both config file and command arg
-skip_load = PARAMS.get("skipLoad")
 SUT = TestBed()
 ACCOUNTS = AccountGroup()
 BEACON_ACCOUNTS = AccountGroup()
 COMMITTEE_ACCOUNTS = AccountGroup()
 STAKER_ACCOUNTS = AccountGroup()
 
-if not skip_load:
-    # load test bed
-    test_bed = TestConfig.TEST_BED
-    if PARAMS.get("testBed") is not None:
-        test_bed = PARAMS.get("testBed").rstrip('y').rstrip('p').rstrip('.')
-    SUT: TestBed = TestBed(test_bed)
 
+def init_test_accounts():
     # load account list
-    __account_file = TestConfig.TEST_DATA
-    if PARAMS.get('testData') is not None:
-        __account_file = PARAMS.get('testData').rstrip('y').rstrip('p').rstrip('.')
+    account_file = os.getenv('testData', TestConfig.TEST_DATA).rstrip('y').rstrip('p').rstrip('.')
+    # account_file = sys._xoptions.get('testData', TestConfig.TEST_DATA).rstrip('y').rstrip('p').rstrip('.')
 
-    SUT.precondition_check()  # check test bed
-
-    TEST_DATA = load_test_data(__account_file)
+    TEST_DATA = load_test_data(account_file)
+    global ACCOUNTS, BEACON_ACCOUNTS, STAKER_ACCOUNTS, COMMITTEE_ACCOUNTS
     try:
-        if type(TEST_DATA.account_list) is dict:
-            ACCOUNTS = TEST_DATA.account_list
-        elif type(TEST_DATA.account_list) is AccountGroup:
+        if isinstance(TEST_DATA.account_list, AccountGroup):
             ACCOUNTS = TEST_DATA.account_list
         else:
             ACCOUNTS = AccountGroup(*TEST_DATA.account_list)
@@ -64,5 +50,9 @@ if not skip_load:
         WARNING("Not found committee accounts list in test data, create an  empty list now")
         STAKER_ACCOUNTS = []
 
-    # -----------------------------------------------
-ChainConfig.get_running_config()
+
+def init_test_bed():
+    global SUT
+    testbed_file = os.getenv("TESTBED", TestConfig.TEST_BED).rstrip('y').rstrip('p').rstrip('.')
+    # testbed_file = sys._xoptions.get("testBed", TestConfig.TEST_BED).rstrip('y').rstrip('p').rstrip('.')
+    SUT = TestBed(testbed_file)

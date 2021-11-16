@@ -1,18 +1,17 @@
+"""
+HOW TO RUN: URL=[node url] python3 -m pytest [path to this file]
+"""
+import os
+
 from Configs.Constants import PBNB_ID
 from Objects.AccountObject import Account, AccountGroup
-# -----------------------------------------
-# this block of codes is for bypassing the testbed loading procedure in IncognitoTestCase for Sanity test module
-try:
-    # noinspection PyProtectedMember
-    full_node_url = sys._xoptions.get('fullNodeUrl')
-    # noinspection PyProtectedMember
-    ws_port = int(sys._xoptions.get('wsPort'))
-    SUT.full_node = Node().parse_url(full_node_url)
-    SUT.full_node.set_web_socket_port(ws_port)
-    TestBed.REQUEST_HANDLER = SUT.full_node
-except:
-    pass
+from Objects.IncognitoTestCase import SUT
+from Objects.NodeObject import Node
+from Objects.TestBedObject import TestBed
 
+SUT()
+full_node_url = os.getenv('URL')
+TestBed.REQUEST_HANDLER = Node().parse_url(full_node_url)
 account_0 = Account(  # must in SHARD 0
     '112t8rnbNst56EFVhefVgQcJVqASQPevVGmkb2Mdnhm61uyktU5ZuWbZ1KGAp7w7U4fUyz4XZxBVmaUifsjsLxYbkhtkff5YwQptNxELRVcX'). \
     set_remote_addr({PBNB_ID: 'tbnb1hmgztqgx62t3gldsk7n9wt4hxg2mka0fdem3ss'})
@@ -23,7 +22,7 @@ account_11 = Account(  # must in SHARD 1
 ACCOUNTS = AccountGroup(account_0, account_1, account_11)  # must include all accounts aboves
 
 fixed_validators = {
-    "0": [
+    "0": AccountGroup(
         Account(
             '112t8rnqijhT2AqiS8NBVgifb86sqjfwQwf4MHLMAxK3gr1mwxMaeUWQtR1MfxHscrKQ2MsyQMvJ3LEu49LEcZzTzoJCkCiewQ9p6wN5SrG1'),
         Account(
@@ -32,9 +31,9 @@ fixed_validators = {
             '112t8rnw7XyoehhKAUbNTqtVcda1eki89zrD2PfGMBKoYHvdE94ApWvXDtJvgotQohRot8yV52RZz2JjPtYGh4xsxb3gahn7RRWocEtW2Vei'),
         Account(
             '112t8ro1sHxz5xDkTs9i9VHA4cXVb5iqwCq2H2ffYYbGRh2wUHSHRRbnSQEMSnGiMvZAFLCccNzjZV9bSrphwGxxgtskVcauKNdgTEqA9bsf'),
-    ],
+    ),
 
-    "1": [
+    "1": AccountGroup(
         Account(
             '112t8rncy1vEiCMxvev5EkUQyfH9HLeManjS4kbcsSiMgp4FEiddsiMunhYL2pa8wciCAWxYtt9USgCv21fe2PkSxfnRkiq4AmDvJe33wtgV'),
         Account(
@@ -43,9 +42,9 @@ fixed_validators = {
             '112t8rngznzWowvtXKyTnE9avawQGJCVgfJounHDT5nWucoVFv43TYu9PyjiGpPXXXQbCVEzxxCSfDmPNEBknK5B8n5qFiaddStg2M9pCYkZ'),
         Account(
             '112t8rnk4jduDzQGcmzKXr6r1F69TeQtHqDBCehDXPpwQTo7eDkEKFGMDGar46Jy4gmqSZDgwyUwpnxGkCnE2oEXmQ5FQpQJ4iMpDqLkgzwy'),
-    ]
+    )
 }
-auto_stake_list = [
+auto_stake_list = AccountGroup(
     # shard 0
     Account(
         "112t8ro424gNfJkKqDj25PjgWqCFTgG83TRERX1djUVr2wgJB6Lwk7NFi4pU8KxWSHsb4xK7UwPVYJ48FEGTzrB9jM58WfyvaJGCsT83jfNs"),
@@ -56,4 +55,4 @@ auto_stake_list = [
         "112t8rnkSY1EtXtfZNGTKU6CFhfrdQ2YqLbLpfFEUGzVfoQeC6d47M5jWwv542aHJgEdtBKxmr2aikjxibL75rqGXEyKfUPXg1yp3xnCpL7D"),
     Account(
         "112t8rnmCktTnBnX866sSj5BzU33bUNZozJRes9xL7GPqSTQX9gsqG3qkiizsZuzV7BFs7CtpqNhcWfEMUZkkT7JnzknDB49jD2UBUemdnbK")
-]
+)

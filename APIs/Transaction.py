@@ -370,9 +370,15 @@ class TransactionRpc(BaseRpcApi):
                          {receiver_payment_k: amount}, fee, privacy]). \
             execute()
 
-    def send_tx(self, proof):
+    def send_prv_tx(self, proof):
         return self.rpc_connection. \
             with_method('sendtransaction'). \
+            with_params([proof]). \
+            execute()
+
+    def send_token_tx(self,proof):
+        return self.rpc_connection. \
+            with_method('sendrawprivacycustomtokentransaction'). \
             with_params([proof]). \
             execute()
 
