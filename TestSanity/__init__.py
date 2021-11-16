@@ -1,5 +1,7 @@
 """
-HOW TO RUN: URL=[node url] python3 -m pytest [path to this file]
+HOW TO RUN: URL=[node url] ./run.sh - - TestSanity/test_sanity_01.py test_01_block_chain_info
+example: URL=http://51.161.119.66:9334 ./run.sh - - TestSanity/test_sanity_01.py test_01_block_chain_info
+
 """
 import os
 
