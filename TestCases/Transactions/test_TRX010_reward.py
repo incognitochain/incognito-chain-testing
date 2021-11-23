@@ -7,11 +7,12 @@ REMEMBER: test data file must contains accounts of Beacons, Committee. In case D
 import json
 
 import pytest
+from deepdiff import DeepDiff
 
 from Configs.Configs import ChainConfig
 from Helpers import TestHelper
 from Helpers.Logging import INFO, INFO_HEADLINE, STEP
-from Helpers.TestHelper import ChainHelper, format_dict_side_by_side
+from Helpers.TestHelper import ChainHelper
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import COMMITTEE_ACCOUNTS, BEACON_ACCOUNTS, SUT
 
@@ -41,9 +42,11 @@ def test_verify_reward_instruction(from_epoch, num_of_epoch_to_test, shard_tx_fe
         instruction_reward = SUT().get_first_beacon_block_of_epoch(
             from_epoch + 1).get_transaction_reward_from_instruction()
 
-        INFO(f"Calculated vs From instruction comparison :\n"
-             f"{format_dict_side_by_side(calculated_reward, instruction_reward)} ")
-        assert calculated_reward == instruction_reward
+        INFO(f"Calculated vs From instruction comparison")
+        dd = DeepDiff(calculated_reward, instruction_reward)
+        if dd:
+            INFO(dd.pretty())
+            assert False, dd.pretty()
         num_of_epoch_to_test -= 1
         from_epoch += 1
 

@@ -23,7 +23,7 @@ go_int64_max = pow(2, 63) - 1
 def test_add_liquidity_big_num():
     global TOKEN_ID, PAIR_ID
     amp = 2
-    AMP = amp * ChainConfig.Dex3.AMP_DECIMAL
+    AMP = amp * ChainConfig.Dex3.DECIMAL
     contrib_amount_prv = coin(1000000)
 
     bal_tok_b4 = TOKEN_OWNER.sum_my_utxo(TOKEN_ID)
@@ -110,7 +110,7 @@ def test_trade_big_num_single_path(trader: Account, tok_sell, tok_buy, sell_amou
     pde_b4 = SUT().pde3_get_state()
     pde_predict = pde_b4.clone()
     trading_fee = 2 * pde_predict.cal_min_trading_fee(sell_amount, tok_sell, PAIR_ID)
-    estimated_receive = pde_predict.pre_dict_state_after_trade(tok_sell, tok_buy, sell_amount, PAIR_ID)
+    estimated_receive = pde_predict.predict_state_after_trade(tok_sell, tok_buy, sell_amount, PAIR_ID)
     COIN_MASTER.top_up_if_lower_than(trader, sell_amount, 1.5 * sell_amount)
 
     bal_buy_b4 = trader.sum_my_utxo(tok_buy)

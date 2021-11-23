@@ -568,7 +568,7 @@ class Account:
                 break
         balance = result.get_result() if result.get_result() else 0
         self.cache[Account._cache_bal][token_id] = balance
-        INFO(f"Private k = {self.__me()}, token id = {l6(token_id)}, bal = {coin(balance, False)} ")
+        INFO(f"{self.__me()}, token id = {l6(token_id)}, bal = {coin(balance, False)} ")
         return balance
 
     def get_assets(self):
@@ -897,7 +897,7 @@ class Account:
             return result
         else:
             reward = result.get(token_id, 0)
-        INFO(f"Payment key = {self.__to_me()}, {token_id[-6:]} reward = {coin(reward, False)}")
+        INFO(f"{self.__to_me()}, {token_id[-6:]} reward = {coin(reward, False)}")
         return reward
 
     def stk_withdraw_reward_to(self, reward_receiver, token_id=PRV_ID, tx_fee=0, tx_version=TestConfig.TX_VER,
@@ -1053,12 +1053,14 @@ class Account:
                              tx_fee=tx_fee, tx_privacy=tx_privacy)
 
     def pde3_stake(self, stake_amount, staking_pool_id, nft_id, tx_fee=-1, tx_privacy=1):
-        return self.REQ_HANDLER.dex_v3() \
-            .stake(self.private_key, staking_pool_id, stake_amount, nft_id, tx_fee=tx_fee, tx_privacy=tx_privacy)
+        nft_id = nft_id if nft_id else self.nft_ids[0]
+        return self.REQ_HANDLER.dex_v3().stake(self.private_key, staking_pool_id, str(stake_amount), nft_id,
+                                               tx_fee=tx_fee, tx_privacy=tx_privacy)
 
     def pde3_unstake(self, unstake_amount, staking_pool_id, nft_id, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3() \
-            .unstake(self.private_key, staking_pool_id, nft_id, unstake_amount, tx_fee=tx_fee, tx_privacy=tx_privacy)
+            .unstake(self.private_key, staking_pool_id, nft_id, str(unstake_amount), tx_fee=tx_fee,
+                     tx_privacy=tx_privacy)
 
     def pde3_withdraw_staking_reward_to(self, receiver, staking_pool_id, nft_id, token_id, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3() \

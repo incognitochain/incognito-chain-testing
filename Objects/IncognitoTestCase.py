@@ -3,7 +3,7 @@ import os
 from Configs.Configs import TestConfig
 from Helpers.Logging import WARNING, ERROR
 from Objects.AccountObject import AccountGroup
-from Objects.TestBedObject import *
+from Objects.TestBedObject import TestBed, load_test_data
 
 # option to skip loading testbed and test data from both config file and command arg
 SUT = TestBed()
@@ -13,10 +13,10 @@ COMMITTEE_ACCOUNTS = AccountGroup()
 STAKER_ACCOUNTS = AccountGroup()
 
 
-def init_test_accounts():
+def init_test_accounts(account_file=None):
     # load account list
-    account_file = os.getenv('testData', TestConfig.TEST_DATA).rstrip('y').rstrip('p').rstrip('.')
-    # account_file = sys._xoptions.get('testData', TestConfig.TEST_DATA).rstrip('y').rstrip('p').rstrip('.')
+    if not account_file:
+        account_file = os.getenv('testData', TestConfig.TEST_DATA).rstrip('y').rstrip('p').rstrip('.')
 
     TEST_DATA = load_test_data(account_file)
     global ACCOUNTS, BEACON_ACCOUNTS, STAKER_ACCOUNTS, COMMITTEE_ACCOUNTS
@@ -51,8 +51,8 @@ def init_test_accounts():
         STAKER_ACCOUNTS = []
 
 
-def init_test_bed():
+def init_test_bed(testbed_file=None):
     global SUT
-    testbed_file = os.getenv("TESTBED", TestConfig.TEST_BED).rstrip('y').rstrip('p').rstrip('.')
-    # testbed_file = sys._xoptions.get("testBed", TestConfig.TEST_BED).rstrip('y').rstrip('p').rstrip('.')
+    if not testbed_file:
+        testbed_file = os.getenv("TESTBED", TestConfig.TEST_BED).rstrip('y').rstrip('p').rstrip('.')
     SUT = TestBed(testbed_file)

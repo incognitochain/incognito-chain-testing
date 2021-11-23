@@ -6,7 +6,8 @@ class TestConfig:
 
 
 class ChainConfig:
-    ACCESS_TOKEN = '0c3d46946bbf99c8213dd7f6c640ed6433bdc056a5b68e7e80f5525311b0ca11'
+    # ACCESS_TOKEN = '0c3d46946bbf99c8213dd7f6c640ed6433bdc056a5b68e7e80f5525311b0ca11'
+    ACCESS_TOKEN = '0ec910a54ffbf2a0bdfc0c8b05e8b5445e51a2ae54f659a35ac7ad9980e4fd2c'
     BLOCK_PER_EPOCH = 20
     RANDOM_TIME = 10  # the n(th) height in epoch to call random function, usually = BLOCK_PER_EPOCH/2 not BLOCK_TIME/2
     BLOCK_TIME = 10
@@ -35,8 +36,7 @@ class ChainConfig:
         MIN_PRV_IN_POOL_FOR_TOKEN_FEE = 10000000000000
 
     class Dex3:
-        AMP_DECIMAL = 10000
-        FEE_RATE_DECIMAL = 10000
+        DECIMAL = 10000
         TRADE_PATH_MAX_LEN = 3
 
     @staticmethod

@@ -5,13 +5,16 @@ from Configs.Configs import ChainConfig
 from Configs.Constants import coin
 from Helpers.Logging import INFO_HEADLINE, INFO
 from Objects.AccountObject import COIN_MASTER, PORTAL_FEEDER, AccountGroup
-from Objects.IncognitoTestCase import *
+from Objects.IncognitoTestCase import init_test_bed, init_test_accounts
 
 logger = "Test Init"
 # update SUT
 init_test_bed()
 init_test_accounts()
 ChainConfig.get_running_config()
+
+from Objects.IncognitoTestCase import ACCOUNTS, SUT
+
 ACCOUNTS.change_req_handler(SUT())
 PORTAL_FEEDER.req_to(SUT())
 COIN_MASTER.req_to(SUT())

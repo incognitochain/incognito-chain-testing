@@ -15,7 +15,7 @@ if submit_key_status.get_result() == Status.SubmitKey.NOT_SUBMITTED:
 
 
 def amp(num):
-    return int(num * ChainConfig.Dex3.AMP_DECIMAL)
+    return int(num * ChainConfig.Dex3.DECIMAL)
 
 
 def d9(num):

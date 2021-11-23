@@ -109,7 +109,7 @@ def test_bulk_swap_same_amount_diff_fee(traders, token_sell, token_buy, trade_am
                           set(TRADE_STATUS.values())}
     Logging.INFO("Checking pde state...")
     pde_af = SUT().pde3_get_state()
-    estimated_receives = {acc: pde_predict.pre_dict_state_after_trade(token_sell, token_buy, trade_amount, trade_path)
+    estimated_receives = {acc: pde_predict.predict_state_after_trade(token_sell, token_buy, trade_amount, trade_path)
                           for acc in test_data_sorted.get_accounts()}
     BAL_REC_COMPARE = ""
     for acc in traders:

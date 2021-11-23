@@ -381,7 +381,7 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             shard_pending = self.get_shard_pending_validator(shard_number)
             for committee in shard_pending:
                 if committee.get_inc_public_key() == public_key:
-                    INFO(f" IS committee in shard pending: pub_key = {public_key} : shard {shard_number}")
+                    INFO(f" IS in shard pending: pub_key = {public_key} : shard {shard_number}")
                     return shard_number
         INFO(f"NOT exist in shard pending: pub_key = {public_key}")
         return False
@@ -421,6 +421,17 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
                 return True
         INFO(f"NOT exist in shard waiting next random: pub_key = {public_key}")
         return False
+
+    def where_is_he(self, account):
+        if self.is_he_in_waiting_next_random(account):
+            return "Waiting"
+        if self.is_he_in_sync_pool(account) is not False:
+            return "Sync pool"
+        if self.is_he_in_shard_pending(account) is not False:
+            return "Shard pending"
+        if self.is_he_a_committee(account) is not False:
+            return "Committee"
+        return None
 
     def get_candidate_shard_waiting_current_random(self):
         """

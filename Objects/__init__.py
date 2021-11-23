@@ -47,4 +47,4 @@ class BlockChainInfoBaseClass(ABC):
         return list(self.dict_data.keys())[0]
 
     def _1_item_dict_value(self):
-        return list(self.dict_data.values())[0]
+        return self.dict_data[self._1_item_dict_key()]

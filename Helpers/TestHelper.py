@@ -63,42 +63,23 @@ def to_num(*args):
     return ret
 
 
-def format_dict_side_by_side(dict1, dict2):
-    # find max line len
-    max_k_len = 0
-    max_v_len = 0
-    dict_mix = {}
-
-    for key, value in dict1.items():
-        if max_k_len < len(str(key)):
-            max_k_len = len(str(key))
-        if max_v_len < len(str(value)):
-            max_v_len = len(str(value))
-        dict_mix[key] = [value, '_']
-
-    for key, value in dict2.items():
-        if max_k_len < len(str(key)):
-            max_k_len = len(str(key))
-        try:
-            dict_mix[key][1] = value
-        except KeyError:
-            dict_mix[key] = ['-', value]
-
-    lines = ""
-    for key, list in dict_mix.items():
-        try:
-            if list[0] == list[1]:
-                compare = '='
-            elif list[0] < list[1]:
-                compare = '<'
-            else:
-                compare = '>'
-        except TypeError:
-            compare = '#'
-
-        lines += f"%{max_k_len + 15}s : %{max_v_len}s %s %s\n" % (key, list[0], compare, list[1])
-
-    return lines
+def convert_dict_num_to(d, to=str):
+    """
+    @param d: dictionary to convert
+    @param to: type to convert to, accept only 'int' or 'str'
+    @return: None
+    """
+    for key, value in d.items():
+        if isinstance(value, dict):
+            convert_dict_num_to(value, to)
+        elif isinstance(value, list):
+            value = [convert_dict_num_to(item, to) if isinstance(item, dict) else str(item) for item in value]
+        else:
+            try:
+                d[key] = to(value)
+                print(f"conv: {key}: {value} from {type(value)} -> {type(d[key])}")
+            except ValueError:  # ignore if cannot convert
+                pass
 
 
 class KeyExtractor:

@@ -131,7 +131,7 @@ class ResponseTrade(ResponseTxBase):
     pass  # nothing to add
 
 
-class ResponseStake(ResponseStatusBase):
+class ResponseStake(RPCResponseWithTxHash):
     pass  # nothing to add
 
 
@@ -410,13 +410,13 @@ class DEXv3RPC(BaseRpcApi):
         @return:
         """
         if main_tx_receivers is None:
-            main_tx_receivers = {Constants.BURNING_ADDR: stake_amount}
+            main_tx_receivers = {}
 
         return ResponseStake(
             self.rpc_connection.with_method("pdexv3_txStake")
                 .with_params([private_k, main_tx_receivers, tx_fee, tx_privacy,
                               {"StakingPoolID": staking_pool_id,
-                               "TokenAmount": stake_amount,
+                               "Amount": stake_amount,
                                "NftID": nft_id}]).execute())
 
     def unstake(self, private_k, staking_pool_id, nft_id, unstake_amount,

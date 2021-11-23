@@ -9,6 +9,7 @@ from Configs.Constants import PRV_ID
 from Drivers.Response import RPCResponseBase
 from Helpers import Logging
 from Helpers.BlockChainMath import Pde3Math
+from Helpers.TestHelper import convert_dict_num_to
 from Objects import BlockChainInfoBaseClass
 
 
@@ -20,7 +21,7 @@ class PdeV3State(RPCResponseBase):
             return False
         excludes = [r"\['BeaconTimeStamp'\]",
                     r"\['ProtocolFees'\]", r"\['LpFeesPerShare'\]", r"\['StakingPoolFees'\]", r"\['TradingFees'\]",
-                    r"\['LastLPFeesPerShare'\]", r"\['StakingPools'\]"]
+                    r"\['LastLPFeesPerShare'\]", r"\['LastRewardsPerShare'\]", r"\['RewardsPerShare'\]"]
         diff = DeepDiff(self.get_result(), other.get_result(), exclude_regex_paths=excludes, math_epsilon=0)
         if diff:
             diff_info = '    ' + '\n    '.join(diff.pretty().split('\n'))
@@ -322,7 +323,7 @@ class PdeV3State(RPCResponseBase):
             self.dict_data[self.get_pool_pair_id()]["State"]["Amplifier"] = amp
 
         def get_amp(self, to_float=False):
-            return self.amplifier / ChainConfig.Dex3.AMP_DECIMAL if to_float else self.amplifier
+            return self.amplifier / ChainConfig.Dex3.DECIMAL if to_float else self.amplifier
 
         @property
         def total_share_amount(self):
@@ -564,8 +565,8 @@ class PdeV3State(RPCResponseBase):
                 self.amplifier = amp
                 accepted_x, accepted_y = delta_x, delta_y
                 delta_share = Pde3Math.cal_share_new_pool(accepted_x, accepted_y)
-                new_virtual_x = accepted_x * amp / ChainConfig.Dex3.AMP_DECIMAL
-                new_virtual_y = accepted_y * amp / ChainConfig.Dex3.AMP_DECIMAL
+                new_virtual_x = accepted_x * amp / ChainConfig.Dex3.DECIMAL
+                new_virtual_y = accepted_y * amp / ChainConfig.Dex3.DECIMAL
             else:
                 Logging.INFO("Contribute more to this pair")
                 x, y = self.get_real_amount(token_x), self.get_real_amount(token_y)
@@ -591,11 +592,11 @@ class PdeV3State(RPCResponseBase):
                 existing_share = self.get_share(nft_id)
             existing_share.amount += delta_share
             Logging.INFO("Predicted pool after adding liquidity \n\t"
-                         f"Contributed: \n\t\t {json.dumps(amount_dict, indent=3)}\n\t"
-                         f"Return:\n\t\t {json.dumps(return_amount, indent=3)}\n\t"
-                         f"Accepted:\n\t\t {json.dumps({token_x: accepted_x, token_y: accepted_y}, indent=3)}\n\t"
+                         f"Contributed: {json.dumps(amount_dict, indent=3)}\n  "
+                         f"Return: {json.dumps(return_amount, indent=3)}\n  "
+                         f"Accepted: {json.dumps({token_x: accepted_x, token_y: accepted_y}, indent=3)}\n  "
                          f"Old | Added | New total share: "
-                         f"{old_total_share} | {delta_share} | {self.total_share_amount}")
+                         f"{old_total_share} | {delta_share} | {self.total_share_amount}\n")
             return return_amount
 
         def get_pool_rate(self, token_sell):
@@ -686,19 +687,19 @@ class PdeV3State(RPCResponseBase):
 
     class Param(BlockChainInfoBaseClass):
         def get_default_fee_rate_bps(self, to_float=False):
-            return self.dict_data["DefaultFeeRateBPS"] / ChainConfig.Dex3.FEE_RATE_DECIMAL \
+            return self.dict_data["DefaultFeeRateBPS"] / ChainConfig.Dex3.DECIMAL \
                 if to_float else self.dict_data["DefaultFeeRateBPS"]
 
         def get_fee_rate_bps(self, by_pool_pair=None, to_float=False):
             all_rate = self.dict_data["FeeRateBPS"]
             if by_pool_pair:
-                return all_rate.get(by_pool_pair) / ChainConfig.Dex3.FEE_RATE_DECIMAL if to_float else \
+                return all_rate.get(by_pool_pair) / ChainConfig.Dex3.DECIMAL if to_float else \
                     all_rate.get(by_pool_pair)
             else:
                 return all_rate
 
         def get_prv_discount_percent(self, to_float=False):
-            return self.dict_data["PRVDiscountPercent"] / ChainConfig.Dex3.FEE_RATE_DECIMAL if to_float else \
+            return self.dict_data["PRVDiscountPercent"] / ChainConfig.Dex3.DECIMAL if to_float else \
                 self.dict_data["PRVDiscountPercent"]
 
         def get_trading_protocol_fee_percent(self):
@@ -711,7 +712,7 @@ class PdeV3State(RPCResponseBase):
             all_reward = self.dict_data["PDEXRewardPoolPairsShare"]
             return all_reward.get(by_pool_pair) if by_pool_pair else all_reward
 
-        def get_staking_pool_share(self, by_token=None):
+        def get_staking_pool_share(self, by_token=None) -> Union[int, dict]:
             all_share = self.dict_data["StakingPoolsShare"]
             return all_share.get(by_token) if by_token else all_share
 
@@ -724,7 +725,13 @@ class PdeV3State(RPCResponseBase):
         def get_max_order_per_nft(self):
             return self.dict_data["MaxOrdersPerNft"]
 
-        def data_convert(self, to_class=str):
+        def add_staking_reward_token(self, token):
+            if token in self.get_staking_reward_token():
+                return self
+            self.dict_data["StakingRewardTokens"].append(token)
+            return self
+
+        def get_configs(self, to_class=str):
             """
             @param to_class: accept str or int only
             @return: new dict which has all number converted to string
@@ -733,22 +740,9 @@ class PdeV3State(RPCResponseBase):
             to_class = int if to_class == 'int' else to_class
             if not (to_class is str or to_class is int):
                 raise ValueError("to_class argument only accepts 'str' or 'int'")
-
-            def convert(d, to):
-                for key, value in d.items():
-                    if isinstance(value, dict):
-                        convert(value, to)
-                    elif isinstance(value, list):
-                        value = [convert(item, to) if isinstance(item, dict) else str(item) for item in value]
-                    else:
-                        try:
-                            d[key] = to(value)
-                        except ValueError:  # ignore if cannot convert
-                            pass
-
-            return_dict = copy.deepcopy(self.dict_data)
-            convert(return_dict, to_class)
-            return return_dict
+            converted = copy.deepcopy(self.dict_data)
+            convert_dict_num_to(converted, to_class)
+            return converted
 
     class StakingPool(BlockChainInfoBaseClass):
         """"0000000000000000000000000000000000000000000000000000000000000004": {
@@ -770,15 +764,39 @@ class PdeV3State(RPCResponseBase):
             def get_liquidity(self):
                 return self._1_item_dict_value()["Liquidity"]
 
-            def get_reward(self, *args): pass  # todo TBD, not yet have sample response
+            def get_reward(self, token=None) -> Union[int, dict]:
+                return self._1_item_dict_value()["Rewards"].get(token, 0) if token \
+                    else self._1_item_dict_value()["Rewards"]
 
             def get_last_reward_per_share(self, *args): pass  # todo TBD, not yet have sample response
+
+            def update_liquidity(self, new_liquidity):
+                self._1_item_dict_value()["Liquidity"] = new_liquidity
+
+            def update_reward(self, token, amount):
+                self._1_item_dict_value()["Rewards"][token] = amount
 
         def get_token_id(self):
             return self._1_item_dict_key()
 
         def get_liquidity(self):
             return self._1_item_dict_value()["Liquidity"]
+
+        def __update_liquidity(self, new_liquidity):
+            self._1_item_dict_value()["Liquidity"] = new_liquidity
+
+        def __add_new_staker(self, nft_id, liquidity):
+            self._1_item_dict_value()["Stakers"][nft_id] = {
+                "Liquidity": liquidity,
+                "Rewards": {}}
+
+        def predict_pool_after_stake(self, stake_amount, nft_id):
+            staker_in_pool = self.get_stakers(nft_id)
+            self.__update_liquidity(self.get_liquidity() + stake_amount)
+            if staker_in_pool:
+                staker_in_pool.update_liquidity(staker_in_pool.get_liquidity() + stake_amount)
+            else:
+                self.__add_new_staker(nft_id, stake_amount)
 
         def get_stakers(self, by_nft_id=None):
             all_stakers = self._1_item_dict_value()["Stakers"]
@@ -867,14 +885,17 @@ class PdeV3State(RPCResponseBase):
             filtered_result.append(obj) if included else None
         return filtered_result
 
-    def get_staking_pools(self, by_token=None, by_nft_id=None) -> List[StakingPool]:
+    def get_staking_pools(self, **by) -> Union[List[StakingPool], StakingPool]:
         all_pool = self.get_result("StakingPools")
+        by_id = by.get("id", by.get("token", by.get("token_id")))
+        if by_id:
+            pool_data = all_pool.get(by_id)
+            return PdeV3State.StakingPool({by_id: pool_data}) if pool_data else None
         all_pool_obj = [PdeV3State.StakingPool({token_id: pool_data}) for token_id, pool_data in all_pool.items()]
+        by_nft_id = by.get("nft_id", by.get("nft"))
         return_list = []
         for obj in all_pool_obj:
             included = True
-            if by_token:
-                included = included and obj.get_token_id() == by_token
             if by_nft_id:
                 included = included and obj.get_stakers(by_nft_id)
             return_list.append(obj) if included else None
@@ -945,7 +966,7 @@ class PdeV3State(RPCResponseBase):
                 result[pool] = order_list
         return result
 
-    def pre_dict_state_after_trade(self, sell_token, token_buy, sell_amount, trade_path):
+    def predict_state_after_trade(self, sell_token, token_buy, sell_amount, trade_path):
         """
         @param sell_token:
         @param token_buy:
@@ -961,6 +982,32 @@ class PdeV3State(RPCResponseBase):
             sell_amount = receive
             sell_token = pool.get_token_id(1 - pool._get_token_index(sell_token))
         return receive
+
+    def predict_state_after_stake(self, stake_amount, staking_pool_id, nft):
+        staking_pool = self.get_staking_pools(id=staking_pool_id)
+        staking_pool.predict_pool_after_stake(stake_amount, nft)
+
+    def predict_staking_pool_reward(self, token_id, sum_trading_fee):
+        pde_param = self.get_pde_params()
+        if token_id not in pde_param.get_staking_reward_token():
+            Logging.INFO(f"Token {token_id} is not in staking reward list")
+            return
+        staking_reward_percent = pde_param.get_trading_staking_pool_reward_percent()
+        pools_reward_percent = pde_param.get_staking_pool_share()
+        all_pools_reward = int(sum_trading_fee * staking_reward_percent / 100)
+        reward_amount_each_pool = {}
+        for pool_id, percent in pools_reward_percent.items():
+            reward_amount_each_pool[pool_id] = int(all_pools_reward * percent / sum(pools_reward_percent.values()))
+        # cal stakers reward
+        for pool_id, reward in reward_amount_each_pool.items():
+            staking_pool = self.get_staking_pools(id=pool_id)
+            pool_liquidity = staking_pool.get_liquidity()
+            last_share = reward
+            for staker in staking_pool.get_stakers()[:-1]:
+                share = int(reward * staker.get_liquidity() / pool_liquidity)
+                last_share -= share
+                staker.update_reward(token_id, staker.get_reward(token_id) + share)
+            staking_pool.get_stakers()[-1].update_reward(token_id, last_share)
 
     def cal_min_trading_fee(self, sell_amount, sell_token, trade_path, use_prv=True):
         """
@@ -983,3 +1030,27 @@ class PdeV3State(RPCResponseBase):
             trading_fee = int(total_fee_rate * sell_amount * (1 - pde_param.get_prv_discount_percent(to_float=True)))
 
         return trading_fee
+
+    def is_valid_path(self, token_sell, token_buy, path):
+        start_token = token_sell
+        last_pair_index = len(path) - 1
+        for pair in path:
+            if not self.get_pool_pair(id=pair):
+                Logging.INFO(f"Pair id {pair} is not exist in pool")
+                return False
+            if start_token in pair:
+                token_list = pair.split("-")[:-1]
+                other_token = token_list[1 - token_list.index(start_token)]
+                pair_index = path.index(pair)
+                if other_token == token_buy and pair_index == last_pair_index:
+                    return True
+                elif other_token == token_buy and pair_index == last_pair_index:
+                    Logging.INFO(f"Path ends to soon at pair {pair}")
+                    return False
+                elif other_token != token_buy and pair_index == last_pair_index:
+                    Logging.INFO(f"Hit a dead end but cannot buy {token_buy}")
+                    return False
+                start_token = other_token
+            else:
+                Logging.INFO(f"Path stuck at token {start_token} pair {pair}")
+                return False
