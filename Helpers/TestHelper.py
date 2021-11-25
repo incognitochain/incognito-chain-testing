@@ -77,7 +77,6 @@ def convert_dict_num_to(d, to=str):
         else:
             try:
                 d[key] = to(value)
-                print(f"conv: {key}: {value} from {type(value)} -> {type(d[key])}")
             except ValueError:  # ignore if cannot convert
                 pass
 

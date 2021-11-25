@@ -23,6 +23,7 @@ trading_fee_tok = 2 * trading_fee_tok_min
 PRV_fee = True
 token_fee = False
 
+
 # TOKEN_OWNER = Account(
 #     '112t8rnX3VTd3MTWMpfbYP8HGY4ToAaLjrmUYzfjJBrAcb8iPLkNqvVDXWrLNiFV5yb2NBpR3FDZj3VW8GcLUwRdQ61hPMWP3YrREZAZ1UbH')
 
@@ -77,7 +78,9 @@ def test_trade_success(trader, token_sell, token_buy, sell_amount, trade_fee, fe
     bal_buy_b4 = trader.get_balance(token_buy)
     bal_prv_b4 = trader.get_balance()
     pde_predict = pde_b4.clone()
-    receive_est = pde_predict.predict_state_after_trade(token_sell, token_buy, sell_amount, trade_path)
+    receive_est = pde_predict.predict_state_after_trade(token_sell, token_buy, sell_amount, trade_path, trade_fee,
+                                                        fee_type)
+    token_fee_used = PRV_ID if fee_type else token_sell
     Logging.STEP(1, "Init trade request")
     trade_req_tx = trader.pde3_trade(token_sell, token_buy, sell_amount, 1, trade_path, trade_fee, fee_type)
     tx_fee = trade_req_tx.get_transaction_by_hash().get_fee()

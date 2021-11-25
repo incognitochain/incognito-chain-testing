@@ -21,7 +21,7 @@ class DexRpc(BaseRpcApi):
         amount_to_contribute = str(amount_to_contribute)
         return self.rpc_connection.with_method("createandsendtxwithprvcontributionv2"). \
             with_params([private_key,
-                         {Const.BURNING_ADDR: amount_to_contribute}, 100, 0,
+                         {Const.BURNING_ADDR: amount_to_contribute}, -1, 1,
                          {
                              "PDEContributionPairID": contribution_pair_id,
                              "ContributorAddressStr": payment_address,

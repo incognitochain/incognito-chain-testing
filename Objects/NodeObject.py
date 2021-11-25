@@ -223,10 +223,10 @@ class Node:
         pde_state = self.dex().get_pde_state(beacon_height)
         return PDEStateInfo(pde_state.get_result())
 
-    def pde3_get_state(self, beacon_height=None):
+    def pde3_get_state(self, beacon_height=None, key_filter="All", id_filter="1", verbose=1):
         beacon_height = self.help_get_beacon_height() if not beacon_height else beacon_height
         INFO(f'Get PDE3 state at beacon height: {beacon_height}')
-        return PdeV3State(self.dex_v3().get_pdev3_state(beacon_height))
+        return PdeV3State(self.dex_v3().get_pdev3_state(beacon_height, key_filter, id_filter, verbose))
 
     def pde3_make_trade_tx(self, private_key, token_sell, token_buy, sell_amount, min_acceptable, trade_path,
                            trading_fee, use_prv_fee=True):

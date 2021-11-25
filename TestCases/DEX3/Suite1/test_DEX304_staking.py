@@ -93,5 +93,5 @@ def test_staking_fee():
     trade_tx.get_transaction_by_hash()
     WAIT(ChainConfig.BLOCK_TIME * 4)
     pde_af = SUT().pde3_get_state()
-    pde_predict.predict_staking_pool_reward(TOKEN_Y, trading_fee)
+    pde_predict.predict_state_after_trade(TOKEN_Y, TOKEN_X, trade_amount, trade_path, trading_fee, False)
     assert pde_af == pde_predict

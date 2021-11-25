@@ -966,11 +966,13 @@ class PdeV3State(RPCResponseBase):
                 result[pool] = order_list
         return result
 
-    def predict_state_after_trade(self, sell_token, token_buy, sell_amount, trade_path):
+    def predict_state_after_trade(self, sell_token, token_buy, sell_amount, trade_path, trading_fee=0, use_prv=True):
         """
         @param sell_token:
         @param token_buy:
         @param sell_amount:
+        @param trading_fee:
+        @param use_prv:
         @param trade_path: must be properly sorted
         @return:
         """
@@ -981,13 +983,16 @@ class PdeV3State(RPCResponseBase):
             receive = pool.predict_pool_after_trade(sell_amount, sell_token)
             sell_amount = receive
             sell_token = pool.get_token_id(1 - pool._get_token_index(sell_token))
+        self.predict_staking_pool_reward(trading_fee, PRV_ID if use_prv else sell_token)
         return receive
 
     def predict_state_after_stake(self, stake_amount, staking_pool_id, nft):
         staking_pool = self.get_staking_pools(id=staking_pool_id)
         staking_pool.predict_pool_after_stake(stake_amount, nft)
 
-    def predict_staking_pool_reward(self, token_id, sum_trading_fee):
+    def predict_staking_pool_reward(self, sum_trading_fee, token_id=PRV_ID):
+        if not sum_trading_fee:
+            return
         pde_param = self.get_pde_params()
         if token_id not in pde_param.get_staking_reward_token():
             Logging.INFO(f"Token {token_id} is not in staking reward list")
