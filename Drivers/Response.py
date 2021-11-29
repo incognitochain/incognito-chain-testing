@@ -7,7 +7,6 @@ from websocket import WebSocketTimeoutException, WebSocketBadStatusException
 from Configs.Configs import ChainConfig
 from Drivers import ResponseBase
 from Helpers.Logging import INFO, WARNING
-from Objects.TransactionObjects import TransactionDetail
 
 
 class RPCResponseBase(ResponseBase):
@@ -91,7 +90,7 @@ class RPCResponseWithTxHash(RPCResponseBase):
     def get_shard_id(self):
         return self.get_result('ShardID')
 
-    def get_transaction_by_hash(self, interval=ChainConfig.BLOCK_TIME, time_out=120) -> TransactionDetail:
+    def get_transaction_by_hash(self, interval=ChainConfig.BLOCK_TIME, time_out=120):
         """
         @param interval:
         @param time_out: set = 0 to ignore interval, won't retry if got error in Response or block height = 0
@@ -156,10 +155,8 @@ class Response(RPCResponseWithTxHash):
         """
         self.req_to(0)
         INFO(f'Subscribe to transaction tx_id = {self.get_tx_id()}')
-        from Objects.TransactionObjects import TransactionDetail
         try:
-            res = self._handler.subscription().subscribe_pending_transaction(self.get_tx_id()).get_result('Result')
-            return TransactionDetail(res)
+            return self._handler.subscription().subscribe_pending_transaction(self.get_tx_id()).get_result('Result')
         except WebSocketTimeoutException:
             WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
             return self.get_transaction_by_hash(time_out=0)

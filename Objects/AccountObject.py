@@ -362,7 +362,7 @@ class Account:
                                                 self.payment_key, stake_amount, auto_re_stake, tx_version)
 
     def stake_someone_reward_me(self, someone, stake_amount=ChainConfig.STK_AMOUNT, auto_re_stake=False,
-                                tx_version=TestConfig.TX_VER):
+                                tx_version=TestConfig.TX_VER, tx_fee=50):
         """
 
         @return:
@@ -370,7 +370,7 @@ class Account:
         INFO(f'Stake {someone.validator_key} but reward me')
         return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, someone.payment_key, someone.validator_key,
-                                                self.payment_key, stake_amount, auto_re_stake, tx_version)
+                                                self.payment_key, stake_amount, auto_re_stake, tx_version, tx_fee)
 
     def stake_someone_reward_him(self, someone, stake_amount=ChainConfig.STK_AMOUNT, auto_re_stake=True,
                                  tx_version=TestConfig.TX_VER):
@@ -392,12 +392,13 @@ class Account:
         INFO('Stop auto stake me')
         return self.stk_stop_auto_staking(self, self)
 
-    def stk_un_stake_tx(self, validator=None):
+    def stk_un_stake_tx(self, validator=None, tx_fee=50):
         if not validator:
             validator = self
         INFO(f'Un-stake transaction for validator: {validator.validator_key}')
         return self.REQ_HANDLER.transaction(). \
-            create_and_send_un_staking_transaction(self.private_key, validator.payment_key, validator.validator_key)
+            create_and_send_un_staking_transaction(self.private_key, validator.payment_key, validator.validator_key,
+                                                   tx_fee).req_to(self.REQ_HANDLER)
 
     def stk_stop_auto_stake_him(self, him):
         INFO(f"Stop auto stake other: {him.validator_key}")
@@ -922,10 +923,13 @@ class Account:
         pde_state = self.REQ_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
         waiting_contributions = pde_state.get_waiting_contributions()
         for contribution in waiting_contributions:
-            if contribution.get_contributor_address() == self.payment_key and contribution.get_token_id() != PRV_ID:
-                INFO(f"{contribution} belong to current user and waiting for PRV, so cannot use PRV to clean up")
-            else:
-                self.pde_contribute(PRV_ID, 100, contribution.get_pair_id()).subscribe_transaction()
+            # if contribution.get_contributor_address() == self.payment_key and contribution.get_token_id() != PRV_ID:
+            #     INFO(f"{contribution} belong to current user and waiting for PRV, so cannot use PRV to clean up")
+            # else:
+            if contribution.get_amount() == 1:
+                self.pde_contribute_v2(PRV_ID, 10, contribution.get_pair_id()).req_to(self.REQ_HANDLER) \
+                    .get_transaction_by_hash()
+                WAIT(40)
 
     def pde_wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         INFO(f"Wait until token {l6(token_id)} is in waiting for contribution")
@@ -1060,7 +1064,7 @@ class Account:
     def pde3_unstake(self, unstake_amount, staking_pool_id, nft_id, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3() \
             .unstake(self.private_key, staking_pool_id, nft_id, str(unstake_amount), tx_fee=tx_fee,
-                     tx_privacy=tx_privacy)
+                     tx_privacy=tx_privacy).req_to(self.REQ_HANDLER)
 
     def pde3_withdraw_staking_reward_to(self, receiver, staking_pool_id, nft_id, token_id, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3() \
@@ -1497,10 +1501,20 @@ class Account:
 
 class AccountGroup:
     def __init__(self, *accounts):
-        for acc in accounts:
-            if type(acc) is not Account:
-                raise TypeError(f"List member must be an Account object, got {type(acc)} instead ")
-        self.account_list: List[Account] = list(accounts)
+        init_thread = []
+        self.account_list: List[Account] = []
+        with ThreadPoolExecutor() as tpe:
+            for acc in accounts:
+                if isinstance(acc, Account):
+                    self.account_list.append(acc)
+                elif isinstance(acc, str):
+                    init_thread.append(tpe.submit(Account, acc))
+                else:
+                    raise TypeError(f"List member must be an Account object or string (private key), "
+                                    f"got {type(acc)} instead ")
+
+        for thread in init_thread:
+            self.account_list.append(thread.result())
 
     def __len__(self):
         return len(self.account_list)
@@ -1650,6 +1664,15 @@ class AccountGroup:
                                trade_path, trade_fee)
                 futures[acc] = t
         return {acc: t.result()[1] for acc, t in futures.items()}
+
+    def get_shard_dispersion(self):
+        dispersion = {}
+        for acc in self:
+            try:
+                dispersion[acc.shard] += 1
+            except KeyError:
+                dispersion[acc.shard] = 1
+        return dict(sorted(dispersion.items()))
 
     @staticmethod
     def new(num_of_acc=8):

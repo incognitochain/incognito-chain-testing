@@ -17,6 +17,7 @@ def init_test_accounts(account_file=None):
     # load account list
     if not account_file:
         account_file = os.getenv('TESTDATA', TestConfig.TEST_DATA).rstrip('y').rstrip('p').rstrip('.')
+    TestConfig.TEST_DATA = account_file
 
     TEST_DATA = load_test_data(account_file)
     global ACCOUNTS, BEACON_ACCOUNTS, STAKER_ACCOUNTS, COMMITTEE_ACCOUNTS
@@ -55,4 +56,5 @@ def init_test_bed(testbed_file=None):
     global SUT
     if not testbed_file:
         testbed_file = os.getenv("TESTBED", TestConfig.TEST_BED).rstrip('y').rstrip('p').rstrip('.')
+    TestConfig.TEST_BED = testbed_file
     SUT = TestBed(testbed_file)

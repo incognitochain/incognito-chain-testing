@@ -1,5 +1,5 @@
 from APIs import BaseRpcApi
-from Drivers.Connections import RpcConnection
+from Objects.BeaconObject import BeaconBestStateDetailInfo
 
 
 class SystemRpc(BaseRpcApi):
@@ -56,7 +56,8 @@ class SystemRpc(BaseRpcApi):
         return self.rpc_connection.with_method("getmempoolinfo").execute()
 
     def get_beacon_best_state_detail(self):
-        return self.rpc_connection.with_method('getbeaconbeststatedetail').with_params([]).execute()
+        return BeaconBestStateDetailInfo(self.rpc_connection.with_method('getbeaconbeststatedetail').
+                                         with_params([]).execute())
 
     def get_beacon_best_state(self):
         return self.rpc_connection. \

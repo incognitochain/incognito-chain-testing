@@ -1,4 +1,5 @@
 import Helpers.Logging as Log
+from APIs.Transaction import TransactionDetail
 
 from Drivers.Connections import WebSocket
 
@@ -11,7 +12,7 @@ class SubscriptionWs:
         return self.ws_conn.with_method("subcribenewshardblock").with_params([0]).execute()
 
     def subscribe_pending_transaction(self, tx_id):
-        return self.ws_conn.with_method("subcribependingtransaction").with_params([tx_id]).execute()
+        return TransactionDetail(self.ws_conn.with_method("subcribependingtransaction").with_params([tx_id]).execute())
 
     def subscribe_cross_output_coin_by_private_key(self, private_key, timeout=180):
         return self.ws_conn.with_method("subcribecrossoutputcoinbyprivatekey").with_time_out(timeout).with_params(

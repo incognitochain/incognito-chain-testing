@@ -2,7 +2,11 @@ from requests.structures import CaseInsensitiveDict
 
 from APIs import BaseRpcApi
 from Configs import Constants
+from Configs.Configs import ChainConfig
 from Configs.Constants import BURNING_ADDR
+from Drivers.Response import RPCResponseWithTxHash
+from Helpers.Logging import INFO
+from Objects import BlockChainInfoBaseClass
 
 
 class TransactionRpc(BaseRpcApi):
@@ -23,10 +27,7 @@ class TransactionRpc(BaseRpcApi):
             execute()
 
     def get_tx_by_hash(self, tx_id):
-        return self.rpc_connection. \
-            with_method("gettransactionbyhash"). \
-            with_params([tx_id]). \
-            execute()
+        return TransactionDetail(self.rpc_connection.with_method("gettransactionbyhash").with_params([tx_id]).execute())
 
     def estimate_fee_prv(self, sender_private_key, receiver_payment_address, amount_prv, fee=0, privacy=0):
         return self.rpc_connection. \
@@ -58,14 +59,10 @@ class TransactionRpc(BaseRpcApi):
 
     def new_init_p_token(self, private_k, amount, token_name, token_symbol):
         return self.rpc_connection.with_method('createandsendtokeninittransaction'). \
-            with_params([
-            {
-                "PrivateKey": private_k,
-                "TokenName": token_name,
-                "TokenSymbol": token_symbol,
-                "Amount": amount
-            }
-        ]).execute()
+            with_params([{"PrivateKey": private_k,
+                          "TokenName": token_name,
+                          "TokenSymbol": token_symbol,
+                          "Amount": amount}]).execute()
 
     def send_custom_token_transaction(self, sender_private_key, receiver_payment_address, token_id, amount_custom_token,
                                       prv_fee=0, token_fee=0, prv_amount=0, prv_privacy=0, token_privacy=0):
@@ -121,9 +118,7 @@ class TransactionRpc(BaseRpcApi):
                           "TokenSymbol": "",
                           "TokenTxType": 1,
                           "TokenAmount": 0,
-                          "TokenReceivers":
-                              receiver_payment_key_amount_dict
-                          ,
+                          "TokenReceivers": receiver_payment_key_amount_dict,
                           "TokenFee": token_fee
                       },
                       # "", token_privacy
@@ -284,12 +279,12 @@ class TransactionRpc(BaseRpcApi):
     # stake
     def create_and_send_staking_transaction(self, candidate_private_key, candidate_payment_key, candidate_validator_key,
                                             reward_receiver_payment_key, stake_amount=1750, auto_re_stake=True,
-                                            tx_version=2):
+                                            tx_version=2, tx_fee=-1, tx_privacy=0):
         return self.rpc_connection. \
             with_method("createandsendstakingtransaction"). \
             with_params([candidate_private_key,
                          {BURNING_ADDR: stake_amount},
-                         2, 0,
+                         tx_fee, tx_privacy,
                          {
                              "StakingType": 63,
                              "CandidatePaymentAddress": candidate_payment_key,
@@ -313,10 +308,10 @@ class TransactionRpc(BaseRpcApi):
             with_params(param). \
             execute()
 
-    def create_and_send_un_staking_transaction(self, private_key, candidate_payment_key, validator_key):
+    def create_and_send_un_staking_transaction(self, private_key, candidate_payment_key, validator_key, tx_fee=-1):
         param = [private_key,
                  {BURNING_ADDR: 0},
-                 -1, 0,
+                 tx_fee, 0,
                  {"UnStakingType": 210,
                   "CandidatePaymentAddress": candidate_payment_key,
                   "PrivateSeed": validator_key}]
@@ -376,7 +371,7 @@ class TransactionRpc(BaseRpcApi):
             with_params([proof]). \
             execute()
 
-    def send_token_tx(self,proof):
+    def send_token_tx(self, proof):
         return self.rpc_connection. \
             with_method('sendrawprivacycustomtokentransaction'). \
             with_params([proof]). \
@@ -411,3 +406,197 @@ class TransactionRpc(BaseRpcApi):
                           "TokenID": token_id,
                           "Skip": from_index,
                           "Limit": to_index}]).execute()
+
+
+class TransactionDetail(RPCResponseWithTxHash):
+    class TxDetailProof(BlockChainInfoBaseClass):
+        def _get_coin_list(self, coin_list_name):
+            """
+
+            @param coin_list_name: "InputCoins" or "OutputCoins"
+            @return:
+            """
+            from Objects.CoinObject import TxOutPut
+            raw_coins = self.dict_data[coin_list_name]
+            list_coin_obj = []
+            for raw in raw_coins:
+                try:
+                    coin_obj = TxOutPut(raw['CoinDetails'])
+                except KeyError:
+                    coin_obj = TxOutPut(raw)
+                try:
+                    coin_obj.dict_data['CoinDetailsEncrypted'] = raw['CoinDetailsEncrypted']
+                except KeyError:
+                    pass
+                list_coin_obj.append(coin_obj)
+            return list_coin_obj
+
+        def get_input_coins(self):
+            return self._get_coin_list('InputCoins')
+
+        def get_output_coins(self):
+            return self._get_coin_list('OutputCoins')
+
+        def check_proof_privacy(self):
+            input_coins = self.get_input_coins()
+            for coin in input_coins:
+                key = coin.get_public_key()
+                value = coin.get_value()
+                INFO(f'Coin {key} value = {value}')
+                if value != 0:
+                    return False
+
+            return True
+
+    class MetaData(BlockChainInfoBaseClass):
+        def get_type(self):
+            return self.dict_data['Type']
+
+        def get_sig(self):
+            return self.dict_data['Sig']
+
+        def get_payment_address(self):
+            return self.dict_data['PaymentAddress']
+
+        def get_payment_address_reward_receiver(self):
+            return self.dict_data["RewardReceiverPaymentAddress"]
+
+        def get_funder_payment_address(self):
+            return self.dict_data["FunderPaymentAddress"]
+
+        def get_amount(self):
+            return self.dict_data['Amount']
+
+    def get_block_hash(self):
+        return self.get_result()['BlockHash']
+
+    def get_block_height(self):
+        """
+        @return: shard block height NOT BEACON BLOCK HEIGHT
+        """
+        return self.get_result()['BlockHeight']
+
+    def get_tx_size(self):
+        return self.get_result()['TxSize']
+
+    def get_index(self):
+        return self.get_result()['Index']
+
+    def get_shard_id(self):
+        return self.get_result()['ShardID']
+
+    def get_hash(self):
+        return self.get_result()['Hash']
+
+    def get_version(self):
+        return self.get_result()['Version']
+
+    def get_type(self):
+        return self.get_result()['Type']
+
+    def get_lock_time(self):
+        return self.get_result()['LockTime']
+
+    def get_fee(self):
+        return self.get_result()['Fee']
+
+    def get_image(self):
+        return self.get_result()['Image']
+
+    def is_privacy(self):
+        return self.get_result()['IsPrivacy']
+
+    def get_proof(self):
+        return self.get_result()['Proof']
+
+    def get_prv_proof_detail(self):
+        """
+        prv proof
+        :return:
+        """
+        return TransactionDetail.TxDetailProof(self.get_result()['ProofDetail'])
+
+    def get_input_coin_pub_key(self):
+        return self.get_result()['InputCoinPubKey']
+
+    def get_sig_pub_key(self):
+        return self.get_result()['SigPubKey']
+
+    def get_sig(self):
+        return self.get_result()['Sig']
+
+    def get_meta_data(self):
+        return TransactionDetail.MetaData(self.get_result()['Metadata'])
+
+    def get_custom_token_data(self):
+        return self.get_result()['CustomTokenData']
+
+    def get_privacy_custom_token_id(self):
+        return self.get_result()['PrivacyCustomTokenID']
+
+    def get_privacy_custom_token_name(self):
+        return self.get_result()['PrivacyCustomTokenName']
+
+    def get_privacy_custom_token_symbol(self):
+        return self.get_result()['PrivacyCustomTokenSymbol']
+
+    def get_privacy_custom_token_data(self):
+        return self.get_result()['PrivacyCustomTokenData']
+
+    def get_privacy_custom_token_proof_detail(self):
+        """
+        :return:
+        """
+        return TransactionDetail.TxDetailProof(self.get_result()['PrivacyCustomTokenProofDetail'])
+
+    def is_privacy_custom_token(self):
+        return self.get_result()['PrivacyCustomTokenIsPrivacy']
+
+    def get_privacy_custom_token_fee(self):
+        return self.get_result()['PrivacyCustomTokenFee']
+
+    def is_in_mem_pool(self):
+        in_mem_pool = True if self.get_result()["IsInMempool"] == 'true' else False
+        return in_mem_pool
+
+    def is_in_block(self):
+        in_block = True if self.get_result()["IsInBlock"] == 'true' else False
+        return in_block
+
+    def get_info(self):
+        return self.get_result()['Info']
+
+    def get_tx_id(self):
+        try:
+            return self.get_result()['TxID']
+        except KeyError:
+            return self.get_hash()
+
+    def __verify_privacy(self, privacy_flag, detail_proof, expected_privacy=True):
+        version = ChainConfig.PRIVACY_VERSION
+        privacy = privacy_flag and detail_proof.check_proof_privacy()
+        if version == 2:
+            INFO(f'In v2, privacy must always be true no mater the hell you want')
+            assert privacy, f'Expected privacy = True, actual = {privacy}'
+        else:
+            assert privacy == expected_privacy, f'Expected privacy = {expected_privacy} while actual = {privacy}'
+        return self
+
+    def verify_token_privacy(self, expected_privacy=True):
+        INFO(f'Check tx token privacy: {self.get_tx_id()}')
+        detail_proof = self.get_privacy_custom_token_proof_detail()
+        privacy = self.is_privacy_custom_token()
+        INFO(f'PrivacyCustomTokenIsPrivacy={privacy}')
+        return self.__verify_privacy(privacy, detail_proof, expected_privacy)
+
+    def verify_prv_privacy(self, expected_privacy=True):
+        version = ChainConfig.PRIVACY_VERSION
+        expected_privacy = bool(expected_privacy)
+        INFO(f'Check tx prv privacy v{version}: {self.get_tx_id()}')
+        detail_proof = self.get_prv_proof_detail()
+        privacy = self.is_privacy()
+        INFO(f'IsPrivacy={privacy}')
+        return self.__verify_privacy(privacy, detail_proof, expected_privacy)
+
+    def is_confirmed(self):
+        return bool(self.get_block_hash() and self.get_hash())

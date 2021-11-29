@@ -30,7 +30,6 @@ from Objects.PdexV3Objects import PdeV3State
 from Objects.PortalObjects import PortalStateInfo
 from Objects.ShardBlock import ShardBlock
 from Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
-from Objects.TransactionObjects import TransactionDetail
 from Objects.ViewDetailBlock import AllViewDetail
 
 
@@ -151,7 +150,7 @@ class Node:
     def util_rpc(self) -> UtilsRpc:
         return UtilsRpc(self._get_rpc_url())
 
-    def get_tx_by_hash(self, tx_hash, interval=10, time_out=120) -> TransactionDetail:
+    def get_tx_by_hash(self, tx_hash, interval=10, time_out=120):
         """
         @param tx_hash:
         @param interval:
@@ -161,20 +160,19 @@ class Node:
         if tx_hash is None:
             raise ValueError("Tx id must not be none")
         INFO(f"Getting transaction hash: {tx_hash}")
-        tx_detail = self.transaction().get_tx_by_hash(tx_hash)
-        if tx_detail.get_error_msg():
-            result = TransactionDetail()
-        else:
-            result = TransactionDetail(tx_detail.get_result())
-
-        while time_out > 0:
-            if not tx_detail.get_error_msg() and tx_detail.get_result('BlockHeight'):
-                result = TransactionDetail(tx_detail.get_result())
-                break
-            WAIT(interval)
-            time_out -= interval
+        while True:
             tx_detail = self.transaction().get_tx_by_hash(tx_hash)
-        return result
+            if tx_detail.get_error_msg():
+                INFO(tx_detail.get_error_msg())
+                return tx_detail
+            if tx_detail.is_confirmed():
+                return tx_detail
+            if time_out <= 0:
+                break
+            time_out -= interval
+            WAIT(interval)
+        INFO("Time out, tx is not confirmed!")
+        return tx_detail
 
     def get_latest_beacon_block(self, beacon_height=None):
         if beacon_height is None:
@@ -214,9 +212,7 @@ class Node:
         return self.get_latest_beacon_block(beacon_height)
 
     def get_beacon_best_state_detail_info(self):
-        beacon_detail_raw = self.system_rpc().get_beacon_best_state_detail().get_result()
-        beacon_state_obj = BeaconBestStateDetailInfo(beacon_detail_raw)
-        return beacon_state_obj
+        return self.system_rpc().get_beacon_best_state_detail()
 
     def get_latest_pde_state_info(self, beacon_height=None):
         beacon_height = self.help_get_beacon_height() if not beacon_height else beacon_height
@@ -292,14 +288,16 @@ class Node:
         INFO(f"Current beacon height = {beacon_height}")
         return beacon_height
 
-    def help_clear_mem_pool(self):
-        mem_pool_res = self.system_rpc().get_mem_pool()
-        list_tx = mem_pool_res.get_result('ListTxs')
-        mem_pool_size = mem_pool_res.get_result("Size")
-        INFO(f"There are {mem_pool_size} tx(s) in mem pool. Cleaning now...")
-        with ThreadPoolExecutor() as executor:
-            for tx in list_tx:
-                executor.submit(self.system_rpc().remove_tx_in_mem_pool, tx['TxID'])
+    def help_clear_mem_pool(self, tx=None):
+        if tx == "all":
+            mem_pool_res = self.system_rpc().get_mem_pool()
+            list_tx = mem_pool_res.get_result('ListTxs')
+            mem_pool_size = mem_pool_res.get_result("Size")
+            INFO(f"There are {mem_pool_size} tx(s) in mem pool. Cleaning now...")
+            with ThreadPoolExecutor() as executor:
+                for tx in list_tx:
+                    executor.submit(self.system_rpc().remove_tx_in_mem_pool, tx['TxID'])
+        self.system_rpc().remove_tx_in_mem_pool(tx)
 
     def help_get_current_epoch(self):
         """

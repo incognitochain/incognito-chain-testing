@@ -2,7 +2,7 @@ from APIs.CoinService import CoinServiceApiBase
 
 OFFSET = 0
 LIMIT = 10000
-VERSION = 1
+VERSION = 2
 
 
 class CoinServiceApi(CoinServiceApiBase):
@@ -53,3 +53,6 @@ class CoinServiceApi(CoinServiceApiBase):
 
     def parse_token_id(self, ota_key, asset_tags, ota_randoms):
         return self.post('parsetokenid', {'OTARandoms': ota_randoms, 'OTAKey': ota_key, 'AssetTags': asset_tags})
+
+    def request_drop_nft(self, paymentkey):
+        return self.get('nftdrop-service/requestdrop-nft', paymentkey=paymentkey)
