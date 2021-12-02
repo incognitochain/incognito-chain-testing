@@ -4,7 +4,6 @@ from Helpers.Logging import INFO, ERROR
 from Helpers.TestHelper import l6
 from Objects.AccountObject import Account, COIN_MASTER
 from Objects.IncognitoTestCase import SUT, STAKER_ACCOUNTS, ACCOUNTS, COMMITTEE_ACCOUNTS
-from Objects.TransactionObjects import TransactionDetail
 
 stake_account = Account(
     "112t8sw4ZAc1wwbKog9NhE6VqpEiPii4reg8Zc5AVGu7BkxtPYv95dXRJtzP9CkepgzfUwTseNzgHXRovo9oDb8XrEpb5EgFhKdZhwjzHTbd")
@@ -676,7 +675,7 @@ def get_staker_by_tx_id(tx_id):
     if tx_id == default:
         return COMMITTEE_ACCOUNTS[0]
     acc_group = ACCOUNTS + STAKER_ACCOUNTS
-    response = TransactionDetail().get_transaction_by_hash(tx_id)
+    response = SUT().get_transaction_by_hash(tx_id)
     try:
         meta_data = response.get_meta_data()
     except:

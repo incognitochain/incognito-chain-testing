@@ -21,9 +21,9 @@ _file_handler_full = logging.FileHandler(filename=os.path.join('log', _log_file_
 _file_handler_full.setFormatter(_formatter)
 _file_handler_full.setLevel(logging.DEBUG)
 # create file logging handle: short log
-_file_handler_short = logging.FileHandler(filename=os.path.join('log', _log_file_short))
-_file_handler_short.setFormatter(_formatter)
-_file_handler_short.setLevel(_STEP_LVL)
+# _file_handler_short = logging.FileHandler(filename=os.path.join('log', _log_file_short))
+# _file_handler_short.setFormatter(_formatter)
+# _file_handler_short.setLevel(_STEP_LVL)
 # create system out logging handle
 _sys_out_handler = logging.StreamHandler(sys.stdout)
 _sys_out_handler.setFormatter(_formatter)
@@ -54,7 +54,7 @@ def _log(logger_name=None):
         # By default, log all messages
         logger.setLevel(logging.DEBUG)
         logger.addHandler(_file_handler_full)
-        logger.addHandler(_file_handler_short)
+        # logger.addHandler(_file_handler_short)
         logger.addHandler(_sys_out_handler)
         LOGGERS[logger_name] = logger
     return logging.LoggerAdapter(logger, line)

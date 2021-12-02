@@ -1500,21 +1500,33 @@ class Account:
 
 
 class AccountGroup:
-    def __init__(self, *accounts):
+    def __get_acc_synchronous(self, keys):
         init_thread = []
-        self.account_list: List[Account] = []
         with ThreadPoolExecutor() as tpe:
-            for acc in accounts:
-                if isinstance(acc, Account):
-                    self.account_list.append(acc)
-                elif isinstance(acc, str):
-                    init_thread.append(tpe.submit(Account, acc))
-                else:
-                    raise TypeError(f"List member must be an Account object or string (private key), "
-                                    f"got {type(acc)} instead ")
+            for key in keys:
+                init_thread.append(tpe.submit(Account, key))
 
         for thread in init_thread:
             self.account_list.append(thread.result())
+
+    def __init__(self, *accounts):
+        self.account_list: List[Account] = []
+        list_key = []
+        for acc in accounts:
+            if isinstance(acc, Account):
+                self.account_list.append(acc)
+            elif isinstance(acc, str):
+                list_key.append(acc)
+            else:
+                raise TypeError(f"List member must be an Account object or string (private key), "
+                                f"got {type(acc)} instead ")
+        self.__get_acc_synchronous(list_key)
+
+    def load_file(self, file_path):
+        with open(file_path) as file:
+            keys = file.read().splitlines()
+        self.__get_acc_synchronous(keys)
+        return self
 
     def __len__(self):
         return len(self.account_list)
@@ -1567,6 +1579,12 @@ class AccountGroup:
 
         return AccountGroup(*accounts_in_shard)
 
+    def rm_accounts_in_shard(self, shard_id):
+        for acc in self:
+            if acc.shard == shard_id:
+                self.remove(acc)
+        return self
+
     def find_account_by_key(self, key):
         """
         @param key: any kind of key (private, payment, public, committee ...)
@@ -1589,6 +1607,7 @@ class AccountGroup:
     def change_req_handler(self, HANDLER):
         for acc in self:
             acc.req_to(HANDLER)
+        return self
 
     def find_the_richest(self, token_id=PRV_ID):
         all_bal = self.get_balance(token_id)
@@ -1613,16 +1632,16 @@ class AccountGroup:
         wait_time, each_wait, max_wait = 0, 5, 300
         submit_statuses = {}
         INFO(f"Getting key submit status...")
-        for acc in self:
-            with ThreadPoolExecutor() as tpe:
+        with ThreadPoolExecutor() as tpe:
+            for acc in self:
                 t = tpe.submit(acc.submit_key_status)
                 submit_statuses[acc] = t
         for acc, future in submit_statuses.items():
             if future.result() == Status.SubmitKey.NOT_SUBMITTED:
                 to_submit.append(acc)
                 wait_time += each_wait
-        for acc in to_submit:
-            with ThreadPoolExecutor() as tpe:
+        with ThreadPoolExecutor() as tpe:
+            for acc in to_submit:
                 tpe.submit(acc.submit_key, key_type)
         if wait_time:
             INFO(f"Indexing is in progress, wait for {min(wait_time, max_wait)}!!!")
