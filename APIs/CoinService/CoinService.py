@@ -48,8 +48,8 @@ class CoinServiceApi(CoinServiceApiBase):
         return self.get('gettxshistory', paymentkey=key, tokenid=token_id, offset=offset, limit=limit)
 
     # v2 only
-    def submit_ota_key(self, ota_private_k, shard_id):
-        return self.post('submitotakey', {'OTAKey': ota_private_k, 'ShardID': shard_id})
+    def submit_ota_key(self, ota_private_k, shard_id, from_now=True):
+        return self.post('submitotakey', {'OTAKey': ota_private_k, "FromNow": from_now, 'ShardID': shard_id})
 
     def parse_token_id(self, ota_key, asset_tags, ota_randoms):
         return self.post('parsetokenid', {'OTARandoms': ota_randoms, 'OTAKey': ota_key, 'AssetTags': asset_tags})

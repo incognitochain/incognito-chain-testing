@@ -5,9 +5,10 @@ from pexpect import pxssh
 from urllib3.exceptions import NewConnectionError
 from websocket import create_connection
 
-import Helpers.Logging as Log
 from Drivers.Response import Response
-from Helpers.Logging import DEBUG, ERROR
+from Helpers.Logging import config_logger
+
+logger = config_logger(__name__)
 
 
 class RpcConnection:
@@ -46,11 +47,11 @@ class RpcConnection:
 
     def execute(self):
         try:
-            Log.DEBUG(f'exec RCP: {self._base_url} \n{json.dumps(self._payload, indent=3)}')
+            logger.debug(f'exec RCP: {self._base_url} \n{json.dumps(self._payload, indent=3)}')
             response = requests.post(self._base_url, data=json.dumps(self._payload),
                                      headers=self._headers, timeout=RpcConnection.DEFAULT_TIMEOUT)
         except NewConnectionError:
-            ERROR('Connection refused')
+            logger.error('Connection refused')
         return Response(response)
 
     def print_pay_load(self):
@@ -87,25 +88,25 @@ class WebSocket(RpcConnection):
 
     def open(self):
         if self._ws_conn is None:
-            DEBUG('Open new web socket connection')
+            logger.debug('Open new web socket connection')
             self._ws_conn = create_connection(self._url, self.__timeout)
             return
         if not self.is_alive():
-            DEBUG('Current ws connection is dead, open new one')
+            logger.debug('Current ws connection is dead, open new one')
             self._ws_conn = create_connection(self._url, self.__timeout)
             return
-        DEBUG('WS connection is alive, use existing one')
+        logger.debug('WS connection is alive, use existing one')
 
     def close(self):
         self._ws_conn.close()
-        Log.DEBUG(self._url + " Connection closed")
+        logger.debug(self._url + " Connection closed")
 
     def is_alive(self):
-        DEBUG(f"Is web socket connection alive?{self._ws_conn.connected}")
+        logger.debug(f"Is web socket connection alive?{self._ws_conn.connected}")
         return self._ws_conn.connected
 
     def with_time_out(self, time: int):
-        DEBUG(f'Setting timeout = {time} seconds')
+        logger.debug(f'Setting timeout = {time} seconds')
         self.open()
         self._ws_conn.settimeout(time)
         return self
@@ -114,7 +115,7 @@ class WebSocket(RpcConnection):
         self.open()
         data = {"request": self._payload,
                 "subcription": self.__subscription, "type": self.__type}
-        Log.DEBUG(f'exec WS: {self._base_url} \n{json.dumps(data, indent=3)}')
+        logger.debug(f'exec WS: {self._base_url} \n{json.dumps(data, indent=3)}')
         self._ws_conn.send(json.dumps(data))
         result = self._ws_conn.recv()
         if close_when_done:
@@ -137,25 +138,25 @@ class SshSession(pxssh.pxssh):
         #     self.login(self._address, self._username, password=self._password)
         #     return self
         if self._sshkey is not None:
-            Log.INFO(f'SSH logging to {self._address} with ssh key. User: {self._username}')
+            logger.info(f'SSH logging to {self._address} with ssh key. User: {self._username}')
             self.login(self._address, self._username, ssh_key=self._sshkey)
             return self
 
     def disconnect(self):
         self.logout()
-        Log.INFO(f'SSH logout of: {self._address}')
+        logger.info(f'SSH logout of: {self._address}')
 
     def send_cmd(self, command):
         """
         @param command:
         @return: command output as a list of strings, with each item of the list is a line of command output
         """
-        Log.INFO(f'Send command via ssh: {command}')
+        logger.info(f'Send command via ssh: {command}')
         self.sendline(command)
         self.prompt()
         response = self.before.decode('utf-8')
         response_list = response.split('\n')
-        DEBUG(response)
+        logger.debug(response)
         if command[-1] == '&' and command[-2] != '&':
             pass
         else:

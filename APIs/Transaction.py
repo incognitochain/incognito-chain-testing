@@ -5,8 +5,10 @@ from Configs import Constants
 from Configs.Configs import ChainConfig
 from Configs.Constants import BURNING_ADDR
 from Drivers.Response import RPCResponseWithTxHash
-from Helpers.Logging import INFO
+from Helpers.Logging import config_logger
 from Objects import BlockChainInfoBaseClass
+
+logger = config_logger(__name__)
 
 
 class TransactionRpc(BaseRpcApi):
@@ -442,7 +444,7 @@ class TransactionDetail(RPCResponseWithTxHash):
             for coin in input_coins:
                 key = coin.get_public_key()
                 value = coin.get_value()
-                INFO(f'Coin {key} value = {value}')
+                logger.info(f'Coin {key} value = {value}')
                 if value != 0:
                     return False
 
@@ -576,26 +578,26 @@ class TransactionDetail(RPCResponseWithTxHash):
         version = ChainConfig.PRIVACY_VERSION
         privacy = privacy_flag and detail_proof.check_proof_privacy()
         if version == 2:
-            INFO(f'In v2, privacy must always be true no mater the hell you want')
+            logger.info(f'In v2, privacy must always be true no mater the hell you want')
             assert privacy, f'Expected privacy = True, actual = {privacy}'
         else:
             assert privacy == expected_privacy, f'Expected privacy = {expected_privacy} while actual = {privacy}'
         return self
 
     def verify_token_privacy(self, expected_privacy=True):
-        INFO(f'Check tx token privacy: {self.get_tx_id()}')
+        logger.info(f'Check tx token privacy: {self.get_tx_id()}')
         detail_proof = self.get_privacy_custom_token_proof_detail()
         privacy = self.is_privacy_custom_token()
-        INFO(f'PrivacyCustomTokenIsPrivacy={privacy}')
+        logger.info(f'PrivacyCustomTokenIsPrivacy={privacy}')
         return self.__verify_privacy(privacy, detail_proof, expected_privacy)
 
     def verify_prv_privacy(self, expected_privacy=True):
         version = ChainConfig.PRIVACY_VERSION
         expected_privacy = bool(expected_privacy)
-        INFO(f'Check tx prv privacy v{version}: {self.get_tx_id()}')
+        logger.info(f'Check tx prv privacy v{version}: {self.get_tx_id()}')
         detail_proof = self.get_prv_proof_detail()
         privacy = self.is_privacy()
-        INFO(f'IsPrivacy={privacy}')
+        logger.info(f'IsPrivacy={privacy}')
         return self.__verify_privacy(privacy, detail_proof, expected_privacy)
 
     def is_confirmed(self):

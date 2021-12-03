@@ -1,7 +1,9 @@
-import Helpers.Logging as Log
 from APIs.Transaction import TransactionDetail
 
 from Drivers.Connections import WebSocket
+from Helpers.Logging import config_logger
+
+logger = config_logger(__name__)
 
 
 class SubscriptionWs:
@@ -27,6 +29,6 @@ class SubscriptionWs:
         self.ws_conn.close()
 
     def open_web_socket(self):
-        Log.INFO(f"!!! Open web socket: {self.ws_conn._url}")
+        logger.info(f"!!! Open web socket: {self.ws_conn._url}")
         self.ws_conn.open()
         return self

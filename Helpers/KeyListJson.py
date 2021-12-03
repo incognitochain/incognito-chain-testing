@@ -1,8 +1,10 @@
 import json
 from typing import Union
 
-from Helpers.Logging import ERROR
+from Helpers.Logging import config_logger
 from Objects.AccountObject import Account, AccountGroup
+
+logger = config_logger(__name__)
 
 
 class KeyListJson:
@@ -19,7 +21,7 @@ class KeyListJson:
         try:
             return Account(data['PrivateKey'], **kwargs)
         except KeyError:
-            ERROR(f'Raw data block does not contain private key, only: {list(data.keys())}')
+            logger.error(f'Raw data block does not contain private key, only: {list(data.keys())}')
 
     def get_list_account(self, list_name, **kwargs):
         key_set_raw = self._data[list_name]

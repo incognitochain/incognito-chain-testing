@@ -1,7 +1,9 @@
 import time
 from datetime import datetime
 
-from Helpers.Logging import INFO
+from Helpers.Logging import config_logger
+
+logger = config_logger(__name__)
 
 
 def get_current_date_time(date_format="%d%m%y%H%M%S"):
@@ -15,7 +17,7 @@ def WAIT(_time, unit='s'):
     :param unit: s (second), m (minute) or h (hour)
     :return:
     """
-    INFO(f"Wait for {_time}{unit}")
+    logger.info(f"Wait for {_time}{unit}")
 
     _unit = {"s": 1,
              "m": 60,

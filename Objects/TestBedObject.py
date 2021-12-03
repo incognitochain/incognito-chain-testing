@@ -1,13 +1,14 @@
 from typing import List
 
-import Helpers.Logging as Log
-
 from Drivers.Connections import SshSession
+from Helpers.Logging import config_logger
 from Objects.NodeObject import Node
+
+logger = config_logger(__name__)
 
 
 def load_test_data(name):
-    Log.INFO(f'Loading: test data {name}')
+    logger.info(f'Loading: test data {name}')
     try:
         return __import__(f'TestData.{name}', fromlist=['object'])
     except ModuleNotFoundError:
@@ -15,7 +16,7 @@ def load_test_data(name):
 
 
 def load_test_bed(name):
-    Log.INFO(f'Loading test bed: {name}')
+    logger.info(f'Loading test bed: {name}')
     try:
         return __import__(f'TestBeds.{name}', fromlist=['object'])
     except ModuleNotFoundError:
@@ -33,7 +34,7 @@ class TestBed:
             try:
                 self.beacons: Beacon = tb.beacon
             except AttributeError:
-                self.beacons: Beacon = []
+                self.beacons: Beacon = Beacon()
             try:
                 self.shards: List[Shard] = tb.shard_list
             except AttributeError:
@@ -79,7 +80,7 @@ class TestBed:
         return f"Test bed name: {self.name} | Full node : {self.full_node} | Current request handler: {self()}"
 
     def precondition_check(self):
-        Log.INFO(f'Checking test bed')
+        logger.info(f'Checking test bed')
         return self
 
     def is_default(self):

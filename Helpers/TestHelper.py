@@ -4,8 +4,10 @@ import string
 from json.decoder import JSONDecodeError
 
 from Configs.Configs import ChainConfig
-from Helpers.Logging import INFO
+from Helpers.Logging import config_logger
 from Helpers.Time import WAIT
+
+logger = config_logger(__name__)
 
 
 class CustomAssert:
@@ -13,7 +15,7 @@ class CustomAssert:
     def compare_with_margin(a, b, margin):
         if abs(a - b) > margin:
             raise AssertionError(f"{a} vs {b}, margin {margin}")
-        INFO(f"{a} vs {b} is tolerable, margin = {margin}")
+        logger.info(f"{a} vs {b} is tolerable, margin = {margin}")
         return True
 
 
@@ -165,16 +167,16 @@ class ChainHelper:
         @param beacon_height:
         @return:
         """
-        INFO(f'Waiting till beacon height {beacon_height}')
+        logger.info(f'Waiting till beacon height {beacon_height}')
         from Objects.IncognitoTestCase import SUT
         current_beacon_h = SUT().help_get_beacon_height()
         if beacon_height <= current_beacon_h:
-            INFO(f'Beacon height {beacon_height} is passed already')
+            logger.info(f'Beacon height {beacon_height} is passed already')
             return current_beacon_h
 
         while beacon_height > current_beacon_h:
             if timeout <= 0:
-                INFO(f'Time out and current beacon height is {current_beacon_h}')
+                logger.info(f'Time out and current beacon height is {current_beacon_h}')
                 return current_beacon_h
             if interval is None:
                 block_remain = beacon_height - current_beacon_h
@@ -183,7 +185,7 @@ class ChainHelper:
             timeout -= interval
             current_beacon_h = SUT().help_get_beacon_height()
 
-        INFO(f'Beacon height {beacon_height} is passed already')
+        logger.info(f'Beacon height {beacon_height} is passed already')
         return current_beacon_h
 
     @staticmethod
@@ -213,10 +215,10 @@ class ChainHelper:
         wait = ChainConfig.BLOCK_TIME if wait is None else wait
         current_shard_h = SUT().help_get_shard_height(shard_id)
         shard_height = current_shard_h + num_of_shard_height_to_wait
-        INFO(f'Waiting till shard {shard_id} height {shard_height}')
+        logger.info(f'Waiting till shard {shard_id} height {shard_height}')
 
         if shard_height <= current_shard_h:
-            INFO(f'Shard {shard_id} height {shard_height} is passed already')
+            logger.info(f'Shard {shard_id} height {shard_height} is passed already')
             return current_shard_h
 
         while shard_height > current_shard_h:
@@ -224,10 +226,10 @@ class ChainHelper:
             timeout -= wait
             current_shard_h = SUT().help_get_shard_height(shard_id)
             if timeout <= 0:
-                INFO(f'Time out and current shard {shard_id} height is {current_shard_h}')
+                logger.info(f'Time out and current shard {shard_id} height is {current_shard_h}')
                 return current_shard_h
 
-        INFO(f'Time out and current shard {shard_id} height is {current_shard_h}')
+        logger.info(f'Time out and current shard {shard_id} height is {current_shard_h}')
         return current_shard_h
 
     @staticmethod
@@ -253,8 +255,8 @@ class ChainHelper:
             block_to_wait = num_of_block_till_next_epoch + block_of_epoch \
                             + (epoch_to_wait - 1) * ChainConfig.BLOCK_PER_EPOCH
         time_to_wait = ChainConfig.get_epoch_n_block_time(0, block_to_wait)
-        INFO(f'Current height = {current_height} @ epoch = {current_epoch}. '
-             f'Wait {time_to_wait}s until epoch {current_epoch + epoch_to_wait} and B height {block_of_epoch}')
+        logger.info(f'Current height = {current_height} @ epoch = {current_epoch}. '
+                    f'Wait {time_to_wait}s until epoch {current_epoch + epoch_to_wait} and B height {block_of_epoch}')
         WAIT(time_to_wait)
         blk_chain_info = node.get_block_chain_info()
         return blk_chain_info.get_epoch_number(), blk_chain_info.get_beacon_block().get_height()

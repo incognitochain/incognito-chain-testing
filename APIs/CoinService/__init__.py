@@ -1,7 +1,11 @@
-import requests
 import json
+
+import requests
+
 from APIs.CoinService.CoinServiceResponse import CoinServiceResponse
-from Helpers.Logging import DEBUG
+from Helpers.Logging import config_logger
+
+logger = config_logger(__name__)
 
 
 class CoinServiceApiBase:
@@ -18,7 +22,7 @@ class CoinServiceApiBase:
         @return:
         """
         url = f"{self.endpoint}/{path}"
-        DEBUG(f'exec RCP: {url} \n{json.dumps(data, indent=3)}')
+        logger.debug(f'exec RCP: {url} \n{json.dumps(data, indent=3)}')
         response = requests.post(url, data=json.dumps(data), headers=CoinServiceApiBase.HEADER)
         return CoinServiceResponse(response)
 
@@ -32,6 +36,6 @@ class CoinServiceApiBase:
         for key, value in params.items():
             url += f'{key}={value}&'
         url = url.strip('&')
-        DEBUG(f'GET: {url}')
+        logger.debug(f'GET: {url}')
         response = requests.get(url, headers=CoinServiceApiBase.HEADER)
         return CoinServiceResponse(response)

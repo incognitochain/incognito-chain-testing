@@ -3,9 +3,11 @@ from abc import abstractmethod
 
 from Configs.Constants import PRV_ID
 from Drivers.Response import RPCResponseBase
-from Helpers.Logging import INFO, DEBUG
+from Helpers.Logging import config_logger
 from Helpers.TestHelper import l6, KeyExtractor
 from Objects import BlockChainInfoBaseClass
+
+logger = config_logger(__name__)
 
 
 class InstructionType:
@@ -158,8 +160,8 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         for shard_id, committee_list in all_committee_in_all_shard_dict.items():
             for i in range(len(committee_list)):
                 committee = committee_list[i]
-                INFO(f"{l6(committee.get_inc_public_key())} - shard{shard_id}.{i} - "
-                     f"AutoStake {committee.is_auto_staking()}")
+                logger.info(f"{l6(committee.get_inc_public_key())} - shard{shard_id}.{i} - "
+                            f"AutoStake {committee.is_auto_staking()}")
 
     def is_random_number(self):
         return self.get_result("IsGetRandomNumber")
@@ -273,12 +275,12 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         for raw_data in raw_auto_staking_list_raw:
             auto_staking_obj = BeaconBestStateDetailInfo.Committee(raw_data)
             if auto_staking_obj.get_inc_public_key() == acc_pub_key:
-                # INFO(f"{l6(acc_pub_key)} (public key) auto-staking is {auto_staking_obj.is_auto_staking()}")
+                # logger.info(f"{l6(acc_pub_key)} (public key) auto-staking is {auto_staking_obj.is_auto_staking()}")
                 return auto_staking_obj.is_auto_staking()
             auto_staking_objs.append(auto_staking_obj)
 
         if account is not None:
-            INFO(f"{l6(acc_pub_key)} (public key) not found in auto-staking list")
+            logger.info(f"{l6(acc_pub_key)} (public key) not found in auto-staking list")
             return None
         return auto_staking_objs
 
@@ -296,9 +298,9 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
 
         for key, tx in staking_tx_dict.items():
             if key == acc_pub_key:
-                INFO(f"{l6(acc_pub_key)} (public key) staking tx_id is {tx}")
+                logger.info(f"{l6(acc_pub_key)} (public key) staking tx_id is {tx}")
                 return tx
-        INFO(f"{l6(acc_pub_key)} (public key) not found staking tx_id")
+        logger.info(f"{l6(acc_pub_key)} (public key) not found staking tx_id")
         return None
 
     def get_missing_signature(self, account=None):
@@ -320,9 +322,9 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
                 except KeyError:
                     total = count_signature["Total"]
                 missing = count_signature["Missing"]
-                # INFO(f"Count signature of {l6(acc_pub_key)} (public key) - Total: {total} - Missing: {missing}")
+                # logger.info(f"Count signature of {l6(acc_pub_key)} (public key) - Total: {total} - Missing: {missing}")
                 return total, missing
-        INFO(f"Missing Signature of {l6(acc_pub_key)} (public-key) not found")
+        logger.info(f"Missing Signature of {l6(acc_pub_key)} (public-key) not found")
 
     def get_missing_signature_penalty(self, account=None):
         """
@@ -340,9 +342,9 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             if key == acc_pub_key:
                 total = count_signature["Total"]
                 missing = count_signature["Missing"]
-                INFO(f"Count signature of {l6(acc_pub_key)} (public key) - Total: {total} - Missing: {missing}")
+                logger.info(f"Count signature of {l6(acc_pub_key)} (public key) - Total: {total} - Missing: {missing}")
                 return total, missing
-        INFO(f"Missing Signature Penalty of {l6(acc_pub_key)} (public-key) not found")
+        logger.info(f"Missing Signature Penalty of {l6(acc_pub_key)} (public-key) not found")
 
     def is_he_a_committee(self, account):
         """
@@ -363,10 +365,10 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             committees_in_shard = self.get_shard_committees(shard_number)
             for committee in committees_in_shard:
                 if committee.get_inc_public_key() == public_key:
-                    INFO(f" IS committee @ B height {self.get_beacon_height()}: "
-                         f"pub_key = {public_key} : shard {shard_number}")
+                    logger.info(f" IS committee @ B height {self.get_beacon_height()}: "
+                                f"pub_key = {public_key} : shard {shard_number}")
                     return shard_number
-        INFO(f"NOT committee @ B height {self.get_beacon_height()}: pub_key = {public_key}")
+        logger.info(f"NOT committee @ B height {self.get_beacon_height()}: pub_key = {public_key}")
         return False
 
     def is_he_in_shard_pending(self, account):
@@ -383,9 +385,9 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             shard_pending = self.get_shard_pending_validator(shard_number)
             for committee in shard_pending:
                 if committee.get_inc_public_key() == public_key:
-                    INFO(f" IS in shard pending: pub_key = {public_key} : shard {shard_number}")
+                    logger.info(f" IS in shard pending: pub_key = {public_key} : shard {shard_number}")
                     return shard_number
-        INFO(f"NOT exist in shard pending: pub_key = {public_key}")
+        logger.info(f"NOT exist in shard pending: pub_key = {public_key}")
         return False
 
     def is_he_in_sync_pool(self, account):
@@ -402,9 +404,9 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             shard_pending = self.get_syncing_validators(shard_number)
             for committee in shard_pending:
                 if committee.get_inc_public_key() == public_key:
-                    INFO(f" IS committee in sync pool: pub_key = {public_key} : shard {shard_number}")
+                    logger.info(f" IS committee in sync pool: pub_key = {public_key} : shard {shard_number}")
                     return shard_number
-        INFO(f"NOT exist in sync pool: pub_key = {public_key}")
+        logger.info(f"NOT exist in sync pool: pub_key = {public_key}")
         return False
 
     def is_he_in_waiting_next_random(self, account):
@@ -419,9 +421,9 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         waiting_next_random = self.get_candidate_shard_waiting_next_random()
         for committee in waiting_next_random:
             if committee.get_inc_public_key() == public_key:
-                INFO(f" IS validator in shard waiting next random: pub_key = {public_key}")
+                logger.info(f" IS validator in shard waiting next random: pub_key = {public_key}")
                 return True
-        INFO(f"NOT exist in shard waiting next random: pub_key = {public_key}")
+        logger.info(f"NOT exist in shard waiting next random: pub_key = {public_key}")
         return False
 
     def where_is_he(self, account):
@@ -474,9 +476,9 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         """
         for shard_id, committee_pub_k_list in self.get_shard_committees().items():
             if account.committee_public_k in committee_pub_k_list:
-                INFO(f'(comm pub k) {l6(account.committee_public_k)} is a committee of shard {shard_id}')
+                logger.info(f'(comm pub k) {l6(account.committee_public_k)} is a committee of shard {shard_id}')
                 return shard_id
-        INFO(f'(comm pub k) {l6(account.committee_public_k)} is NOT a committee of any shard')
+        logger.info(f'(comm pub k) {l6(account.committee_public_k)} is NOT a committee of any shard')
         return False
 
     def is_in_shard_pending_list(self, account):
@@ -487,9 +489,9 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         """
         for shard_id, pending_list in self.get_shard_pending_validator().items():
             if account.committee_public_k in pending_list:
-                INFO(f'(comm pub k) {l6(account.committee_public_k)} is in shard {shard_id} pending list')
+                logger.info(f'(comm pub k) {l6(account.committee_public_k)} is in shard {shard_id} pending list')
                 return shard_id
-        INFO(f'(comm pub k) {l6(account.committee_public_k)} is NOT in pending list of any shard')
+        logger.info(f'(comm pub k) {l6(account.committee_public_k)} is NOT in pending list of any shard')
         return False
 
     def get_beacon_committee(self):
@@ -547,9 +549,9 @@ class BeaconBestStateInfo(BeaconBestStateBase):
         # get a committee auto staking
         for key, value in auto_staking_dict_raw.items():
             if committee_public_k == key:
-                INFO(f'(comm pub k) {l6(committee_public_k)} auto staking is {value}')
+                logger.info(f'(comm pub k) {l6(committee_public_k)} auto staking is {value}')
                 return value
-        INFO(f'(comm pub k) {l6(committee_public_k)} is not found in auto staking list')
+        logger.info(f'(comm pub k) {l6(committee_public_k)} is not found in auto staking list')
         return None
 
     def get_shard_pending_validator(self, shard_num=None, validator_number=None):
@@ -614,9 +616,9 @@ class BeaconBestStateInfo(BeaconBestStateBase):
 
         for key, tx in staking_tx_dict.items():
             if key == acc_committee_pub_key:
-                INFO(f"{l6(acc_committee_pub_key)} (public key) staking tx_id is {tx}")
+                logger.info(f"{l6(acc_committee_pub_key)} (public key) staking tx_id is {tx}")
                 return tx
-        INFO(f"{l6(acc_committee_pub_key)} (public key) not found staking tx_id")
+        logger.info(f"{l6(acc_committee_pub_key)} (public key) not found staking tx_id")
         return None
 
     def get_missing_signature(self, account=None):
@@ -638,9 +640,10 @@ class BeaconBestStateInfo(BeaconBestStateBase):
                 except KeyError:
                     total = count_signature["ActualTotal"]
                 missing = count_signature["Missing"]
-                INFO(f"Count signature of {l6(acc_committee_pub_key)} (public k) - Total: {total} - Missing: {missing}")
+                logger.info(
+                    f"Count signature of {l6(acc_committee_pub_key)} (public k) - Total: {total} - Missing: {missing}")
                 return total, missing
-        INFO(f"Missing Signature of {l6(acc_committee_pub_key)} (public-key) not found")
+        logger.info(f"Missing Signature of {l6(acc_committee_pub_key)} (public-key) not found")
 
     def get_missing_signature_penalty(self, account=None):
         """
@@ -658,10 +661,10 @@ class BeaconBestStateInfo(BeaconBestStateBase):
             if key == acc_committee_pub_key:
                 total = count_signature["Total"]
                 missing = count_signature["Missing"]
-                INFO(
+                logger.info(
                     f"Count signature of {l6(acc_committee_pub_key)} (public k) - Total: {total} - Missing: {missing}")
                 return total, missing
-        INFO(f"Missing Signature Penalty of {l6(acc_committee_pub_key)} (public k) not found")
+        logger.info(f"Missing Signature Penalty of {l6(acc_committee_pub_key)} (public k) not found")
 
     def get_number_of_shard_block(self, shard_id=None):
         raw_data = self.get_result("NumberOfShardBlock")
@@ -873,7 +876,7 @@ class BeaconBlock(BlockChainInfoBaseClass):
             try:
                 return BeaconBlock.ShardState(self.dict_data["ShardStates"][str(shard_id)])
             except KeyError:
-                DEBUG(f"Not found shard state of shard {shard_id} in beacon block {self.get_height()}")
+                logger.debug(f"Not found shard state of shard {shard_id} in beacon block {self.get_height()}")
                 return None
         else:
             return {shard: BeaconBlock.ShardState(raw) for shard, raw in self.dict_data["ShardStates"].items()}
@@ -915,7 +918,7 @@ class BeaconBlock(BlockChainInfoBaseClass):
         """
         RESULT = {}
         token = PRV_ID if token is None else token
-        INFO(f'GET reward info, epoch {self.get_epoch() - 1}, height {self.get_height()}, token {l6(token)}')
+        logger.info(f'GET reward info, epoch {self.get_epoch() - 1}, height {self.get_height()}, token {l6(token)}')
         beacon_reward_inst = self.get_instructions(BeaconBlock.INST_TYPE_BEACON)
         DAO_reward_inst = self.get_instructions(BeaconBlock.INST_TYPE_DAO)
         shard_reward_inst = self.get_instructions(BeaconBlock.INST_TYPE_SHARD)

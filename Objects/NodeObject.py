@@ -18,7 +18,7 @@ from Configs.Configs import ChainConfig
 from Configs.Constants import PRV_ID
 from Drivers.Connections import SshSession
 from Helpers import TestHelper
-from Helpers.Logging import INFO, DEBUG, INFO_HEADLINE
+from Helpers.Logging import config_logger
 from Helpers.TestHelper import l6, ChainHelper
 from Helpers.Time import WAIT
 from Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock, BeaconBestStateInfo
@@ -31,6 +31,8 @@ from Objects.PortalObjects import PortalStateInfo
 from Objects.ShardBlock import ShardBlock
 from Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
 from Objects.ViewDetailBlock import AllViewDetail
+
+logger = config_logger(__name__)
 
 
 def action_over_ssh(func):
@@ -159,11 +161,11 @@ class Node:
         """
         if tx_hash is None:
             raise ValueError("Tx id must not be none")
-        INFO(f"Getting transaction hash: {tx_hash}")
+        logger.info(f"Getting transaction hash: {tx_hash}")
         while True:
             tx_detail = self.transaction().get_tx_by_hash(tx_hash)
             if tx_detail.get_error_msg():
-                INFO(tx_detail.get_error_msg())
+                logger.info(tx_detail.get_error_msg())
                 return tx_detail
             if tx_detail.is_confirmed():
                 return tx_detail
@@ -171,13 +173,13 @@ class Node:
                 break
             time_out -= interval
             WAIT(interval)
-        INFO("Time out, tx is not confirmed!")
+        logger.info("Time out, tx is not confirmed!")
         return tx_detail
 
     def get_latest_beacon_block(self, beacon_height=None):
         if beacon_height is None:
             beacon_height = self.help_get_beacon_height()
-        INFO(f'Get beacon block at height {beacon_height}')
+        logger.info(f'Get beacon block at height {beacon_height}')
         response = self.system_rpc().retrieve_beacon_block_by_height(beacon_height)
         return BeaconBlock(response.get_result()[0])
 
@@ -196,12 +198,12 @@ class Node:
                 next_first_height = ChainHelper.cal_first_height_of_epoch(current_epoch + 1)
                 wait_height = next_first_height + 1 - current_height
                 time_till_next_epoch_first_block = ChainConfig.BLOCK_TIME * wait_height
-                INFO(f'Current epoch {current_epoch} Current height {current_height}, '
-                     f'wait for {wait_height} height till height {current_height + wait_height}')
+                logger.info(f'Current epoch {current_epoch} Current height {current_height}, '
+                            f'wait for {wait_height} height till height {current_height + wait_height}')
                 # +1 just to make sure that the first block of epoch is already confirmed
                 WAIT(time_till_next_epoch_first_block)
             else:
-                INFO(f'Current epoch {current_epoch} Current height {current_height}, no need to wait')
+                logger.info(f'Current epoch {current_epoch} Current height {current_height}, no need to wait')
             epoch = current_epoch + 1
         elif epoch is None:
             epoch = self.help_get_current_epoch()
@@ -221,7 +223,7 @@ class Node:
 
     def pde3_get_state(self, beacon_height=None, key_filter="All", id_filter="1", verbose=1):
         beacon_height = self.help_get_beacon_height() if not beacon_height else beacon_height
-        INFO(f'Get PDE3 state at beacon height: {beacon_height}')
+        logger.info(f'Get PDE3 state at beacon height: {beacon_height}')
         return PdeV3State(self.dex_v3().get_pdev3_state(beacon_height, key_filter, id_filter, verbose))
 
     def pde3_make_trade_tx(self, private_key, token_sell, token_buy, sell_amount, min_acceptable, trade_path,
@@ -243,8 +245,8 @@ class Node:
                    'linux': f'{_path}/{_exe_name}-linux',
                    '*': f'{_path}/{_exe_name}-win'}
         exe = _binary.get(sys.platform, _binary["*"])
-        INFO(f"Making trade tx: private k: {private_key[-6:]}, sell-buy {token_sell[-6:]}-{token_buy[-6:]}, "
-             f"amount: {sell_amount}, path len: {len(trade_path)}")
+        logger.info(f"Making trade tx: private k: {private_key[-6:]}, sell-buy {token_sell[-6:]}-{token_buy[-6:]}, "
+                    f"amount: {sell_amount}, path len: {len(trade_path)}")
         command = [exe, f'-url={self._get_rpc_url()}', f'-pk={private_key}', f'-s={token_sell}', f'-b={token_buy}',
                    f'-sa={sell_amount}', f'-ea={min_acceptable}', f'-tf={trading_fee}', f'-tp={",".join(trade_path)}',
                    f'-prvFee={use_prv_fee}']
@@ -280,12 +282,12 @@ class Node:
 
     def help_get_beacon_height(self):
         latest_height = self.get_block_chain_info().get_beacon_block().get_height()
-        INFO(f"Latest beacon height = {latest_height}")
+        logger.info(f"Latest beacon height = {latest_height}")
         return latest_height
 
     def help_get_beacon_height_in_best_state_detail(self):
         beacon_height = self.get_beacon_best_state_info().get_beacon_height()
-        INFO(f"Current beacon height = {beacon_height}")
+        logger.info(f"Current beacon height = {beacon_height}")
         return beacon_height
 
     def help_clear_mem_pool(self, tx=None):
@@ -293,7 +295,7 @@ class Node:
             mem_pool_res = self.system_rpc().get_mem_pool()
             list_tx = mem_pool_res.get_result('ListTxs')
             mem_pool_size = mem_pool_res.get_result("Size")
-            INFO(f"There are {mem_pool_size} tx(s) in mem pool. Cleaning now...")
+            logger.info(f"There are {mem_pool_size} tx(s) in mem pool. Cleaning now...")
             with ThreadPoolExecutor() as executor:
                 for tx in list_tx:
                     executor.submit(self.system_rpc().remove_tx_in_mem_pool, tx['TxID'])
@@ -303,10 +305,10 @@ class Node:
         """
         @return:
         """
-        DEBUG(f'Get current epoch number')
+        logger.debug(f'Get current epoch number')
         beacon_best_state = self.get_beacon_best_state_info()
         epoch = beacon_best_state.get_epoch()
-        DEBUG(f"Current epoch = {epoch}")
+        logger.debug(f"Current epoch = {epoch}")
         return epoch
 
     def help_watch_block_chain_info(self):
@@ -325,24 +327,24 @@ class Node:
         height = self.help_get_beacon_height()
         try:
             while True:
-                INFO_HEADLINE(height)
+                logger.info(height)
                 pde = self.get_latest_pde_state_info(height)
                 waiting_str = "Waiting contributions:\n"
                 for obj in pde.get_waiting_contributions():
                     waiting_str += f'\t\t{obj}\n'
-                INFO(waiting_str)
+                logger.info(waiting_str)
                 pool_str = 'Pool:\n'
                 for obj in pde.get_pde_pool_pairs():
                     pool_str += f'\t\t{obj}\n'
-                INFO(pool_str)
+                logger.info(pool_str)
                 share_str = 'PDE Shares:\n'
                 for obj in pde._get_pde_share_objects():
                     share_str += f'\t\t{obj}\n'
-                INFO(share_str)
+                logger.info(share_str)
                 fee_str = 'Fee:\n'
                 for obj in pde._get_contributor_reward_objects():
                     fee_str += f'\t\t{obj}\n'
-                INFO(fee_str)
+                logger.info(fee_str)
                 WAIT(ChainConfig.BLOCK_TIME)
                 height += 1
         except KeyboardInterrupt:
@@ -351,9 +353,9 @@ class Node:
     def get_latest_portal_state_info(self, beacon_height=None):
         if beacon_height is None:
             beacon_height = self.help_get_beacon_height()
-            INFO(f'Get LATEST portal state at beacon height: {beacon_height}')
+            logger.info(f'Get LATEST portal state at beacon height: {beacon_height}')
         else:
-            INFO(f'Get portal state at beacon height: {beacon_height}')
+            logger.info(f'Get portal state at beacon height: {beacon_height}')
 
         portal_state_raw = self.portal().get_portal_state(beacon_height).expect_no_error()
         return PortalStateInfo(portal_state_raw.get_result())
@@ -390,8 +392,9 @@ class Node:
         first_height_of_epoch = TestHelper.ChainHelper.cal_first_height_of_epoch(epoch)
         last_height_of_epoch = TestHelper.ChainHelper.cal_last_height_of_epoch(epoch)
 
-        INFO(f'GET reward info, epoch {epoch}, token {l6(token)}, first block of epoch = {first_height_of_epoch}, '
-             f'last block of epoch = {last_height_of_epoch}')
+        logger.info(
+            f'GET reward info, epoch {epoch}, token {l6(token)}, first block of epoch = {first_height_of_epoch}, '
+            f'last block of epoch = {last_height_of_epoch}')
 
         list_num_of_shard_block = []
         beacon_blocks_in_epoch = {}
@@ -424,7 +427,7 @@ class Node:
                 biggest_shard_height = -1
 
             num_of_block = biggest_shard_height - smallest_shard_height + 1
-            INFO(f'shard{shard_id} {biggest_shard_height} - {smallest_shard_height} = {num_of_block}')
+            logger.info(f'shard{shard_id} {biggest_shard_height} - {smallest_shard_height} = {num_of_block}')
             list_num_of_shard_block.append(num_of_block)
 
         list_beacon_reward_from_shard = []
@@ -511,7 +514,7 @@ class Node:
         return self._address == Node.default_address
 
     def send_proof(self, proof, tx_type='prv'):
-        # INFO('Sending proof')
+        # logger.info('Sending proof')
         if tx_type in ["prv", PRV_ID]:
             return self.transaction().send_prv_tx(proof)
         else:
@@ -564,7 +567,7 @@ class Node:
             if re.findall(regex, line):
                 self._cache['cmd'] = line.split()
                 return line.split()
-        INFO(f'Not found any Incognito process running with rpc port {self._rpc_port}')
+        logger.info(f'Not found any Incognito process running with rpc port {self._rpc_port}')
 
     def __find_run_command(self):
         """

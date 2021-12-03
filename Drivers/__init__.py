@@ -2,7 +2,9 @@ import copy
 import json
 from abc import abstractmethod
 
-import Helpers.Logging as Log
+from Helpers.Logging import config_logger
+
+logger = config_logger(__name__)
 
 
 class ResponseBase:
@@ -23,7 +25,7 @@ class ResponseBase:
             except AttributeError:
                 log_str += f'{more_info}'
             log_str += f'{self.__str__()}' if response else ''
-            Log.DEBUG(log_str, ResponseBase.__name__)
+            logger.debug(log_str)
 
     def __deepcopy__(self, memo=None):
         return self.__class__(copy.deepcopy(self.response), copy.deepcopy(self.more_info))
@@ -47,7 +49,7 @@ class ResponseBase:
             if type(self.response) is str:
                 return json.loads(self.response)  # response from WebSocket
             return self.response.json()  # response from rpc
-        except Exception as e:
+        except BaseException:
             pass
 
     def get_result(self, string=None, default=None):

@@ -7,17 +7,19 @@ from deepdiff import DeepDiff
 from Configs.Configs import ChainConfig
 from Configs.Constants import PRV_ID
 from Drivers.Response import RPCResponseBase
-from Helpers import Logging
 from Helpers.BlockChainMath import Pde3Math
+from Helpers.Logging import config_logger
 from Helpers.TestHelper import convert_dict_num_to
 from Objects import BlockChainInfoBaseClass
+
+logger = config_logger(__name__)
 
 
 class PdeV3State(RPCResponseBase):
     def __eq__(self, other):
         # for now, only compare part of the pool, not everything
         if not isinstance(other, self.__class__):
-            Logging.INFO("Other object is not a PDE state")
+            logger.info("Other object is not a PDE state")
             return False
         excludes = [r"\['BeaconTimeStamp'\]",
                     r"\['ProtocolFees'\]", r"\['LpFeesPerShare'\]", r"\['StakingPoolFees'\]", r"\['TradingFees'\]",
@@ -25,8 +27,8 @@ class PdeV3State(RPCResponseBase):
         diff = DeepDiff(self.get_result(), other.get_result(), exclude_regex_paths=excludes, math_epsilon=0)
         if diff:
             diff_info = '    ' + '\n    '.join(diff.pretty().split('\n'))
-            Logging.INFO(f"There are different when comparing PDE states\n"
-                         f"{diff_info}")
+            logger.info(f"There are different when comparing PDE states\n"
+                        f"{diff_info}")
             return False
         return True
 
@@ -172,24 +174,24 @@ class PdeV3State(RPCResponseBase):
 
             def is_completed(self):
                 completed = self.get_balance_token_sell() == 0
-                Logging.INFO(f"Order {self.get_id()} is completed") if completed else None
+                logger.info(f"Order {self.get_id()} is completed") if completed else None
                 return completed
 
             def is_valid(self):
                 check = self.get_balance_token_buy() == \
                         (self.get_rate_token_sell() - self.get_balance_token_sell()) * self.get_order_rate() \
                         and self.get_order_rate() > 0
-                Logging.INFO(f"Order: {self.get_id()}\n\t"
-                             f"valid = {check}")
+                logger.info(f"Order: {self.get_id()}\n\t"
+                            f"valid = {check}")
                 return check
 
             def is_un_touched(self):
                 check = self.get_balance_token_buy() == 0 and \
                         self.get_balance_token_sell() == self.get_rate_token_sell()
-                Logging.INFO(f"Order: {self.get_id()} \n\t"
-                             f"un-touched = {check} , Bal buy: {self.get_balance_token_buy()}, "
-                             f"Rate sell: {self.get_rate_token_sell()}, "
-                             f"Rate buy: {self.get_rate_token_buy()}")
+                logger.info(f"Order: {self.get_id()} \n\t"
+                            f"un-touched = {check} , Bal buy: {self.get_balance_token_buy()}, "
+                            f"Rate sell: {self.get_rate_token_sell()}, "
+                            f"Rate buy: {self.get_rate_token_buy()}")
                 return check
 
             def trade_this_order(self, sell_amount):
@@ -197,16 +199,16 @@ class PdeV3State(RPCResponseBase):
                 @param sell_amount:
                 @return: receive amount, remain amount also update the current balance of the order object
                 """
-                Logging.INFO(f"\n  Calculate trade receive, remain and predict order after trade\n{self}")
+                logger.info(f"\n  Calculate trade receive, remain and predict order after trade\n{self}")
                 used_amount = min(sell_amount, self.get_rate_token_buy() - self.get_balance_token_buy())
                 receive_amount = round(used_amount * self.get_buy_rate())
                 bal_sell_remain = self.get_balance_token_sell() - receive_amount
                 bal_buy_remain = self.get_balance_token_buy() + used_amount
                 remain = sell_amount - used_amount
                 self._set_balance(bal_sell_remain, bal_buy_remain)
-                Logging.INFO(f"Trade amount {sell_amount}, used: {used_amount}, remain {remain}")
-                Logging.INFO(f"Order after trade: \n"
-                             f"{self}")
+                logger.info(f"Trade amount {sell_amount}, used: {used_amount}, remain {remain}")
+                logger.info(f"Order after trade: \n"
+                            f"{self}")
                 return receive_amount, remain
 
         def __hash__(self):
@@ -470,40 +472,40 @@ class PdeV3State(RPCResponseBase):
             @param token_sell:
             @return: receive amount
             """
-            Logging.INFO(f"Predicting trade with pool: {self.__pool_id_short()}\n    "
-                         f"Sell {sell_amount} of {token_sell[-6:]}. Pool b4 trade: \n    "
-                         f"{self.pretty()}")
+            logger.info(f"Predicting trade with pool: {self.__pool_id_short()}\n    "
+                        f"Sell {sell_amount} of {token_sell[-6:]}. Pool b4 trade: \n    "
+                        f"{self.pretty()}")
             token_sell_index = self._get_token_index(token_sell)
             token_buy_index = abs(1 - token_sell_index)
             amm_rate = self.get_pool_rate(token_sell)
             orders = sorted(self.get_order_books(direction=token_buy_index), key=lambda o: o.get_buy_rate())
             if not orders:
-                Logging.DEBUG("Found no matching order, trade with AMM pool only")
+                logger.debug("Found no matching order, trade with AMM pool only")
                 receive_amount = self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
-                Logging.INFO(f"Done predicting trading, total receive: {receive_amount}. Pool after trade: \n    "
-                             f"{self.pretty()}")
+                logger.info(f"Done predicting trading, total receive: {receive_amount}. Pool after trade: \n    "
+                            f"{self.pretty()}")
                 return receive_amount
 
             right_orders, left_orders = [], []
             for order in orders:
                 right_orders.append(order) if order.get_buy_rate() >= amm_rate else left_orders.append(order)
 
-            Logging.DEBUG(f"LEFT {'=' * 40}")
-            [Logging.DEBUG(f"{o.get_id()} {o.get_buy_rate()}") for o in left_orders]
-            Logging.DEBUG(f"RIGHT {'=' * 40}")
-            [Logging.DEBUG(f"{o.get_id()} {o.get_buy_rate()}") for o in right_orders]
-            Logging.DEBUG("=" * 80)
-            Logging.DEBUG(f"Sell amount: {sell_amount}")
+            logger.debug(f"LEFT {'=' * 40}")
+            [logger.debug(f"{o.get_id()} {o.get_buy_rate()}") for o in left_orders]
+            logger.debug(f"RIGHT {'=' * 40}")
+            [logger.debug(f"{o.get_id()} {o.get_buy_rate()}") for o in right_orders]
+            logger.debug("=" * 80)
+            logger.debug(f"Sell amount: {sell_amount}")
 
             total_receive = 0
             # trade right orders first
             while sell_amount > 0 and right_orders:
                 best_order = right_orders[-1]
-                Logging.DEBUG(f"Trading best rate order book {best_order.get_id()}, rate {best_order.get_buy_rate()}")
-                Logging.DEBUG(best_order)
+                logger.debug(f"Trading best rate order book {best_order.get_id()}, rate {best_order.get_buy_rate()}")
+                logger.debug(best_order)
                 receive, remain = best_order.trade_this_order(sell_amount)
                 total_receive += receive
-                Logging.DEBUG(f"After trade order: traded {sell_amount}, remain {remain}, sum receive {total_receive}")
+                logger.debug(f"After trade order: traded {sell_amount}, remain {remain}, sum receive {total_receive}")
                 sell_amount = remain  # more explicit than receive, sell_amount = best_order.trade(sell_amount)
                 if best_order.is_completed():
                     right_orders.pop()
@@ -512,21 +514,21 @@ class PdeV3State(RPCResponseBase):
                 # trade amm with amount = distance to next order
                 next_order = left_orders[-1]
                 distance = self.cal_distant_to_order(token_sell, next_order)
-                Logging.DEBUG(f"next ORDER: {next_order}. Distance : {distance}")
+                logger.debug(f"next ORDER: {next_order}. Distance : {distance}")
                 if 0 < sell_amount <= distance:
-                    Logging.DEBUG(f"**Trade {sell_amount} (sell-amount) with pool**")
+                    logger.debug(f"**Trade {sell_amount} (sell-amount) with pool**")
                     total_receive += self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
                     sell_amount = 0
-                    Logging.DEBUG(f"Done predicting trading, total receive: {total_receive}. Pool after trade: \n"
+                    logger.debug(f"Done predicting trading, total receive: {total_receive}. Pool after trade: \n"
                                   f"{self.pretty()}")
                     return total_receive
                 elif sell_amount > distance:
-                    Logging.DEBUG(f"**Trade {distance} (distance) with pool**")
+                    logger.debug(f"**Trade {distance} (distance) with pool**")
                     total_receive += self.cal_amm_trade_n_update_pool(distance, token_sell)
                     sell_amount -= distance
 
                 # trade left orders
-                Logging.DEBUG(f"**Trade {sell_amount} w left orders list")
+                logger.debug(f"**Trade {sell_amount} w left orders list")
                 receive, remain = next_order.trade_this_order(sell_amount)
                 if next_order.is_completed():
                     left_orders.pop()
@@ -535,11 +537,11 @@ class PdeV3State(RPCResponseBase):
                 sell_amount = remain
 
             if sell_amount > 0:
-                Logging.DEBUG(f"Still have token left to trade, continue trading {sell_amount} with pool")
+                logger.debug(f"Still have token left to trade, continue trading {sell_amount} with pool")
                 total_receive += self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
 
-            Logging.INFO(f"Done predicting trading, total receive: {total_receive}. Pool after trade:\n"
-                         f"{self.pretty()}")
+            logger.info(f"Done predicting trading, total receive: {total_receive}. Pool after trade:\n"
+                        f"{self.pretty()}")
             return total_receive
 
         def predict_pool_when_add_liquidity(self, amount_dict, nft_id, amp=0):
@@ -554,21 +556,21 @@ class PdeV3State(RPCResponseBase):
                 raise ValueError(f"Wrong input tokens, cannot calculate.\n"
                                  f"Current pair is {self.get_pool_pair_id()}\n"
                                  f"While input tokens are: {all_tok}")
-            Logging.INFO(f"Predicting contribution to pair \n   {self.get_pool_pair_id()} \n   "
-                         f"{nft_id}")
+            logger.info(f"Predicting contribution to pair \n   {self.get_pool_pair_id()} \n   "
+                        f"{nft_id}")
             token_x, token_y = all_tok
             delta_x, delta_y = amount_dict[token_x], amount_dict[token_y]
             virtual_x, virtual_y = self.get_virtual_amount(token_x), self.get_virtual_amount(token_y)
             current_real_x, current_real_y = self.get_real_amount(token_x), self.get_real_amount(token_y)
             if self.total_share_amount == 0:  # first time contribute
-                Logging.INFO("First time contribution for this pair")
+                logger.info("First time contribution for this pair")
                 self.amplifier = amp
                 accepted_x, accepted_y = delta_x, delta_y
                 delta_share = Pde3Math.cal_share_new_pool(accepted_x, accepted_y)
                 new_virtual_x = accepted_x * amp / ChainConfig.Dex3.DECIMAL
                 new_virtual_y = accepted_y * amp / ChainConfig.Dex3.DECIMAL
             else:
-                Logging.INFO("Contribute more to this pair")
+                logger.info("Contribute more to this pair")
                 x, y = self.get_real_amount(token_x), self.get_real_amount(token_y)
                 accepted_x, accepted_y, delta_share = \
                     Pde3Math.cal_contrib_both_end(self.total_share_amount, delta_x, delta_y, x, y)
@@ -591,12 +593,12 @@ class PdeV3State(RPCResponseBase):
                 self.__add_new_share(nft_id)
                 existing_share = self.get_share(nft_id)
             existing_share.amount += delta_share
-            Logging.INFO("Predicted pool after adding liquidity \n\t"
-                         f"Contributed: {json.dumps(amount_dict, indent=3)}\n  "
-                         f"Return: {json.dumps(return_amount, indent=3)}\n  "
-                         f"Accepted: {json.dumps({token_x: accepted_x, token_y: accepted_y}, indent=3)}\n  "
-                         f"Old | Added | New total share: "
-                         f"{old_total_share} | {delta_share} | {self.total_share_amount}\n")
+            logger.info("Predicted pool after adding liquidity \n\t"
+                        f"Contributed: {json.dumps(amount_dict, indent=3)}\n  "
+                        f"Return: {json.dumps(return_amount, indent=3)}\n  "
+                        f"Accepted: {json.dumps({token_x: accepted_x, token_y: accepted_y}, indent=3)}\n  "
+                        f"Old | Added | New total share: "
+                        f"{old_total_share} | {delta_share} | {self.total_share_amount}\n")
             return return_amount
 
         def get_pool_rate(self, token_sell):
@@ -623,9 +625,9 @@ class PdeV3State(RPCResponseBase):
             y_real = self.get_real_amount(token_y)
             x_virtual = self.get_virtual_amount(token_x)
             y_virtual = self.get_virtual_amount(token_y)
-            Logging.INFO(f"NFT: {nft_id}\n\t"
-                         f"Want to withdraw share {withdraw_amount}, while has {my_current_share}, "
-                         f"able to withdraw {withdraw_able}")
+            logger.info(f"NFT: {nft_id}\n\t"
+                        f"Want to withdraw share {withdraw_amount}, while has {my_current_share}, "
+                        f"able to withdraw {withdraw_able}")
             x_receive, y_receive = Pde3Math.cal_withdraw_share(withdraw_able, x_real, y_real, self.total_share_amount)
             x_real_new = x_real - x_receive
             y_real_new = y_real - y_receive
@@ -995,7 +997,7 @@ class PdeV3State(RPCResponseBase):
             return
         pde_param = self.get_pde_params()
         if token_id not in pde_param.get_staking_reward_token():
-            Logging.INFO(f"Token {token_id} is not in staking reward list")
+            logger.info(f"Token {token_id} is not in staking reward list")
             return
         staking_reward_percent = pde_param.get_trading_staking_pool_reward_percent()
         pools_reward_percent = pde_param.get_staking_pool_share()
@@ -1041,7 +1043,7 @@ class PdeV3State(RPCResponseBase):
         last_pair_index = len(path) - 1
         for pair in path:
             if not self.get_pool_pair(id=pair):
-                Logging.INFO(f"Pair id {pair} is not exist in pool")
+                logger.info(f"Pair id {pair} is not exist in pool")
                 return False
             if start_token in pair:
                 token_list = pair.split("-")[:-1]
@@ -1050,12 +1052,12 @@ class PdeV3State(RPCResponseBase):
                 if other_token == token_buy and pair_index == last_pair_index:
                     return True
                 elif other_token == token_buy and pair_index == last_pair_index:
-                    Logging.INFO(f"Path ends to soon at pair {pair}")
+                    logger.info(f"Path ends to soon at pair {pair}")
                     return False
                 elif other_token != token_buy and pair_index == last_pair_index:
-                    Logging.INFO(f"Hit a dead end but cannot buy {token_buy}")
+                    logger.info(f"Hit a dead end but cannot buy {token_buy}")
                     return False
                 start_token = other_token
             else:
-                Logging.INFO(f"Path stuck at token {start_token} pair {pair}")
+                logger.info(f"Path stuck at token {start_token} pair {pair}")
                 return False

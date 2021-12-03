@@ -4,7 +4,9 @@ from abc import ABC
 
 from deepdiff import DeepDiff
 
-from Helpers import Logging
+from Helpers.Logging import config_logger
+
+logger = config_logger(__name__)
 
 
 class BlockChainInfoBaseClass(ABC):
@@ -21,7 +23,7 @@ class BlockChainInfoBaseClass(ABC):
     def __eq__(self, other):
         diff = DeepDiff(self.dict_data, other.dict_data)
         if diff:
-            Logging.INFO(f"\n{diff.pretty()}", self.__class__.__name__)
+            logger.info(f"\n{diff.pretty()}", self.__class__.__name__)
             return False
         return True
 

@@ -6,7 +6,9 @@ from websocket import WebSocketTimeoutException, WebSocketBadStatusException
 
 from Configs.Configs import ChainConfig
 from Drivers import ResponseBase
-from Helpers.Logging import INFO, WARNING
+from Helpers.Logging import config_logger
+
+logger = config_logger(__name__)
 
 
 class RPCResponseBase(ResponseBase):
@@ -37,13 +39,13 @@ class RPCResponseBase(ResponseBase):
 
     def expect_error(self, expecting_error='any error'):
         if expecting_error == 'any error':
-            INFO(self.get_error_trace().get_message())
+            logger.info(self.get_error_trace().get_message())
             assert self.get_error_msg() is not None, \
                 f'Found no error while expecting: {expecting_error}'
         else:
             trace_msg = self.get_error_trace().get_message()
             error_msg = self.get_error_msg()
-            INFO(trace_msg)
+            logger.info(trace_msg)
             assert (expecting_error in error_msg or expecting_error in trace_msg), \
                 f'Expecting: {expecting_error}. Instead got: {error_msg} | {trace_msg}'
         return self
@@ -154,15 +156,15 @@ class Response(RPCResponseWithTxHash):
         :return: TransactionDetail Object
         """
         self.req_to(0)
-        INFO(f'Subscribe to transaction tx_id = {self.get_tx_id()}')
+        logger.info(f'Subscribe to transaction tx_id = {self.get_tx_id()}')
         try:
             return self._handler.subscription().subscribe_pending_transaction(self.get_tx_id()).get_result('Result')
         except WebSocketTimeoutException:
-            WARNING("Encounter web socket timeout exception. Now get transaction by hash instead")
+            logger.info("Encounter web socket timeout exception. Now get transaction by hash instead")
             return self.get_transaction_by_hash(time_out=0)
         except (WebSocketBadStatusException, ConnectionRefusedError) as status_err:
             # in case full node does not have web socket enabled
-            WARNING(f"Encounter web socket bad status exception: {status_err}. Now get transaction by hash instead")
+            logger.info(f"Encounter web socket bad status exception: {status_err}. Now get transaction by hash instead")
             return self.get_transaction_by_hash()
 
     def is_transaction_v2_error_appears(self):
@@ -172,7 +174,7 @@ class Response(RPCResponseWithTxHash):
             return False
         # if 'error calling MarshalJSON for type *transaction.TxTokenVersion2' in stack_trace_msg:
         if 'Init tx token fee params error' in stack_trace_msg:
-            INFO('Transaction v2 no longer support paying fee with token')
+            logger.info('Transaction v2 no longer support paying fee with token')
             return True
 
     def get_trade_tx_status(self, tx_hash=None):

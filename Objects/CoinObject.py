@@ -1,7 +1,9 @@
 from Drivers.Response import ResponseExtractor
-from Helpers.Logging import DEBUG
+from Helpers.Logging import config_logger
 from Helpers.TestHelper import l6
 from Objects import BlockChainInfoBaseClass
+
+logger = config_logger(__name__)
 
 
 class CoinInfoPublic(BlockChainInfoBaseClass):
@@ -245,7 +247,7 @@ class TxOutPut(BlockChainInfoBaseClass):
         try:
             return int(self.dict_data['Version'])
         except KeyError:
-            DEBUG('Error while get coin version. Assume ver=1')
+            logger.debug('Error while get coin version. Assume ver=1')
             return 1
 
 

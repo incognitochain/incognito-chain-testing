@@ -38,3 +38,4 @@ virtualenv
 websocket-client
 pytest_dependency
 deepdiff
+mysql-connector-python

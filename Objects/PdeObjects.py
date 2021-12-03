@@ -6,11 +6,13 @@ from typing import List
 from Configs.Configs import ChainConfig
 from Configs.Constants import PRV_ID
 from Helpers.BlockChainMath import PdeMath
-from Helpers.Logging import INFO, WARNING, DEBUG, ERROR
+from Helpers.Logging import config_logger
 from Helpers.TestHelper import l6, KeyExtractor
 from Helpers.Time import WAIT
 from Objects import BlockChainInfoBaseClass
 from Objects.AccountObject import Account
+
+logger = config_logger(__name__)
 
 
 class PDEStateInfo(BlockChainInfoBaseClass):
@@ -233,7 +235,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         user_payment_addr = KeyExtractor.incognito_addr(account)
         contribution_list = []
 
-        INFO(f'Finding pair id {pair_id} of user {l6(user_payment_addr)} in PDE contribution waiting list')
+        logger.info(f'Finding pair id {pair_id} of user {l6(user_payment_addr)} in PDE contribution waiting list')
         waiting_contributions = self.get_waiting_contributions()
         for contribution in waiting_contributions:
             addr = contribution.get_contributor_address()
@@ -247,14 +249,14 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                 match = True if (token == token_id) and match else False
 
             if match:
-                INFO(f'Found contribution of token {l6(contribution.get_token_id())} '
-                     f'at beacon {contribution.get_beacon_height()} '
-                     f'with amount {contribution.get_amount()}')
+                logger.info(f'Found contribution of token {l6(contribution.get_token_id())} '
+                            f'at beacon {contribution.get_beacon_height()} '
+                            f'with amount {contribution.get_amount()}')
                 contribution_list.append(contribution)
 
         if len(contribution_list) == 0:
-            INFO(f'Payment addr {l6(user_payment_addr)} '
-                 f'is not in PDE contribution waiting list with pair id: {pair_id}')
+            logger.info(f'Payment addr {l6(user_payment_addr)} '
+                        f'is not in PDE contribution waiting list with pair id: {pair_id}')
         return contribution_list
 
     def get_pde_pool_pairs(self, **by):
@@ -274,12 +276,14 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         return pool_pair_objs
 
     def _get_contributor_reward_objects(self, user=None, token1=None, token2=None):
-        DEBUG('==================================================================================================')
+        logger.debug(
+            '==================================================================================================')
         of_user = 'any' if user is None else l6(KeyExtractor.incognito_addr(user))
         tok1 = 'any' if token1 is None else l6(token1)
         tok2 = 'any' if token1 is None else l6(token2)
-        INFO(f'Getting PDE reward of contributor and tokens at beacon height time stamp {self.get_beacon_time_stamp()}:'
-             f' {of_user}:{tok1}-{tok2}')
+        logger.info(
+            f'Getting PDE reward of contributor and tokens at beacon height time stamp {self.get_beacon_time_stamp()}:'
+            f' {of_user}:{tok1}-{tok2}')
 
         reward_pool = []
         reward_pool_raw = self.dict_data['PDETradingFees']
@@ -287,7 +291,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             reward_raw_data = {k: v}
             reward_obj = PDEStateInfo.PdeReward(reward_raw_data)
 
-            DEBUG(f"Checking reward: {reward_obj}")
+            logger.debug(f"Checking reward: {reward_obj}")
             match = True
             debug_msg = ''
             if user is not None:
@@ -296,7 +300,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                     match = True
                     debug_msg += f'user {of_user} | '
                 else:
-                    DEBUG(f'NOT Match user {of_user}')
+                    logger.debug(f'NOT Match user {of_user}')
                     continue
             # breakpoint()
             if token1 is not None and token2 is not None:
@@ -310,10 +314,10 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                     match = False
 
             if match:
-                DEBUG(f"MATCH {debug_msg}: {reward_obj}")
+                logger.debug(f"MATCH {debug_msg}: {reward_obj}")
                 reward_pool.append(reward_obj)
         if not reward_pool:  # empty list
-            INFO(f"Reward of {of_user}:{tok1}-{tok2} not found")
+            logger.info(f"Reward of {of_user}:{tok1}-{tok2} not found")
         return reward_pool
 
     def get_contributor_reward_amount(self, user=None, token1=None, token2=None):
@@ -349,8 +353,8 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         inc_addr = 'any' if user is None else l6(KeyExtractor.incognito_addr(user))
         tok1 = 'any' if token1 is None else l6(token1)
         tok2 = 'any' if token1 is None else l6(token2)
-        DEBUG(f'Getting share of user and tokens at beacon height time stamp {self.get_beacon_time_stamp()}: '
-              f'{inc_addr}:{tok1}-{tok2}')
+        logger.debug(f'Getting share of user and tokens at beacon height time stamp {self.get_beacon_time_stamp()}: '
+                     f'{inc_addr}:{tok1}-{tok2}')
 
         pde_share_raw = self.dict_data['PDEShares']
         pde_share_objs = []
@@ -358,7 +362,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             pde_share_data = {k: v}
             pde_share_obj = PDEStateInfo.PdeShare(pde_share_data)
 
-            # DEBUG(f"Checking share: {pde_share_obj}")
+            # logger.debug(f"Checking share: {pde_share_obj}")
             match = True
             debug_msg = ''
             if user is not None:
@@ -367,7 +371,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                     match = True
                     debug_msg += f'user {inc_addr} | '
                 else:
-                    # DEBUG(f'NOT Match user {of_user}')
+                    # logger.debug(f'NOT Match user {of_user}')
                     continue
             if token1 is not None and token2 is not None:
                 if token1 == pde_share_obj.get_token1_id() and token2 == pde_share_obj.get_token2_id():
@@ -380,10 +384,10 @@ class PDEStateInfo(BlockChainInfoBaseClass):
                     match = False
 
             if match:
-                # DEBUG(f"MATCH {debug_msg}: {pde_share_obj}")
+                # logger.debug(f"MATCH {debug_msg}: {pde_share_obj}")
                 pde_share_objs.append(pde_share_obj)
         if not pde_share_objs:  # empty list
-            DEBUG("Not found")
+            logger.debug("Not found")
         return pde_share_objs
 
     def get_pde_shares_amount(self, user=None, token1=None, token2=None):
@@ -423,22 +427,22 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             elif pair.get_token2_id() == token1:
                 if pair.get_token1_id() == token2:
                     return [pair.get_token2_pool_value(), pair.get_token1_pool_value()]
-        ERROR(f'Pair {l6(token1)}-{l6(token2)} DOES NOT EXIST')
+        logger.error(f'Pair {l6(token1)}-{l6(token2)} DOES NOT EXIST')
         return [0, 0]
 
     def sum_share_pool_of_pair(self, user=None, token1=None, token2=None):
-        INFO(f'Calculating sum share of pair {l6(token1)}-{l6(token2)}')
+        logger.info(f'Calculating sum share of pair {l6(token1)}-{l6(token2)}')
         share_pool = self.get_pde_shares_amount(user, token1, token2)
         sum_pool = sum(share_pool) if type(share_pool) is list else share_pool
-        INFO(f'Sum share = {sum_pool}')
+        logger.info(f'Sum share = {sum_pool}')
         return sum_pool
 
     def sum_contributor_reward_of_pair(self, user=None, token1=None, token2=None):
-        INFO(f'Calculating PDE reward of pair...')
+        logger.info(f'Calculating PDE reward of pair...')
         reward_pool = self.get_contributor_reward_amount(user, token1, token2)
         sum_reward = sum(reward_pool) if type(reward_pool) is list else reward_pool
         sum_reward = 0 if sum_reward is None else sum_reward
-        INFO(f'Sum reward = {sum_reward}')
+        logger.info(f'Sum reward = {sum_reward}')
         return sum_reward
 
     def get_contributor_of_pair(self, token1, token2):
@@ -480,13 +484,13 @@ class PDEStateInfo(BlockChainInfoBaseClass):
             match____cross = pair.get_token1_id() == token2 and pair.get_token2_id() == token1
             if match_straight or match____cross:
                 if pair.get_token1_pool_value() != 0:
-                    INFO(f'Pair {pair} exists')
+                    logger.info(f'Pair {pair} exists')
                     return True
                 else:
-                    INFO(f'Pair {pair} exists but pool = 0')
+                    logger.info(f'Pair {pair} exists but pool = 0')
                     return True
 
-        INFO(f'Pair {l6(token1)}-{l6(token2)} NOT exist')
+        logger.info(f'Pair {l6(token1)}-{l6(token2)} NOT exist')
         return False
 
     def is_trading_pair_v2_is_possible(self, token1, token2):
@@ -510,17 +514,17 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         return self.cal_trade_receive_v1(PRV_ID, token_buy, prv_receive)
 
     def can_token_use_for_fee(self, token):
-        INFO(f'Check if token can be use to pay fee')
+        logger.info(f'Check if token can be use to pay fee')
         pair_exist = self.is_trade_able_v1(PRV_ID, token)
         if not pair_exist:
             return False
         prv_in_pool = self.get_rate_between_token(PRV_ID, token)[0]
         prv_is_more_than_min = prv_in_pool >= ChainConfig.Dex.MIN_PRV_IN_POOL_FOR_TOKEN_FEE
         if not prv_is_more_than_min:
-            INFO(f'PRV of pair is only {prv_in_pool}, '
-                 f'while must > {ChainConfig.Dex.MIN_PRV_IN_POOL_FOR_TOKEN_FEE} to use for fee')
+            logger.info(f'PRV of pair is only {prv_in_pool}, '
+                        f'while must > {ChainConfig.Dex.MIN_PRV_IN_POOL_FOR_TOKEN_FEE} to use for fee')
         else:
-            INFO(f'PRV of pair is {prv_in_pool}, which is fine')
+            logger.info(f'PRV of pair is {prv_in_pool}, which is fine')
         return prv_is_more_than_min
 
     def cal_contribution(self, contributed_amount_dict: dict):
@@ -557,7 +561,7 @@ class PDEStateInfo(BlockChainInfoBaseClass):
         receive_amount_token1, receive_amount_token2 = \
             PdeMath.cal_withdraw_share(withdraw_amount, all_my_share, sum_share_of_pair, pool)
         result = {token1: receive_amount_token1, token2: receive_amount_token2}
-        INFO(f'''
+        logger.info(f'''
                 Sum share of pair                 : {sum_share_of_pair}
                 My share                          : {all_my_share}
                 Withdraw amount                   : {withdraw_amount}
@@ -638,14 +642,14 @@ class PDEContributeInfo(BlockChainInfoBaseClass):
         while time <= timeout:
             self.get_contribute_status(pair_id)
             if self.get_status() == expecting_status:
-                INFO(f'contribution status is {expecting_status} as expected')
+                logger.info(f'contribution status is {expecting_status} as expected')
                 return self
             else:
                 WAIT(check_interval)
                 self.get_contribute_status(pair_id)
                 time += check_interval
 
-        WARNING(f'contribution status: {self.get_status()} is NOT as expected')
+        logger.warning(f'contribution status: {self.get_status()} is NOT as expected')
         return None
 
 

@@ -2,13 +2,15 @@ import copy
 import random
 from typing import List
 
-from Configs.Constants import PBNB_ID, PBTC_ID, PRV_ID, Status
 from Configs.Configs import ChainConfig
-from Helpers.Logging import INFO, DEBUG, INFO_HEADLINE, ERROR
+from Configs.Constants import PBNB_ID, PBTC_ID, PRV_ID, Status
+from Helpers.Logging import config_logger
 from Helpers.PortalHelper import PortalMath
 from Helpers.TestHelper import l6, KeyExtractor
 from Helpers.Time import WAIT
 from Objects import BlockChainInfoBaseClass
+
+logger = config_logger(__name__)
 
 
 class _PortalInfoBase(BlockChainInfoBaseClass):
@@ -49,8 +51,8 @@ class PortingReqInfo(_PortalInfoBase):
 
     def get_porting_req_by_tx_id(self, tx_id, retry=True):
         from Objects.IncognitoTestCase import SUT
-        INFO()
-        INFO(f'Get porting req info, tx_id = {tx_id}')
+        logger.info()
+        logger.info(f'Get porting req info, tx_id = {tx_id}')
         response = SUT().portal().get_portal_porting_req_by_key(tx_id)
         if self.is_none() and retry:
             WAIT(40)
@@ -283,7 +285,7 @@ class PortalStateInfo(_PortalInfoBase):
                 ret = self.data['TotalCollateral']
                 return int(ret)
             except TypeError as e:
-                ERROR(f'{e}')
+                logger.error(f'{e}')
                 return 0
 
         def get_free_collateral(self):
@@ -337,7 +339,7 @@ class PortalStateInfo(_PortalInfoBase):
             my_new_status = portal_state_info.get_custodian_info_in_pool(self)
 
             if my_new_status is None:
-                INFO("You're not even a custodian")
+                logger.info("You're not even a custodian")
                 return None
             if from_amount is None:
                 collateral_before = my_new_status.get_locked_collateral(token_id)
@@ -349,14 +351,14 @@ class PortalStateInfo(_PortalInfoBase):
                 portal_state_info = SUT().get_latest_portal_state_info()
                 my_new_status = portal_state_info.get_custodian_info_in_pool(self)
                 if time >= timeout:
-                    INFO(f'Lock collateral does not change in the last {time}s')
+                    logger.info(f'Lock collateral does not change in the last {time}s')
                     return 0
                 WAIT(check_rate)
                 time += check_rate
                 current_collateral = my_new_status.get_locked_collateral(token_id)
 
             delta = current_collateral - collateral_before
-            INFO(f'Lock collateral has change {delta}')
+            logger.info(f'Lock collateral has change {delta}')
             return delta
 
     class LiquidationPool(_PortalInfoBase):
@@ -539,7 +541,7 @@ class PortalStateInfo(_PortalInfoBase):
             else:
                 return int(self.dict_data['FinalExchangeRatesState']['Rates'][token_id]['Amount'])
         except KeyError:
-            ERROR(f'Cannot find portal rate of token {token_id}, assume rate = 0')
+            logger.error(f'Cannot find portal rate of token {token_id}, assume rate = 0')
             return 0
 
     def print_rate(self):
@@ -555,31 +557,31 @@ class PortalStateInfo(_PortalInfoBase):
         pool = self.get_custodian_pool()
         rate: dict = self.get_portal_rate()
         liquidate = self.get_liquidation_pool()
-        INFO_HEADLINE(f'portal state summary')
-        INFO("Wait porting requests")
+        logger.info(f'!!!!! ===== Portal state summary ===== !!!!!')
+        logger.info("Wait porting requests")
         for req in wait_porting:
-            INFO(req)
-        INFO('Waiting redeem requests')
+            logger.info(req)
+        logger.info('Waiting redeem requests')
         for req in wait_redeems:
-            INFO(req)
+            logger.info(req)
 
-        INFO('Matched redeem requests')
+        logger.info('Matched redeem requests')
         for req in match_redeems:
-            INFO(req)
+            logger.info(req)
 
-        INFO(f'Custodian Pool')
-        INFO("%6s : %6s/%6s %14s %14s %14s %14s %14s %14s %14s" %
+        logger.info(f'Custodian Pool')
+        logger.info("%6s : %6s/%6s %14s %14s %14s %14s %14s %14s %14s" %
              ('addr', 'bnb', 'btc', 'total col', 'free col', 'hold bnb', 'hold btc', 'lock bnb',
               'lock btc', 'reward prv'))
         for cus in pool:
-            INFO(cus)
+            logger.info(cus)
 
         if rate is not None:
-            INFO(f'Portal rate')
+            logger.info(f'Portal rate')
             for k, _ in rate.items():
-                INFO(f'   {l6(k)} : {self.get_portal_rate(k)}')
+                logger.info(f'   {l6(k)} : {self.get_portal_rate(k)}')
 
-        INFO(f'Liquidation pool \n\t\t {liquidate}')
+        logger.info(f'Liquidation pool \n\t\t {liquidate}')
 
         INFO_HEADLINE('End summary')
 
@@ -934,7 +936,7 @@ class PortalStateInfo(_PortalInfoBase):
         else:
             unlock_prv = int(
                 (holding_amount_to_unlock / custodian_holding) * (custodian_lock_collateral - matching_holding))
-        INFO(f'Estimated: custodian {l6(custodian.get_incognito_addr())}, '
+        logger.info(f'Estimated: custodian {l6(custodian.get_incognito_addr())}, '
              f'holding {custodian_holding}, '
              f'matched hold {matching_holding}, '
              f'unlock {holding_amount_to_unlock} '
@@ -988,7 +990,7 @@ class PortalStateInfo(_PortalInfoBase):
             lock_collateral_af = psi_redeem_expire.get_custodian_info_in_pool(custodian).get_locked_collateral(token_id)
             total_collateral_af = psi_redeem_expire.get_custodian_info_in_pool(custodian).get_total_collateral()
             free_collateral_af = psi_redeem_expire.get_custodian_info_in_pool(custodian).get_free_collateral()
-            INFO(f"""Custodian {l6(custodian.get_incognito_addr())}:
+            logger.info(f"""Custodian {l6(custodian.get_incognito_addr())}:
                     locked b4/af    {lock_collateral_b4}-{lock_collateral_af} 
                     total b4/af     {total_collateral_b4}-{total_collateral_af} 
                     free b4/af      {free_collateral_b4}-{free_collateral_af}
@@ -1030,7 +1032,7 @@ class PortalStateInfo(_PortalInfoBase):
         return_prv = min(collateral_of_holding_redeem, estimate_return)
         unlock = max(0, collateral_of_holding_redeem - return_prv)
 
-        INFO(f"Estimate: custodian {cus_addr_s}, "
+        logger.info(f"Estimate: custodian {cus_addr_s}, "
              f"collateral of redeem: {collateral_of_holding_redeem}, "
              f"return prv to user: {return_prv}, "
              f"unlock: {unlock}")

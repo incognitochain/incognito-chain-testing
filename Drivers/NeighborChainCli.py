@@ -10,9 +10,11 @@ import pexpect
 
 from Configs.Constants import PBNB_ID, PBTC_ID
 from Drivers.Connections import RpcConnection
-from Helpers.Logging import INFO, DEBUG
+from Helpers.Logging import config_logger
 from Helpers.TestHelper import l6, json_extract
 from Helpers.Time import WAIT
+
+logger = config_logger(__name__)
 
 
 class NeighborChainCli:
@@ -56,12 +58,12 @@ class BnbCli:
         stdout, stderr = process.communicate()
         out = json_extract(stdout)
         bal = int(BnbCli.BnbResponse(out).get_balance())
-        DEBUG(f"out: {stdout.strip()}")
+        logger.debug(f"out: {stdout.strip()}")
         return bal
 
     def send_to(self, sender, receiver, amount, password, memo):
         memo_encoded = BnbCli.encode_memo(memo)
-        INFO(f'Bnbcli | send {amount} from {l6(sender)} to {l6(receiver)} | memo: {memo_encoded}')
+        logger.info(f'Bnbcli | send {amount} from {l6(sender)} to {l6(receiver)} | memo: {memo_encoded}')
         command = [self.cmd, 'send', '--from', sender, '--to', receiver, '--amount', f'{amount}:BNB', '--json',
                    '--memo', memo_encoded] + self.get_default_conn()
         return self._exe_bnb_cli(command, password)
@@ -75,7 +77,8 @@ class BnbCli:
         :return:
         """
         memo_encoded = BnbCli.encode_memo(memo)
-        INFO(f'Bnbcli | send from {l6(sender)} to {json.dumps(receiver_amount_dict, indent=3)} | memo: {memo_encoded}')
+        logger.info(
+            f'Bnbcli | send from {l6(sender)} to {json.dumps(receiver_amount_dict, indent=3)} | memo: {memo_encoded}')
         bnb_output = '['
         for key, value in receiver_amount_dict.items():
             bnb_output += "{\"to\":\"%s\",\"amount\":\"%s:BNB\"}," % (key, value)
@@ -88,7 +91,7 @@ class BnbCli:
     def _spawn(self, command, timeout=15, local=False):
         if not local:
             command += self.get_default_conn()
-        INFO(command)
+        logger.info(command)
         child = pexpect.spawn(command, encoding='utf-8', timeout=timeout)
         child.logfile = sys.stdout
         return child
@@ -99,10 +102,10 @@ class BnbCli:
                                    universal_newlines=True)
         WAIT(7)
         stdout, stderr = process.communicate(f'{more_input}\n')
-        DEBUG(f"\n"
-              f"+++ command: {' '.join(command)}\n"
-              f"+++ out: {stdout}\n"
-              f"+++ err: {stderr}")
+        logger.debug(f"\n"
+                     f"+++ command: {' '.join(command)}\n"
+                     f"+++ out: {stdout}\n"
+                     f"+++ err: {stderr}")
         out = json_extract(stdout)
         err = json_extract(stderr)
         if out is not None:
@@ -131,7 +134,7 @@ class BnbCli:
 
     @staticmethod
     def encode_porting_memo(porting_id):
-        INFO(f"""Encoding porting memo
+        logger.info(f"""Encoding porting memo
                     Porting id: {porting_id}""")
         memo_struct = '{"PortingID":"%s"}' % porting_id
         byte_ascii = memo_struct.encode('ascii')
@@ -141,7 +144,7 @@ class BnbCli:
 
     @staticmethod
     def encode_redeem_memo(redeem_id, custodian_incognito_addr):
-        INFO(f"""Encoding redeem memo
+        logger.info(f"""Encoding redeem memo
                     Redeem id: {redeem_id}
                     Incognito addr: {custodian_incognito_addr}""")
 
@@ -166,7 +169,7 @@ class BnbCli:
         for m in mnemonic_list:
             name = f'{username}{i}'
             i += 1
-            INFO(f'Importing key with passphrase: {pass_phrase} | {m}')
+            logger.info(f'Importing key with passphrase: {pass_phrase} | {m}')
             command = f"{self.cmd} keys add --recover {name}"
             child = self._spawn(command, local=True)
             try:
@@ -254,12 +257,12 @@ class BnbCli:
             try:
                 return self.data['hash']
             except KeyError as ke:
-                raise BaseException(f'Response data does not contain hash: {ke} :{self.data}')
+                raise Exception(f'Response data does not contain hash: {ke} :{self.data}')
 
         def build_proof(self, tx_hash=None):
             tx_hash = self.get_tx_hash() if tx_hash is None else tx_hash
-            INFO()
-            INFO(f'Portal | Building proof | tx {tx_hash}')
+            logger.info()
+            logger.info(f'Portal | Building proof | tx {tx_hash}')
             bnb_get_block_url = f"{BnbCli.get_bnb_rpc_url()}/tx?hash=0x{tx_hash}&prove=true"
             block_response = RpcConnection(bnb_get_block_url, id_num='', json_rpc='2.0'). \
                 with_params([]).with_method('').execute()
@@ -273,7 +276,7 @@ class BnbCli:
             proof_ascii = proof_string.encode('ascii')  # convert to byte
             string_base64 = base64.b64encode(proof_ascii)  # encode
             string_base64_utf8 = string_base64.decode('utf-8')  # convert to string
-            DEBUG(f""" Proof: =================  \n{proof}""")
+            logger.debug(f""" Proof: =================  \n{proof}""")
             return string_base64_utf8
 
 
@@ -366,10 +369,10 @@ class BtcGo:
                                    universal_newlines=True)
         stdout, stderr = process.communicate()
 
-        INFO(f"\n"
-             f"+++ command: {' '.join(command)}\n\n"
-             f"+++ out: {stdout}\n\n"
-             f"+++ err: {stderr}")
+        logger.info(f"\n"
+                    f"+++ command: {' '.join(command)}\n\n"
+                    f"+++ out: {stdout}\n\n"
+                    f"+++ err: {stderr}")
 
         dict_response = json_extract(stdout)
         return BtcGo.BtcResponse(dict_response)
@@ -391,8 +394,8 @@ class BtcGo:
                 return self.data["block_height"]
 
         def build_proof(self):
-            INFO()
-            INFO(f'Portal | Building proof | tx {self.get_tx_hash()}')
+            logger.info()
+            logger.info(f'Portal | Building proof | tx {self.get_tx_hash()}')
             tx_by_hash = BtcGo.get_tx_by_hash(self.get_tx_hash())
             height = tx_by_hash.get_block_height()
             timeout = 2 * 60 * 60  # 2hours
@@ -413,11 +416,11 @@ class BtcGo:
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE,
                                        universal_newlines=True)
             stdout, stderr = process.communicate()
-            INFO(f"\n"
-                 f"+++ command: {' '.join(command)}\n\n"
-                 f"+++ out: {stdout}\n\n"
-                 f"+++ err: {stderr}")
+            logger.info(f"\n"
+                        f"+++ command: {' '.join(command)}\n\n"
+                        f"+++ out: {stdout}\n\n"
+                        f"+++ err: {stderr}")
             proof = stdout.split()[1]
-            DEBUG(f""" Proof: =================  \n{proof}""")
+            logger.debug(f""" Proof: =================  \n{proof}""")
 
             return proof

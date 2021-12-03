@@ -2,11 +2,13 @@ import copy
 
 from Configs.Constants import coin, PRV_ID
 from Helpers.BlockChainMath import PdeMath
-from Helpers.Logging import INFO, INFO_HEADLINE
+from Helpers.Logging import config_logger
 from Helpers.TestHelper import l6
 from Helpers.Time import get_current_date_time
 from Objects.AccountObject import Account, COIN_MASTER, AccountGroup
 from Objects.IncognitoTestCase import SUT
+
+logger = config_logger(__name__)
 
 token_owner = Account(
     '112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA')
@@ -32,7 +34,7 @@ if token_id_1 not in all_ptoken_in_chain:
     res.subscribe_transaction()
     token_id_1 = res.get_token_id()
     token_owner.wait_for_balance_change(token_id_1, 0)
-    INFO(f" +++ token 1 = {token_id_1}")
+    logger.info(f" +++ token 1 = {token_id_1}")
 
 if token_id_2 not in all_ptoken_in_chain:
     tok2_symbol = get_current_date_time()
@@ -41,7 +43,7 @@ if token_id_2 not in all_ptoken_in_chain:
     res.subscribe_transaction()
     token_id_2 = res.get_token_id()
     token_owner.wait_for_balance_change(token_id_2, 0)
-    INFO(f" +++ token 2 = {token_id_2}")
+    logger.info(f" +++ token 2 = {token_id_2}")
 
 acc_list_1_shard = AccountGroup(
     Account(
@@ -90,28 +92,28 @@ acc_list_n_shard = AccountGroup(
         "112t8rnby11gxmuz9M9YA5EQ7VEcFFC1g2PJkXTTLc6qvF4dQRdfJZtPfjwPi3FQghH7e5oXdXzWptDZXz6EKiXcty2PsFBm1rELqnzwNJwe"),
 )
 
-for acc in acc_list_1_shard+acc_list_n_shard:
+for acc in acc_list_1_shard + acc_list_n_shard:
     acc.submit_key()
 
 
 def verify_sum_fee_prv_token(sum_fee_expected, token1, token2, pde_state_b4, pde_state_af):
     sum_fee_pool_b4 = pde_state_b4.sum_contributor_reward_of_pair(None, token1, token2)
     sum_fee_pool_af = pde_state_af.sum_contributor_reward_of_pair(None, token1, token2)
-    INFO(f'Verify contributor reward of {l6(token1)}-{l6(token2)}, '
+    logger.info(f'Verify contributor reward of {l6(token1)}-{l6(token2)}, '
          f'Expected sum reward = {sum_fee_expected}, actual sum reward = {sum_fee_pool_af - sum_fee_pool_b4}')
     assert abs((abs(sum_fee_pool_af - sum_fee_pool_b4) / sum_fee_expected) - 1) < 0.001 \
-           and INFO(f'Sum fee tokens {l6(token1)}-{l6(token2)} is correct')
+           and logger.info(f'Sum fee tokens {l6(token1)}-{l6(token2)} is correct')
 
 
 def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_state_b4, pde_state_af):
-    INFO_HEADLINE(f'Verify contributor reward of token pair {l6(token1)}-{l6(token2)}')
+    logger.info(f' !!!!!!! Verify contributor reward of token pair {l6(token1)}-{l6(token2)}')
     contributors_of_pair = pde_state_b4.get_contributor_of_pair(token1, token2)
     sum_share_of_pair = pde_state_b4.sum_share_pool_of_pair(None, token1, token2)
     sum_split_reward = 0
     final_reward_result = True
     SUMMARY = ''
     for contributor in contributors_of_pair:
-        INFO()
+        logger.info()
         share_of_contributor = pde_state_b4.get_pde_shares_amount(contributor, token1, token2)
         pde_reward_b4 = pde_state_b4.get_contributor_reward_amount(contributor, token1, token2)
         pde_reward_af = pde_state_af.get_contributor_reward_amount(contributor, token1, token2)
@@ -123,7 +125,7 @@ def verify_contributor_reward_prv_token(sum_fee_expected, token1, token2, pde_st
             calculated_reward = int(sum_fee_expected * share_of_contributor / sum_share_of_pair)
         sum_split_reward += calculated_reward
 
-        INFO(f'''Verify PDE reward for contributor {l6(contributor)} with: 
+        logger.info(f'''Verify PDE reward for contributor {l6(contributor)} with: 
                         reward before               : {pde_reward_b4}
                         reward after                : {pde_reward_af}
                         estimated additional reward : {calculated_reward}
@@ -174,9 +176,9 @@ def verify_trading_prv_token(trade_amount_list, trading_fees_list, trade_order, 
         if token_buy == PRV_ID:
             received_amount_token_buy -= (trading_fee + tx_fee)
 
-        # assert estimate_bal_buy_after == bal_tok_buy_after and INFO(f'{l6(trader.payment_key)} '
+        # assert estimate_bal_buy_after == bal_tok_buy_after and logger.info(f'{l6(trader.payment_key)} '
         #                                                             f'balance {l6(token_buy)} is correct')
-        # assert estimate_bal_sell_after == bal_tok_sell_after and INFO(f'{l6(trader.payment_key)} '
+        # assert estimate_bal_sell_after == bal_tok_sell_after and logger.info(f'{l6(trader.payment_key)} '
         #                                                               f'balance {l6(token_sell)} is correct')
         estimate_amount_received_after_list[order] = received_amount_token_buy
         estimate_bal_sell_after_list[order] = estimate_bal_sell_after
@@ -188,10 +190,10 @@ def calculate_trade_order(trading_fees_list, amount_list):
     trade_priority = [(fee * multiplier) / amount for fee, amount in zip(trading_fees_list, amount_list)]
     trade_priority_sorted = copy.deepcopy(trade_priority)
     trade_priority_sorted.sort(reverse=True)
-    INFO("Trade Priority: " + str(trade_priority))
-    INFO("Trade Priority: " + str(trade_priority_sorted))
+    logger.info("Trade Priority: " + str(trade_priority))
+    logger.info("Trade Priority: " + str(trade_priority_sorted))
     sort_order = sorted(range(len(trade_priority)), key=lambda k: trade_priority[k], reverse=True)
-    INFO("Sort order: " + str(sort_order))
+    logger.info("Sort order: " + str(sort_order))
     return sort_order
 
 # work around for privacy v2 "invalid token" bug, if not testing privacy v2, just comment these lines

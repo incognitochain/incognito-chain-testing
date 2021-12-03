@@ -1,7 +1,9 @@
-from Configs.Constants import Status
 from Configs.Configs import ChainConfig
-from Helpers.Logging import INFO
+from Configs.Constants import Status
+from Helpers.Logging import config_logger
 from Helpers.TestHelper import to_num
+
+logger = config_logger(__name__)
 
 
 class PortalMath:
@@ -11,7 +13,7 @@ class PortalMath:
         token_amount, token_rate, prv_rate = to_num(token_amount, token_rate, prv_rate)
         estimated_lock_collateral = int(
             int(token_amount * ChainConfig.Portal.COLLATERAL_PERCENT) * token_rate // prv_rate)
-        INFO(f'''Calculating lock collateral: 
+        logger(f'''Calculating lock collateral: 
             token amount: {token_amount}, 
             token rate:   {token_rate}, 
             prv rate:     {prv_rate},
@@ -48,10 +50,10 @@ class PortalMath:
         new_tok_rate = (ChainConfig.Portal.COLLATERAL_PERCENT * token_rate) // percent
 
         if change_token_rate:
-            INFO(f'Current token rate {token_rate}, new rate {new_tok_rate}')
+            logger.info(f'Current token rate {token_rate}, new rate {new_tok_rate}')
             return int(new_tok_rate)
         else:
-            INFO(f'Current prv rate {prv_rate}, new rate {new_prv_rate}')
+            logger.info(f'Current prv rate {prv_rate}, new rate {new_prv_rate}')
             return int(new_prv_rate)
 
     @staticmethod
@@ -72,10 +74,10 @@ class PortalMath:
         new_tok_rate = int(prv_collateral * current_prv_rate / percent / token_holding)
 
         if rate_return == 'token':
-            INFO(f'Current token rate {current_tok_rate}, new rate {new_tok_rate}')
+            logger.info(f'Current token rate {current_tok_rate}, new rate {new_tok_rate}')
             return int(new_tok_rate)
         else:
-            INFO(f'Current prv rate {current_prv_rate}, new rate {new_prv_rate}')
+            logger.info(f'Current prv rate {current_prv_rate}, new rate {new_prv_rate}')
             return int(new_prv_rate)
 
     @staticmethod

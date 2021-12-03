@@ -3,7 +3,9 @@ import re
 import subprocess
 import sys
 
-from Helpers.Logging import DEBUG
+from Helpers.Logging import config_logger
+
+logger = config_logger(__name__)
 
 if sys.platform == 'darwin':
     get_key = {1: f'{os.getcwd()}/bin/getKey-mac',
@@ -35,7 +37,7 @@ def get_key_set_from_private_k(private_k, version):
                 shard_id)
     """
     try:
-        DEBUG(f'Generating keys v{version} from private key: {private_k}')
+        logger.debug(f'Generating keys v{version} from private key: {private_k}')
         process = subprocess.Popen([get_key[version], '-privatekey', private_k],
                                    stdout=subprocess.PIPE, stdin=subprocess.PIPE, universal_newlines=True)
     except KeyError:

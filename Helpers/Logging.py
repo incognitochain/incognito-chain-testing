@@ -1,101 +1,90 @@
 import inspect
 import logging.config
 import os
-import sys
-import threading
+
 from datetime import datetime
+
+LOGGING_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s %(levelname)-8s %(threadName)s:%(name)s:%(lineno)d %(message)s',
+            'datefmt': '%H:%M:%S'}, },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'formatter': 'standard',
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stdout', },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'DEBUG',
+            'formatter': 'standard',
+            'filename': f'logs/run_{datetime.now().strftime("%y%m%d_%H%M%S")}.log',
+            'mode': 'w',
+            'maxBytes': 10485760,
+            'backupCount': 5, }, },
+    'loggers': {
+        '': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False}, }}
 
 _FMT_WIDTH = 100
 _FMT_CHR = '='
 _STEP_LVL = 12
 
-log_level_console = _STEP_LVL
 
-_now = datetime.now().strftime("%y%m%d_%H%M%S")
-_log_file_full = f'run_{_now}.log'
-_log_file_short = f'run_{_now}_short.log'
-
-_formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)-20s:%(line)d %(message)s', datefmt='%H:%M:%S')
-# create file logging handle: full log
-_file_handler_full = logging.FileHandler(filename=os.path.join('log', _log_file_full))
-_file_handler_full.setFormatter(_formatter)
-_file_handler_full.setLevel(logging.DEBUG)
-# create file logging handle: short log
-# _file_handler_short = logging.FileHandler(filename=os.path.join('log', _log_file_short))
-# _file_handler_short.setFormatter(_formatter)
-# _file_handler_short.setLevel(_STEP_LVL)
-# create system out logging handle
-_sys_out_handler = logging.StreamHandler(sys.stdout)
-_sys_out_handler.setFormatter(_formatter)
-_sys_out_handler.setLevel(log_level_console)
-
-LOGGERS = {}
+def config_logger(logger_name):
+    logging.config.dictConfig(LOGGING_CONFIG)
+    return logging.getLogger(logger_name)
 
 
-def _log(logger_name=None):
-    """
-    Level       Numeric value
-    ----------------------------
-    CRITICAL    50
-    ERROR       40
-    WARNING     30
-    INFO        20
-    DEBUG       10
-    NOTSET      0
-    """
-    if not logger_name:
-        # Gets the name of the class / method from where this method is called
-        logger_name = f"{threading.currentThread().getName()}:{os.path.basename(inspect.stack()[2][1])[:20]}"
-    line = {'line': inspect.stack()[2][2]}
-    try:
-        logger = LOGGERS[logger_name]
-    except (KeyError, AttributeError):
-        logger = logging.getLogger(logger_name)
-        # By default, log all messages
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(_file_handler_full)
-        # logger.addHandler(_file_handler_short)
-        logger.addHandler(_sys_out_handler)
-        LOGGERS[logger_name] = logger
-    return logging.LoggerAdapter(logger, line)
+class LoggerManager:
+    LOGGERS = {}
+
+    @staticmethod
+    def get_logger():
+        logger_name = os.path.basename(inspect.stack()[2][1])
+        try:
+            logger = LoggerManager.LOGGERS[logger_name]
+        except (KeyError, AttributeError):
+            logger = config_logger(logger_name)
+            LoggerManager.LOGGERS[logger_name] = logger
+        return logger
 
 
-def DEBUG(msg, logger_name=None):
-    _log(logger_name).debug(msg)
+def DEBUG(msg):
+    LoggerManager.get_logger().debug(msg)
 
 
-def INFO(msg=None, logger_name=None):
-    if msg is None:
-        msg = _FMT_CHR * _FMT_WIDTH
-    _log(logger_name).info(msg)
+def INFO(msg=_FMT_CHR * _FMT_WIDTH):
+    LoggerManager.get_logger().info(msg)
     return True
 
 
-def WARNING(msg, logger_name=None):
-    _log(logger_name).warning(msg)
+def WARNING(msg):
+    LoggerManager.get_logger().warning(msg)
 
 
-def ERROR(msg, logger_name=None):
-    _log(logger_name).error(msg)
+def ERROR(msg):
+    LoggerManager.get_logger().error(msg)
 
 
-def CRITICAL(msg, logger_name=None):
-    _log(logger_name).critical(msg)
+def CRITICAL(msg):
+    LoggerManager.get_logger().critical(msg)
 
 
-def INFO_HEADLINE(msg, logger_name=None):
+def INFO_HEADLINE(msg):
     l_msg = len(msg)
     width = l_msg + 6 if l_msg > _FMT_WIDTH else _FMT_WIDTH
     mid = int(((width - 6 + l_msg) / 2))
     end = width - mid - 4
     fmt_str = _FMT_CHR * width
     new_msg = ('\n{}\n{} {:>%d} {:>%d}\n{}' % (mid, end)).format(fmt_str, '||', msg, '||', fmt_str)
-    _log(logger_name).info(new_msg)
+    LoggerManager.get_logger().info(new_msg)
 
 
 def STEP(num, msg, *args, **kws):
-    logging.addLevelName(_STEP_LVL, f"STEP {num}")
-    _log().log(_STEP_LVL, msg, *args, **kws)
-
-
-logging.Logger.step = STEP
+    LoggerManager.get_logger().info(f"Step {num}: {msg}", *args, **kws)
