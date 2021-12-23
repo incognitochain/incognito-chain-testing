@@ -498,13 +498,13 @@ class DEXv3RPC(BaseRpcApi):
                 .with_params([{"ReqTxID": tx_id}]).execute())
 
     def get_pdev3_state(self, beacon_height, key_filter="All", id_filter="1", verbose=1, ):
-        return self.rpc_connection.with_method("pdexv3_getState") \
-            .with_params([{"BeaconHeight": beacon_height,
-                           "Filter": {
-                               "Key": key_filter,
-                               "Verbosity": verbose,
-                               "ID": id_filter
-                           }}]).execute()
+        return PdeV3State(self.rpc_connection.with_method("pdexv3_getState")
+                          .with_params([{"BeaconHeight": beacon_height,
+                                         "Filter": {
+                                             "Key": key_filter,
+                                             "Verbosity": verbose,
+                                             "ID": id_filter
+                                         }}]).execute())
 
     def add_liquidity(self, private_k, token_id, amount, amplifier, pool_pair_id="", pair_hash="", nft_id="",
                       main_tx_receivers=unspecified, tx_fee=-1, tx_privacy=1):

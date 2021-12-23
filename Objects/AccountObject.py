@@ -8,7 +8,7 @@ from typing import List
 
 from Configs import Constants
 from Configs.Configs import ChainConfig, TestConfig
-from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K
+from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, BURNING_ADDR
 from Drivers.IncognitoKeyGen import get_key_set_from_private_k
 from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
@@ -346,7 +346,7 @@ class Account:
                                                 TestConfig.TX_VER)
 
     def stake_and_reward_me(self, stake_amount=ChainConfig.STK_AMOUNT, auto_re_stake=True,
-                            tx_version=TestConfig.TX_VER):
+                            tx_version=TestConfig.TX_VER, tx_fee=-1, tx_privacy=0):
         """
 
         @return:
@@ -361,7 +361,8 @@ class Account:
 
         return self.REQ_HANDLER.transaction(). \
             create_and_send_staking_transaction(self.private_key, self.payment_key, self.validator_key,
-                                                self.payment_key, stake_amount, auto_re_stake, tx_version)
+                                                self.payment_key, stake_amount, auto_re_stake, tx_version, tx_fee,
+                                                tx_privacy)
 
     def stake_someone_reward_me(self, someone, stake_amount=ChainConfig.STK_AMOUNT, auto_re_stake=False,
                                 tx_version=TestConfig.TX_VER, tx_fee=50):
@@ -881,6 +882,12 @@ class Account:
         logger.info(f'Withdraw centralize token')
         return self.REQ_HANDLER.transaction().withdraw_centralize_token(self.private_key, token_id,
                                                                         amount_custom_token, TestConfig.TX_VER)
+
+    def bsc_burn_for_deposit_req(self, token_id, token_amount, remote_addr,
+                                 prv_fee: dict = None, token_fee: dict = None, tx_fee=-1, tx_privacy=1):
+        return self.REQ_HANDLER.transaction(). \
+            create_n_send_burn_tx_bsc(self.private_key, token_id, token_amount, remote_addr, prv_fee, token_fee, tx_fee,
+                                      tx_privacy)
 
     ########
     # Stake
@@ -1522,7 +1529,7 @@ class AccountGroup:
 
     def load_file(self, file_path):
         with open(file_path) as file:
-            keys = file.read().splitlines()
+            keys = [key for key in file.read().splitlines() if key]
         self.__get_acc_synchronous(keys)
         return self
 
@@ -1698,3 +1705,4 @@ class AccountGroup:
 
 PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K, handler="nomad")
 COIN_MASTER = Account(DAO_PRIVATE_K, handler="nomad")
+BLACK_HOLE = Account("", BURNING_ADDR, handler='nomad')

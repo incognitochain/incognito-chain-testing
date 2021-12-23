@@ -1,11 +1,12 @@
-from APIs.CoinService import CoinServiceApiBase
+from APIs.BackEnd import BackEndApiBase
+from Drivers import ResponseBase
 
 OFFSET = 0
 LIMIT = 10000
 VERSION = 2
 
 
-class CoinServiceApi(CoinServiceApiBase):
+class CoinServiceApi(BackEndApiBase):
     def get_coins(self, token_id, version=VERSION, offset=OFFSET, limit=LIMIT, **key):
         """
         @param limit:
@@ -56,3 +57,25 @@ class CoinServiceApi(CoinServiceApiBase):
 
     def request_drop_nft(self, paymentkey):
         return self.get('nftdrop-service/requestdrop-nft', paymentkey=paymentkey)
+
+
+class KeyInfoResponse(ResponseBase):
+    @property
+    def id(self):
+        return self.get_result("id")
+
+    @property
+    def created_time(self):
+        return self.get_result("created_at")
+
+    @property
+    def updated_time(self):
+        return self.get_result("updated_at")
+
+    @property
+    def pubkey(self):
+        return self.get_result("pubkey")
+
+    @property
+    def otakey(self):
+        return self.get_result("otakey")

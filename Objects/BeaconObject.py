@@ -365,10 +365,10 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             committees_in_shard = self.get_shard_committees(shard_number)
             for committee in committees_in_shard:
                 if committee.get_inc_public_key() == public_key:
-                    logger.info(f" IS committee @ B height {self.get_beacon_height()}: "
-                                f"pub_key = {public_key} : shard {shard_number}")
+                    logger.debug(f" IS committee @ B height {self.get_beacon_height()}: "
+                                 f"pub_key = {public_key} : shard {shard_number}")
                     return shard_number
-        logger.info(f"NOT committee @ B height {self.get_beacon_height()}: pub_key = {public_key}")
+        logger.debug(f"NOT committee @ B height {self.get_beacon_height()}: pub_key = {public_key}")
         return False
 
     def is_he_in_shard_pending(self, account):
@@ -385,9 +385,9 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             shard_pending = self.get_shard_pending_validator(shard_number)
             for committee in shard_pending:
                 if committee.get_inc_public_key() == public_key:
-                    logger.info(f" IS in shard pending: pub_key = {public_key} : shard {shard_number}")
+                    logger.debug(f" IS in shard pending: pub_key = {public_key} : shard {shard_number}")
                     return shard_number
-        logger.info(f"NOT exist in shard pending: pub_key = {public_key}")
+        logger.debug(f"NOT exist in shard pending: pub_key = {public_key}")
         return False
 
     def is_he_in_sync_pool(self, account):
@@ -404,9 +404,9 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             shard_pending = self.get_syncing_validators(shard_number)
             for committee in shard_pending:
                 if committee.get_inc_public_key() == public_key:
-                    logger.info(f" IS committee in sync pool: pub_key = {public_key} : shard {shard_number}")
+                    logger.debug(f" IS committee in sync pool: pub_key = {public_key} : shard {shard_number}")
                     return shard_number
-        logger.info(f"NOT exist in sync pool: pub_key = {public_key}")
+        logger.debug(f"NOT exist in sync pool: pub_key = {public_key}")
         return False
 
     def is_he_in_waiting_next_random(self, account):
@@ -421,21 +421,27 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         waiting_next_random = self.get_candidate_shard_waiting_next_random()
         for committee in waiting_next_random:
             if committee.get_inc_public_key() == public_key:
-                logger.info(f" IS validator in shard waiting next random: pub_key = {public_key}")
+                logger.debug(f" IS validator in shard waiting next random: pub_key = {public_key}")
                 return True
-        logger.info(f"NOT exist in shard waiting next random: pub_key = {public_key}")
+        logger.debug(f"NOT exist in shard waiting next random: pub_key = {public_key}")
         return False
 
     def where_is_he(self, account):
-        if self.is_he_in_waiting_next_random(account):
-            return "Waiting"
-        if self.is_he_in_sync_pool(account) is not False:
-            return "Sync pool"
-        if self.is_he_in_shard_pending(account) is not False:
-            return "Shard pending"
-        if self.is_he_a_committee(account) is not False:
-            return "Committee"
-        return None
+        position = "not any list"
+        in_random = self.is_he_in_waiting_next_random(account)
+        in_shard_sync_pool = self.is_he_in_sync_pool(account)
+        in_shard_pending = self.is_he_in_shard_pending(account)
+        in_shard_comm = self.is_he_a_committee(account)
+        if in_random:
+            position = "Waiting"
+        elif in_shard_sync_pool is not False:
+            position = f"Sync pool shard {in_shard_sync_pool}"
+        elif in_shard_pending is not False:
+            position = f"Pending shard {in_shard_pending}"
+        elif in_shard_comm is not False:
+            position = f"Committee shard {in_shard_comm}"
+        logger.info(f"Public k {account.public_key[-6:]} is in {position} @ {self.get_beacon_height()}")
+        return position
 
     def get_candidate_shard_waiting_current_random(self):
         """

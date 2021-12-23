@@ -26,7 +26,6 @@ from Objects.BlockChainObjects import BlockChainCore
 from Objects.CoinObject import ListInChainToken, ListInChainBridgeToken
 from Objects.CommitteeState import CommitteeState
 from Objects.PdeObjects import PDEStateInfo
-from Objects.PdexV3Objects import PdeV3State
 from Objects.PortalObjects import PortalStateInfo
 from Objects.ShardBlock import ShardBlock
 from Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
@@ -224,7 +223,7 @@ class Node:
     def pde3_get_state(self, beacon_height=None, key_filter="All", id_filter="1", verbose=1):
         beacon_height = self.help_get_beacon_height() if not beacon_height else beacon_height
         logger.info(f'Get PDE3 state at beacon height: {beacon_height}')
-        return PdeV3State(self.dex_v3().get_pdev3_state(beacon_height, key_filter, id_filter, verbose))
+        return self.dex_v3().get_pdev3_state(beacon_height, key_filter, id_filter, verbose)
 
     def pde3_make_trade_tx(self, private_key, token_sell, token_buy, sell_amount, min_acceptable, trade_path,
                            trading_fee, use_prv_fee=True):
@@ -259,7 +258,7 @@ class Node:
         return output['Hash'], output['Transaction']
 
     def get_block_chain_info(self):
-        return BlockChainCore(self.system_rpc().get_block_chain_info().get_result())
+        return BlockChainCore(self.system_rpc().get_block_chain_info())
 
     def get_all_view_detail(self, chain_id):
         return AllViewDetail(self.system_rpc().get_all_view_detail(chain_id).get_result())
@@ -501,9 +500,7 @@ class Node:
         return shard_state_detail_obj
 
     def get_beacon_best_state_info(self):
-        beacon_best_state_raw = self.system_rpc().get_beacon_best_state().get_result()
-        beacon_best_state_obj = BeaconBestStateInfo(beacon_best_state_raw)
-        return beacon_best_state_obj
+        return BeaconBestStateInfo(self.system_rpc().get_beacon_best_state())
 
     def get_shard_best_state_info(self, shard_num=None):
         shard_state_raw = self.system_rpc().get_shard_best_state(shard_num).get_result()

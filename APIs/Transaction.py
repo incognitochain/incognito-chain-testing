@@ -409,6 +409,23 @@ class TransactionRpc(BaseRpcApi):
                           "Skip": from_index,
                           "Limit": to_index}]).execute()
 
+    def create_n_send_burn_tx_bsc(self, private_key,
+                                  token_id, token_amount, remote_addr,
+                                  prv_fee: dict = None, token_fee: dict = None, tx_fee=-1, tx_privacy=1):
+        prv_tx = prv_fee if isinstance(prv_fee, dict) else {}
+        token_tx = {**{BURNING_ADDR: token_amount}, **token_fee} if token_fee else {BURNING_ADDR: token_amount}
+        return RPCResponseWithTxHash(self.rpc_connection.with_method("createandsendburningpbscfordeposittoscrequest").
+                                     with_params([private_key, prv_tx, tx_fee, tx_privacy,
+                                                  {"TokenID": token_id,
+                                                   "TokenTxType": 1,
+                                                   "TokenName": "",
+                                                   "TokenSymbol": "",
+                                                   "TokenAmount": token_amount,
+                                                   "TokenReceivers": token_tx,
+                                                   "RemoteAddress": remote_addr,
+                                                   "Privacy": True,
+                                                   "TokenFee": 0}, "", 0]).execute())
+
 
 class TransactionDetail(RPCResponseWithTxHash):
     class TxDetailProof(BlockChainInfoBaseClass):
