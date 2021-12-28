@@ -61,7 +61,7 @@ def test_verify_reward_received(dcz):
                                                                         prv_fee=amount_token_fee).subscribe_transaction().get_fee()
 
     block_height_random = ChainHelper.cal_random_height_of_epoch(epoch_reward)
-    ChainHelper.wait_till_beacon_height(block_height_random)
+    SUT().wait_till_beacon_height(block_height_random)
     with ThreadPoolExecutor() as executor:
         thread_bbd = executor.submit(SUT().get_beacon_best_state_detail_info)
         thread_bb = executor.submit(SUT().get_beacon_best_state_info)
@@ -114,7 +114,7 @@ def test_verify_reward_received(dcz):
 
     STEP(3, 'Wait till next epoch, after reward epoch. Wait receive reward')
     block_height_random = ChainHelper.cal_random_height_of_epoch(epoch_reward + 1)
-    ChainHelper.wait_till_beacon_height(block_height_random)
+    SUT().wait_till_beacon_height(block_height_random)
 
     STEP(4, 'Get reward instruction from beacon')
     instruction_beacon_height = ChainHelper.cal_first_height_of_epoch(epoch_reward + 1)

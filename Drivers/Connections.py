@@ -15,7 +15,7 @@ class RpcConnection:
     DEFAULT_JSON_RPC = "1.0"
     DEFAULT_HEADER = {'Content-Type': 'application/json'}
     DEFAULT_ID = 1
-    DEFAULT_TIMEOUT = 90
+    DEFAULT_TIMEOUT = 320
 
     def __init__(self, url, headers=None, id_num=None, json_rpc=None):
         id_num = RpcConnection.DEFAULT_ID if id_num is None else id_num

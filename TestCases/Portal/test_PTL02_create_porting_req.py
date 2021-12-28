@@ -1,7 +1,7 @@
 import pytest
 
-from Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status
 from Configs.Configs import ChainConfig
+from Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status
 from Helpers.Logging import STEP, INFO, WARNING, INFO_HEADLINE
 from Helpers.PortalHelper import PortalMath
 from Helpers.TestHelper import l6, ChainHelper
@@ -106,7 +106,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
         create_rate_tx = PORTAL_FEEDER.portal_create_exchange_rate(big_rate)
         create_rate_tx.expect_no_error()
         # wait for new rate to take effect
-        ChainHelper.wait_till_next_beacon_height(2)
+        SUT().wait_till_next_beacon_height(2)
         # re-estimate porting fee
         estimated_porting_fee = PortalMath.cal_portal_portal_fee(big_porting_amount, big_rate[token],
                                                                  init_portal_rate[PRV_ID])
@@ -168,7 +168,7 @@ def test_create_porting_req_1_1(token, porting_amount, user, porting_fee, num_of
             future_holding_token, future_lock_collateral, tok_rate, prv_rate, 'prv', 1.1)
         liquidate_rate = {PRV_ID: new_prv_rate}
         PORTAL_FEEDER.portal_create_exchange_rate(liquidate_rate)
-        ChainHelper.wait_till_next_beacon_height(2)
+        SUT().wait_till_next_beacon_height(2)
         # todo: make sure rate is changed
 
     if desired_status == 'invalid':

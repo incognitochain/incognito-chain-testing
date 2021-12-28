@@ -51,6 +51,7 @@ def test_stress_beacon_bulk_swap_no_split(trade_path, token_sell, token_buy):
             trade_txs.append(r)
     WAIT(ChainConfig.BLOCK_TIME * 4)
     end_beacon_h = SUT().get_block_chain_info().get_beacon_block().get_height() + 10
+    SUT().wait_till_beacon_height(end_beacon_h, timeout=600)
     Logging.INFO(f"Shard height before sending trade tx:\n"
                  f"{start_shard_height}")
     summarize([r.result().get_tx_id() for r in trade_txs], start_beacon_h, end_beacon_h)
@@ -86,6 +87,7 @@ def test_stress_beacon_bulk_swap_multi_pool_split():
             trade_txs.append(r)
     WAIT(ChainConfig.BLOCK_TIME * 4)
     end_beacon_h = SUT().get_block_chain_info().get_beacon_block().get_height() + 10
+    SUT().wait_till_beacon_height(end_beacon_h, timeout=600)
     Logging.INFO(f"Shard height before sending trade tx:\n"
                  f"{start_shard_height}")
     summarize([r.result().get_tx_id() for r in trade_txs], start_beacon_h, end_beacon_h)

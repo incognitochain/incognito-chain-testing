@@ -3,7 +3,7 @@ import pytest
 from Configs.Constants import PBNB_ID, PRV_ID
 from Helpers.Logging import STEP, INFO
 from Helpers.PortalHelper import PortalMath
-from Helpers.TestHelper import l6, ChainHelper
+from Helpers.TestHelper import l6
 from Helpers.Time import WAIT
 from Objects.AccountObject import PORTAL_FEEDER
 from Objects.IncognitoTestCase import SUT
@@ -66,7 +66,7 @@ def test_liquidate(token, percent, waiting_redeem, expected):
     rate_feed_tx = PORTAL_FEEDER.portal_create_exchange_rate({PRV_ID: str(prv_liquidate_rate)})
     rate_feed_tx.subscribe_transaction()
     assert rate_feed_tx.get_error_msg() is None, "Fail to create rate"
-    ChainHelper.wait_till_next_beacon_height(2)
+    SUT().wait_till_next_beacon_height(2)
 
     STEP(2, "Check liquidation pool")
     PSI_after_test = SUT().get_latest_portal_state_info()

@@ -5,7 +5,7 @@ import pytest
 from Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status
 from Helpers.Logging import STEP, INFO
 from Helpers.PortalHelper import PortalMath
-from Helpers.TestHelper import l6, ChainHelper
+from Helpers.TestHelper import l6
 from Helpers.Time import WAIT
 from Objects.AccountObject import Account, PORTAL_FEEDER
 from Objects.IncognitoTestCase import ACCOUNTS, SUT
@@ -249,7 +249,7 @@ def test_creating_rate(account, expected_pass):
         create_rate_tx.expect_no_error()
         create_rate_tx.subscribe_transaction()
         INFO("Wait 2 beacon heights for new rate to apply")
-        ChainHelper.wait_till_next_beacon_height(2)
+        SUT().wait_till_next_beacon_height(2)
         portal_state_info = SUT().get_latest_portal_state_info()
         INFO('Checking new rate')
         for token, value in test_rate.items():

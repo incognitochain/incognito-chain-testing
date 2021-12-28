@@ -1,6 +1,8 @@
 from Configs.Constants import coin
+from Helpers.Logging import config_logger
 from Objects.IncognitoTestCase import ACCOUNTS
 
+logger = config_logger(__name__)
 # declaration
 TOKEN_OWNER = ACCOUNTS[0]
 INIT_PAIR_IDS = []
@@ -22,7 +24,7 @@ for token in __token_list:
         TOKEN_OWNER.wait_for_balance_change(token, 0)
 
 TOKEN_X, TOKEN_Y = __token_list
-print(f"""   !!! Using tokens: 
+logger.info(f"""   !!! Using tokens: 
     {TOKEN_X}
     {TOKEN_Y}""")
 

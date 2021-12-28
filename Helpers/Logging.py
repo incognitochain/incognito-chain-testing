@@ -4,14 +4,28 @@ import os
 
 from datetime import datetime
 
+log_folder = "logs"
+try:
+    os.mkdir(log_folder)
+except FileExistsError:
+    pass
+
 LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
             'format': '%(asctime)s %(levelname)-8s %(threadName)s:%(name)s:%(lineno)d %(message)s',
+            'datefmt': '%H:%M:%S'},
+        'msg_only': {
+            'format': '%(message)s',
             'datefmt': '%H:%M:%S'}, },
     'handlers': {
+        'simple_console': {
+            'level': 'INFO',
+            'formatter': 'msg_only',
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stdout', },
         'console': {
             'level': 'INFO',
             'formatter': 'standard',
@@ -21,10 +35,10 @@ LOGGING_CONFIG = {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'DEBUG',
             'formatter': 'standard',
-            'filename': f'logs/run_{datetime.now().strftime("%y%m%d_%H%M%S")}.log',
+            'filename': f'{log_folder}/run_{datetime.now().strftime("%y%m%d_%H%M%S")}.log',
             'mode': 'w',
             'maxBytes': 10485760,
-            'backupCount': 5, }, },
+            'backupCount': 50, }, },
     'loggers': {
         '': {
             'handlers': ['console', 'file'],
@@ -47,6 +61,7 @@ class LoggerManager:
     @staticmethod
     def get_logger():
         logger_name = os.path.basename(inspect.stack()[2][1])
+        # return config_logger(logger_name)
         try:
             logger = LoggerManager.LOGGERS[logger_name]
         except (KeyError, AttributeError):

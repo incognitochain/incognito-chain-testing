@@ -90,7 +90,7 @@ def setup_module():
             create_rate_tx = PORTAL_FEEDER.portal_create_exchange_rate(init_portal_rate)
             create_rate_tx.expect_no_error()
             create_rate_tx.subscribe_transaction()
-            ChainHelper.wait_till_next_beacon_height(2)
+            SUT().wait_till_next_beacon_height(2)
             break
 
     global big_collateral, fat_custodian_prv

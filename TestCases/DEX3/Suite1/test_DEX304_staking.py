@@ -18,7 +18,7 @@ last_created_nft = ""
     pytest.param("stake", COIN_MASTER, "new", 4120000000, PRV_ID),  # new user stake
     pytest.param("stake", COIN_MASTER, "reuse", 4120000000, PRV_ID),  # same user stake again
     pytest.param("stake", COIN_MASTER, COIN_MASTER.nft_ids[0], 4120000000, PRV_ID),
-    pytest.param("stake", ACCOUNTS[0], ACCOUNTS[0].nft_ids[0], 4120000000, TokenIds.pDEX),
+    # pytest.param("stake", ACCOUNTS[0], ACCOUNTS[0].nft_ids[0], 4120000000, TokenIds.pDEX), # PDEX token is obsoleted
     pytest.param("stake", ACCOUNTS[0], ACCOUNTS[0].nft_ids[0], 4120000000, PRV_ID),
 
     pytest.param("unstake", COIN_MASTER, "reuse", 0.2, PRV_ID),

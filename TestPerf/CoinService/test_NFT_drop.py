@@ -5,7 +5,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
-from APIs.CoinService.CoinService import CoinServiceApi
+from APIs.BackEnd.CoinService.CoinService import CoinServiceApi
 from Objects.AccountObject import AccountGroup
 from Objects.NodeObject import Node
 

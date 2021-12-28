@@ -38,10 +38,10 @@ token_fee = False
     pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, trading_fee_tok, token_fee, "[INIT_PAIR_IDS[1]]",
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),
-    pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, trading_fee_prv_min, PRV_fee, "[INIT_PAIR_IDS[1]]",
+    pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, trading_fee_prv_min + 10, PRV_fee, "[INIT_PAIR_IDS[1]]",
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),  # use min fee PRV
-    pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, trading_fee_tok_min, token_fee, "[INIT_PAIR_IDS[1]]",
+    pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, trading_fee_tok_min + 10, token_fee, "[INIT_PAIR_IDS[1]]",
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),  # use min fee TOKEN
 

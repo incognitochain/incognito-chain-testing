@@ -1151,8 +1151,12 @@ class Account:
             return None
 
     def pde3_get_my_nft_ids(self, pde_state=None):
-        all_my_custom_token = self.list_owned_custom_token()
-        pde_state = self.REQ_HANDLER.pde3_get_state() if not pde_state else pde_state
+        try:
+            all_my_custom_token = self.list_owned_custom_token()
+        except Exception as e:
+            logger.error(e)
+            raise e
+        pde_state = self.REQ_HANDLER.pde3_get_state(key_filter="NftIDs") if not pde_state else pde_state
         self.nft_ids.clear()
         for token in all_my_custom_token.__iter__():
             if pde_state.get_nft_id(token.get_token_id()):
@@ -1671,7 +1675,7 @@ class AccountGroup:
 
     def pde3_get_nft_ids(self, pde_state=None):
         if not pde_state:
-            pde_state = self[0].REQ_HANDLER.pde3_get_state()
+            pde_state = self[0].REQ_HANDLER.pde3_get_state(key_filter="NftIDs")
         with ThreadPoolExecutor() as e:
             for acc in self:
                 e.submit(acc.pde3_get_my_nft_ids, pde_state)

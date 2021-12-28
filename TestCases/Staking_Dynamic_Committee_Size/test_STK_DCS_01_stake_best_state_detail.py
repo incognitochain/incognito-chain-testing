@@ -1,7 +1,7 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from Helpers.Logging import STEP
-from Helpers.TestHelper import get_beacon_best_state_detail, get_shard_best_state_detail
+from Objects.IncognitoTestCase import SUT
 from TestCases.Staking_Dynamic_Committee_Size import stake_account, \
     stake_and_check_balance_after_stake, find_public_key_in_beacon_best_state_detail, \
     find_public_key_in_shard_best_state_detail
@@ -11,11 +11,11 @@ def test_self_stake_and_check_public_key_in_beacon_and_shard_best_state_detail()
     with ThreadPoolExecutor() as executor:
         STEP(1, 'Start beacon, shard and stake threads')
         thread_pool = []
-        thread_beacon = executor.submit(get_beacon_best_state_detail)
+        thread_beacon = executor.submit(SUT().get_beacon_best_state_detail)
         thread_pool.append(thread_beacon)
-        thread_shard_0 = executor.submit(get_shard_best_state_detail, 0)
+        thread_shard_0 = executor.submit(SUT().get_shard_best_state_detail, 0)
         thread_pool.append(thread_shard_0)
-        thread_shard_1 = executor.submit(get_shard_best_state_detail, 1)
+        thread_shard_1 = executor.submit(SUT().get_shard_best_state_detail, 1)
         thread_pool.append(thread_shard_1)
         thread_stake = executor.submit(stake_and_check_balance_after_stake, stake_account)
         thread_pool.append(thread_stake)

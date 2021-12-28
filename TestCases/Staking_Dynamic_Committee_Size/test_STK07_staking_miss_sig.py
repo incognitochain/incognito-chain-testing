@@ -113,7 +113,7 @@ def test_miss_sig(time_stop):
     if beacon_height_af % ChainConfig.BLOCK_PER_EPOCH != 1:
         epoch = beacon_bsd_af.get_epoch()
         beacon_height_first = ChainHelper.cal_first_height_of_epoch(epoch + 1)
-        ChainHelper.wait_till_beacon_height(beacon_height_first)
+        SUT().wait_till_beacon_height(beacon_height_first)
         beacon_bsd_af = SUT().get_beacon_best_state_detail_info()
         beacon_height_af = beacon_bsd_af.get_beacon_height()
         shard_1_height_af = beacon_bsd_af.get_best_shard_height(1)

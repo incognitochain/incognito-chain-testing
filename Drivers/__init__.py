@@ -36,13 +36,11 @@ class ResponseBase:
     def __str__(self):
         return f'\n{json.dumps(self.data(), indent=3)}'
 
-    @abstractmethod
     def expect_error(self, expecting_error='any error'):
-        pass
+        logger.warning(f"Not yet override this method in subclass: {self.expect_error.__name__}")
 
-    @abstractmethod
     def expect_no_error(self, additional_msg_if_fail=''):
-        pass
+        logger.warning(f"Not yet override this method in subclass: {self.expect_no_error.__name__}")
 
     def data(self):
         try:

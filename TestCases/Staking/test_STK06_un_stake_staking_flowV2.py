@@ -40,7 +40,7 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
     chain_info = SUT().get_block_chain_info()
     remaining_block_epoch = chain_info.get_beacon_block().get_remaining_block_epoch()
     if remaining_block_epoch >= ChainConfig.RANDOM_TIME:
-        ChainHelper.wait_till_next_beacon_height(remaining_block_epoch - ChainConfig.RANDOM_TIME)
+        SUT().wait_till_next_beacon_height(remaining_block_epoch - ChainConfig.RANDOM_TIME)
     elif remaining_block_epoch < 5:
         ChainHelper.wait_till_next_epoch(1, ChainConfig.RANDOM_TIME)
 

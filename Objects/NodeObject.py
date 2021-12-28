@@ -537,6 +537,113 @@ class Node:
     def does_chain_have_this_token(self, token_id):
         return token_id in self.get_all_token_in_chain_list()
 
+    def wait_till_beacon_height(self, beacon_height, interval=None, timeout=120):
+        """
+        Wait until a specific beacon height
+        @param interval:
+        @param timeout:
+        @param beacon_height:
+        @return:
+        """
+        logger.info(f'Waiting till beacon height {beacon_height}')
+        current_beacon_h = self.help_get_beacon_height()
+        if beacon_height <= current_beacon_h:
+            logger.info(f'Beacon height {beacon_height} is passed already')
+            return current_beacon_h
+
+        while beacon_height > current_beacon_h:
+            if timeout <= 0:
+                logger.info(f'Time out and current beacon height is {current_beacon_h}')
+                return current_beacon_h
+            if interval is None:
+                block_remain = beacon_height - current_beacon_h
+                interval = block_remain * ChainConfig.BLOCK_TIME
+            WAIT(interval)
+            timeout -= interval
+            current_beacon_h = self.help_get_beacon_height()
+
+        logger.info(f'Beacon height {beacon_height} is passed already')
+        return current_beacon_h
+
+    def wait_till_next_beacon_height(self, num_of_beacon_height_to_wait=1, wait=None, timeout=120):
+        """
+        wait for an amount of beacon height to pass
+        @param timeout:
+        @param wait:
+        @param num_of_beacon_height_to_wait:
+        @return:
+        """
+        current_beacon_h = self.help_get_beacon_height()
+        return self.wait_till_beacon_height(current_beacon_h + num_of_beacon_height_to_wait, wait, timeout)
+
+    def get_beacon_best_state(self, number_of_beacon_height_to_get=100, wait=5, timeout=50):
+        """
+        Function to get beacon best state
+        @param number_of_beacon_height_to_get: number of beacon height to get
+        @param wait:
+        @param timeout:
+        @return: a list beacon best state obj
+        """
+        list_beacon_best_state_objs = []
+        for i in range(1, number_of_beacon_height_to_get + 1):
+            list_beacon_best_state_objs.append(self.get_beacon_best_state_info())
+            # Waiting till beacon height increase
+            ChainHelper.wait_till_next_beacon_height(num_of_beacon_height_to_wait=1, wait=wait, timeout=timeout)
+            list_beacon_best_state_objs.append(self.get_beacon_best_state_info())
+        return list_beacon_best_state_objs
+
+    def get_shard_best_state(self, shard_id, number_of_shard_height_to_get=100, wait=5, timeout=50):
+        """
+        Function to get shard best state
+        @param shard_id: shard id
+        @param number_of_shard_height_to_get: number of shard height to get
+        @param wait:
+        @param timeout:
+        @return: a list shard best state obj
+        """
+        list_shard_best_state_objs = []
+        for i in range(1, number_of_shard_height_to_get + 1):
+            list_shard_best_state_objs.append(self.get_shard_best_state_info(shard_id))
+            # Waiting till shard height increase
+            ChainHelper.wait_till_next_shard_height(shard_id=shard_id, num_of_shard_height_to_wait=1, wait=wait,
+                                                    timeout=timeout)
+            list_shard_best_state_objs.append(self.get_shard_best_state_info(shard_id))
+        return list_shard_best_state_objs
+
+    def get_beacon_best_state_detail(self, number_of_beacon_height_to_get=100, wait=5, timeout=50):
+        """
+        Function to get beacon best state detail
+        @param number_of_beacon_height_to_get: number of beacon height to get
+        @param wait:
+        @param timeout:
+        @return: a list beacon best state detail obj
+        """
+        list_beacon_best_state_detail_objs = []
+        for i in range(1, number_of_beacon_height_to_get + 1):
+            list_beacon_best_state_detail_objs.append(self.get_beacon_best_state_detail_info())
+            # Waiting till beacon height increase
+            ChainHelper.wait_till_next_beacon_height(num_of_beacon_height_to_wait=1, wait=wait, timeout=timeout)
+            list_beacon_best_state_detail_objs.append(self.get_beacon_best_state_detail_info())
+        return list_beacon_best_state_detail_objs
+
+    def get_shard_best_state_detail(self, shard_id, number_of_shard_height_to_get=100, wait=5, timeout=50):
+        """
+        Function to get shard best state detail
+        @param shard_id:
+        @param number_of_shard_height_to_get: number of shard height to get
+        @param wait:
+        @param timeout:
+        @return: a list shard detail obj
+        """
+        list_shard_best_state_detail_objs = []
+        for i in range(1, number_of_shard_height_to_get + 1):
+            list_shard_best_state_detail_objs.append(self.get_shard_best_state_detail_info(shard_id))
+            # Waiting till shard height increase
+            ChainHelper.wait_till_next_shard_height(shard_id=shard_id, num_of_shard_height_to_wait=1, wait=wait,
+                                                    timeout=timeout)
+            list_shard_best_state_detail_objs.append(self.get_shard_best_state_detail_info(shard_id))
+        return list_shard_best_state_detail_objs
+
     def ssh_attach(self, ssh_session):
         """
         @return:

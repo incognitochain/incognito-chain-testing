@@ -124,7 +124,7 @@ def test_03_portal():
     }
 
     rate_tx = PORTAL_FEEDER.portal_create_exchange_rate(portal_rate_to_change).expect_no_error()
-    ChainHelper.wait_till_next_beacon_height(num_of_beacon_height_to_wait=2)
+    SUT().wait_till_next_beacon_height(num_of_beacon_height_to_wait=2)
     psi_new_rate = SUT().get_latest_portal_state_info()
     for token, rate in portal_rate_to_change.items():
         new_rate = psi_new_rate.get_portal_rate(token)

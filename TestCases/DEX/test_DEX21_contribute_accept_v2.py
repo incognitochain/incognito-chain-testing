@@ -3,10 +3,9 @@ import pytest
 from Configs.Constants import PRV_ID, coin
 from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import INFO, STEP
-from Helpers.TestHelper import l6, ChainHelper
+from Helpers.TestHelper import l6
 from Helpers.Time import get_current_date_time
 from Objects import PdeObjects
-from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT, ACCOUNTS
 from Objects.PdeObjects import PDEContributeInfo
 from TestCases.DEX import token_id_1, token_owner
@@ -76,7 +75,7 @@ def test_contribute_prv(contributor, token1, token2):
         assert bal_tok2_be4_contrib == bal_tok2_aft_contrib + tok2_contrib_amount
 
     STEP(5, f'Verify contribution pair {l6(token1)} vs {l6(token2)}')
-    ChainHelper.wait_till_next_beacon_height(2)
+    SUT().wait_till_next_beacon_height(2)
     pde_state_af = SUT().get_latest_pde_state_info()
     rate_after = pde_state_af.get_rate_between_token(token1, token2)
     owner_share_amount_after = pde_state_af.get_pde_shares_amount(contributor, token1, token2)

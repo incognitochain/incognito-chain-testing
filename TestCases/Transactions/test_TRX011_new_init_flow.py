@@ -3,7 +3,6 @@ import pytest
 from Configs.Configs import ChainConfig
 from Helpers import TestHelper
 from Helpers.Logging import STEP, INFO
-from Helpers.TestHelper import ChainHelper
 from Objects.IncognitoTestCase import ACCOUNTS, SUT
 
 
@@ -29,7 +28,7 @@ def test_new_init_flow(init_shard, init_amount):
     assert not init_acc.list_owned_custom_token().get_token_id_by_name(token_name)
 
     STEP(2, f'Wait for new token to be minted')
-    ChainHelper.wait_till_next_beacon_height(4)
+    SUT().wait_till_next_beacon_height(4)
     new_token = init_acc.list_owned_custom_token().get_token_id_by_name(token_name)
     INFO(f"New token id: {new_token}")
 

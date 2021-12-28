@@ -88,7 +88,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         shard_id = the_stake.calculate_shard_id() % ChainConfig.ACTIVE_SHARD
         beacon_height = SUT().get_shard_block_by_height(shard_id, block_height).get_beacon_height()
         INFO(f'Stop_auto_stake at beacon height: {beacon_height}')
-        ChainHelper.wait_till_beacon_height(beacon_height + 5)
+        SUT().wait_till_beacon_height(beacon_height + 5)
         auto_re_stake = SUT().get_beacon_best_state_detail_info().get_auto_staking_committees(validator)
         assert auto_re_stake is False
     else:

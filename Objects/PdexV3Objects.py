@@ -220,6 +220,33 @@ class PdeV3State(RPCResponseBase):
                    f"virt: {self.get_virtual_amount(0)}-{self.get_virtual_amount(1)}, " \
                    f"amp: {self.amplifier}"
 
+        def __get_raw_orders(self):
+            return self.pair_data()["Orderbook"]["orders"]
+
+        def __add_new_share(self, nft_id):
+            empty_share = {
+                "Amount": 0,
+                "TradingFees": {},
+                "LastLPFeesPerShare": {}}
+            self.pair_data()["Shares"][nft_id] = empty_share
+
+        def __rm_completed_orders(self):
+            orders = self.__get_raw_orders()
+            to_remove = [raw_order for raw_order in orders if PdeV3State.PoolPairData.Order(raw_order).is_completed()]
+            [orders.remove(raw_order) for raw_order in to_remove]
+
+        def __pool_id_short(self):
+            id_split = list(self.dict_data.keys())[0].split('-')
+            return f"{id_split[0][-6:]}-{id_split[1][-6:]}-{id_split[2]}"
+
+        def _get_token_index(self, token):
+            if self.get_token_id(0) == token:
+                return 0
+            elif self.get_token_id(1) == token:
+                return 1
+            else:
+                raise ValueError(f"Token {token}, does not belong to this pool.\n{self.get_pool_pair_id()}")
+
         @staticmethod
         def make_up_a_pool(token_list, nft_ids):
             if len(token_list) != 2:
@@ -245,6 +272,8 @@ class PdeV3State(RPCResponseBase):
                         # "orders": []
                     },
                     "LpFeesPerShare": {},
+                    'MakingVolume': {},
+                    'OrderRewards': {},
                     "ProtocolFees": {},
                     "StakingPoolFees": {
                         "0000000000000000000000000000000000000000000000000000000000000004": 0,
@@ -252,14 +281,6 @@ class PdeV3State(RPCResponseBase):
                         token_list[1]: 0
                     }}}
             return PdeV3State.PoolPairData(data)
-
-        def _get_token_index(self, token):
-            if self.get_token_id(0) == token:
-                return 0
-            elif self.get_token_id(1) == token:
-                return 1
-            else:
-                raise ValueError(f"Token {token}, does not belong to this pool.\n{self.get_pool_pair_id()}")
 
         def is_made_up_pool(self):
             """check if the pool is made up by self.make_up_a_pool()"""
@@ -275,10 +296,6 @@ class PdeV3State(RPCResponseBase):
 
         def get_pool_pair_id(self):
             return list(self.dict_data.keys())[0]
-
-        def __pool_id_short(self):
-            id_split = list(self.dict_data.keys())[0].split('-')
-            return f"{id_split[0][-6:]}-{id_split[1][-6:]}-{id_split[2]}"
 
         def get_real_pool_size(self):
             return {self.get_token_id(0): self.get_real_amount(0), self.get_token_id(1): self.get_real_amount(1)}
@@ -372,7 +389,7 @@ class PdeV3State(RPCResponseBase):
             @return:
             """
             try:
-                all_order = self.pair_data()["Orderbook"]["orders"]
+                all_order = self.__get_raw_orders()
             except KeyError:
                 return []
             all_order_obj = [PdeV3State.PoolPairData.Order(order) for order in all_order]
@@ -394,7 +411,6 @@ class PdeV3State(RPCResponseBase):
                     include = include and obj.get_nft_id() == by_nft_id
                 if by_direction is not None:
                     include = include and obj.get_trade_direction() == by_direction
-                    print(f"by dir {obj.get_id()}: {include}")
                 if by_token_sell:
                     include = include and obj.get_trade_direction() == self._get_token_index(by_token_sell)
                 if by_token_buy:
@@ -520,7 +536,7 @@ class PdeV3State(RPCResponseBase):
                     total_receive += self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
                     sell_amount = 0
                     logger.debug(f"Done predicting trading, total receive: {total_receive}. Pool after trade: \n"
-                                  f"{self.pretty()}")
+                                 f"{self.pretty()}")
                     return total_receive
                 elif sell_amount > distance:
                     logger.debug(f"**Trade {distance} (distance) with pool**")
@@ -540,6 +556,7 @@ class PdeV3State(RPCResponseBase):
                 logger.debug(f"Still have token left to trade, continue trading {sell_amount} with pool")
                 total_receive += self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
 
+            self.__rm_completed_orders()
             logger.info(f"Done predicting trading, total receive: {total_receive}. Pool after trade:\n"
                         f"{self.pretty()}")
             return total_receive
@@ -567,8 +584,8 @@ class PdeV3State(RPCResponseBase):
                 self.amplifier = amp
                 accepted_x, accepted_y = delta_x, delta_y
                 delta_share = Pde3Math.cal_share_new_pool(accepted_x, accepted_y)
-                new_virtual_x = accepted_x * amp / ChainConfig.Dex3.DECIMAL
-                new_virtual_y = accepted_y * amp / ChainConfig.Dex3.DECIMAL
+                new_virtual_x = int(accepted_x * amp / ChainConfig.Dex3.DECIMAL)
+                new_virtual_y = int(accepted_y * amp / ChainConfig.Dex3.DECIMAL)
             else:
                 logger.info("Contribute more to this pair")
                 x, y = self.get_real_amount(token_x), self.get_real_amount(token_y)
@@ -643,13 +660,6 @@ class PdeV3State(RPCResponseBase):
             my_share = self.get_share(nft_id)
             my_share.amount -= withdraw_able
             return {token_x: x_receive, token_y: y_receive}
-
-        def __add_new_share(self, nft_id):
-            empty_share = {
-                "Amount": 0,
-                "TradingFees": {},
-                "LastLPFeesPerShare": {}}
-            self.pair_data()["Shares"][nft_id] = empty_share
 
         def get_token_sell_of_order(self, order):
             if isinstance(order, PdeV3State.PoolPairData.Order):
