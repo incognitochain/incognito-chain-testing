@@ -4,7 +4,7 @@ python=python3
 
 if [ $1 = "clear" ] || [ $1 = "clean" ]; then
   rm reports/*.html
-  rm log/*.log
+  rm logs/*.log
   exit
 fi
 
@@ -28,4 +28,4 @@ fi
 html_report="reports/$(date '+%Y.%m.%d-%H.%M.%S')-${TESTBED}-${TESTDATA}.html"
 
 set -x
-$python -m pytest -vv --show-capture=stderr --capture=tee-sys -v --html="$html_report" --self-contained-html $3 $param4
+$python -m pytest -vvvv --show-capture=stderr --capture=tee-sys --html="$html_report" --self-contained-html $3 $param4

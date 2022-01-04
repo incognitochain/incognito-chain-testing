@@ -7,7 +7,7 @@ import pytest
 from Configs.Constants import PRV_ID, coin, Status
 from Helpers.BlockChainMath import PdeMath
 from Helpers.Logging import STEP, INFO, INFO_HEADLINE
-from Helpers.TestHelper import l6, ChainHelper
+from Helpers.TestHelper import l6
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
 from Objects.PdeObjects import PDEStateInfo
@@ -40,7 +40,7 @@ def test_trade_same_token(trader, token):
     trade_tx.expect_error()
     assert 'TokenIDToSellStr should be different from TokenIDToBuyStr' in trade_tx.get_error_trace().get_message()
 
-    ChainHelper.wait_till_next_epoch()
+    SUT().wait_till_next_epoch()
     STEP(3, 'Compare PDE state before and after test')
     pde_state_after = SUT().get_latest_pde_state_info()
     assert pde_state_b4 == pde_state_after

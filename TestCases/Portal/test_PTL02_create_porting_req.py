@@ -4,7 +4,7 @@ from Configs.Configs import ChainConfig
 from Configs.Constants import PBNB_ID, PRV_ID, coin, PBTC_ID, Status
 from Helpers.Logging import STEP, INFO, WARNING, INFO_HEADLINE
 from Helpers.PortalHelper import PortalMath
-from Helpers.TestHelper import l6, ChainHelper
+from Helpers.TestHelper import l6
 from Helpers.Time import WAIT
 from Objects.AccountObject import PORTAL_FEEDER, COIN_MASTER
 from Objects.IncognitoTestCase import SUT
@@ -48,7 +48,7 @@ def setup_module():
 
     if deposit_amount > 0:
         INFO_HEADLINE("WAIT FOR THE DEPOSIT TO TAKE EFFECT")
-        ChainHelper.wait_till_next_epoch()
+        SUT().wait_till_next_epoch()
 
 
 @pytest.mark.parametrize("token, porting_amount, user, porting_fee, num_of_custodian, desired_status",
@@ -307,7 +307,7 @@ def prepare_fat_custodian():
     deposit_tx.expect_no_error()
     deposit_tx.subscribe_transaction()
 
-    ChainHelper.wait_till_next_epoch()
+    SUT().wait_till_next_epoch()
 
 
 def verify_expire_porting(user, porting_id, token, num_of_custodian, psi_b4, prv_bal_b4, tx_fee, porting_fee):

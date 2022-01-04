@@ -729,7 +729,8 @@ class PdeV3State(RPCResponseBase):
             return all_share.get(by_token) if by_token else all_share
 
         def get_staking_reward_token(self):
-            return self.dict_data["StakingRewardTokens"]
+            tokens = self.dict_data.get("StakingRewardTokens", [])
+            return tokens if tokens else []
 
         def get_mint_nft_require_amount(self):
             return self.dict_data["MintNftRequireAmount"]
@@ -740,7 +741,10 @@ class PdeV3State(RPCResponseBase):
         def add_staking_reward_token(self, token):
             if token in self.get_staking_reward_token():
                 return self
-            self.dict_data["StakingRewardTokens"].append(token)
+            if isinstance(self.dict_data["StakingRewardTokens"], list):
+                self.dict_data["StakingRewardTokens"].append(token)
+            else:
+                self.dict_data["StakingRewardTokens"] = [token]
             return self
 
         def get_configs(self, to_class=str):
@@ -877,10 +881,12 @@ class PdeV3State(RPCResponseBase):
         @return:
         """
         all_nft = self.get_result("NftIDs")
-        return all_nft.get(by_nft_id) if by_nft_id else all_nft
+        return all_nft.get(by_nft_id) if by_nft_id is not None else all_nft
 
     def get_waiting_contribution(self, **by) -> List[Contribution]:
         all_waiting = self.get_result("WaitingContributions")
+        if all_waiting is None:
+            return []
         all_waiting_obj = [PdeV3State.Contribution({contrib_id: info}) for contrib_id, info in all_waiting.items()]
         filtered_result = []
         by_contrib_id = by.get("pairhash", by.get("contrib_id"))

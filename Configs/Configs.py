@@ -38,6 +38,7 @@ class ChainConfig:
     class Dex3:
         DECIMAL = 10000
         TRADE_PATH_MAX_LEN = 3
+        NFT_MINT_REQ = 100
 
     @staticmethod
     def is_first_height_of_epoch(height):

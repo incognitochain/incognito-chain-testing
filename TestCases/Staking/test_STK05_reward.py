@@ -3,8 +3,8 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
-from Configs.Constants import coin
 from Configs.Configs import ChainConfig
+from Configs.Constants import coin
 from Helpers.Logging import INFO, STEP
 from Helpers.TestHelper import ChainHelper
 from Objects.AccountObject import COIN_MASTER
@@ -26,7 +26,7 @@ slashing_v2 = True
 def test_verify_reward_received(dcz):
     from TestCases.Staking import token_id
     STEP(1, 'Prepare - Wait till first height of epoch')
-    epoch_reward, height = ChainHelper.wait_till_next_epoch()
+    epoch_reward, height = SUT().wait_till_next_epoch()
 
     INFO('Create transaction send PRV')
     shard_trx_prv_fee_list[0] += COIN_MASTER.send_prv_to(token_holder_shard_0, coin(5),

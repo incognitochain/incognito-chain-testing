@@ -13,7 +13,6 @@
 
 from Configs.Constants import PRV_ID
 from Helpers.Logging import ERROR
-from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from TestCases.Staking import *
 
@@ -142,7 +141,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
         assert beacon_bsd.get_auto_staking_committees(validator) is None
     else:
         STEP(5, 'Wait for next epoch')
-        epoch_x, _ = ChainHelper.wait_till_next_epoch(1, block_of_epoch=5)
+        epoch_x, _ = SUT().wait_till_next_epoch(1, block_of_epoch=5)
 
     STEP(6.1, "Calculate avg PRV reward per epoch")
     prv_reward = reward_receiver.stk_get_reward_amount()

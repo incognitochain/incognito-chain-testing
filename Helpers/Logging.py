@@ -61,13 +61,13 @@ class LoggerManager:
     @staticmethod
     def get_logger():
         logger_name = os.path.basename(inspect.stack()[2][1])
-        # return config_logger(logger_name)
-        try:
-            logger = LoggerManager.LOGGERS[logger_name]
-        except (KeyError, AttributeError):
-            logger = config_logger(logger_name)
-            LoggerManager.LOGGERS[logger_name] = logger
-        return logger
+        return config_logger(logger_name)
+        # try:
+        #     logger = LoggerManager.LOGGERS[logger_name]
+        # except (KeyError, AttributeError):
+        #     logger = config_logger(logger_name)
+        #     LoggerManager.LOGGERS[logger_name] = logger
+        # return logger
 
 
 def DEBUG(msg):

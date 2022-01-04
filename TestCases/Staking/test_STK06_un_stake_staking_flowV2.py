@@ -5,7 +5,6 @@ import pytest
 from Configs.Configs import ChainConfig
 from Configs.Constants import coin
 from Helpers.Logging import INFO, STEP, ERROR
-from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
@@ -42,7 +41,7 @@ def test_un_stake_when_waiting(the_stake, validator, receiver_reward, auto_re_st
     if remaining_block_epoch >= ChainConfig.RANDOM_TIME:
         SUT().wait_till_next_beacon_height(remaining_block_epoch - ChainConfig.RANDOM_TIME)
     elif remaining_block_epoch < 5:
-        ChainHelper.wait_till_next_epoch(1, ChainConfig.RANDOM_TIME)
+        SUT().wait_till_next_epoch(1, ChainConfig.RANDOM_TIME)
 
     STEP(1, 'Staking')
     fee_stk = the_stake.stake(validator, receiver_reward, auto_re_stake=auto_re_stake).subscribe_transaction().get_fee()

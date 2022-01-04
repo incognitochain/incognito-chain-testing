@@ -1,5 +1,6 @@
 import copy
 import datetime
+import json
 import random
 import re
 import time
@@ -14,7 +15,7 @@ from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
 from Helpers import TestHelper
 from Helpers.Logging import config_logger
-from Helpers.TestHelper import l6, KeyExtractor, ChainHelper
+from Helpers.TestHelper import l6, KeyExtractor
 from Helpers.Time import WAIT, get_current_date_time
 from Objects.CoinObject import ListOwnedToken, ListPrvTXO
 from Objects.PdexV3Objects import PdeV3State
@@ -415,7 +416,7 @@ class Account:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             staked_shard = beacon_bsd.is_he_a_committee(self)
             if staked_shard is False:
-                ChainHelper.wait_till_next_epoch(1, block_of_epoch=5)
+                self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=5)
             else:
                 e2 = beacon_bsd.get_epoch()
                 h = beacon_bsd.get_beacon_height()
@@ -466,7 +467,7 @@ class Account:
                                     f'Wait {time_to_wait}s until epoch {e2} and B height {h + num_of_block_wait}')
                         WAIT(time_to_wait)
                     else:
-                        ChainHelper.wait_till_next_epoch(1, block_of_epoch=ChainConfig.RANDOM_TIME + 1)
+                        self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=ChainConfig.RANDOM_TIME + 1)
                 time_spent = (datetime.datetime.now() - time_start).seconds
             else:
                 logger.info(f"Already exists in shard pending at epoch {e2}, block height {h}")
@@ -493,7 +494,7 @@ class Account:
                                 f'Wait {time_to_wait}s until epoch {e2} and B height {h + num_of_block_wait}')
                     WAIT(time_to_wait)
                 else:
-                    ChainHelper.wait_till_next_epoch(1, block_of_epoch=ChainConfig.RANDOM_TIME + 1)
+                    self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=ChainConfig.RANDOM_TIME + 1)
                 time_spent = (datetime.datetime.now() - time_start).seconds
             else:
                 logger.info(f"Already exists in shard pending at epoch {e2}, block height {h}")
@@ -512,7 +513,7 @@ class Account:
                 h = beacon_bsd.get_beacon_height()
                 logger.info(f"Validator is out of autostaking list at epoch {e2}, block height {h}")
                 return e2
-            ChainHelper.wait_till_next_epoch(1, block_of_epoch=5)
+            self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=5)
             time_spent = (datetime.datetime.now() - time_start).seconds
         logger.info(f"Waited {time_spent}s but still exist in the autostaking list")
         return None
@@ -525,7 +526,7 @@ class Account:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             if not (beacon_bsd.is_he_a_committee(self) is False):  # is_he_a_committee returns False or shard number
                 # (number which is not False) so must use this comparison to cover the case shard =0
-                ChainHelper.wait_till_next_epoch(1, block_of_epoch=5)
+                self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=5)
             else:
                 e2 = beacon_bsd.get_epoch()
                 logger.info(f"Swapped out of committee at epoch {e2}")
@@ -577,10 +578,8 @@ class Account:
         return balance
 
     def get_assets(self):
-        assets = {PRV_ID: self.get_balance()}
-        for token in self.list_owned_custom_token():
-            token_id = token.get_token_id()
-            assets = {token_id: self.get_balance(token_id)}
+        assets = {token.get_token_id(): token.get_token_amount() for token in self.list_owned_custom_token()}
+        assets[PRV_ID] = self.get_balance()
         return assets
 
     def sum_my_utxo(self, token_id=PRV_ID):
@@ -929,13 +928,11 @@ class Account:
         pde_state = self.REQ_HANDLER.get_latest_pde_state_info() if pde_state is None else pde_state
         waiting_contributions = pde_state.get_waiting_contributions()
         for contribution in waiting_contributions:
-            # if contribution.get_contributor_address() == self.payment_key and contribution.get_token_id() != PRV_ID:
-            #     logger.info(f"{contribution} belong to current user and waiting for PRV, so cannot use PRV to clean up")
-            # else:
-            if contribution.get_amount() == 1:
+            if contribution.get_contributor_address() == self.payment_key and contribution.get_token_id() != PRV_ID:
+                logger.info(f"{contribution} belong to current user and waiting for PRV, so cannot use PRV to clean up")
+            else:
                 self.pde_contribute_v2(PRV_ID, 10, contribution.get_pair_id()).req_to(self.REQ_HANDLER) \
                     .get_transaction_by_hash()
-                WAIT(40)
 
     def pde_wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
         logger.info(f"Wait until token {l6(token_id)} is in waiting for contribution")
@@ -1114,7 +1111,8 @@ class Account:
             .withdraw_liquidity(self.private_key, pair_id, nft_id, str(share_amount), tx_fee=tx_fee,
                                 tx_privacy=tx_privacy)
 
-    def pde3_mint_nft(self, amount=coin(1), token_id=PRV_ID, tx_fee=-1, tx_privacy=1, force=False):
+    def pde3_mint_nft(self, amount=ChainConfig.Dex3.NFT_MINT_REQ, token_id=PRV_ID, tx_fee=-1, tx_privacy=1,
+                      force=False):
         if not force:
             if self.nft_ids:
                 logger.info(f"{self.__me()} Already have NFT ID(s), "
@@ -1158,7 +1156,7 @@ class Account:
             raise e
         pde_state = self.REQ_HANDLER.pde3_get_state(key_filter="NftIDs") if not pde_state else pde_state
         self.nft_ids.clear()
-        for token in all_my_custom_token.__iter__():
+        for token in all_my_custom_token:
             if pde_state.get_nft_id(token.get_token_id()):
                 self.save_nft_id(token.get_token_id())
         logger.info(f"Get {self.private_key[-6:]} NFT id from pde state.\n   found: {self.nft_ids}")
@@ -1537,6 +1535,15 @@ class AccountGroup:
         self.__get_acc_synchronous(keys)
         return self
 
+    def load_file_json(self, file_path, key=None):
+        with open(file_path) as file:
+            account_json = json.load(file)
+        account_json = account_json[key] if key else account_json
+        acc_list = []
+        # for obj in account_json
+        # todo, thinking ....
+        self.account_list = acc_list
+
     def __len__(self):
         return len(self.account_list)
 
@@ -1635,6 +1642,13 @@ class AccountGroup:
         for acc, thread in balance_result.items():
             balance_result[acc] = thread.result()
         return balance_result
+
+    def get_assets(self):
+        thread_results = {}
+        with ThreadPoolExecutor() as tpe:
+            for acc in self:
+                thread_results[acc] = tpe.submit(acc.get_assets)
+        return {acc: thread.result() for acc, thread in thread_results.items()}
 
     def submit_key(self, key_type='ota'):
         to_submit = []

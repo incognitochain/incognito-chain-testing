@@ -5,7 +5,7 @@ import pytest
 from Configs.Configs import ChainConfig
 from Configs.Constants import coin, PBNB_ID, Status, PRV_ID, PBTC_ID
 from Helpers.Logging import STEP, INFO, ERROR
-from Helpers.TestHelper import ChainHelper, l6
+from Helpers.TestHelper import l6
 from Helpers.Time import WAIT, get_current_date_time
 from Objects.AccountObject import PORTAL_FEEDER, COIN_MASTER
 from Objects.IncognitoTestCase import SUT
@@ -189,7 +189,7 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
         committee.stk_wait_till_i_am_committee()
 
     epoch = SUT().help_get_current_epoch()
-    ChainHelper.wait_till_next_epoch(epoch + 2)
+    SUT().wait_till_next_epoch(epoch + 2)
 
     STEP(0.4, "Verify environment, 6 node per shard")
     bbs = SUT().get_beacon_best_state_info()
@@ -233,7 +233,7 @@ def test_04_staking(stake_funder, the_staked, auto_stake):
     assert staked_shard is not False
 
     STEP(4, "Calculate avg PRV reward per epoch")
-    epoch_x, _ = ChainHelper.wait_till_next_epoch()
+    epoch_x, _ = SUT().wait_till_next_epoch()
     prv_reward = the_staked.stk_get_reward_amount()
     avg_prv_reward = prv_reward / (epoch_x - epoch_plus_n)
     INFO(f'AVG prv reward = {avg_prv_reward}')

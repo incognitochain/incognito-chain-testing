@@ -2,8 +2,8 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import pytest
 
-from Configs.Constants import coin
 from Configs.Configs import ChainConfig
+from Configs.Constants import coin
 from Helpers.KeyListJson import KeyListJson
 from Helpers.Logging import INFO, WARNING
 from Helpers.TestHelper import ChainHelper
@@ -46,7 +46,7 @@ def setup_module():
             executor.submit(staking_action, acc)
 
     # Wait for 2 epochs
-    ChainHelper.wait_till_next_epoch(2)
+    SUT().wait_till_next_epoch(2)
 
 
 @pytest.mark.parametrize("shard_committee,shard_origin", [
