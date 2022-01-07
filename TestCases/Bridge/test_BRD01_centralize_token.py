@@ -61,7 +61,7 @@ def test_init_centralize_token():
         f"receiver balance: {receiver_bal_af}"), "receiver balance is not correct"
 
     STEP(4, "check new token in getallbridgetokens")
-    bridge_token_list = SUT().get_bridge_token_list()
+    bridge_token_list = SUT().get_bridge_token_list().get_tokens_info()
     assert token_id in bridge_token_list, f"tokenId {token_id} not found in getallbridgetokens"
     token_info = bridge_token_list.get_info_by_token_id(token_id)
     assert token_info.get_token_amount() == token_amount and INFO(
@@ -71,7 +71,7 @@ def test_init_centralize_token():
     assert token_info.is_centralized()
 
     STEP(5, "check new token in listprivacycustomtoken")
-    all_token_list = SUT().get_all_token_in_chain_list()
+    all_token_list = SUT().get_all_token_in_chain_list().get_tokens_info()
     assert token_id in all_token_list, f"tokenId {token_id} not found in listprivacycustomtoken"
 
     token_info = all_token_list.get_info_by_token_id(token_id)
@@ -88,7 +88,7 @@ def test_burn_centralize_token():
     assert user_bal_b4 != 0, "user balance = 0, nothing to burn"
 
     STEP(2, "check total token amount before burn")
-    bridge_token_list = SUT().get_bridge_token_list()
+    bridge_token_list = SUT().get_bridge_token_list().get_tokens_info()
     token_info = bridge_token_list.get_info_by_token_id(token_id)
     token_amount_b4_burn = token_info.get_token_amount()
     assert token_amount_b4_burn != 0, f"total token amount = 0, something went wrong"
@@ -102,7 +102,7 @@ def test_burn_centralize_token():
     assert user_bal_b4 - user_bal_af == burning_amount, "user balance after burn is NOT correct"
 
     STEP(5, "check total token amount in getallbridgetokens")
-    bridge_token_list = SUT().get_bridge_token_list()
+    bridge_token_list = SUT().get_bridge_token_list().get_tokens_info()
     token_info = bridge_token_list.get_info_by_token_id(token_id)
     total_token_amount_after_burn = token_info.get_token_amount()
     assert total_token_amount_after_burn == token_amount_b4_burn and INFO(
@@ -110,7 +110,7 @@ def test_burn_centralize_token():
                                                                             f"correct"
 
     STEP(6, "check token in listprivacycustomtoken")
-    all_token_list = SUT().get_bridge_token_list()
+    all_token_list = SUT().get_bridge_token_list().get_tokens_info()
     assert token_id in all_token_list and INFO(
         f"the listprivacycustomtoken has found TokenId with correct token amount: {token_amount_b4_burn}"), f"tokenId {token_id} not found in listprivacycustomtoken"
 
@@ -128,7 +128,7 @@ def test_withdraw_centralize_token():
     assert user_bal_b4 != 0, "user balance = 0, nothing to withdraw"
 
     STEP(2, "check total token amount before withdraw")
-    bridge_token_list = SUT().get_bridge_token_list()
+    bridge_token_list = SUT().get_bridge_token_list().get_tokens_info()
     brd_tok_info = bridge_token_list.get_info_by_token_id(token_id)
     total_token_amount_before = brd_tok_info.get_token_amount()
     assert total_token_amount_before != 0, f"total token amount = 0, something went wrong"
@@ -142,7 +142,7 @@ def test_withdraw_centralize_token():
     assert user_bal_b4 - user_bal_af == withdraw_amount, "user balance after withdraw is NOT correct"
 
     STEP(5, "check total token amount in getallbridgetokens")
-    bridge_token_list = SUT().get_bridge_token_list()
+    bridge_token_list = SUT().get_bridge_token_list().get_tokens_info()
     brd_tok_info = bridge_token_list.get_info_by_token_id(token_id)
     total_token_amount_after_withdraw = brd_tok_info.get_token_amount()
     assert total_token_amount_after_withdraw + withdraw_amount == total_token_amount_before and INFO(
@@ -151,7 +151,7 @@ def test_withdraw_centralize_token():
                                                                                 f"correct"
 
     STEP(6, "check token in listprivacycustomtoken")
-    all_token_list = SUT().get_all_token_in_chain_list()
+    all_token_list = SUT().get_all_token_in_chain_list().get_tokens_info()
     assert token_id in all_token_list, f"tokenId {token_id} not found in listprivacycustomtoken"
 
     in_chain_token_info = all_token_list.get_info_by_token_id(token_id)

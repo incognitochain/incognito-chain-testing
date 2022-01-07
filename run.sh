@@ -4,7 +4,7 @@ python=python3
 
 if [ $1 = "clear" ] || [ $1 = "clean" ]; then
   rm reports/*.html
-  rm logs/*.log
+  rm logs/*.log*
   exit
 fi
 

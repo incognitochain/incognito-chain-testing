@@ -19,10 +19,10 @@ ACCOUNTS.change_req_handler(SUT())
 PORTAL_FEEDER.req_to(SUT())
 COIN_MASTER.req_to(SUT())
 # -----------------------------------------
-logger.info("!!!!!!!!!!!!!!!!!!! Setup from Testcase init", logger)
+logger.info("!!!!!!!!!!!!!!!!!!! Setup from Testcase init")
 
 AccountGroup(COIN_MASTER, PORTAL_FEEDER).submit_key('ota')
-for c in COIN_MASTER.list_utxo():
+for c in COIN_MASTER.list_utxo().get_coins():
     if c.get_version() == 1:
         logger.info("CONVERT to COIN V2")
         COIN_MASTER.convert_token_to_v2().subscribe_transaction()

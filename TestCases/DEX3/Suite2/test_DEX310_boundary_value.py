@@ -31,7 +31,7 @@ def test_add_liquidity_big_num():
 
     pde_b4 = SUT().pde3_get_state()
     pp_b4 = pde_b4.get_pool_pair(id=PAIR_ID)
-    TOKEN_OWNER.pde3_get_my_nft_ids(pde_b4)
+    TOKEN_OWNER.pde3_get_my_nft_ids()
     if pp_b4:
         contrib_amount_tok = go_uint64_max - pp_b4.get_real_amount(TOKEN_ID)
         contrib_amount_prv = pp_b4.cal_contribute_amount_other_token(TOKEN_ID, contrib_amount_tok)
@@ -119,7 +119,7 @@ def test_trade_big_num_single_path(trader: Account, tok_sell, tok_buy, sell_amou
     WAIT(ChainConfig.BLOCK_TIME * 5)
     status_info = SUT().dex_v3().get_trade_status(tx.get_tx_id())
     found_utxo = False
-    for utxo in trader.list_utxo(tok_buy):
+    for utxo in trader.list_utxo(tok_buy).get_coins():
         if utxo.get_value() == status_info.get_buy_mount():
             found_utxo = True
     status = status_info.get_status()

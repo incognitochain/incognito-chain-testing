@@ -23,7 +23,7 @@ from Helpers.TestHelper import l6, ChainHelper
 from Helpers.Time import WAIT
 from Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock, BeaconBestStateInfo
 from Objects.BlockChainObjects import BlockChainCore
-from Objects.CoinObject import ListInChainToken, ListInChainBridgeToken
+from Objects.CoinObject import BridgeTokenResponse, InChainTokenResponse
 from Objects.CommitteeState import CommitteeState
 from Objects.PdeObjects import PDEStateInfo
 from Objects.PortalObjects import PortalStateInfo
@@ -186,7 +186,7 @@ class Node:
         """
         @param epoch: epoch number
         @return: BeaconBlock obj of the first epoch of epoch.
-        If epoch is specify, get first beacon block of that epoch
+        If epoch is specified, get first beacon block of that epoch
         If epoch is None,  get first beacon block of current epoch.
         If epoch = -1 then wait for the next epoch and get first beacon block of epoch
         """
@@ -525,17 +525,14 @@ class Node:
         response = self.system_rpc().retrieve_block_by_height(height, shard_id)
         return ShardBlock(response.get_result()[0])
 
-    def get_all_token_in_chain_list(self) -> ListInChainToken:
-        res = self.explore_rpc().list_privacy_custom_token().expect_no_error()
-        obj_list = ListInChainToken(res)
-        return obj_list
+    def get_all_token_in_chain_list(self):
+        return InChainTokenResponse(self.explore_rpc().list_privacy_custom_token())
 
     def get_bridge_token_list(self):
-        res = self.bridge().get_bridge_token_list()
-        return ListInChainBridgeToken(res)
+        return BridgeTokenResponse(self.bridge().get_bridge_token_list())
 
     def does_chain_have_this_token(self, token_id):
-        return token_id in self.get_all_token_in_chain_list()
+        return token_id in self.get_all_token_in_chain_list().get_tokens_info()
 
     def wait_till_beacon_height(self, beacon_height, interval=None, timeout=120):
         """

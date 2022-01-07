@@ -803,7 +803,7 @@ class BeaconBlock(BlockChainInfoBaseClass):
                 return self.dict_data['ShardBlockHeight']
 
         def __str__(self):
-            return self.dict_data
+            return json.dumps(self.dict_data, indent=3)
 
         def get_num_1(self):
             return self.dict_data[0]

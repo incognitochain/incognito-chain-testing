@@ -27,7 +27,7 @@ need_withdraw_contribution_2 = False
 token_owner.submit_key()
 COIN_MASTER.top_up_if_lower_than(token_owner, coin(10000), coin(100000))
 
-all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
+all_ptoken_in_chain = SUT().get_all_token_in_chain_list().get_tokens_info()
 if token_id_1 not in all_ptoken_in_chain:
     # res = token_owner.init_custom_token(coin(2000000))
     res = token_owner.init_custom_token_new_flow(coin(2000000))

@@ -333,10 +333,11 @@ class DEXv3RPC(BaseRpcApi):
                                   "FeeInPRV": use_prv_fee
                               }]).execute())
 
-    def get_estimated_lp_value(self, pool_pair_id, nft_id):
+    def get_estimated_lp_value(self, pool_pair_id, nft_id, beacon_height=0):
         return ResponseGetEstimatedLPValue(
             self.rpc_connection.with_method("pdexv3_getEstimatedLPValue")
-                .with_params([{"PoolPairID": pool_pair_id,
+                .with_params([{"BeaconHeight": beacon_height,
+                               "PoolPairID": pool_pair_id,
                                "NftID": nft_id}]).execute())
 
     def withdraw_lp_fee(self, private_k, receiver_payment_address, token_amount, token_id, pool_pair_id, nft_id,

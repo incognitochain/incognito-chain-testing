@@ -44,7 +44,7 @@ def test_staking(the_stake, validator, reward_receiver, auto_re_stake):
             WAIT(2 * ChainConfig.BLOCK_TIME)
             assert reward_receiver.stk_get_reward_amount(tok) == 0
     STEP(0.2, "Check if there's coin v1 from last the unstake, then convert")
-    for c in the_stake.list_utxo():
+    for c in the_stake.list_utxo().get_coins():
         if c.get_version() == 1:
             the_stake.convert_token_to_v2().subscribe_transaction()
             break

@@ -1,6 +1,5 @@
 import pytest
 
-from Configs import TokenIds
 from Configs.Configs import ChainConfig
 from Configs.Constants import PRV_ID, coin
 from Helpers import Logging
@@ -27,7 +26,7 @@ last_created_nft = ""
     pytest.param("unstake", ACCOUNTS[0], ACCOUNTS[0].nft_ids[0], 1.1, PRV_ID,
                  marks=pytest.mark.xfail(reason="unstakingAmount > current staker liquidity")),
 ])
-def test_staking(test, staker: Account, nft, amount, token_id):
+def notest_staking(test, staker: Account, nft, amount, token_id):  # not yet support on mainnet
     global last_created_nft
     if nft == "new":
         nft = staker.pde3_mint_nft(force=True)
@@ -77,7 +76,7 @@ def test_staking(test, staker: Account, nft, amount, token_id):
             assert bal_b4 + amount == bal_af
 
 
-def test_staking_fee():
+def notest_staking_fee():  # not yet support on mainnet
     pde = SUT().pde3_get_state()
     pde_config = pde.get_pde_params()
     pde_config.get_staking_reward_token()

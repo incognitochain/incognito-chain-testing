@@ -40,7 +40,7 @@ token_fee = False
                  ),
     pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, trading_fee_prv_min + 10, PRV_fee, "[INIT_PAIR_IDS[1]]",
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
-                 ),  # use min fee PRV
+                 ),  # use min fee PRV, should fail, since we have no TOKEN_Y - PRV to use for PRV fee
     pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, trading_fee_tok_min + 10, token_fee, "[INIT_PAIR_IDS[1]]",
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),  # use min fee TOKEN
@@ -50,6 +50,9 @@ token_fee = False
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),
     pytest.param(ACCOUNTS[-1], PRV_ID, TOKEN_Y, amount, 2 * trading_fee_tok, token_fee, "INIT_PAIR_IDS",
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
+    pytest.param(ACCOUNTS[-1], TOKEN_Y, PRV_ID, amount, 2 * trading_fee_tok, token_fee, "list(reversed(INIT_PAIR_IDS))",
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),
 ])
@@ -102,25 +105,29 @@ def test_trade_success(trader, token_sell, token_buy, sell_amount, trade_fee, fe
     bal_prv_af = trader.get_balance()
     assert receive_est == receive_from_status
 
+    Logging.INFO(f"Use PRV trading fee is {fee_type}")
     if token_sell == PRV_ID != token_buy:  # when token to sell is PRV, ignore use_prv fee option
-        Logging.INFO(f"Token sell is PRV != token buy, use PRV trading fee is {fee_type}, but ignored (always use PRV)")
+        Logging.INFO(f"Token sell is PRV != token buy, but ignored (always use PRV)")
         assert bal_sel_b4 - sell_amount - tx_fee - trade_fee == bal_sel_af
         assert bal_buy_b4 == bal_buy_af - receive_est
     elif fee_type:  # use prv as trading fee
         if token_buy == PRV_ID != token_sell:
-            Logging.INFO(f"Token buy is PRV != token sell, use PRV trading fee is {fee_type}")
+            Logging.INFO(f"Token buy is PRV != token sell")
             assert bal_sel_b4 - sell_amount == bal_sel_af
             assert bal_buy_b4 == bal_buy_af - receive_est - tx_fee - trade_fee
         elif token_buy != token_sell != PRV_ID:
-            Logging.INFO(f"Token buy != token sell != PRV, use PRV trading fee is {fee_type}")
+            Logging.INFO(f"Token buy != token sell != PRV")
             assert bal_sel_b4 - sell_amount == bal_sel_af
             assert bal_buy_b4 == bal_buy_af - receive_est
             assert bal_prv_b4 - tx_fee - trade_fee == bal_prv_af
     else:  # use token as trading fee
-        Logging.INFO(f"Use PRV trading fee is {fee_type}")
-        assert bal_prv_b4 - tx_fee == bal_prv_af
-        assert bal_sel_b4 - trade_fee - sell_amount == bal_sel_af
-        assert bal_buy_b4 + receive_est == bal_buy_af
+        if token_buy != PRV_ID:
+            assert bal_prv_b4 - tx_fee == bal_prv_af
+            assert bal_sel_b4 - trade_fee - sell_amount == bal_sel_af
+            assert bal_buy_b4 + receive_est == bal_buy_af
+        else:
+            assert bal_sel_b4 - trade_fee - sell_amount == bal_sel_af
+            assert bal_buy_b4 + receive_est - tx_fee == bal_buy_af
 
 
 def trade_fail_and_return():

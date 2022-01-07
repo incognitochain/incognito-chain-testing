@@ -25,11 +25,11 @@ def test_new_init_flow(init_shard, init_amount):
     init_acc.init_custom_token_new_flow(init_amount, token_name=token_name).expect_no_error().subscribe_transaction()
 
     STEP(1.2, f'Check owned token, the new token will not yet be minted')
-    assert not init_acc.list_owned_custom_token().get_token_id_by_name(token_name)
+    assert not init_acc.list_owned_custom_token().get_tokens_info(name=token_name)
 
     STEP(2, f'Wait for new token to be minted')
     SUT().wait_till_next_beacon_height(4)
-    new_token = init_acc.list_owned_custom_token().get_token_id_by_name(token_name)
+    new_token = init_acc.list_owned_custom_token().get_tokens_info(name=token_name)
     INFO(f"New token id: {new_token}")
 
     STEP(3, f'Verify the inited token must also exist in other shards')
@@ -37,7 +37,7 @@ def test_new_init_flow(init_shard, init_amount):
     for shard in range(ChainConfig.ACTIVE_SHARD):
         if shard != init_shard:
             INFO(f'Sending list custom token request to shard {shard} to check')
-            all_token = SUT.shards[shard].get_representative_node().get_all_token_in_chain_list()
+            all_token = SUT.shards[shard].get_representative_node().get_all_token_in_chain_list().get_tokens_info()
             if new_token in all_token:
                 INFO(f"token {new_token} is FOUND in shard {shard}")
             else:

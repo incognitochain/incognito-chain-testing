@@ -104,7 +104,7 @@ def setup_module():
         assert num_committee_in_shard == ChainConfig.SHARD_COMMITTEE_SIZE, \
             f"shard {shard_id}: {num_committee_in_shard} committees"
 
-    all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
+    all_ptoken_in_chain = SUT().get_all_token_in_chain_list().get_tokens_info()
     global token_id, tear_down_trx008
     if token_id not in all_ptoken_in_chain \
             or (token_owner.get_balance(token_id) == 0 and token_id in all_ptoken_in_chain):

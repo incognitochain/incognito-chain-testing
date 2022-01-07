@@ -17,7 +17,7 @@ from Helpers import TestHelper
 from Helpers.Logging import config_logger
 from Helpers.TestHelper import l6, KeyExtractor
 from Helpers.Time import WAIT, get_current_date_time
-from Objects.CoinObject import ListOwnedToken, ListPrvTXO
+from Objects.CoinObject import CustomTokenBalanceResponse, TXOResponse
 from Objects.PdexV3Objects import PdeV3State
 from Objects.PortalObjects import RedeemReqInfo, PortalStateInfo
 
@@ -136,8 +136,9 @@ class Account:
     def nft_ids(self) -> List:
         return self.cache[Account._cache_nft_id]
 
-    def save_nft_id(self, nft_id):
-        self.nft_ids.append(nft_id) if nft_id not in self.nft_ids else None
+    def save_nft_id(self, *nft_ids):
+        for nft in nft_ids:
+            self.nft_ids.append(nft) if nft not in self.nft_ids else None
         self.nft_ids.sort()
         return self
 
@@ -285,7 +286,7 @@ class Account:
         @return: OwnedTokenListInfo
         """
         response = self.REQ_HANDLER.transaction().list_custom_token_balance(self.private_key)
-        return ListOwnedToken(response)
+        return CustomTokenBalanceResponse(response)
 
     def list_all_tx_output(self, token_id=PRV_ID):
         """
@@ -294,11 +295,11 @@ class Account:
         @return:
         """
         response = self.REQ_HANDLER.transaction().list_output_coin(self.payment_key, self.read_only_key, token_id)
-        return ListPrvTXO(response)
+        return TXOResponse(response)
 
     def list_utxo(self, token_id=PRV_ID, from_height=0):
         raw_response = self.REQ_HANDLER.transaction().list_unspent_output_coins(self.private_key, token_id, from_height)
-        return ListPrvTXO(raw_response)
+        return TXOResponse(raw_response)
 
     def print_utxo(self, token_id=None):
         """
@@ -308,16 +309,16 @@ class Account:
         """
         if not token_id:
             print_data = f'+ {PRV_ID}'
-            for c in self.list_utxo():
+            for c in self.list_utxo().get_coins():
                 print_data += f'\n   {c}'
 
-            for token in self.list_owned_custom_token():
+            for token in self.list_owned_custom_token().get_tokens_info():
                 print_data += f'\n+ {token}'
-                for c in self.list_utxo(token.get_token_id()):
+                for c in self.list_utxo(token.get_token_id()).get_coins():
                     print_data += f'\n   {c}'
         else:
             print_data = f'\n+ {token_id}'
-            for c in self.list_utxo(token_id):
+            for c in self.list_utxo(token_id).get_coins():
                 print_data += f'\n   {c}'
         print(print_data)
 
@@ -578,13 +579,14 @@ class Account:
         return balance
 
     def get_assets(self):
-        assets = {token.get_token_id(): token.get_token_amount() for token in self.list_owned_custom_token()}
+        assets = {token.get_token_id(): token.get_token_amount() for token in
+                  self.list_owned_custom_token().get_tokens_info()}
         assets[PRV_ID] = self.get_balance()
         return assets
 
     def sum_my_utxo(self, token_id=PRV_ID):
         try:
-            return sum([t.get_value() for t in self.list_utxo(token_id)])
+            return sum([t.get_value() for t in self.list_utxo().get_coins(id=token_id)])
         except AttributeError:
             return 0
 
@@ -1150,7 +1152,7 @@ class Account:
 
     def pde3_get_my_nft_ids(self, pde_state=None):
         try:
-            all_my_custom_token = self.list_owned_custom_token()
+            all_my_custom_token = self.list_owned_custom_token().get_tokens_info()
         except Exception as e:
             logger.error(e)
             raise e
