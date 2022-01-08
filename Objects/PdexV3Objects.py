@@ -1113,3 +1113,20 @@ class PdeV3State(RPCResponseBase):
             else:
                 logger.info(f"Path stuck at token {start_token} pair {pair}")
                 return False
+
+    def estimate_min_trading_fee(self, amount: int, use_prv_fee: Union[str, bool], trade_path: list):
+        pde_param = self.get_pde_params()
+        trade_path = [trade_path] if type(trade_path) is str else trade_path
+        fee_rates = []
+        for pool_id in trade_path:
+            rate = pde_param.get_fee_rate_bps(pool_id)
+            fee_rates.append(rate) if rate else fee_rates.append(pde_param.get_default_fee_rate_bps())
+        sum_fee_rate = sum(fee_rates)
+        discount_rate = prv_discount_rate = pde_param.get_prv_discount_percent() \
+            if use_prv_fee is True or use_prv_fee == PRV_ID else 0
+        final_rate = ((100 - discount_rate) * sum_fee_rate) / 100
+        return int(final_rate * amount / ChainConfig.Dex3.DECIMAL)
+
+    def make_path(self, token_sell, token_buy):
+        # not yet work for all the cases
+        return [self.get_pool_pair(tokens=[token_buy, token_sell])[0].get_pool_pair_id()]
