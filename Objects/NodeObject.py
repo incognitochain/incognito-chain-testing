@@ -1,9 +1,11 @@
+import copy
 import json
 import os
 import re
 import subprocess
 import sys
 from concurrent.futures.thread import ThreadPoolExecutor
+from typing import Union, Dict
 
 from APIs.Bridge import BridgeRpc
 from APIs.DEX import DexRpc
@@ -13,7 +15,7 @@ from APIs.Subscription import SubscriptionWs
 from APIs.System import SystemRpc
 from APIs.Transaction import TransactionRpc
 from APIs.Utils import UtilsRpc
-from APIs.pDEX_V3 import DEXv3RPC
+from APIs.pDEX_V3 import DEXv3RPC, ResponseGetEstimatedLPValue
 from Configs.Configs import ChainConfig
 from Configs.Constants import PRV_ID
 from Drivers.Connections import SshSession
@@ -26,6 +28,7 @@ from Objects.BlockChainObjects import BlockChainCore
 from Objects.CoinObject import BridgeTokenResponse, InChainTokenResponse
 from Objects.CommitteeState import CommitteeState
 from Objects.PdeObjects import PDEStateInfo
+from Objects.PdexV3Objects import PdeV3State
 from Objects.PortalObjects import PortalStateInfo
 from Objects.ShardBlock import ShardBlock
 from Objects.ShardState import ShardBestStateDetailInfo, ShardBestStateInfo
@@ -256,6 +259,41 @@ class Node:
             raise RuntimeError(stdout)
         output = json.loads(stdout)
         return output['Hash'], output['Transaction']
+
+    def pde3_get_lp_value(self, pool_id, nft, beacon_height=0, extract_value=None) \
+            -> Union[ResponseGetEstimatedLPValue, Dict[str, Union[str, ResponseGetEstimatedLPValue]]]:
+        """
+        get estimate LP value of NFT of pool id
+        @param extract_value: TradingFee or PoolValue
+        @param pool_id:
+        @param nft:
+        @param beacon_height:
+        @return:
+        """
+        if isinstance(nft, str):
+            lp_value = self.dex_v3().get_estimated_lp_value(pool_id, nft, beacon_height)
+            return lp_value if not extract_value else lp_value.get_result(extract_value)
+        with ThreadPoolExecutor() as tpe:
+            threads = {nft: tpe.submit(self.dex_v3().get_estimated_lp_value, pool_id, nft, beacon_height) for nft in
+                       nft}
+        return {nft: future.result() for nft, future in threads.items()} if not extract_value else \
+            {nft: future.result().get_result(extract_value) for nft, future in threads.items()}
+
+    def pde3_get_lp_values_of_pools(self, pool_ids, pde_state=None, extract_value=None):
+        """
+        get estimate LP value of all provider of multiple pool
+        @param pool_ids:
+        @param pde_state:
+        @param extract_value: TradingFee or PoolValue
+        @return:
+        """
+        pde_state = pde_state if isinstance(pde_state, PdeV3State) else self.pde3_get_state()
+        beacon_height = pde_state.rpc_params().get_beacon_height()
+        providers_per_pool = {}
+        for pool_id in pool_ids:
+            providers = pde_state.get_pool_pair(id=pool_id).get_providers()
+            providers_per_pool[pool_id] = self.pde3_get_lp_value(pool_id, providers, beacon_height, extract_value)
+        return providers_per_pool
 
     def get_block_chain_info(self):
         return BlockChainCore(self.system_rpc().get_block_chain_info())

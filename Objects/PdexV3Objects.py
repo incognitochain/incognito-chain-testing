@@ -22,7 +22,7 @@ class PdeV3State(RPCResponseBase):
             logger.info("Other object is not a PDE state")
             return False
         excludes = [r"\['BeaconTimeStamp'\]",
-                    r"\['ProtocolFees'\]", r"\['LpFeesPerShare'\]", r"\['StakingPoolFees'\]",
+                    r"\['LpFeesPerShare'\]", r"\['StakingPoolFees'\]",
                     r"\['LastLPFeesPerShare'\]", r"\['LastRewardsPerShare'\]", r"\['RewardsPerShare'\]"]
         diff = DeepDiff(self.get_result(), other.get_result(), exclude_regex_paths=excludes, math_epsilon=0)
         if diff:
@@ -108,10 +108,6 @@ class PdeV3State(RPCResponseBase):
                 if by_token:
                     return self.__all_fee()[by_token]
                 return self.__all_fee()
-
-            def set_trading_fee(self, token, amount):
-                self.__all_fee()[token] = amount
-                return self
 
             def get_last_lp_fee_per_share(self, by_token):
                 all_fee = self.dict_data[self.nft_id]["LastLPFeesPerShare"]
@@ -361,12 +357,16 @@ class PdeV3State(RPCResponseBase):
             self.dict_data[self.get_pool_pair_id()]["State"]["ShareAmount"] = amount
 
         def get_lp_fee_per_share(self, by_token=None):
-            all_fee = self.get_state("LPFeesPerShare")
+            all_fee = self.pair_data().get("LpFeesPerShare")
             return all_fee[by_token] if by_token else all_fee
 
         def get_protocol_fee(self, by_token=None):
-            all_fee = self.get_state("ProtocolFees")
+            all_fee = self.pair_data()["ProtocolFees"]
             return all_fee[by_token] if by_token else all_fee
+
+        def set_protocol_fee(self, token, amount):
+            self.pair_data()["ProtocolFees"][token] = amount
+            return self
 
         def get_staking_pool_fee(self, by_token=None):
             all_fee = self.get_state("StakingPoolFees")
@@ -490,11 +490,10 @@ class PdeV3State(RPCResponseBase):
             return Pde3Math.cal_contribution_other_end(amount, self.get_real_amount(token_add),
                                                        self.get_real_amount(other_token))
 
-        def predict_pool_after_trade(self, sell_amount, token_sell, trading_fee: dict):
+        def predict_pool_after_trade(self, sell_amount, token_sell):
             """ NOTICE that AMM pool must not be Null []
             @param sell_amount:
             @param token_sell:
-            @param trading_fee: dict {token: amount}
             @return: receive amount
             """
             logger.info(f"Predicting trade with pool: {self.__pool_id_short()}\n    "
@@ -564,19 +563,7 @@ class PdeV3State(RPCResponseBase):
             if sell_amount > 0:
                 logger.debug(f"Still have token left to trade, continue trading {sell_amount} with pool")
                 total_receive += self.cal_amm_trade_n_update_pool(sell_amount, token_sell)
-
             self.__rm_completed_orders()
-            if trading_fee:  # split fee to LP
-                shares = self.get_share()
-                sum_share = sum([x.amount for x in shares])
-                fee_token, fee_amount = trading_fee.items()
-                remain = fee_amount
-                for share in shares[:-1]:
-                    fee_share_amount = int(fee_amount * share.amount / sum_share)
-                    remain -= fee_share_amount
-                    share.set_trading_fee(fee_token, fee_share_amount + share.get_trading_fee(fee_token))
-                shares[-1].set_trading_fee(fee_token, remain + shares[-1].get_trading_fee(fee_token))
-
             logger.info(f"Done predicting trading, total receive: {total_receive}. Pool after trade:\n"
                         f"{self.pretty()}")
             return total_receive
@@ -716,6 +703,9 @@ class PdeV3State(RPCResponseBase):
                     msg += f"{share.nft_id} : {share.amount}"
 
             return msg
+
+        def get_providers(self) -> list:
+            return self.pair_data()["Shares"].keys()
 
     class Param(BlockChainInfoBaseClass):
         def get_default_fee_rate_bps(self, to_float=False):
@@ -1004,7 +994,8 @@ class PdeV3State(RPCResponseBase):
                 result[pool] = order_list
         return result
 
-    def predict_state_after_trade(self, sell_token, token_buy, sell_amount, trade_path, trading_fee=0, use_prv=True):
+    def predict_state_after_trade(self, sell_token, token_buy, sell_amount, trade_path, trading_fee=0, use_prv=True,
+                                  lp_trading_fee_b4=None):
         """
         @param sell_token:
         @param token_buy:
@@ -1012,35 +1003,58 @@ class PdeV3State(RPCResponseBase):
         @param trading_fee:
         @param use_prv:
         @param trade_path: must be properly sorted
+        @param lp_trading_fee_b4: obtain by Node.pde3_get_lp_values_of_pools(...)
         @return:
         """
         trade_path = [trade_path] if isinstance(trade_path, str) else trade_path
         trade_path = Pde3Math.sort_trade_path(sell_token, trade_path)
         token_fee = PRV_ID if use_prv else sell_token
         receive = 0
-        staking_reward_percent = self.get_pde_params().get_trading_staking_pool_reward_percent()
-        staking_pool_reward = int(trading_fee * staking_reward_percent / 100)
-        self.predict_staking_pool_reward(staking_pool_reward, token_fee)
-
-        remain_reward_for_lp = trading_fee - staking_pool_reward
         pde_param = self.get_pde_params()
+
         fee_rates = [pde_param.get_fee_rate_bps(pair_id, to_float=True) if pde_param.get_fee_rate_bps(pair_id)
                      else pde_param.get_default_fee_rate_bps(to_float=True) for pair_id in trade_path]
         sum_fee_rate = sum(fee_rates)
         fee_each_pool = [int(trading_fee * fee_rates[i] / sum_fee_rate) for i in range(len(fee_rates) - 1)]
         fee_each_pool.append(trading_fee - sum(fee_each_pool))  # remain belongs to the last
+        lp_trading_fee_predict = copy.deepcopy(lp_trading_fee_b4) if lp_trading_fee_b4 else None
+        protocol_fee_rate = pde_param.get_trading_protocol_fee_percent()
+        staking_fee_rate = self.get_pde_params().get_trading_staking_pool_reward_percent()
         for i in range(len(trade_path)):
             pair_id = trade_path[i]
             fee_this_pool = fee_each_pool[i]
+            protocol_fee_this_pool = int(fee_this_pool * protocol_fee_rate / 100)
+            staking_fee_this_pool = int(fee_this_pool * staking_fee_rate / 100)  # todo, re-check this, not always right
+            lp_fee_this_pool = fee_this_pool - protocol_fee_this_pool - staking_fee_this_pool
             pool = self.get_pool_pair(id=pair_id)
-            receive = pool.predict_pool_after_trade(sell_amount, sell_token, {token_fee: fee_this_pool})
+            receive = pool.predict_pool_after_trade(sell_amount, sell_token)
             buy_tok = pool.get_token_id(1 - pool._get_token_index(sell_token))
+
+            if lp_trading_fee_b4:  # splitting LP fee
+                shares = pool.get_share()
+                sum_share = sum([x.amount for x in shares])
+                remain = lp_fee_this_pool
+                for share in shares[:-1]:
+                    fee_share_amount = int(share.amount * lp_fee_this_pool / sum_share)
+                    remain -= fee_share_amount
+                    lp_trading_fee_predict[pair_id][share.nft_id][token_fee] += fee_share_amount
+                    logger.info(f"added: {fee_share_amount}")
+                logger.info(f"Add remain: {remain}")
+                lp_trading_fee_predict[pair_id][shares[-1].nft_id][token_fee] += remain
+
             if token_fee != PRV_ID and buy_tok != PRV_ID and i + 1 < len(trade_path):
-                fee_each_pool[i + 1] = pool.predict_pool_after_trade(fee_each_pool[i + 1], sell_token, {})
+                # trade fee if needed
+                fee_each_pool[i + 1] = pool.predict_pool_after_trade(fee_each_pool[i + 1], sell_token)
+                # splitting protocol fee
+                pool.set_protocol_fee(sell_token, pool.get_protocol_fee(sell_token) + protocol_fee_this_pool)
+            else:
+                # splitting protocol fee
+                pool.set_protocol_fee(PRV_ID, pool.get_protocol_fee(PRV_ID) + protocol_fee_this_pool)
+
             sell_amount = receive
             sell_token = buy_tok
 
-        return receive
+        return receive, lp_trading_fee_predict
 
     def predict_state_after_stake(self, stake_amount, staking_pool_id, nft):
         staking_pool = self.get_staking_pools(id=staking_pool_id)

@@ -341,7 +341,7 @@ class DEXv3RPC(BaseRpcApi):
                                "NftID": nft_id}]).execute())
 
     def withdraw_lp_fee(self, private_k, receiver_payment_address, token_amount, token_id, pool_pair_id, nft_id,
-                        token_tx_type=1, token_fee=0, token_name="", token_symbol=0,
+                        token_tx_type=1, token_fee=0, token_name="", token_symbol="",
                         sub_tx_receiver=None, sub_tx_privacy=True, main_tx_receiver=None, tx_fee=-1, tx_privacy=1):
         """
         @param sub_tx_privacy:
@@ -362,7 +362,7 @@ class DEXv3RPC(BaseRpcApi):
         @return:
         """
         if sub_tx_receiver is None:
-            burning_tx = {Constants.BURNING_ADDR: 1}
+            sub_tx_receiver = {Constants.BURNING_ADDR: 1}
         return ResponseWithdraw(
             self.rpc_connection.with_method("pdexv3_txWithdrawLPFee")
                 .with_params([private_k, main_tx_receiver, tx_fee, tx_privacy,

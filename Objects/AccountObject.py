@@ -1054,12 +1054,12 @@ class Account:
         return self.REQ_HANDLER.pde3_make_trade_tx(self.private_key, token_sell, token_buy, sell_amount,
                                                    min_acceptable, trade_path, trading_fee, use_prv_fee)
 
-    def pde3_withdraw_lp_fee(self, receiver, token_amount, token_id, pool_pair_id, nft_id,
-                             token_tx_type=1, token_fee=0, token_name="", token_symbol=0,
+    def pde3_withdraw_lp_fee(self, receiver, token_amount, pool_pair_id, nft_id,
+                             token_tx_type=1, token_fee=0, token_name="", token_symbol="",
                              burning_tx=None, tx_fee=-1, tx_privacy=1):
         payment_key = receiver.payment_key if isinstance(receiver, Account) else receiver
         return self.REQ_HANDLER.dex_v3() \
-            .withdraw_lp_fee(self.private_key, payment_key, token_amount, token_id, pool_pair_id, nft_id,
+            .withdraw_lp_fee(self.private_key, payment_key, token_amount, nft_id, pool_pair_id, nft_id,
                              token_tx_type, token_fee, token_name, token_symbol, burning_tx,
                              tx_fee=tx_fee, tx_privacy=tx_privacy)
 
@@ -1129,7 +1129,7 @@ class Account:
         except AssertionError:
             logger.error(f"{response.get_error_msg()}\n"
                          f"{response.get_error_trace().get_message()}\n"
-                         f"{response.params().data}")
+                         f"{response.rpc_params().data}")
             return None
         except AttributeError as e:
             logger.error(f"{e}")

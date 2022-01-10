@@ -35,5 +35,5 @@ for res in thread_results:
         print(f"{'=' * 80}\n"
               f"{res.result().get_error_msg()}\n"
               f"{res.result().get_error_trace().get_message()}\n"
-              f"{res.result().params().data}")
+              f"{res.result().rpc_params().data}")
 print(f"+++ len = {len(thread_results)} | fail = {fail_count}")

@@ -85,10 +85,10 @@ def test_create_redeem_req(token, redeem_amount, redeem_fee, num_of_custodian, c
     redeem_req_tx = portal_user.portal_req_redeem_my_token(token, redeem_amount, redeem_fee=redeem_fee)
     redeem_req_tx.expect_no_error()
     tx_block = redeem_req_tx.subscribe_transaction()
-    redeem_fee = redeem_req_tx.params().get_portal_redeem_fee()
+    redeem_fee = redeem_req_tx.rpc_params().get_portal_redeem_fee()
     tx_fee = tx_block.get_fee()
     tx_size = tx_block.get_tx_size()
-    redeem_id = redeem_req_tx.params().get_portal_redeem_req_id()
+    redeem_id = redeem_req_tx.rpc_params().get_portal_redeem_req_id()
     STEP(1.2, 'Check tx fee and redeem fee')
     assert prv_bal_be4 - redeem_fee - tx_fee == portal_user.get_balance()
 

@@ -66,7 +66,7 @@ class RPCResponseBase(ResponseBase):
         self._handler = SUT()
         return self
 
-    def params(self):
+    def rpc_params(self):
         return Response.Params(self.data()["Params"])
 
     def size(self):

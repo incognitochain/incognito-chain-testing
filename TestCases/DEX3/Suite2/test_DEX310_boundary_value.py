@@ -110,7 +110,7 @@ def test_trade_big_num_single_path(trader: Account, tok_sell, tok_buy, sell_amou
     pde_b4 = SUT().pde3_get_state()
     pde_predict = pde_b4.clone()
     trading_fee = 2 * pde_predict.cal_min_trading_fee(sell_amount, tok_sell, PAIR_ID)
-    estimated_receive = pde_predict.predict_state_after_trade(tok_sell, tok_buy, sell_amount, PAIR_ID)
+    estimated_receive, lp_value_predict = pde_predict.predict_state_after_trade(tok_sell, tok_buy, sell_amount, PAIR_ID)
     COIN_MASTER.top_up_if_lower_than(trader, sell_amount, 1.5 * sell_amount)
 
     bal_buy_b4 = trader.sum_my_utxo(tok_buy)

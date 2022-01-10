@@ -18,7 +18,7 @@ token_owner = Account(
     '112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA')
 COIN_MASTER.top_up_if_lower_than(token_owner, coin(10000), coin(100000))
 
-all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
+all_ptoken_in_chain = SUT().get_all_token_in_chain_list().get_tokens_info()
 if token_id_1 not in all_ptoken_in_chain:
     trx008.account_init = token_owner
     token_id_1 = trx008.test_init_ptoken()

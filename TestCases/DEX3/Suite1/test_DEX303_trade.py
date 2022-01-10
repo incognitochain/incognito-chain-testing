@@ -1,5 +1,7 @@
+import json
 import random
 
+import deepdiff
 import pytest
 
 from Configs.Configs import ChainConfig
@@ -20,7 +22,7 @@ SUCCESS, REJECT = Status.DexV3.Trade.SUCCESS, Status.DexV3.Trade.REJECT
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),
     pytest.param(ACCOUNTS[-1], PRV_ID, TOKEN_X, amount, "double", PRV_fee, "auto", SUCCESS,
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 # marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),
     pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, "double", token_fee, "[INIT_PAIR_IDS[1]]", SUCCESS,
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
@@ -77,6 +79,7 @@ def test_trade_success(trader, token_sell, token_buy, sell_amount, trade_fee, fe
         from TestCases.DEX3.Suite1 import INIT_PAIR_IDS
         print(INIT_PAIR_IDS)
         trade_path = eval(trade_path)
+
     pde_b4 = SUT().pde3_get_state()
     min_fee = pde_b4.estimate_min_trading_fee(sell_amount, fee_type or token_sell == PRV_ID, trade_path)
     trade_fee = {"double": 2 * min_fee,
@@ -87,6 +90,7 @@ def test_trade_success(trader, token_sell, token_buy, sell_amount, trade_fee, fe
                  "min": min_fee,
                  }[trade_fee]
     trade_path = pde_b4.make_path(token_sell, token_buy) if trade_path == "auto" else trade_path
+    lp_value_b4 = SUT().pde3_get_lp_values_of_pools(trade_path, pde_b4, "TradingFee")
     if token_sell == PRV_ID:
         COIN_MASTER.top_up_if_lower_than(trader, 1.3 * sell_amount, 1.5 * sell_amount)
     else:
@@ -118,14 +122,20 @@ def test_trade_success(trader, token_sell, token_buy, sell_amount, trade_fee, fe
         """)
     assert trade_status.get_status() == expect_status
     pde_af = SUT().pde3_get_state()
+
     if expect_status == SUCCESS:
         Logging.INFO("EXPECTED ACCEPT ")
         pde_predict = pde_b4.clone()
-        receive_est = pde_predict.predict_state_after_trade(token_sell, token_buy, sell_amount, trade_path, trade_fee,
-                                                            fee_type)
+        receive_est, lp_value_predict = pde_predict.predict_state_after_trade(token_sell, token_buy, sell_amount,
+                                                                              trade_path, trade_fee, fee_type,
+                                                                              lp_value_b4)
+        lp_value_af = SUT().pde3_get_lp_values_of_pools(trade_path, pde_af, "TradingFee")
         Logging.INFO(f'Trade success, trader will receive {receive_from_status} of token {token_buy}')
         Logging.STEP(3, "Verify pde state after trade")
         assert pde_af == pde_predict
+        dd = deepdiff.DeepDiff(lp_value_af, lp_value_predict)
+        if dd:
+            raise AssertionError(dd.pretty())
 
         Logging.STEP(4, "Verify balance after trade")
         assert receive_est == receive_from_status
@@ -155,8 +165,12 @@ def test_trade_success(trader, token_sell, token_buy, sell_amount, trade_fee, fe
                 assert bal_buy_b4 + receive_est - tx_fee == bal_buy_af
     elif expect_status == REJECT:
         Logging.INFO("EXPECTED REJECT ")
+        lp_value_af = SUT().pde3_get_lp_values_of_pools(trade_path, pde_af)
         Logging.STEP(3, "Verify pde state after trade")
         assert pde_b4 == pde_af
+        dd = deepdiff.DeepDiff(lp_value_b4, lp_value_af)
+        if dd:
+            raise AssertionError(dd.pretty())
 
         Logging.STEP(4, "Verify balance after trade")
         if token_sell == PRV_ID:
