@@ -481,7 +481,6 @@ class Node:
                 total_reward_from_shard = shard_fee_total
             DAO_reward_from_shard = ChainConfig.DAO_REWARD_PERCENT * total_reward_from_shard
             list_DAO_reward_from_shard.append(max(0, DAO_reward_from_shard))
-            # breakpoint()
             if dcz:  # calculate reward for dynamic committee size
                 shard_comm_size = committee_state.get_shard_committee_size(shard_id)
                 beacon_committee_size = committee_state.get_beacon_committee_size()

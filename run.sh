@@ -28,4 +28,4 @@ fi
 html_report="reports/$(date '+%Y.%m.%d-%H.%M.%S')-${TESTBED}-${TESTDATA}.html"
 
 set -x
-$python -m pytest -vvvv --show-capture=stderr --capture=tee-sys --html="$html_report" --self-contained-html $3 $param4
+$python -m pytest --html="$html_report" --self-contained-html $3 $param4

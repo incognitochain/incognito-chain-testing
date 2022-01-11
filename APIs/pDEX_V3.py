@@ -174,8 +174,11 @@ class ResponseWithdrawLPFeeStatus(ResponseStatusBase):
         }
     }"""
 
-    def get_receivers(self, token, amount, address):
-        pass
+    def get_receivers(self, token=None, amount=None, address=None):
+        return self.get_result("Receivers")
+
+    def get_amounts(self, token=None):
+        return {token: receiver['Amount'] for token, receiver in self.get_receivers().items()}
 
 
 class ResponseWithdrawProtocolFeeStatus(ResponseStatusBase):

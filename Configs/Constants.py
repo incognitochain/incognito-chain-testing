@@ -99,34 +99,33 @@ class Status:
             REJECTED = 2
 
     class DexV3:
+        class _Status2:
+            REJECT = 0
+            SUCCESS = 1
+
         class AddLiquidity:
             WAITING = 1
             MATCH = 2
             REFUND = 3
             MATCH_N_REFUND = 4
 
-        class WithdrawLiquidity:
-            ACCEPT = 1
+        class WithdrawLiquidity(_Status2):
+            pass
 
-        class AddOrder:
+        class AddOrder(_Status2):
             REFUND = 0
-            ACCEPT = 1
 
-        class WithdrawOrder:
-            REJECT = 0
-            ACCEPT = 1
+        class WithdrawOrder(_Status2):
+            pass
 
-        class ShareWithdraw:
-            SUCCESS = 1
+        class ShareWithdraw(_Status2):
             REJECT = 2
 
-        class Trade:
-            REJECT = 0
-            SUCCESS = 1
+        class Trade(_Status2):
+            pass
 
-        class WithdrawLPFee:
-            REJECT = 0
-            SUCCESS = 1
+        class WithdrawLPFee(_Status2):
+            pass
 
     class SubmitKey:
         NOT_SUBMITTED = 0

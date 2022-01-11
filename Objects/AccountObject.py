@@ -1532,9 +1532,18 @@ class AccountGroup:
                                 f"got {type(acc)} instead ")
         self.__get_acc_synchronous(list_key)
 
-    def load_file(self, file_path):
+    def load_file(self, file_path, num_of_key_to_load=None):
         with open(file_path) as file:
-            keys = [key for key in file.read().splitlines() if key]
+            lines = file.read().splitlines()
+            if num_of_key_to_load:
+                keys = []
+                while num_of_key_to_load:
+                    key = lines.pop(0)
+                    if key:
+                        keys.append(key)
+                        num_of_key_to_load -= 1
+            else:
+                keys = [key for key in lines if key]
         self.__get_acc_synchronous(keys)
         return self
 

@@ -43,7 +43,7 @@ LOGGING_CONFIG = {
         '': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
-            'propagate': False}, }}
+            'propagate': True}, }}
 
 _FMT_WIDTH = 100
 _FMT_CHR = '='

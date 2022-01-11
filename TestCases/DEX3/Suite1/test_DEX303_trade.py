@@ -1,4 +1,3 @@
-import json
 import random
 
 import deepdiff
@@ -22,7 +21,7 @@ SUCCESS, REJECT = Status.DexV3.Trade.SUCCESS, Status.DexV3.Trade.REJECT
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),
     pytest.param(ACCOUNTS[-1], PRV_ID, TOKEN_X, amount, "double", PRV_fee, "auto", SUCCESS,
-                 # marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
                  ),
     pytest.param(ACCOUNTS[-1], TOKEN_Y, TOKEN_X, amount, "double", token_fee, "[INIT_PAIR_IDS[1]]", SUCCESS,
                  marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
@@ -81,7 +80,10 @@ def test_trade_success(trader, token_sell, token_buy, sell_amount, trade_fee, fe
         trade_path = eval(trade_path)
 
     pde_b4 = SUT().pde3_get_state()
-    min_fee = pde_b4.estimate_min_trading_fee(sell_amount, fee_type or token_sell == PRV_ID, trade_path)
+    try:
+        min_fee = pde_b4.estimate_min_trading_fee(token_sell, sell_amount, fee_type or token_sell == PRV_ID, trade_path)
+    except RuntimeError:
+        min_fee = int(sell_amount / 10)
     trade_fee = {"double": 2 * min_fee,
                  "min+1": min_fee + 1,
                  "min+10": min_fee + 10,
@@ -165,7 +167,7 @@ def test_trade_success(trader, token_sell, token_buy, sell_amount, trade_fee, fe
                 assert bal_buy_b4 + receive_est - tx_fee == bal_buy_af
     elif expect_status == REJECT:
         Logging.INFO("EXPECTED REJECT ")
-        lp_value_af = SUT().pde3_get_lp_values_of_pools(trade_path, pde_af)
+        lp_value_af = SUT().pde3_get_lp_values_of_pools(trade_path, pde_af, "TradingFee")
         Logging.STEP(3, "Verify pde state after trade")
         assert pde_b4 == pde_af
         dd = deepdiff.DeepDiff(lp_value_b4, lp_value_af)
