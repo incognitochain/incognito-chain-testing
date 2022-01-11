@@ -1,4 +1,3 @@
-import copy
 import json
 import os
 import re
@@ -261,14 +260,15 @@ class Node:
         return output['Hash'], output['Transaction']
 
     def pde3_get_lp_value(self, pool_id, nft, beacon_height=0, extract_value=None) \
-            -> Union[ResponseGetEstimatedLPValue, Dict[str, Union[str, ResponseGetEstimatedLPValue]]]:
+            -> Union[ResponseGetEstimatedLPValue, Dict[str, Union[int, ResponseGetEstimatedLPValue]]]:
         """
         get estimate LP value of NFT of pool id
         @param extract_value: TradingFee or PoolValue
         @param pool_id:
         @param nft:
         @param beacon_height:
-        @return:
+        @return: {token id : int} or {token id : ResponseGetEstimatedLPValue} or {nft: {token: int} or
+        {nft: {token: ResponseGetEstimatedLPValue}}
         """
         if isinstance(nft, str):
             lp_value = self.dex_v3().get_estimated_lp_value(pool_id, nft, beacon_height)

@@ -1037,9 +1037,10 @@ class PdeV3State(RPCResponseBase):
                 for share in shares[:-1]:
                     fee_share_amount = int(share.amount * lp_fee_this_pool / sum_share)
                     remain -= fee_share_amount
-                    lp_trading_fee_predict[pair_id][share.nft_id][token_fee] += fee_share_amount
-                    logger.info(f"added: {fee_share_amount}")
-                logger.info(f"Add remain: {remain}")
+                    try:
+                        lp_trading_fee_predict[pair_id][share.nft_id][token_fee] += fee_share_amount
+                    except KeyError:
+                        lp_trading_fee_predict[pair_id][share.nft_id] = fee_share_amount
                 lp_trading_fee_predict[pair_id][shares[-1].nft_id][token_fee] += remain
 
             if token_fee != PRV_ID and buy_tok != PRV_ID and i + 1 < len(trade_path):

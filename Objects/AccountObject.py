@@ -1054,7 +1054,7 @@ class Account:
         return self.REQ_HANDLER.pde3_make_trade_tx(self.private_key, token_sell, token_buy, sell_amount,
                                                    min_acceptable, trade_path, trading_fee, use_prv_fee)
 
-    def pde3_withdraw_lp_fee(self, receiver, token_amount, pool_pair_id, nft_id,
+    def pde3_withdraw_lp_fee(self, receiver, pool_pair_id, nft_id, token_amount=1,
                              token_tx_type=1, token_fee=0, token_name="", token_symbol="",
                              burning_tx=None, tx_fee=-1, tx_privacy=1):
         payment_key = receiver.payment_key if isinstance(receiver, Account) else receiver
