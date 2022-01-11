@@ -124,6 +124,10 @@ class Status:
             REJECT = 0
             SUCCESS = 1
 
+        class WithdrawLPFee:
+            REJECT = 0
+            SUCCESS = 1
+
     class SubmitKey:
         NOT_SUBMITTED = 0
         WAITING = 1
