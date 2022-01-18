@@ -156,16 +156,8 @@ class Response(RPCResponseWithTxHash):
         :return: TransactionDetail Object
         """
         self.req_to(0)
-        logger.info(f'Subscribe to transaction tx_id = {self.get_tx_id()}')
-        try:
-            return self._handler.subscription().subscribe_pending_transaction(self.get_tx_id()).get_result('Result')
-        except WebSocketTimeoutException:
-            logger.info("Encounter web socket timeout exception. Now get transaction by hash instead")
-            return self.get_transaction_by_hash(time_out=0)
-        except (WebSocketBadStatusException, ConnectionRefusedError) as status_err:
-            # in case full node does not have web socket enabled
-            logger.info(f"Encounter web socket bad status exception: {status_err}. Now get transaction by hash instead")
-            return self.get_transaction_by_hash()
+        logger.info(f'Subscribe transaction is obsoleted, get tx hash instead')
+        return self.get_transaction_by_hash()
 
     def is_transaction_v2_error_appears(self):
         try:

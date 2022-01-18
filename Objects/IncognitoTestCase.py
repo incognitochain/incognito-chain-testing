@@ -2,7 +2,7 @@ import os
 
 from Configs.Configs import TestConfig
 from Helpers.Logging import config_logger
-from Objects.AccountObject import AccountGroup
+from Objects.AccountObject import AccountGroup, Account
 from Objects.TestBedObject import TestBed, load_test_data
 
 logger = config_logger(__name__)
@@ -13,6 +13,19 @@ COMMITTEE_ACCOUNTS = AccountGroup()
 STAKER_ACCOUNTS = AccountGroup()
 
 
+def __handle_data(acc_data, data_name):
+    try:
+        if isinstance(acc_data, AccountGroup):
+            return acc_data
+        if isinstance(acc_data[0], Account):
+            return AccountGroup(*acc_data)
+        else:
+            return AccountGroup().load_from_list(acc_data)
+    except AttributeError as e:
+        logger.error(f'{type(e)}: {e}')
+        logger.warning(f"Not found {data_name} in test data, create an empty list now")
+
+
 def init_test_accounts(account_file=None):
     # load account list
     if not account_file:
@@ -21,35 +34,11 @@ def init_test_accounts(account_file=None):
 
     TEST_DATA = load_test_data(account_file)
     global ACCOUNTS, BEACON_ACCOUNTS, STAKER_ACCOUNTS, COMMITTEE_ACCOUNTS
-    try:
-        if isinstance(TEST_DATA.account_list, AccountGroup):
-            ACCOUNTS = TEST_DATA.account_list
-        else:
-            ACCOUNTS = AccountGroup(*TEST_DATA.account_list)
-    except AttributeError as e:
-        logger.error(f'{type(e)}: {e}')
-        logger.warning("Not found accounts list in test data, create an  empty list now")
 
-    try:
-        BEACON_ACCOUNTS = AccountGroup(*TEST_DATA.beacons)
-    except AttributeError as e:
-        logger.error(f'{type(e)}: {e}')
-        logger.warning("Not found beacon accounts list in test data, create an  empty list now")
-        BEACON_ACCOUNTS = []
-
-    try:
-        COMMITTEE_ACCOUNTS = AccountGroup(*TEST_DATA.committees)
-    except AttributeError as e:
-        logger.error(f'{type(e)}: {e}')
-        logger.warning("Not found committee accounts list in test data, create an  empty list now")
-        COMMITTEE_ACCOUNTS = []
-
-    try:
-        STAKER_ACCOUNTS = AccountGroup(*TEST_DATA.stakers)
-    except AttributeError as e:
-        logger.error(f'{type(e)}: {e}')
-        logger.warning("Not found committee accounts list in test data, create an  empty list now")
-        STAKER_ACCOUNTS = []
+    ACCOUNTS = __handle_data(TEST_DATA.account_list, "ACCOUNTS")
+    BEACON_ACCOUNTS = __handle_data(TEST_DATA.beacons, "BEACONS")
+    COMMITTEE_ACCOUNTS = __handle_data(TEST_DATA.committees, "COMMITTEES")
+    STAKER_ACCOUNTS = __handle_data(TEST_DATA.stakers, "STAKERS")
 
 
 def init_test_bed(testbed_file=None):

@@ -1,3 +1,4 @@
+import json
 import random
 
 import deepdiff
@@ -135,8 +136,10 @@ def test_trade_success(trader, token_sell, token_buy, sell_amount, trade_fee, fe
         Logging.INFO(f'Trade success, trader will receive {receive_from_status} of token {token_buy}')
         Logging.STEP(3, "Verify pde state after trade")
         assert pde_af == pde_predict
-        dd = deepdiff.DeepDiff(lp_value_af, lp_value_predict)
+        dd = deepdiff.DeepDiff(lp_value_af, lp_value_predict, math_epsilon=2)
         if dd:
+            Logging.ERROR(f" after {json.dumps(lp_value_af)}")
+            Logging.ERROR(f" predict {json.dumps(lp_value_predict)}")
             raise AssertionError(dd.pretty())
 
         Logging.STEP(4, "Verify balance after trade")

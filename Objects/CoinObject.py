@@ -1,3 +1,5 @@
+from typing import Union, List
+
 from Drivers.Response import RPCResponseBase
 from Helpers.Logging import config_logger
 from Helpers.TestHelper import l6
@@ -171,16 +173,22 @@ class ListCoinResponseBase(RPCResponseBase):
     def _get_all_tokens_info(self):
         raise RuntimeError("This method must be override by sub class")
 
-    def get_tokens_info(self, **by):
+    def get_tokens_info(self, **by) -> Union[CoinInfoPublic, List[CoinInfoPublic], None]:
         by_name = by.get("name")
         by_id = by.get("id")
         by_symbol = by.get("symbol")
         by_bal = by.get("balance")
         all_token_info = self._get_all_tokens_info()
+        if by_id:
+            for obj in all_token_info:
+                if obj.get_token_id() == by_id:
+                    return obj
+        else:
+            return None
+
         filtered_result = []
         for obj in all_token_info:
             included = True
-            included = included and obj.get_token_id() == by_id if by_id else included
             included = included and obj.get_token_name() == by_name if by_name else included
             included = included and obj.get_token_symbol() == by_symbol if by_symbol else included
             included = included and obj.get_vaue() == by_bal if by_bal else included

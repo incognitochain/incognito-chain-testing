@@ -5,7 +5,7 @@ import random
 import re
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
-from typing import List
+from typing import List, Union
 
 from Configs import Constants
 from Configs.Configs import ChainConfig, TestConfig
@@ -1174,8 +1174,10 @@ class Account:
             self.pde3_add_liquidity(PRV_ID, 100, contribution.get_amplifier(), contribution.get_contribution_id(),
                                     nft, contribution.get_pool_pair_id()).get_transaction_by_hash()
 
-    def pde3_modify_param(self, new_config):
-        return self.REQ_HANDLER.dex_v3().modify_param(self.private_key, new_config)
+    def pde3_modify_param(self, new_config: Union[dict, PdeV3State.Param], tx_fee=10, tx_privacy=0):
+        new_config = new_config.get_configs() if isinstance(new_config, PdeV3State.Param) else new_config
+        return self.REQ_HANDLER.dex_v3().modify_param(self.private_key, new_config, tx_fee=tx_fee,
+                                                      tx_privacy=tx_privacy)
 
     def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=1, check_interval=10,
                                 timeout=100):
@@ -1518,6 +1520,7 @@ class AccountGroup:
 
         for thread in init_thread:
             self.account_list.append(thread.result())
+        return self
 
     def __init__(self, *accounts):
         self.account_list: List[Account] = []
@@ -1532,7 +1535,18 @@ class AccountGroup:
                                 f"got {type(acc)} instead ")
         self.__get_acc_synchronous(list_key)
 
-    def load_file(self, file_path, num_of_key_to_load=None):
+    def load_from_list(self, _list):
+        private_keys = []
+        for item in _list:
+            if isinstance(item, str):
+                private_keys.append(item)
+            elif isinstance(item, list):
+                private_keys.append(item[0])
+            else:
+                raise TypeError(f"Each item of list must be a string or a list which first item is a string")
+        return self.__get_acc_synchronous(private_keys)
+
+    def load_from_file(self, file_path, num_of_key_to_load=None):
         with open(file_path) as file:
             lines = file.read().splitlines()
             if num_of_key_to_load:
@@ -1547,14 +1561,9 @@ class AccountGroup:
         self.__get_acc_synchronous(keys)
         return self
 
-    def load_file_json(self, file_path, key=None):
-        with open(file_path) as file:
-            account_json = json.load(file)
-        account_json = account_json[key] if key else account_json
-        acc_list = []
-        # for obj in account_json
-        # todo, thinking ....
-        self.account_list = acc_list
+    def load_from_json_file(self, json_file_path):
+        with open(json_file_path) as f:
+            return self.load_from_list(json.load(f))
 
     def __len__(self):
         return len(self.account_list)

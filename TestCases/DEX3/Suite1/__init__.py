@@ -5,12 +5,13 @@ from Objects.IncognitoTestCase import ACCOUNTS
 logger = config_logger(__name__)
 # declaration
 TOKEN_OWNER = ACCOUNTS[0]
-TOKEN_X = "405195f60daa7faf11c06c74ccff0df70a327a25663887e8d67b09da734f7837"
-TOKEN_Y = "5698d6ce531b053677b03ac25c1b073339ad50d013728af1ba34dd8737992105"
-INIT_PAIR_IDS = [
-    f'{PRV_ID}-{TOKEN_X}-8972d34d8cd7f33e75826adbd2a8906d17803d1ac2cac4a2bc9fd435ab27cc0d',
-    f'{TOKEN_X}-{TOKEN_Y}-d8362be28f73fddba904bc0a07ac8ece55e631d74ecee130ff6288815aa59463'
-]
+TOKEN_X = "405195f60daa7faf11c06c74ccff0df70a327a25663887e8d67b09da734f7837."
+TOKEN_Y = "5698d6ce531b053677b03ac25c1b073339ad50d013728af1ba34dd8737992105."
+# INIT_PAIR_IDS = [
+#     f'{PRV_ID}-{TOKEN_X}-8972d34d8cd7f33e75826adbd2a8906d17803d1ac2cac4a2bc9fd435ab27cc0d',
+#     f'{TOKEN_X}-{TOKEN_Y}-d8362be28f73fddba904bc0a07ac8ece55e631d74ecee130ff6288815aa59463'
+# ]
+INIT_PAIR_IDS = []
 BEACON_HEIGHT_START = 0
 COLLECTED_FEE = {}
 # ---------------------------- SET UP -------------------------------

@@ -71,7 +71,7 @@ def test_add_order(user: Account, nft_id, pair_id, token_sell, token_buy, sell_a
         return
     if pool_b4:  # pool exist
         Logging.INFO("Pool exist, order should be accepted")
-        assert stat.get_status() == Status.DexV3.AddOrder.ACCEPT
+        assert stat.get_status() == Status.DexV3.AddOrder.SUCCESS
         order_id = stat.get_order_id()
         pde = SUT().pde3_get_state()
         pool = pde.get_pool_pair(id=pair_id)

@@ -6,6 +6,9 @@ if [ $1 = "clear" ] || [ $1 = "clean" ]; then
   rm reports/*.html
   rm logs/*.log*
   exit
+elif [[ $CLEAR = "1" ]] || [[ $CLEAN = "1" ]]; then
+  rm reports/*.html
+  rm logs/*.log*
 fi
 
 if [ "$1" != "-" ]; then

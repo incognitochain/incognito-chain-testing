@@ -24,7 +24,7 @@ class PdeV3State(RPCResponseBase):
         excludes = [r"\['BeaconTimeStamp'\]",
                     r"\['LpFeesPerShare'\]", r"\['StakingPoolFees'\]",
                     r"\['LastLPFeesPerShare'\]", r"\['LastRewardsPerShare'\]", r"\['RewardsPerShare'\]"]
-        diff = DeepDiff(self.get_result(), other.get_result(), exclude_regex_paths=excludes, math_epsilon=0)
+        diff = DeepDiff(self.get_result(), other.get_result(), exclude_regex_paths=excludes, math_epsilon=2)
         if diff:
             diff_info = '    ' + '\n    '.join(diff.pretty().split('\n'))
             logger.info(f"There are differences when comparing PDE states\n"
@@ -365,7 +365,10 @@ class PdeV3State(RPCResponseBase):
 
         def get_protocol_fee(self, by_token=None):
             all_fee = self.pair_data()["ProtocolFees"]
-            return all_fee[by_token] if by_token else all_fee
+            try:
+                return all_fee[by_token] if by_token else all_fee
+            except KeyError:
+                return 0
 
         def set_protocol_fee(self, token, amount):
             self.pair_data()["ProtocolFees"][token] = amount
@@ -715,6 +718,10 @@ class PdeV3State(RPCResponseBase):
             return self.dict_data["DefaultFeeRateBPS"] / ChainConfig.Dex3.DECIMAL \
                 if to_float else self.dict_data["DefaultFeeRateBPS"]
 
+        def set_default_fee_rate_bps(self, number):
+            self.dict_data["DefaultFeeRateBPS"] = number
+            return self
+
         def get_fee_rate_bps(self, by_pool_pair=None, to_float=False):
             all_rate = self.dict_data["FeeRateBPS"]
             if by_pool_pair:
@@ -1012,6 +1019,7 @@ class PdeV3State(RPCResponseBase):
         trade_path = [trade_path] if isinstance(trade_path, str) else trade_path
         trade_path = Pde3Math.sort_trade_path(sell_token, trade_path)
         token_fee = PRV_ID if use_prv else sell_token
+        token_fee_current = token_fee
         receive = 0
         pde_param = self.get_pde_params()
 
@@ -1023,7 +1031,6 @@ class PdeV3State(RPCResponseBase):
         lp_trading_fee_predict = copy.deepcopy(lp_trading_fee_b4) if lp_trading_fee_b4 else None
         protocol_fee_rate = pde_param.get_trading_protocol_fee_percent()
         staking_fee_rate = self.get_pde_params().get_trading_staking_pool_reward_percent()
-        token_fee_next_pool = PRV_ID if use_prv else sell_token
         for i in range(len(trade_path)):
             pair_id = trade_path[i]
             fee_this_pool = fee_each_pool[i]
@@ -1043,20 +1050,26 @@ class PdeV3State(RPCResponseBase):
                     fee_share_amount = int(share.amount * lp_fee_this_pool / sum_share)
                     remain -= fee_share_amount
                     try:
-                        lp_trading_fee_predict[pair_id][share.nft_id][token_fee_next_pool] += fee_share_amount
+                        lp_trading_fee_predict[pair_id][share.nft_id][token_fee_current] += fee_share_amount
                     except KeyError:
-                        lp_trading_fee_predict[pair_id][share.nft_id] = fee_share_amount
-                lp_trading_fee_predict[pair_id][shares[-1].nft_id][token_fee_next_pool] += remain
+                        if not lp_trading_fee_predict[pair_id][share.nft_id]:
+                            lp_trading_fee_predict[pair_id][share.nft_id] = {}
+                        if fee_share_amount > 0:
+                            lp_trading_fee_predict[pair_id][share.nft_id][token_fee_current] = fee_share_amount
+                try:
+                    lp_trading_fee_predict[pair_id][shares[-1].nft_id][token_fee_current] += remain
+                except KeyError:
+                    if not lp_trading_fee_predict[pair_id][shares[-1].nft_id]:
+                        lp_trading_fee_predict[pair_id][shares[-1].nft_id] = {}
+                    if remain > 0:
+                        lp_trading_fee_predict[pair_id][shares[-1].nft_id][token_fee_current] = remain
 
             logger.info(f"Splitting protocol fee")
-            if token_fee_next_pool != PRV_ID:  # splitting token protocol fee
-                pool.set_protocol_fee(sell_token, pool.get_protocol_fee(sell_token) + protocol_fee_this_pool)
-            else:  # splitting PRV protocol fee
-                pool.set_protocol_fee(PRV_ID, pool.get_protocol_fee(PRV_ID) + protocol_fee_this_pool)
+            pool.set_protocol_fee(token_fee_current, pool.get_protocol_fee(token_fee_current) + protocol_fee_this_pool)
 
             if token_fee != PRV_ID and buy_tok != PRV_ID and i + 1 < len(trade_path):  # trade fee if needed
                 fee_each_pool[i + 1] = pool.predict_pool_after_trade(fee_each_pool[i + 1], sell_token)
-                token_fee_next_pool = buy_tok
+                token_fee_current = buy_tok
 
             sell_amount = receive
             sell_token = buy_tok
