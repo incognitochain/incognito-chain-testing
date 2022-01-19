@@ -730,6 +730,10 @@ class PdeV3State(RPCResponseBase):
             else:
                 return all_rate
 
+        def set_fee_rate_bps(self, pool_id, number):
+            self.dict_data["FeeRateBPS"][pool_id] = number
+            return self
+
         def get_prv_discount_percent(self, to_float=False):
             return self.dict_data["PRVDiscountPercent"] / ChainConfig.Dex3.DECIMAL if to_float else \
                 self.dict_data["PRVDiscountPercent"]

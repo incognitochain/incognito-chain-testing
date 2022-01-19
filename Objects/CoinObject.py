@@ -183,7 +183,6 @@ class ListCoinResponseBase(RPCResponseBase):
             for obj in all_token_info:
                 if obj.get_token_id() == by_id:
                     return obj
-        else:
             return None
 
         filtered_result = []
