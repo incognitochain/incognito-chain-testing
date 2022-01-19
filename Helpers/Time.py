@@ -6,7 +6,7 @@ from Helpers.Logging import config_logger
 logger = config_logger(__name__)
 
 
-def get_current_date_time(date_format="%d%m%y%H%M%S"):
+def get_current_date_time(date_format="%y%m%d%H%M%S"):
     return datetime.now().strftime(date_format)
 
 

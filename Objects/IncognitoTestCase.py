@@ -13,17 +13,19 @@ COMMITTEE_ACCOUNTS = AccountGroup()
 STAKER_ACCOUNTS = AccountGroup()
 
 
-def __handle_data(acc_data, data_name):
+def __handle_data(test_data, data_name):
     try:
-        if isinstance(acc_data, AccountGroup):
-            return acc_data
-        if isinstance(acc_data[0], Account):
-            return AccountGroup(*acc_data)
-        else:
-            return AccountGroup().load_from_list(acc_data)
+        data = getattr(test_data, data_name)
     except AttributeError as e:
         logger.error(f'{type(e)}: {e}')
         logger.warning(f"Not found {data_name} in test data, create an empty list now")
+        return AccountGroup()
+    if isinstance(data, AccountGroup):
+        return data
+    if isinstance(data[0], Account):
+        return AccountGroup(*data)
+    else:
+        return AccountGroup().load_from_list(data)
 
 
 def init_test_accounts(account_file=None):
@@ -35,10 +37,10 @@ def init_test_accounts(account_file=None):
     TEST_DATA = load_test_data(account_file)
     global ACCOUNTS, BEACON_ACCOUNTS, STAKER_ACCOUNTS, COMMITTEE_ACCOUNTS
 
-    ACCOUNTS = __handle_data(TEST_DATA.account_list, "ACCOUNTS")
-    BEACON_ACCOUNTS = __handle_data(TEST_DATA.beacons, "BEACONS")
-    COMMITTEE_ACCOUNTS = __handle_data(TEST_DATA.committees, "COMMITTEES")
-    STAKER_ACCOUNTS = __handle_data(TEST_DATA.stakers, "STAKERS")
+    ACCOUNTS = __handle_data(TEST_DATA, "account_list")
+    BEACON_ACCOUNTS = __handle_data(TEST_DATA, "beacons")
+    COMMITTEE_ACCOUNTS = __handle_data(TEST_DATA, "committees")
+    STAKER_ACCOUNTS = __handle_data(TEST_DATA, "stakers")
 
 
 def init_test_bed(testbed_file=None):

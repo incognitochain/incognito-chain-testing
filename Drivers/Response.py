@@ -21,9 +21,14 @@ class RPCResponseBase(ResponseBase):
                 self._handler = response._handler
             except AttributeError:
                 self._handler = None
-        else:
+        elif response is not None:
             self.__response_json = json.loads(response) if type(response) is str else response.json()
             super().__init__(response, more_info)
+            self._handler = handler
+        else:
+            self.response = response
+            self.more_info = more_info
+            self.__response_json = {}
             self._handler = handler
 
     def data(self):

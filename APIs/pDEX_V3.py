@@ -264,6 +264,8 @@ class ResponseModifyParamStatus(ResponseStatusBase, PdeV3State.Param):
     def get_error(self):
         return self.get_result("ErrorMsg")
 
+    def is_success(self):
+        return not self.get_error()
 
 # ======================================================================================================================
 class DEXv3RPC(BaseRpcApi):

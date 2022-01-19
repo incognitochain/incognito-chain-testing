@@ -294,7 +294,7 @@ class Account:
         @param token_id:
         @return:
         """
-        response = self.REQ_HANDLER.transaction().list_output_coin(self.payment_key, self.read_only_key, token_id)
+        response = self.REQ_HANDLER.transaction().list_output_coin(self.payment_key, token_id, OTASecretKey=self.ota_k)
         return TXOResponse(response)
 
     def list_utxo(self, token_id=PRV_ID, from_height=0):
