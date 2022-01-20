@@ -1,7 +1,10 @@
 from APIs import BaseRpcApi, unspecified
 from Configs import Constants
 from Drivers.Response import RPCResponseBase, RPCResponseWithTxHash
+from Helpers import Logging
 from Objects.PdexV3Objects import PdeV3State
+
+logger = Logging.config_logger(__name__)
 
 
 class ResponseStatusBase(RPCResponseBase):
@@ -265,7 +268,12 @@ class ResponseModifyParamStatus(ResponseStatusBase, PdeV3State.Param):
         return self.get_result("ErrorMsg")
 
     def is_success(self):
-        return not self.get_error()
+        error = self.get_error()
+        if error:
+            logger.error(f"{self.rpc_params()}\n{error}")
+            return False
+        return True
+
 
 # ======================================================================================================================
 class DEXv3RPC(BaseRpcApi):
