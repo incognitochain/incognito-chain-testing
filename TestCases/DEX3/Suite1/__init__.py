@@ -5,8 +5,8 @@ from Objects.IncognitoTestCase import ACCOUNTS
 logger = config_logger(__name__)
 # declaration
 TOKEN_OWNER = ACCOUNTS[0]
-TOKEN_X = "405195f60daa7faf11c06c74ccff0df70a327a25663887e8d67b09da734f7837."
-TOKEN_Y = "5698d6ce531b053677b03ac25c1b073339ad50d013728af1ba34dd8737992105."
+TOKEN_X = "00000000000000000000000000000000000000000000000000000000000000aa"
+TOKEN_Y = "00000000000000000000000000000000000000000000000000000000000000bb"
 
 INIT_PAIR_IDS = []
 BEACON_HEIGHT_START = 0
@@ -26,7 +26,7 @@ for token in __token_list:
         TOKEN_OWNER.wait_for_balance_change(token, 0)
 
 TOKEN_X, TOKEN_Y = __token_list
-logger.info(f"""   !!! Using tokens: 
+logger.info(f"""   !!! Using tokens:
     {TOKEN_X}
     {TOKEN_Y}""")
 
