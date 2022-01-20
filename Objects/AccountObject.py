@@ -1151,13 +1151,15 @@ class Account:
             logger.info(f"{self.__me()} waited {wasted_time}s, but can't get new nft id after tx was confirmed")
             return None
 
-    def pde3_get_my_nft_ids(self, pde_state=None):
+    def pde3_get_my_nft_ids(self, pde_state=None, force=False):
+        if not force and self.nft_ids:
+            return self.nft_ids
+        pde_state = self.REQ_HANDLER.pde3_get_state(key_filter="NftIDs") if not pde_state else pde_state
         try:
             all_my_custom_token = self.list_owned_custom_token().get_tokens_info()
         except Exception as e:
             logger.error(e)
             raise e
-        pde_state = self.REQ_HANDLER.pde3_get_state(key_filter="NftIDs") if not pde_state else pde_state
         self.nft_ids.clear()
         for token in all_my_custom_token:
             if pde_state.get_nft_id(token.get_token_id()):
@@ -1452,7 +1454,7 @@ class Account:
                     receiver[acc] = top_up_amount
         if len(receiver) == 0:
             return None
-        logger.info(f"{'=' * 80}\n TOP UP OTHERS'({len(receiver)} acc) TO {upper} (token {(l6(token_id))})\n{'=' * 80}")
+        logger.info(f"\n      TOP UP OTHERS'({len(receiver)} acc) TO {upper} (token {(l6(token_id))})\n{'=' * 80}")
         # there's a max number of output in "createandsendtransaction" rpc, so must split into small batch of output
         each, length, start = 20, len(receiver), 0
         mid = each

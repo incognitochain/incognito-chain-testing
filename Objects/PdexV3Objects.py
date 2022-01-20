@@ -967,7 +967,7 @@ class PdeV3State(RPCResponseBase):
         for obj in all_pp_obj:
             included = True
             if by_tokens:
-                matched = sum([x in [obj.get_token_id(0), obj.get_token_id(1)] for x in by_tokens]) == len(by_tokens)
+                matched = sum([x in obj.get_token_id() for x in by_tokens]) == len(by_tokens)
                 included = included and matched
             if by_nft:
                 included = included and obj.get_share(by_nft)
