@@ -77,7 +77,7 @@ def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_or
     acc_stop_stake = acc_committee_4th if acc_committee_4th is not None else acc_committee_5th
     assert acc_stop_stake is not None, f'Can not find any account which originate from shard{shard_origin} and is a' \
                                        f'committee for shard{shard_committee}. Please run this test again another time'
-    acc_stop_stake.req_to(SUT.shards[shard_origin].get_representative_node())
+    acc_stop_stake.attach_to_node(SUT.shards[shard_origin].get_representative_node())
     epoch = shard0_state_detail.get_epoch()
     if ChainConfig.PRIVACY_VERSION == 2:
         acc_stop_stake.submit_key()
@@ -109,7 +109,7 @@ def test_stop_auto_staking_not_work__committee_shard_0(shard_committee, shard_or
     bal_b4_un_stake = acc_stop_stake.get_balance()
 
     INFO(f'Send stop auto staking to user originated shard')
-    un_stake_tx = acc_stop_stake.stk_stop_auto_stake_me().expect_no_error().req_to(
+    un_stake_tx = acc_stop_stake.stk_stop_auto_stake_me().expect_no_error().attach_to_node(
         SUT.full_node).subscribe_transaction()
     assert un_stake_tx.get_block_height() > 0
     acc_stop_stake.stk_wait_till_i_am_swapped_out_of_committee()

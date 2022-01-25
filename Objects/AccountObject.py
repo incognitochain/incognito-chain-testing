@@ -10,7 +10,7 @@ from typing import List, Union
 from Configs import Constants
 from Configs.Configs import ChainConfig, TestConfig
 from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, BURNING_ADDR
-from Drivers.IncognitoKeyGen import get_key_set_from_private_k
+from Drivers.IncCliWrapper import IncCliWrapper
 from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
 from Helpers import TestHelper
@@ -55,15 +55,9 @@ class Account:
         @param key_to_check:
         @return: key type of the {key_key_to_check} or False if not found in this account
         """
-        ktc_ver = self.check_payment_key_version(key_to_check)
-        for attribute, value in self.__dict__.items():
-            if "key" in attribute or "address" in attribute or "_k" in attribute:
-                value_key_ver = self.check_payment_key_version(value)
-                if ktc_ver != value_key_ver and ktc_ver != 0 and value_key_ver != 0:
-                    key_to_check = self.convert_payment_k_to_v1(key_to_check) if ktc_ver == 2 else key_to_check
-                    value = self.convert_payment_k_to_v1(value) if value_key_ver == 2 else value
-                if key_to_check == value:
-                    return attribute
+        for key_type, value in self.key_info.items():
+            if key_to_check in value:
+                return key_type
         return False
 
     def __init__(self, private_key=None, payment_k=None, handler=None, **kwargs):
@@ -73,33 +67,26 @@ class Account:
         @param payment_k: payment key of this account, if specified along with private key, other keys will not
          get generated and will be set to None
         @param handler: Node object, specify which chain this account belong to by specifying one node of the chain here
-        (usually full node). If None, account is tied to default full node in specified test bed
+        (usually full node)
         @param kwargs:
         """
-        version = kwargs.get('version', TestConfig.KEY_VERSION)
+        self.key_info = {"PrivateKey": private_key,
+                         "PublicKey": "",
+                         "PaymentAddressV1": "",
+                         "PaymentAddress": payment_k,
+                         "ReadOnlyKey": "",
+                         "OTAPrivateKey": "",
+                         "MiningKey": "",
+                         "MiningPublicKey": "",
+                         "ValidatorPublicKey": "",
+                         "ShardID": kwargs.get('shard')}
         self.remote_addr = {}
-        self.private_key = private_key
-        self.payment_key = payment_k
-        self.validator_key = \
-            self.public_key = \
-            self.read_only_key = \
-            self.bls_public_k = \
-            self.bridge_public_k = \
-            self.mining_public_k = \
-            self.ota_k = \
-            self.view_k = \
-            self.committee_public_k = None
-        self.shard = kwargs.get('shard')
         self.cache = {Account._cache_bal: {},
                       Account._cache_nft_id: []}
-        if handler:
-            self.REQ_HANDLER = handler
-        else:
-            from Objects import IncognitoTestCase
-            self.REQ_HANDLER = IncognitoTestCase.SUT()
+        self.REQ_HANDLER = handler
 
         if private_key and not payment_k:  # generate all key from private key if there's privatekey but not paymentkey
-            self.get_keys(version)
+            self.key_info = IncCliWrapper().key_info(self.private_key)
 
     def check_payment_key_version(self, key=None):
         """
@@ -114,23 +101,49 @@ class Account:
             return 2
         return 0
 
-    def get_keys(self, version, **kwargs):
-        """
-        generate all key from private key
-        @param version: key version 1/2
-        @param kwargs: private_key=xxx, default value: self.private_key
-        @return:
-        """
-        private_key = kwargs.get('private_key', self.private_key)
-        self.private_key, self.payment_key, self.public_key, self.read_only_key, self.validator_key, \
-        self.bls_public_k, self.bridge_public_k, self.mining_public_k, self.committee_public_k, \
-        self.view_k, self.ota_k, self.shard = \
-            get_key_set_from_private_k(private_key, version)
-        return self
+    @property
+    def private_key(self):
+        return self.key_info['PrivateKey']
+
+    @property
+    def payment_key_v1(self):
+        return self.key_info['PaymentAddressV1']
+
+    @property
+    def payment_key(self):
+        return self.key_info['PaymentAddress']
 
     @property
     def incognito_addr(self):  # just an alias for payment key
         return self.payment_key
+
+    @property
+    def validator_key(self):
+        return self.key_info['MiningKey']
+
+    @property
+    def public_key(self):
+        return self.key_info['PublicKey']
+
+    @property
+    def read_only_key(self):
+        return self.key_info['ReadOnlyKey']
+
+    @property
+    def bls_public_k(self):
+        return self.key_info['ValidatorPublicKey']
+
+    @property
+    def ota_k(self):
+        return self.key_info['OTAPrivateKey']
+
+    @property
+    def committee_public_k(self):
+        return self.key_info['MiningPublicKey']
+
+    @property
+    def shard(self):
+        return self.key_info['ShardID']
 
     @property
     def nft_ids(self) -> List:
@@ -147,47 +160,28 @@ class Account:
             return True
         return False
 
-    def req_to(self, handler):
+    def attach_to_node(self, node):
         """
         Change request handler
-        @param handler: Node object
+        @param node: Node object
         @return:
         """
-        self.REQ_HANDLER = handler
+        self.REQ_HANDLER = node
         return self
 
     def __copy__(self):
         copy_obj = Account()
 
-        copy_obj.private_key = self.private_key
-        copy_obj.validator_key = self.validator_key
-        copy_obj.payment_key = self.payment_key
-        copy_obj.public_key = self.public_key
-        copy_obj.read_only_key = self.read_only_key
-        copy_obj.bls_public_k = self.bls_public_k
-        copy_obj.bridge_public_k = self.bridge_public_k
-        copy_obj.mining_public_k = self.mining_public_k
-        copy_obj.committee_public_k = self.committee_public_k
-        copy_obj.shard = self.shard
+        copy_obj.key_info = self.key_info
         copy_obj.cache = self.cache
-        copy_obj.ota_k = self.ota_k
+        copy_obj.remote_addr = self.remote_addr
         return copy_obj
 
     def __deepcopy__(self, memo=None):
         copy_obj = Account()
-
-        copy_obj.private_key = copy.deepcopy(self.private_key)
-        copy_obj.validator_key = copy.deepcopy(self.validator_key)
-        copy_obj.payment_key = copy.deepcopy(self.payment_key)
-        copy_obj.public_key = copy.deepcopy(self.public_key)
-        copy_obj.read_only_key = copy.deepcopy(self.read_only_key)
-        copy_obj.bls_public_k = copy.deepcopy(self.bls_public_k)
-        copy_obj.bridge_public_k = copy.deepcopy(self.bridge_public_k)
-        copy_obj.mining_public_k = copy.deepcopy(self.mining_public_k)
-        copy_obj.committee_public_k = copy.deepcopy(self.committee_public_k)
-        copy_obj.shard = copy.deepcopy(self.shard)
+        copy_obj.key_info = copy.deepcopy(self.key_info)
         copy_obj.cache = copy.deepcopy(self.cache)
-        copy_obj.ota_k = copy.deepcopy(self.ota_k)
+        copy_obj.remote_addr = copy.deepcopy(self.remote_addr)
         return copy_obj
 
     def __eq__(self, other):
@@ -211,10 +205,6 @@ class Account:
     def clone(self):
         return self.__deepcopy__()
 
-    def convert_payment_address_to_version(self, version=1):
-        self.payment_key = get_key_set_from_private_k(self.private_key, version)[1]
-        return self
-
     def create_tx_proof(self, receiver, amount, fee=-1, privacy=1):
         resp = self.REQ_HANDLER.transaction().create_tx(self.private_key, receiver.payment_key, amount,
                                                         fee, privacy).expect_no_error()
@@ -223,13 +213,9 @@ class Account:
         return resp.get_created_proof()
 
     def calculate_shard_id(self):
-        if not self.payment_key:
-            self.find_payment_key()
-        if not self.public_key:
-            self.find_public_key()
         response = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
         last_byte = response.get_result("PublicKeyInBytes")[-1]
-        self.shard = last_byte % 8
+        self.key_info['ShardID'] = last_byte % 8
         return self.shard
 
     def __str__(self):
@@ -248,32 +234,6 @@ class Account:
         except KeyError:
             pass
         return f'{string}\n'
-
-    def find_payment_key(self, force=False):
-        """
-        find payment address from private key
-
-        @return:
-        """
-        if not force:
-            if self.payment_key is not None:
-                return self.payment_key
-
-        tx = self.REQ_HANDLER.transaction().list_custom_token_balance(self.private_key)
-        self.payment_key = tx.get_result('PaymentAddress')
-        return self.payment_key
-
-    def find_public_key(self, force=False):
-        """
-
-        @return:
-        """
-        if not force and self.public_key:
-            return self.public_key
-
-        tx = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
-        self.public_key = tx.get_result('PublicKeyInBase58Check')
-        return self.public_key
 
     def get_estimate_fee_and_size(self, receiver, amount, fee=-1, privacy=1):
         r = self.REQ_HANDLER.transaction().estimate_tx_fee(self.private_key, receiver.payment_key, amount, fee, privacy)
@@ -354,10 +314,6 @@ class Account:
         @return:
         """
         logger.info(f"Stake and reward me: {self.validator_key}")
-        if not self.payment_key:
-            self.find_payment_key()
-        if not self.public_key:
-            self.find_public_key()
         if not self.validator_key:
             raise Exception("Validator key is not specified")
 
@@ -403,7 +359,7 @@ class Account:
         logger.info(f'Un-stake transaction for validator: {validator.validator_key}')
         return self.REQ_HANDLER.transaction(). \
             create_and_send_un_staking_transaction(self.private_key, validator.payment_key, validator.validator_key,
-                                                   tx_fee).req_to(self.REQ_HANDLER)
+                                                   tx_fee).attach_to_node(self.REQ_HANDLER)
 
     def stk_stop_auto_stake_him(self, him):
         logger.info(f"Stop auto stake other: {him.validator_key}")
@@ -430,8 +386,8 @@ class Account:
     def stk_wait_till_i_am_in_waiting_next_random(self, check_cycle=ChainConfig.BLOCK_TIME,
                                                   timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
-        logger.info(
-            f"Wait until {self.validator_key} exist in waiting next random, check every {check_cycle}s, timeout: {timeout}s")
+        logger.info(f"Wait until {self.validator_key} exist in waiting next random, check every {check_cycle}s,"
+                    f" timeout: {timeout}s")
         while timeout > check_cycle:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             staked_in_waiting_4random = beacon_bsd.is_he_in_waiting_next_random(self)
@@ -571,7 +527,7 @@ class Account:
                     result = self.REQ_HANDLER.transaction().get_custom_token_balance(self.private_key, token_id)
                 else:
                     break
-            except:
+            except Exception:
                 break
         balance = result.get_result() if result.get_result() else 0
         self.cache[Account._cache_bal][token_id] = balance
@@ -933,7 +889,7 @@ class Account:
             if contribution.get_contributor_address() == self.payment_key and contribution.get_token_id() != PRV_ID:
                 logger.info(f"{contribution} belong to current user and waiting for PRV, so cannot use PRV to clean up")
             else:
-                self.pde_contribute_v2(PRV_ID, 10, contribution.get_pair_id()).req_to(self.REQ_HANDLER) \
+                self.pde_contribute_v2(PRV_ID, 10, contribution.get_pair_id()).attach_to_node(self.REQ_HANDLER) \
                     .get_transaction_by_hash()
 
     def pde_wait_till_my_token_in_waiting_for_contribution(self, pair_id, token_id, timeout=100):
@@ -996,8 +952,8 @@ class Account:
 
     def pde_trade_token_v2(self, token_to_sell, amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy=1):
         logger.info(f'User {self.__to_me()}: '
-                    f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]} trading fee={trading_fee} '
-                    f'min acceptable={min_amount_to_buy}')
+                    f'Trade {amount_to_sell} of token {token_to_sell[-6:]} for {token_to_buy[-6:]} '
+                    f'trading fee={trading_fee}, min acceptable={min_amount_to_buy}')
         return self.REQ_HANDLER.dex().trade_token_v2(self.private_key, self.payment_key, token_to_sell,
                                                      amount_to_sell, token_to_buy, trading_fee, min_amount_to_buy,
                                                      tx_ver=TestConfig.TX_VER)
@@ -1071,7 +1027,7 @@ class Account:
     def pde3_unstake(self, unstake_amount, staking_pool_id, nft_id, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3() \
             .unstake(self.private_key, staking_pool_id, nft_id, str(unstake_amount), tx_fee=tx_fee,
-                     tx_privacy=tx_privacy).req_to(self.REQ_HANDLER)
+                     tx_privacy=tx_privacy).attach_to_node(self.REQ_HANDLER)
 
     def pde3_withdraw_staking_reward_to(self, receiver, staking_pool_id, nft_id, token_id, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3() \
@@ -1079,7 +1035,7 @@ class Account:
                                      tx_fee=tx_fee, tx_privacy=tx_privacy)
 
     def pde3_withdraw_staking_reward_to_me(self, staking_pool_id, nft_id, token_id, tx_fee=-1, tx_privacy=1):
-        return self.pde3_withdraw_staking_reward_to(self, staking_pool_id, nft_id, token_id, tx_fee=-1, tx_privacy=1)
+        return self.pde3_withdraw_staking_reward_to(self, staking_pool_id, nft_id, token_id, tx_fee, tx_privacy)
 
     def pde3_add_liquidity(self, token_id, amount, amplifier, contribute_id, nft_id=None, pool_pair_id="", tx_fee=-1,
                            tx_privacy=1):
@@ -1125,7 +1081,7 @@ class Account:
         response = self.REQ_HANDLER.dex_v3() \
             .mint_nft(self.private_key, amount, token_id, tx_fee=tx_fee, tx_privacy=tx_privacy)
         try:
-            tx_detail = response.get_transaction_by_hash()
+            response.get_transaction_by_hash()
         except AssertionError:
             logger.error(f"{response.get_error_msg()}\n"
                          f"{response.get_error_trace().get_message()}\n"
@@ -1170,6 +1126,7 @@ class Account:
     def pde3_clean_all_waiting_contribution(self, pde_state=None):
         pde_state = self.REQ_HANDLER.pde3_get_state() if pde_state is None else pde_state
         for contribution in pde_state.get_waiting_contribution():
+            nft = ''
             for nft in pde_state.get_nft_id().keys():
                 if nft != contribution.get_nft_id():
                     break
@@ -1345,7 +1302,7 @@ class Account:
             psi = self.REQ_HANDLER.get_latest_portal_state_info()
         return psi.get_custodian_info_in_pool(self)
 
-    def portal_wait_my_lock_collateral_to_change(self, token_id, from_amount=None, check_rate=30, timeout=180):
+    def portal_wait_my_lock_collateral_to_change(self, token_id, from_amount=None, check_interval=30, timeout=180):
         logger.info(f'Wait for my lock collateral change, {self.__to_me()}, token {l6(token_id)}')
         my_custodian_stat = self.portal_get_my_custodian_info()
         if my_custodian_stat is None:
@@ -1356,13 +1313,13 @@ class Account:
         else:
             collateral_before = from_amount
         current_collateral = collateral_before
-        time = 0
+        wasted_time = 0
         while current_collateral == collateral_before:
-            if time >= timeout:
-                logger.info(f'Lock collateral does not change in the last {time}s')
+            if wasted_time >= timeout:
+                logger.info(f'Lock collateral does not change in the last {wasted_time}s')
                 return 0
-            WAIT(check_rate)
-            time += check_rate
+            WAIT(check_interval)
+            wasted_time += check_interval
             current_collateral = self.portal_get_my_custodian_info().get_locked_collateral(token_id)
 
         delta = current_collateral - collateral_before
@@ -1525,6 +1482,7 @@ class AccountGroup:
         return self
 
     def __init__(self, *accounts):
+        self.mnemonic = None
         self.account_list: List[Account] = []
         list_key = []
         for acc in accounts:
@@ -1592,11 +1550,6 @@ class AccountGroup:
     def clone(self):
         return self.__deepcopy__()
 
-    def convert_payment_address_to_version(self, version=2):
-        for acc in self:
-            acc.convert_payment_address_to_version(version)
-        return self
-
     def remove(self, obj):
         self.account_list.remove(obj)
 
@@ -1643,9 +1596,9 @@ class AccountGroup:
             return AccountGroup(*self.account_list)
         raise TypeError(f'Not support adding type {type(other)} with {__class__} ')
 
-    def change_req_handler(self, HANDLER):
+    def attach_to_node(self, node):
         for acc in self:
-            acc.req_to(HANDLER)
+            acc.attach_to_node(node)
         return self
 
     def find_the_richest(self, token_id=PRV_ID):
@@ -1722,7 +1675,6 @@ class AccountGroup:
                                 trade_fee):
         logger.info("Making multiple raw trade tx with same amount, fee, path...")
         futures = {}
-        raw_txs = {}
         with ThreadPoolExecutor() as tpe:
             for acc in self:
                 t = tpe.submit(acc.pde3_make_raw_trade_tx, token_sell, token_buy, trade_amount, min_acceptable,
@@ -1740,10 +1692,21 @@ class AccountGroup:
         return dict(sorted(dispersion.items()))
 
     @staticmethod
-    def new(num_of_acc=8):
-        pass
+    def gen_accounts(mnemonic=None, num_of_acc=1):
+        acc_group = AccountGroup()
+        if mnemonic:
+            accounts_raw = IncCliWrapper().import_account(mnemonic, num_of_acc)
+            acc_group.mnemonic = mnemonic
+        else:
+            acc_group.mnemonic, accounts_raw = IncCliWrapper().gen_account(num_of_acc)
+
+        for raw_acc in accounts_raw:
+            acc = Account()
+            acc.key_info = raw_acc
+            acc_group.append(acc)
+        return acc_group
 
 
-PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K, handler="nomad")
-COIN_MASTER = Account(DAO_PRIVATE_K, handler="nomad")
-BLACK_HOLE = Account("", BURNING_ADDR, handler='nomad')
+PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K)
+COIN_MASTER = Account(DAO_PRIVATE_K)
+BLACK_HOLE = Account("", BURNING_ADDR)

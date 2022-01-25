@@ -18,9 +18,9 @@ ChainConfig.get_running_config()
 
 from Objects.IncognitoTestCase import ACCOUNTS, SUT
 
-ACCOUNTS.change_req_handler(SUT())
-PORTAL_FEEDER.req_to(SUT())
-COIN_MASTER.req_to(SUT())
+ACCOUNTS.attach_to_node(SUT())
+PORTAL_FEEDER.attach_to_node(SUT())
+COIN_MASTER.attach_to_node(SUT())
 # -----------------------------------------
 logger.info("!!!!!!!!!!!!!!!!!!! Setup from Testcase init")
 

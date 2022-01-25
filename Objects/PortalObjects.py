@@ -298,7 +298,7 @@ class PortalStateInfo(_PortalInfoBase):
             try:
                 return int(self.get_holding_tokens()[token_id])
             except (KeyError, TypeError):
-                DEBUG(f"{l6(token_id)} not found in HoldingPubTokens")
+                logger.debug(f"{l6(token_id)} not found in HoldingPubTokens")
                 return 0
 
         def get_locked_collateral(self, token_id=None):
@@ -316,7 +316,7 @@ class PortalStateInfo(_PortalInfoBase):
                     token_collateral = int(self.data['LockedAmountCollateral'][token_id])
                     ret = 0 if token_collateral is None else token_collateral
                 except (KeyError, TypeError):
-                    DEBUG('Not found LockedAmountCollateral in data, locked collateral not exist')
+                    logger.debug('Not found LockedAmountCollateral in data, locked collateral not exist')
                     ret = 0
             return ret
 
@@ -583,7 +583,7 @@ class PortalStateInfo(_PortalInfoBase):
 
         logger.info(f'Liquidation pool \n\t\t {liquidate}')
 
-        INFO_HEADLINE('End summary')
+        logger.info('--------------- End summary -----------------')
 
     def get_porting_waiting_req(self, token_id=None) -> List[PortingReqInfo]:
         req_list = []

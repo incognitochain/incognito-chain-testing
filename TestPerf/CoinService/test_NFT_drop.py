@@ -15,7 +15,7 @@ file_path = "TestPerf/CoinService/accounts"
 
 testnet2_fullnode = Node(url="http://testnet.incognito.org:9334")
 testnet2_cs_endpoint = 'https://api-coinservice-staging.incognito.org'
-ACC_LIST = AccountGroup().load_from_file(file_path).change_req_handler(testnet2_fullnode)
+ACC_LIST = AccountGroup().load_from_file(file_path).attach_to_node(testnet2_fullnode)
 MAX_WORKER = 50
 
 

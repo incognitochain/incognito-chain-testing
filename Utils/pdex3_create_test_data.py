@@ -6,7 +6,7 @@ from Objects.IncognitoTestCase import SUT, init_test_bed
 
 init_test_bed('TestNet2')
 
-COIN_MASTER.req_to(SUT())
+COIN_MASTER.attach_to_node(SUT())
 submit_key_status = SUT().transaction().submit_key_info(COIN_MASTER.ota_k)
 if submit_key_status.get_result() == Status.SubmitKey.NOT_SUBMITTED:
     COIN_MASTER.submit_key()

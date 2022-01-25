@@ -21,7 +21,7 @@ Logging.INFO("Submitting key to each shard...")
 for i in range(len(ACCOUNTS)):
     shard = ACCOUNTS[i].shard % ChainConfig.ACTIVE_SHARD
     node = i % len(SUT.shards[shard])
-    ACCOUNTS[i].req_to(SUT.shards[shard][node])  # attaching each account to its own shard
+    ACCOUNTS[i].attach_to_node(SUT.shards[shard][node])  # attaching each account to its own shard
 ACCOUNTS.submit_key()
 
 

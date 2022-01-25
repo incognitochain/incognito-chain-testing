@@ -5,7 +5,7 @@ from Helpers import TestHelper
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import ACCOUNTS, SUT
 
-COIN_MASTER.req_to(SUT())
+COIN_MASTER.attach_to_node(SUT())
 COIN_MASTER.top_up_if_lower_than(ACCOUNTS, coin(1), coin(5))
 ACCOUNTS.pde3_get_nft_ids()
 ACCOUNTS.pde3_mint_nft()
