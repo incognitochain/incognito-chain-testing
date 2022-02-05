@@ -140,7 +140,7 @@ def test_trade_big_num_single_path(trader: Account, tok_sell, tok_buy, sell_amou
 @pytest.mark.dependency(depends=['big_liquidity', 'test_trade_big_num'])
 def test_withdraw_liquidity():
     pde_b4 = SUT().pde3_get_state()
-    TOKEN_OWNER.pde3_get_my_nft_ids(pde_b4)
+    TOKEN_OWNER.pde3_get_my_nft_ids()
     pp_b4 = pde_b4.get_pool_pair(id=PAIR_ID).clone()
     pp_predict = pp_b4.clone()
     my_share_info = pp_b4.get_share(TOKEN_OWNER.nft_ids[0])

@@ -714,6 +714,13 @@ class PdeV3State(RPCResponseBase):
             return self.pair_data()["Shares"].keys()
 
     class Param(BlockChainInfoBaseClass):
+        def get_dao_contributing_percent(self):
+            return self.dict_data["DAOContributingPercent"]
+
+        def set_dao_contributing_percent(self, percent):
+            self.dict_data["DAOContributingPercent"] = percent
+            return self
+
         def get_default_fee_rate_bps(self, to_float=False):
             return self.dict_data["DefaultFeeRateBPS"] / ChainConfig.Dex3.DECIMAL \
                 if to_float else self.dict_data["DefaultFeeRateBPS"]

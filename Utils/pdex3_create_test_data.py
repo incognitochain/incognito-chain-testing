@@ -1,11 +1,17 @@
+"""
+python3 -m pytest ...
+"""
 import pytest
 
+from Configs.Configs import ChainConfig
+from Configs.Constants import Status, PRV_ID
 from Configs.TokenIds import *
-from Objects.AccountObject import *
+from Helpers.Logging import config_logger
+from Helpers.Time import WAIT
+from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT, init_test_bed
 
 init_test_bed('TestNet2')
-
 COIN_MASTER.attach_to_node(SUT())
 submit_key_status = SUT().transaction().submit_key_info(COIN_MASTER.ota_k)
 if submit_key_status.get_result() == Status.SubmitKey.NOT_SUBMITTED:
@@ -47,7 +53,7 @@ def contribute(contrib_data, dry_run=False):
     @return:
     """
     pde = SUT().pde3_get_state()
-    COIN_MASTER.pde3_get_my_nft_ids(pde)
+    COIN_MASTER.pde3_get_my_nft_ids()
     if not COIN_MASTER.nft_ids:
         COIN_MASTER.pde3_mint_nft()
         WAIT(ChainConfig.BLOCK_TIME * 3)
@@ -107,7 +113,7 @@ contrib_2 = [
     {"size": {PRV_ID: d9(175438.4211), pUSDC: d6(333333)}, 'amp': amp(2.2)},
     {"size": {PRV_ID: d9(175438.4211), pDAI: d9(333333)}, 'amp': amp(2.2)},
     {"size": {PRV_ID: d9(175438.4211), pBUSD: d9(333333)}, 'amp': amp(2.2)},
-    {"size": {PRV_ID: d9(263157.8947), pDEX: d9(5000000)}, 'amp': amp(3)},
+    # {"size": {PRV_ID: d9(263157.8947), pDEX: d9(5000000)}, 'amp': amp(3)},
     {"size": {pBTC: d9(7.01754386), pUSDT: d6(400000)}, 'amp': amp(3)},
     {"size": {pETH: d9(114.2857143), pUSDT: d6(400000)}, 'amp': amp(2.5)},
     {"size": {pXMR: d9(1428.571429), pUSDT: d6(400000)}, 'amp': amp(2)},
@@ -124,6 +130,8 @@ contrib_2 = [
     contrib_2,
 ])
 def test_create_data(contribute_data):
+    logger = config_logger(__name__)
+    logger.info("Start ....")
     mint_tokens()
     contribute(contribute_data)
     WAIT(ChainConfig.BLOCK_TIME * 5)

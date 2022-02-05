@@ -13,7 +13,6 @@ account_init = ACCOUNTS.get_accounts_in_shard(5)[0]
 TRX008.account_init = account_init
 
 custom_token_id = None
-contribute_success = False
 token_fee = 1400000
 list_acc_x_shard = {}
 for i in range(8):
@@ -26,20 +25,11 @@ for i in range(8):
 COIN_MASTER.top_up_if_lower_than(list(list_acc_x_shard.values()), coin(50000), coin(100000))
 
 
-def teardown_module():
-    global contribute_success
-    TRX008.contribute_success = contribute_success
-    TRX008.custom_token_id = custom_token_id
-    TRX008.teardown_module()
-    contribute_success = TRX008.contribute_success
-
-
 @pytest.mark.dependency()
 def test_init_ptoken():
-    global custom_token_id, contribute_success
+    global custom_token_id
     TRX008.test_init_ptoken()
     custom_token_id = TRX008.custom_token_id
-    contribute_success = TRX008.contribute_success
 
 
 @pytest.mark.parametrize('shard_sender,fee,fee_type,privacy,privacy_type', [

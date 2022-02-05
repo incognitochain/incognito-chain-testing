@@ -46,3 +46,7 @@ class IncCliWrapper:
         output = self.run("account", "import", "--mnemonic", mnemonic, "--numAccounts", str(num_of_acc))
         _, acc = output.split("\n", 1)
         return json.loads(acc)
+
+    def send(self, private_key, to_addr, token, amount, fee):
+        output = self.run('send', "-p", private_key, '--addr', to_addr, "--amt", amount, '----tokenID', token, "--fee",
+                          fee)

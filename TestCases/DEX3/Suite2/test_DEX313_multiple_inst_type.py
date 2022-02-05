@@ -28,7 +28,7 @@ def no_setup_function():
 
 def test_multiple_tx_type_in_a_block():
     pde_b4 = SUT().pde3_get_state()
-    COIN_MASTER.pde3_get_my_nft_ids(pde_b4)
+    COIN_MASTER.pde3_get_my_nft_ids()
     ACCOUNTS.pde3_get_nft_ids(pde_b4)
     ACCOUNTS.pde3_mint_nft()
     pde_param = pde_b4.get_pde_params()

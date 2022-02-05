@@ -114,7 +114,6 @@ def setup_module():
         trx008.token_init_amount = token_init_amount
         trx008.setup_module()
         token_id = trx008.test_init_ptoken()
-        tear_down_trx008 = True
         INFO(f'Setup module: new token: {token_id}')
     else:
         INFO(f'Setup module: use existing token: {token_id}')

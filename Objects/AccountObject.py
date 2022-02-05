@@ -542,8 +542,8 @@ class Account:
 
     def sum_my_utxo(self, token_id=PRV_ID):
         try:
-            return sum([t.get_value() for t in self.list_utxo().get_coins(id=token_id)])
-        except AttributeError:
+            return sum([t.get_value() for t in self.list_utxo(token_id).get_coins()])
+        except IndexError:
             return 0
 
     def send_public_token(self, token_id, amount, receiver, password=None, memo=None):
@@ -1110,7 +1110,10 @@ class Account:
     def pde3_get_my_nft_ids(self, pde_state=None, force=False):
         if not force and self.nft_ids:
             return self.nft_ids
-        pde_state = self.REQ_HANDLER.pde3_get_state(key_filter="NftIDs") if not pde_state else pde_state
+        try:
+            assert pde_state.get_nft_id() != {}
+        except (AttributeError, AssertionError):
+            pde_state = self.REQ_HANDLER.pde3_get_state(key_filter="NftIDs")
         try:
             all_my_custom_token = self.list_owned_custom_token().get_tokens_info()
         except Exception as e:
@@ -1663,12 +1666,13 @@ class AccountGroup:
                 # acc.pde3_mint_nft(amount, token_id, tx_fee, tx_privacy, force)
         return self
 
-    def pde3_get_nft_ids(self, pde_state=None):
-        if not pde_state:
-            pde_state = self[0].REQ_HANDLER.pde3_get_state(key_filter="NftIDs")
+    def pde3_get_nft_ids(self, pde_state=None, force=False):
+        pde_state = self[0].REQ_HANDLER.pde3_get_state(key_filter="NftIDs") if not pde_state else pde_state
+        pde_state = self[0].REQ_HANDLER.pde3_get_state(key_filter="NftIDs") if pde_state.get_nft_id() == {} \
+            else pde_state
         with ThreadPoolExecutor() as e:
             for acc in self:
-                e.submit(acc.pde3_get_my_nft_ids, pde_state)
+                e.submit(acc.pde3_get_my_nft_ids, pde_state, force)
         return self
 
     def pde3_make_raw_trade_txs(self, token_sell, token_buy, trade_amount, min_acceptable, trade_path,

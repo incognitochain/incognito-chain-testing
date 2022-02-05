@@ -3,27 +3,17 @@ import random
 
 import pytest
 
-from Configs import Constants
 from Configs.Configs import ChainConfig
-from Configs.Constants import coin, PRV_ID
+from Configs.Constants import coin
 from Helpers.Logging import *
-from Helpers.Time import get_current_date_time, WAIT
-from Objects.AccountObject import COIN_MASTER
+from Helpers.Time import get_current_date_time
 from Objects.IncognitoTestCase import SUT, ACCOUNTS
 
 token_init_amount = coin(1000000)
-# contribute rate 1:2
-prv_contribute_amount = coin(15000)
-token_contribute_amount = coin(20000)
-
 custom_token_symbol = get_current_date_time()
-contribute_success = False
-
 token_amount_to_send = random.randrange(1000, 2000)
-
 custom_token_id = None
 
-# custom_token_id = '6564ca30b24901c90b446b297e347f6811d8322dfbcd7df9286716aa2116ec16'
 account_init = ACCOUNTS.get_accounts_in_shard(5)[0]
 sender_account = account_init
 receiver_account = ACCOUNTS.get_accounts_in_shard(5)[1]
@@ -35,20 +25,9 @@ def setup_module():
     global receiver_amount_dict
     INFO("Test set up")
 
-    COIN_MASTER.top_up_if_lower_than(account_init, token_init_amount + prv_contribute_amount,
-                                     token_init_amount + prv_contribute_amount + coin(1))
     receiver_amount_dict = dict()
     receiver_amount_dict[receiver_account] = random.randrange(1000, 2000)
     receiver_amount_dict[receiver_x_shard] = random.randrange(1000, 2000)
-
-
-def no_teardown_module():
-    INFO("Tear down")
-    global contribute_success
-    if contribute_success:
-        account_init.pde_withdraw_contribution(Constants.PRV_ID, custom_token_id,
-                                               token_contribute_amount).subscribe_transaction()
-    contribute_success = False
 
 
 @pytest.mark.dependency()
@@ -57,12 +36,10 @@ def test_init_ptoken():
     Init a pToken
     Contribute pToken-PRV to pDex (mapping rate) => use pToken to pay fee
     ''')
-    contribute_rate = [prv_contribute_amount, token_contribute_amount]
     pair_id = f"token_prv_{random.randrange(1000, 10000)}"
 
     STEP(1, "Initial new token")
     step1_result = account_init.init_custom_token_new_flow(token_init_amount)
-    # step1_result = account_init.init_custom_token(token_init_amount, custom_token_symbol)
     step1_result.expect_no_error()
 
     global custom_token_id
@@ -73,38 +50,9 @@ def test_init_ptoken():
     step1_result.subscribe_transaction()
 
     STEP(3, "Get custom token balance")
-    token_balance = account_init.wait_for_balance_change(custom_token_id)
+    token_balance = account_init.wait_for_balance_change(custom_token_id, from_balance=0)
     INFO(f"Token balance: {token_balance}")
     assert token_balance == token_init_amount
-
-    STEP(4, "contribute token & PRV")
-    # Contribute TOKEN:
-    contribute_token_result = account_init.pde_contribute_v2(custom_token_id, token_contribute_amount, pair_id)
-    contribute_token_result.expect_no_error()
-    INFO(f"Contribute {custom_token_id} Success, TxID: {contribute_token_result.get_tx_id()}")
-    INFO("Subscribe contribution transaction")
-    contribute_token_result.subscribe_transaction()
-    # Contribute PRV:ken
-    WAIT(10)
-    contribute_prv_result = account_init.pde_contribute_v2(PRV_ID, prv_contribute_amount, pair_id)
-    contribute_prv_result.expect_no_error()
-    global contribute_success
-    contribute_success = True
-
-    INFO("Contribute PRV Success, TxID: " + contribute_prv_result.get_tx_id())
-    INFO("Subscribe contribution transaction")
-    contribute_prv_result.subscribe_transaction()
-
-    STEP(5, "Verify Contribution")
-    rate = []
-    for _ in range(0, 10):
-        WAIT(10)
-        rate = SUT().get_latest_pde_state_info().get_rate_between_token(Constants.PRV_ID, custom_token_id)
-        if rate != [0, 0]:
-            break
-    INFO(f"rate prv vs token: {rate}")
-    assert rate == contribute_rate, "Contribution Failed, rate is not as expected" and INFO("Failed")
-    return custom_token_id
 
 
 # from privacy v2, no longer accept token fee
@@ -226,8 +174,8 @@ def test_send_token(sender, receiver, fee, fee_type, privacy, privacy_type):
 
     receiver_prv_balance_after = receiver.get_balance()
     INFO(f"Receiver prv balance after : {receiver_prv_balance_after}")
-    assert receiver_prv_balance_before == receiver_prv_balance_after, "incorrect prv balance of receiver" and INFO(
-        "Failed")
+    assert receiver_prv_balance_before == receiver_prv_balance_after, "incorrect prv balance of receiver" \
+                                                                      and INFO("Failed")
 
     STEP(5, "privacy check")
     if privacy == 0:  # if privacy = 0 then all privacy type must be the same
