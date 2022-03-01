@@ -136,7 +136,7 @@ def test_withdraw_un_traded_order(user: Account, nft_id, amount_percent, ):
     Logging.STEP(2, "Checking withdraw status")
     WAIT(ChainConfig.BLOCK_TIME * 5)
     status_info = SUT().dex_v3().get_withdraw_order_status(tx_withdraw.get_tx_id())
-    assert status_info.get_status() == Status.DexV3.WithdrawOrder.ACCEPT
+    assert status_info.get_status() == Status.DexV3.WithdrawOrder.SUCCESS
     receive_amount = status_info.get_amount()
     Logging.STEP(3, "Withdraw success. Verify balance")
     bal_sel_af = user.get_balance(token_sell)

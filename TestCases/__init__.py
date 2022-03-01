@@ -8,7 +8,7 @@ from Configs.Configs import ChainConfig
 from Configs.Constants import coin
 from Helpers.Logging import config_logger
 from Objects.AccountObject import COIN_MASTER, PORTAL_FEEDER, AccountGroup
-from Objects.IncognitoTestCase import init_test_bed, init_test_accounts
+from Objects.IncognitoTestCase import init_test_bed, init_test_accounts, STAKER_ACCOUNTS, BEACON_ACCOUNTS
 
 logger = config_logger(__name__)
 # update SUT
@@ -21,6 +21,8 @@ from Objects.IncognitoTestCase import ACCOUNTS, SUT
 ACCOUNTS.attach_to_node(SUT())
 PORTAL_FEEDER.attach_to_node(SUT())
 COIN_MASTER.attach_to_node(SUT())
+STAKER_ACCOUNTS.attach_to_node(SUT())
+BEACON_ACCOUNTS.attach_to_node(SUT())
 # -----------------------------------------
 logger.info("!!!!!!!!!!!!!!!!!!! Setup from Testcase init")
 

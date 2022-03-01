@@ -33,12 +33,12 @@ with open(log_file, "r") as file:
     line = 1
     still_print = False
     while line:
-        line = file.readline().strip("\n")
+        line = file.readline()
         lvl = get_log_level_of(line)
         if lvl >= LOG_LVL[log_level]:
             still_print = True
-            print(line) if still_print else None
+            print(line, end="") if still_print else None
         elif lvl == -1:
-            print(line) if still_print else None
+            print(line, end="") if still_print else None
         else:
             still_print = False

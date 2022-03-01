@@ -56,7 +56,7 @@ class Account:
         @return: key type of the {key_key_to_check} or False if not found in this account
         """
         for key_type, value in self.key_info.items():
-            if key_to_check in value:
+            if key_to_check in str(value):
                 return key_type
         return False
 
@@ -175,6 +175,7 @@ class Account:
         copy_obj.key_info = self.key_info
         copy_obj.cache = self.cache
         copy_obj.remote_addr = self.remote_addr
+        copy_obj.REQ_HANDLER = self.REQ_HANDLER
         return copy_obj
 
     def __deepcopy__(self, memo=None):
@@ -182,6 +183,7 @@ class Account:
         copy_obj.key_info = copy.deepcopy(self.key_info)
         copy_obj.cache = copy.deepcopy(self.cache)
         copy_obj.remote_addr = copy.deepcopy(self.remote_addr)
+        copy_obj.REQ_HANDLER = copy.deepcopy(self.REQ_HANDLER)
         return copy_obj
 
     def __eq__(self, other):
@@ -590,7 +592,7 @@ class Account:
         else:
             return self.send_token_multi_output(dict_to_account_and_amount, token_id, prv_fee=fee, prv_privacy=privacy)
 
-    def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1):
+    def send_prv_to_multi_account(self, dict_to_account_and_amount: dict, fee=-1, privacy=1) -> Response:
         """
 
         @param dict_to_account_and_amount: a dictionary of {receiver Account : amount}

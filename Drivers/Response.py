@@ -4,6 +4,7 @@ from abc import ABC
 
 from websocket import WebSocketTimeoutException, WebSocketBadStatusException
 
+from APIs.Transaction import TransactionDetail
 from Configs.Configs import ChainConfig
 from Drivers import ResponseBase
 from Helpers.Logging import config_logger
@@ -97,7 +98,7 @@ class RPCResponseWithTxHash(RPCResponseBase):
     def get_shard_id(self):
         return self.get_result('ShardID')
 
-    def get_transaction_by_hash(self, interval=ChainConfig.BLOCK_TIME, time_out=120):
+    def get_transaction_by_hash(self, interval=ChainConfig.BLOCK_TIME, time_out=120) -> TransactionDetail:
         """
         @param interval:
         @param time_out: set = 0 to ignore interval, won't retry if got error in Response or block height = 0
