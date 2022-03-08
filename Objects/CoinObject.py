@@ -197,7 +197,10 @@ class ListCoinResponseBase(RPCResponseBase):
 
 class CustomTokenBalanceResponse(ListCoinResponseBase):
     def _get_all_tokens_info(self):
-        return [CoinInfoPublic(data) for data in self.get_result("ListCustomTokenBalance")]
+        try:
+            return [CoinInfoPublic(data) for data in self.get_result("ListCustomTokenBalance")]
+        except TypeError:
+            return []
 
 
 class BridgeTokenResponse(ListCoinResponseBase):

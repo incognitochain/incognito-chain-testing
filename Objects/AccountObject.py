@@ -130,7 +130,7 @@ class Account:
         return self.key_info['ReadOnlyKey']
 
     @property
-    def bls_public_k(self):
+    def validator_public_key(self):
         return self.key_info['ValidatorPublicKey']
 
     @property
@@ -183,7 +183,7 @@ class Account:
         copy_obj.key_info = copy.deepcopy(self.key_info)
         copy_obj.cache = copy.deepcopy(self.cache)
         copy_obj.remote_addr = copy.deepcopy(self.remote_addr)
-        copy_obj.REQ_HANDLER = copy.deepcopy(self.REQ_HANDLER)
+        copy_obj.REQ_HANDLER = self.REQ_HANDLER
         return copy_obj
 
     def __eq__(self, other):

@@ -700,32 +700,10 @@ class BeaconBlock(BlockChainInfoBaseClass):
             return [BeaconBlock.ShardState.BlockInfo(raw_info) for raw_info in self.dict_data]
 
         def get_smallest_block_height(self):
-            info_list = self.get_blocks_info()
-            list_len = len(info_list)
-            smallest_block_height = self.get_blocks_info()[0]
-
-            if list_len == 1:
-                return smallest_block_height.get_height()
-
-            for info in info_list:
-                if info.get_height() < smallest_block_height.get_height():
-                    smallest_block_height = info
-
-            return smallest_block_height.get_height()
+            return min([info.get_height() for info in self.get_blocks_info()])
 
         def get_biggest_block_height(self):
-            info_list = self.get_blocks_info()
-            list_len = len(info_list)
-            biggest_block_height = self.get_blocks_info()[0]
-
-            if list_len == 1:
-                return biggest_block_height.get_height()
-
-            for info in info_list:
-                if info.get_height() > biggest_block_height.get_height():
-                    biggest_block_height = info
-
-            return biggest_block_height.get_height()
+            return max([info.get_height() for info in self.get_blocks_info()])
 
     class BeaconInstruction(BlockChainInfoBaseClass):
         """

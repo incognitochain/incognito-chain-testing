@@ -434,34 +434,13 @@ class Node:
             f'last block of epoch = {last_height_of_epoch}')
 
         list_num_of_shard_block = []
-        beacon_blocks_in_epoch = {}
+        beacon_blocks_in_epoch = [self.get_latest_beacon_block(height) for height in
+                                  range(first_height_of_epoch, last_height_of_epoch + 1)]
         for shard_id in shard_range:
-            # get smallest and biggest height of shard block then we have num of block in epoch
-            for height in range(first_height_of_epoch, last_height_of_epoch + 1):
-                try:
-                    bb = beacon_blocks_in_epoch[height]
-                except KeyError:  # no height in beacon_blocks_in_epoch? get one
-                    bb = self.get_latest_beacon_block(height)
-                    beacon_blocks_in_epoch[height] = bb
-                try:
-                    smallest_shard_height = bb.get_shard_states(shard_id).get_smallest_block_height()
-                    break
-                except AttributeError:  # can't find shard state in beacon block? don't worry, behappy!!
-                    pass
-                smallest_shard_height = 0
-
-            for height in range(last_height_of_epoch, first_height_of_epoch - 1, -1):
-                try:
-                    bb = beacon_blocks_in_epoch[height]
-                except KeyError:  # no height in beacon_blocks_in_epoch? get one
-                    bb = self.get_latest_beacon_block(height)
-                    beacon_blocks_in_epoch[height] = bb
-                try:
-                    biggest_shard_height = bb.get_shard_states(shard_id).get_biggest_block_height()
-                    break
-                except AttributeError:  # can't find shard state in beacon block? don't worry, behappy!!
-                    pass
-                biggest_shard_height = -1
+            biggest_shard_height = max([bb.get_shard_states(shard_id).get_biggest_block_height() for bb in
+                                        beacon_blocks_in_epoch])
+            smallest_shard_height = min([bb.get_shard_states(shard_id).get_smallest_block_height() for bb in
+                                         beacon_blocks_in_epoch])
 
             num_of_block = biggest_shard_height - smallest_shard_height + 1
             logger.info(f'shard{shard_id} {biggest_shard_height} - {smallest_shard_height} = {num_of_block}')
