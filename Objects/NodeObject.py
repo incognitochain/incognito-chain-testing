@@ -437,11 +437,16 @@ class Node:
         beacon_blocks_in_epoch = [self.get_latest_beacon_block(height) for height in
                                   range(first_height_of_epoch, last_height_of_epoch + 1)]
         for shard_id in shard_range:
-            biggest_shard_height = max([bb.get_shard_states(shard_id).get_biggest_block_height() for bb in
-                                        beacon_blocks_in_epoch])
-            smallest_shard_height = min([bb.get_shard_states(shard_id).get_smallest_block_height() for bb in
-                                         beacon_blocks_in_epoch])
-
+            smallest_shard_height = int(1e30)
+            biggest_shard_height = -1
+            for bb in beacon_blocks_in_epoch:
+                shard_state = bb.get_shard_states(shard_id)
+                if shard_state:
+                    big, small = shard_state.get_biggest_block_height(), shard_state.get_smallest_block_height()
+                    if big > biggest_shard_height:
+                        biggest_shard_height = big
+                    if small < smallest_shard_height:
+                        smallest_shard_height = small
             num_of_block = biggest_shard_height - smallest_shard_height + 1
             logger.info(f'shard{shard_id} {biggest_shard_height} - {smallest_shard_height} = {num_of_block}')
             list_num_of_shard_block.append(num_of_block)
