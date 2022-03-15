@@ -46,3 +46,33 @@ class CommitteeState(BlockChainInfoBaseClass):
     def count_num_of_shard(self):
         all_committee_list = self.dict_data['committee']
         return len(all_committee_list) - 1  # -1 of beacon committee list
+
+    def get_next_candidate(self):
+        """
+        @return: list of next candidates
+        """
+        return self.dict_data['nextCandidate']
+
+    def get_syncing(self, shard_id=None):
+        """
+        @return: list of next candidates
+        """
+        all_syncing_list = []
+        if shard_id is None:
+            for candidates in self.dict_data['syncing'].values():
+                all_syncing_list.append(*candidates)
+            return all_syncing_list
+        else:
+            return self.dict_data['syncing'][str(shard_id)]
+
+    def get_pending(self, shard_id=None):
+        """
+        @return: list of next candidates
+        """
+        all_syncing_list = []
+        if shard_id is None:
+            for candidates in self.dict_data['substitute'].values():
+                all_syncing_list.append(*candidates)
+            return all_syncing_list
+        else:
+            return self.dict_data['substitute'][str(shard_id)]

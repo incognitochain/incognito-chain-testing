@@ -5,31 +5,37 @@ class ShardBlock(BlockChainInfoBaseClass):
     """
  
         {
-            "Hash": "f6726b044a29889cc8af051b647e18f9d71348487fcd580f123efff022920978",
+            "Hash": "4b4133fad60b071652c447d6bc7db0ea8be073d54c9cb7d1130acbf58b1211b0",
             "ShardID": 0,
-            "Height": 12806,
-            "Confirmations": 708478,
-            "Version": 1,
+            "Height": 7120,
+            "Confirmations": 1,
+            "Version": 6,
             "TxRoot": "0000000000000000000000000000000000000000000000000000000000000000",
-            "Time": 1597251202,
-            "PreviousBlockHash": "f2fad164d814015df3eb9499970435140c4df78bbe33849be7b9470307bb35b4",
-            "NextBlockHash": "68603b961149bd06cc7e759e7789dbcfe6b493a3448c3ccd38dc93d6d8d2e3e4",
+            "Time": 1637037600,
+            "PreviousBlockHash": "30c61196305404e68411a05f24be251bdaa0e4618a6056a55817e19c9f857b17",
+            "NextBlockHash": "",
             "TxHashes": [],
             "Txs": null,
-            "BlockProducer": "",
-            "ValidationData": "{\"ProducerBLSSig\":\"8G6nYn/B5RLUrZJu8nAeZVQMN5npxiqRBhgNn7kPWV1tklnT7ltccW0q5xmlWSmJ7cFnJq0JLflnq5K69o3uYwA=\",\"ProducerBriSig\":null,\"ValidatiorsIdx\":[0,1,2,3],\"AggSig\":\"nzKsuht7D+pmlSbDLxDTDrjwmvfhsdpafdAzQGdiAEE=\",\"BridgeSig\":[\"\",\"\",\"\",\"\"]}",
+            "BlockProducer": "121VhftSAygpEJZ6i9jGkKZixz3MxWLn8H4bq6g9i1dxGkbJYni7TgHu4rrmzdnrzNeudRBVepuX66NTNzBP1vxjtVuFAYT7BkCkzKceR9CpQnYs2zJpZNhLeufPBFSpdYz397T2LQHnFAQit44f961H8z1LBbA5t8SEe9rs6GSf57iSkaDer752nZfKyn6arudjiDnzgMgi3uPh62wewSnJtZ71RXukKiYVFjAy9MCeAwHTfAzY28Fc7o4VnA185H9QDZSdY8b4pHDbk6Bx8dsMcFsVwDHv7kzWbprajj8KBqKm24SmjUCLm8HJ3BNuLUwtcd3vPZb1s5BavkK2LGbogWJW9PkrUwyBuffb9U11ziqEpBR92EfdfWJ9GwpsLqgx1KvirvAVZkzEswSf3vuBRe9QLWAXzP3Kq8BgpNJXVBMd",
+            "ValidationData": "{\"ProducerBLSSig\":\"6f6HkOqGRXbA9CbRUWm1I3HWPVRPG8ZicwZtkEyb/Cg1VhZcAXtN6t7CkqYzR2ujbAsB5B7kYdaO9PjkBfo9DAE=\",\"ProducerBriSig\":null,\"ValidatiorsIdx\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],\"AggSig\":\"JC+8IxH7eQ/ETMyVQIicQGI6vHNacV6kz3LBaNcmhOs=\",\"BridgeSig\":[\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],\"PortalSig\":null}",
             "ConsensusType": "",
             "Data": "",
-            "BeaconHeight": 12802,
-            "BeaconBlockHash": "0e2ceb473f27625c2507ce30b0d5cebe6221d4cb702f8ab491c463b222515366",
+            "BeaconHeight": 7195,
+            "BeaconBlockHash": "ee9371210c74d85573db521c85724c5854d8ca3917240d0e931ae1e074ba3cdb",
             "Round": 1,
-            "Epoch": 129,
+            "Epoch": 360,
             "Reward": 0,
             "RewardBeacon": 0,
             "Fee": 0,
             "Size": 0,
+            "CommitteeFromBlock": "875995dc4fd95a8c36b6b5652d62d33e790033de027343971ea3983247b34acd",
             "Instruction": [],
-            "CrossShardBitMap": []
+            "CrossShardBitMap": [],
+            "ProposeTime": 1637037780,
+            "Proposer": "121VhftSAygpEJZ6i9jGkMtdVkuSDwxaYnUsHEnjbJBckPp1XrTBEyVHnx66bGCZiXesZMcZBxQD2fqaeWPZuTLw4Av7wrTeSnNLg8ErTbhFfhJD5nrTSCdCbnLbmybQiVYtUGcgMtRmnxAriaVL5dEBNkvNuUoxVzKXSSitnRAFQfA4BpPX1S8vR7zWtJP77CsYo47tnvcu8jSCEtjwEjGNeuNZPSzfnqBRyztYP1sMDgBvvJxUvMm8nTAxMm6YYVabVEdPBkJE89ZN5ZB7NE3SLxB4exqVKrcEoXVwGgJkWwdLaiQxFrDVgP2gi4RjGKpyrhvNCjjyU63Kp5aBFRcb8epkrByBERwDib6yeHmTZ22qFDQmsrdpVPGeafBvhuhNghKv9impjsbpBusu6BiEcSC7H5CEz9XzrGBWgDxvK9VC",
+            "SubsetID": 0,
+            "SigningCommittee": null,
+            "FinalityHeight": 0
         }
     """
 
@@ -109,3 +115,18 @@ class ShardBlock(BlockChainInfoBaseClass):
     def get_cross_shard_bitmap(self):
         # todo: need clarification
         return self.dict_data['CrossShardBitMap']
+
+    def get_propose_time(self):
+        return self.dict_data['ProposeTime']
+
+    def get_proposer(self):
+        return self.dict_data['Proposer']
+
+    def get_subset_id(self):
+        return self.dict_data['SubsetID']
+
+    def get_signing_committee(self):
+        return self.dict_data['SigningCommittee']
+
+    def get_finality_height(self):
+        return self.dict_data['FinalityHeight']

@@ -199,10 +199,10 @@ class Account:
         return int(str(self.private_key).encode('utf8').hex(), 16)
 
     def __me(self):
-        return f"(PrvK {self.private_key[-6:]})"
+        return f"(PrvK {self.private_key[:50]})"
 
     def __to_me(self):
-        return f"(PayK {self.payment_key[-6:]})"
+        return f"(PayK {self.payment_key[:50]})"
 
     def clone(self):
         return self.__deepcopy__()
@@ -217,7 +217,7 @@ class Account:
     def calculate_shard_id(self):
         response = self.REQ_HANDLER.transaction().get_public_key_by_payment_key(self.payment_key)
         last_byte = response.get_result("PublicKeyInBytes")[-1]
-        self.key_info['ShardID'] = last_byte % 8
+        self.key_info['ShardID'] = last_byte % ChainConfig.ACTIVE_SHARD
         return self.shard
 
     def __str__(self):
@@ -361,7 +361,7 @@ class Account:
         logger.info(f'Un-stake transaction for validator: {validator.validator_key}')
         return self.REQ_HANDLER.transaction(). \
             create_and_send_un_staking_transaction(self.private_key, validator.payment_key, validator.validator_key,
-                                                   tx_fee).attach_to_node(self.REQ_HANDLER)
+                                                   tx_fee)
 
     def stk_stop_auto_stake_him(self, him):
         logger.info(f"Stop auto stake other: {him.validator_key}")
@@ -388,8 +388,8 @@ class Account:
     def stk_wait_till_i_am_in_waiting_next_random(self, check_cycle=ChainConfig.BLOCK_TIME,
                                                   timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
-        logger.info(f"Wait until {self.validator_key} exist in waiting next random, check every {check_cycle}s,"
-                    f" timeout: {timeout}s")
+        logger.info(
+            f"Wait until {self.validator_key} exist in waiting next random, check every {check_cycle}s, timeout: {timeout}s")
         while timeout > check_cycle:
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
             staked_in_waiting_4random = beacon_bsd.is_he_in_waiting_next_random(self)
@@ -400,7 +400,7 @@ class Account:
                 e2 = beacon_bsd.get_epoch()
                 h = beacon_bsd.get_beacon_height()
                 logger.info(f"Already exists in waiting next random at epoch {e2}, block height {h}")
-                return e2
+                return e2, h
         logger.info(f"Waited {t}s but still not yet exist in waiting next random")
         return None
 
@@ -430,7 +430,7 @@ class Account:
                 time_spent = (datetime.datetime.now() - time_start).seconds
             else:
                 logger.info(f"Already exists in shard pending at epoch {e2}, block height {h}")
-                return staked_shard, e2
+                return staked_shard, e2, h
         logger.info(f"Waited {time_spent}s but still not yet exist in shard pending")
         return
 
@@ -456,8 +456,8 @@ class Account:
                     self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=ChainConfig.RANDOM_TIME + 1)
                 time_spent = (datetime.datetime.now() - time_start).seconds
             else:
-                logger.info(f"Already exists in shard pending at epoch {e2}, block height {h}")
-                return staked_shard, e2
+                logger.info(f"Already exists in shard sync_pool at epoch {e2}, block height {h}")
+                return staked_shard, e2, h
         logger.info(f"Waited {time_spent}s but still not yet exist in sync pool")
         return
 

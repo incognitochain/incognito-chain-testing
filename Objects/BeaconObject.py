@@ -651,6 +651,10 @@ class BeaconBestStateInfo(BeaconBestStateBase):
                 return total, missing
         logger.info(f"Missing Signature of {l6(acc_committee_pub_key)} (public-key) not found")
 
+    def get_triggered_feature(self):
+        triggered_feature = self.get_result('TriggeredFeature')
+        return triggered_feature
+
     def get_missing_signature_penalty(self, account=None):
         """
         get missing signature of a user or get list of all user with their missing signature
@@ -682,6 +686,7 @@ class BeaconBestStateInfo(BeaconBestStateBase):
 class BeaconBlock(BlockChainInfoBaseClass):
     INST_TYPE_DAO = 'devRewardInst'
     INST_TYPE_SHARD = 'shardRewardInst'
+    INST_TYPE_SHARD_BPV3 = 'shardreceiverewardv3'
     INST_TYPE_BEACON = 'beaconRewardInst'
     INST_TYPE_PORTAL = 'portal'
 
@@ -789,6 +794,9 @@ class BeaconBlock(BlockChainInfoBaseClass):
         def get_num_2(self):
             return self.dict_data[1]
 
+        def get_num_3(self):
+            return self.dict_data[2]
+
         def get_instruction_description(self):
             try:
                 inst_type = self.dict_data[2]
@@ -890,10 +898,11 @@ class BeaconBlock(BlockChainInfoBaseClass):
                 list_inst_obj.append(BeaconBlock.BeaconInstruction(raw_inst))
         return list_inst_obj
 
-    def get_transaction_reward_from_instruction(self, token=None):
+    def get_transaction_reward_from_instruction(self, token=None, bpv3=False):
         """
 
         :param token:
+        :param bpv3:
         :return:
         :type: dict {'beacon': amount,
                     'DAO': amount,
@@ -905,13 +914,27 @@ class BeaconBlock(BlockChainInfoBaseClass):
         logger.info(f'GET reward info, epoch {self.get_epoch() - 1}, height {self.get_height()}, token {l6(token)}')
         beacon_reward_inst = self.get_instructions(BeaconBlock.INST_TYPE_BEACON)
         DAO_reward_inst = self.get_instructions(BeaconBlock.INST_TYPE_DAO)
-        shard_reward_inst = self.get_instructions(BeaconBlock.INST_TYPE_SHARD)
-
+        if bpv3:
+            list_obj_inst = self.get_instructions()
+            shard_reward_inst = []
+            for inst in list_obj_inst:
+                if BeaconBlock.INST_TYPE_SHARD_BPV3 in inst.dict_data[0]:
+                    shard_reward_inst.append(inst)
+        else:
+            shard_reward_inst = self.get_instructions(BeaconBlock.INST_TYPE_SHARD)
         # get shard reward first
         for inst in shard_reward_inst:
             shard_id = inst.get_num_2()
-            amount = inst.get_instruction_detail().get_reward_amount(token)
-            RESULT[str(shard_id)] = amount
+            if bpv3:
+                subset_id = inst.get_num_3()
+                amount = inst.get_instruction_detail().dict_data.get(token)
+                if RESULT.get(str(shard_id)):
+                    RESULT[str(shard_id)][str(subset_id)] = amount
+                else:
+                    RESULT[str(shard_id)] = {str(subset_id): amount}
+            else:
+                amount = inst.get_instruction_detail().get_reward_amount(token)
+                RESULT[str(shard_id)] = amount
         # get beacon reward
         sum_beacon_reward = 0
         for inst in beacon_reward_inst:

@@ -26,6 +26,7 @@ from Objects.BeaconObject import BeaconBestStateDetailInfo, BeaconBlock, BeaconB
 from Objects.BlockChainObjects import BlockChainCore
 from Objects.CoinObject import BridgeTokenResponse, InChainTokenResponse
 from Objects.CommitteeState import CommitteeState
+from Objects.FinalityProof import FinalityProof, ConsensusRule, ByzantinedetectorInfo
 from Objects.PdeObjects import PDEStateInfo
 from Objects.PdexV3Objects import PdeV3State
 from Objects.PortalObjects import PortalStateInfo
@@ -317,6 +318,50 @@ class Node:
     def create_fork(self, block_fork_list, chain_id=1, num_of_branch=2, branch_tobe_continue=1):
         return self.system_rpc().create_fork(block_fork_list, chain_id, num_of_branch, branch_tobe_continue)
 
+    def set_consensus_rule(self, vote_rule: str = 'vote', create_rule: str = 'create-repropose',
+                           handle_vote_rule: str = 'collect-vote', handle_propose_rule: str = 'handle-propose-message',
+                           insert_rule: str = 'insert-and-broadcast', validator_rule: str = 'validator-lemma2'):
+        """
+        @param vote_rule: string 'vote' or 'no-vote'
+        @param create_rule: string 'create-repropose' or 'create-only'
+        @param handle_vote_rule: string 'collect-vote' or 'no-collect-vote'
+        @param handle_propose_rule: string 'handle-propose-message' or 'no-handle-propose-message'
+        @param insert_rule: string 'insert-and-broadcast' or 'insert-only'
+        @param validator_rule: string 'validator-lemma2' or 'validator-no-validate'
+        @return:
+        """
+        assert vote_rule in ['vote', 'no-vote']
+        assert create_rule in ['create-repropose', 'create-only']
+        assert handle_vote_rule in ['collect-vote', 'no-collect-vote']
+        assert handle_propose_rule in ['handle-propose-message', 'no-handle-propose-message']
+        assert insert_rule in ['insert-and-broadcast', 'insert-only']
+        return self.system_rpc().set_consensus_rule(vote_rule, create_rule, handle_vote_rule, handle_propose_rule,
+                                                    insert_rule, validator_rule)
+
+    def get_consensus_rule(self):
+        return ConsensusRule(self.system_rpc().get_consensus_rule().get_result())
+
+    def get_byzantine_detector_info(self):
+        return ByzantinedetectorInfo(self.system_rpc().get_byzantine_detector_info().get_result())
+
+    def remove_byzantine_detector(self, account):
+        from Objects.AccountObject import Account
+        if type(account) is str:
+            bls_public_k = account
+        elif type(account) is Account:
+            bls_public_k = account.bls_public_k
+        else:
+            return
+        return self.system_rpc().remove_byzantine_detector(bls_public_k).get_result()
+
+    def get_config_feature(self):
+        data = self.system_rpc().get_auto_enable_feature_config().get_result()
+        return data
+
+    def getfeaturestats(self):
+        data = self.system_rpc().get_feature_stats().get_result()
+        return data
+
     def help_get_beacon_height(self):
         latest_height = self.get_block_chain_info().get_beacon_block().get_height()
         logger.info(f"Latest beacon height = {latest_height}")
@@ -490,6 +535,112 @@ class Node:
         # thus it will be easier to compare them to each other
         return RESULT
 
+    def cal_transaction_reward_v3_from_beacon_block_info(self, epoch=None, shard_txs_fee_list=None):
+        """
+        Calculate reward of an epoch
+        @param shard_txs_fee_list:
+        @param epoch: if None, get latest epoch -1
+        @return: dict { "DAO" : DAO_reward_amount
+                        "beacon" : total_beacon_reward_amount
+                        "0" : shard0_reward_amount
+                        "1" : shard1_reward_amount
+                        .....
+                        }
+        """
+
+        num_of_active_shard = self.get_block_chain_info().get_num_of_shard()
+        shard_txs_fee_list = [{"0": 0,
+                               "1": 0}] * num_of_active_shard if shard_txs_fee_list is None else shard_txs_fee_list
+        shard_range = range(0, num_of_active_shard)
+        RESULT = {}
+        token = PRV_ID
+        basic_reward = ChainConfig.BASIC_REWARD_PER_BLOCK
+
+        if epoch is None:
+            latest_beacon_block = self.get_latest_beacon_block()
+            epoch = latest_beacon_block.get_epoch() - 1
+        # can not calculate reward on latest epoch, because the instruction for splitting reward is only exist on
+        # the first beacon block of next future epoch
+
+        first_height_of_epoch = TestHelper.ChainHelper.cal_first_height_of_epoch(epoch)
+        last_height_of_epoch = TestHelper.ChainHelper.cal_last_height_of_epoch(epoch)
+
+        logger.info(
+            f'GET reward info, epoch {epoch}, token {l6(token)}, first block of epoch = {first_height_of_epoch}, '
+            f'last block of epoch = {last_height_of_epoch}')
+
+        list_num_of_shard_block = []
+        for shard_id in shard_range:
+            list_num_of_shard_block.append([0, 0])
+        beacon_blocks_in_epoch = [self.get_latest_beacon_block(height) for height in
+                                  range(first_height_of_epoch, last_height_of_epoch + 1)]
+        for bb in beacon_blocks_in_epoch:
+            instructions = bb.get_instructions()
+            types = "acceptblockrewardv3"
+            for instr in instructions:
+                data = instr.dict_data
+                if data[0] == types:
+                    shard_id = data[1]
+                    subset_id = data[2]
+                    list_num_of_shard_block[int(shard_id)][int(subset_id)] += 1
+        print(f'list_num_of_shard_block:\n{list_num_of_shard_block}')
+        #
+        # for shard_id in shard_range:
+        #     smallest_shard_height = int(1e30)
+        #     biggest_shard_height = -1
+        #     for bb in beacon_blocks_in_epoch:
+        #         shard_state = bb.get_shard_states(shard_id)
+        #         if shard_state:
+        #             big, small = shard_state.get_biggest_block_height(), shard_state.get_smallest_block_height()
+        #             if big > biggest_shard_height:
+        #                 biggest_shard_height = big
+        #             if small < smallest_shard_height:
+        #                 smallest_shard_height = small
+        #
+        #     num_of_block = biggest_shard_height - smallest_shard_height + 1
+        #     logger.info(f'shard{shard_id} {biggest_shard_height} - {smallest_shard_height} = {num_of_block}')
+        #     if num_of_block % 2 != 0:
+        #         x = [0] * 2  # 2 subset
+        #         x[smallest_shard_height % 2] = int(num_of_block / 2) + 1
+        #         x[abs(smallest_shard_height % 2 - 1)] = int(num_of_block / 2)
+        #         list_num_of_shard_block.append(x)
+        #     else:
+        #         list_num_of_shard_block.append([int(num_of_block / 2), int(num_of_block / 2)])
+        list_beacon_reward_from_shard = []
+        list_DAO_reward_from_shard = []
+        committee_state = self.get_committee_state(first_height_of_epoch)
+        shard_committee_size_detail = []
+        for shard_id in shard_range:
+            shard_committee_size = committee_state.get_shard_committee_size(shard_id)
+            shard_committee_size_detail.append(
+                {"0": (int(shard_committee_size / 2) + shard_committee_size % 2), "1": int(shard_committee_size / 2)})
+        beacon_committee_size = committee_state.get_beacon_committee_size()
+        for shard_id in shard_range:  # now calculate each shard reward
+            for j in range(2):  # 2 subset per shard
+                num_of_shard_block = list_num_of_shard_block[shard_id][j]
+                shard_fee_total = shard_txs_fee_list[shard_id][str(j)]
+                total_reward_from_shard = num_of_shard_block * basic_reward + shard_fee_total
+                DAO_reward_from_shard = ChainConfig.DAO_REWARD_PERCENT * total_reward_from_shard
+                list_DAO_reward_from_shard.append(max(0, DAO_reward_from_shard))
+                subset_size = shard_committee_size_detail[shard_id][str(j)]
+                count = subset_size + (beacon_committee_size / num_of_active_shard)
+                shard_reward = (total_reward_from_shard - DAO_reward_from_shard) / count * subset_size
+                beacon_reward_from_shard = total_reward_from_shard - DAO_reward_from_shard - shard_reward
+                if shard_reward >= 0:
+                    if RESULT.get(str(shard_id)):
+                        RESULT[str(shard_id)][str(j)] = int(shard_reward)
+                    else:
+                        RESULT[str(shard_id)] = {str(j): int(shard_reward)}
+                list_beacon_reward_from_shard.append(max(0, beacon_reward_from_shard))
+
+        # now calculate total beacon reward and DAO reward
+        RESULT['beacon'] = int(sum(list_beacon_reward_from_shard))
+        RESULT['DAO'] = int(sum(list_DAO_reward_from_shard))
+        # NOTE, the RESULT must in order of Shard reward -> beacon -> DAO, "DO NOT CHANGE IT"
+        # to unify with the return result of method get reward in instruction
+        # thus it will be easier to compare them to each other
+        return RESULT
+
     def get_committee_state(self, beacon_height=None):
         """
         @param beacon_height: beacon height number, default = None will get latest height automatically
@@ -528,6 +679,9 @@ class Node:
         shard_state_obj = ShardBestStateInfo(shard_state_raw)
         return shard_state_obj
 
+    def get_propose_block_info(self, shard_id, block_hash):
+        return FinalityProof(self.system_rpc().get_finality_proof(shard_id, block_hash).get_result())
+
     def is_local_host(self):
         return self._address == Node.default_address
 
@@ -542,8 +696,8 @@ class Node:
         response = self.system_rpc().get_mem_pool()
         return response.get_mem_pool_transactions_id_list()
 
-    def get_shard_block_by_height(self, shard_id, height):
-        response = self.system_rpc().retrieve_block_by_height(height, shard_id)
+    def get_shard_block_by_height(self, shard_id, height, level=1):
+        response = self.system_rpc().retrieve_block_by_height(height, shard_id, level)
         return ShardBlock(response.get_result()[0])
 
     def get_all_token_in_chain_list(self):
