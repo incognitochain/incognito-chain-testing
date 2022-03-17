@@ -9,6 +9,7 @@ from Objects.IncognitoTestCase import SUT, ACCOUNTS
 from TestCases.DEX3.Suite1 import TOKEN_Y, TOKEN_X, TOKEN_OWNER
 
 COIN_MASTER.pde3_get_my_nft_ids()
+COIN_MASTER.pde3_mint_nft()
 
 last_created_nft = ""
 
