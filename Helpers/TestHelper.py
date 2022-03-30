@@ -176,3 +176,13 @@ def make_random_str_dict(size=None):
     for i in range(size):
         random_dict[make_random_word()] = make_random_word()
     return random_dict
+
+
+def find_dict_path(data, value):
+    for k, v in data.items():
+        if isinstance(v, dict):
+            path = find_dict_path(v, value)
+            if path:
+                return [k] + path
+        elif k == "AccessOTA" and v == value:
+            return [k]
