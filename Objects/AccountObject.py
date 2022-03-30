@@ -10,12 +10,13 @@ from typing import List, Union
 from Configs import Constants
 from Configs.Configs import ChainConfig, TestConfig
 from Configs.Constants import PRV_ID, coin, PBNB_ID, PBTC_ID, Status, DAO_PRIVATE_K, BURNING_ADDR
+from Configs.TokenIds import pDEX_ACCESS
 from Drivers.IncCliWrapper import IncCliWrapper
 from Drivers.NeighborChainCli import NeighborChainCli
 from Drivers.Response import Response
 from Helpers import TestHelper
 from Helpers.Logging import config_logger
-from Helpers.TestHelper import l6, KeyExtractor
+from Helpers.TestHelper import l6, KeyExtractor, find_dict_path
 from Helpers.Time import WAIT, get_current_date_time
 from Objects.CoinObject import CustomTokenBalanceResponse, TXOResponse
 from Objects.PdexV3Objects import PdeV3State
@@ -28,6 +29,7 @@ class Account:
     _cache_custodian_inf = 'custodian_info'
     _cache_bal = 'bal'
     _cache_nft_id = 'nft_id'
+    _cache_access_id = "access_id"
 
     def set_remote_addr(self, addresses):
         """
@@ -79,11 +81,14 @@ class Account:
                          "MiningKey": "",
                          "MiningPublicKey": "",
                          "ValidatorPublicKey": "",
-                         "ShardID": kwargs.get('shard')}
+                         "ShardID": kwargs.get('shard'),
+                         **kwargs}
         self.remote_addr = {}
         self.cache = {Account._cache_bal: {},
-                      Account._cache_nft_id: []}
-        self.REQ_HANDLER = handler
+                      Account._cache_nft_id: [],
+                      Account._cache_access_id: []}
+        from Objects.NodeObject import Node
+        self.REQ_HANDLER: Node = handler
 
         if private_key and not payment_k:  # generate all key from private key if there's privatekey but not paymentkey
             self.key_info = IncCliWrapper().key_info(self.private_key)
@@ -149,6 +154,10 @@ class Account:
     def nft_ids(self) -> List:
         return self.cache[Account._cache_nft_id]
 
+    @property
+    def access_ids(self) -> List:
+        return self.cache[Account._cache_access_id]
+
     def save_nft_id(self, *nft_ids):
         for nft in nft_ids:
             self.nft_ids.append(nft) if nft not in self.nft_ids else None
@@ -199,10 +208,10 @@ class Account:
         return int(str(self.private_key).encode('utf8').hex(), 16)
 
     def __me(self):
-        return f"(PrvK {self.private_key[:50]})"
+        return f"(PrvK {self.private_key[-6:]})"
 
     def __to_me(self):
-        return f"(PayK {self.payment_key[:50]})"
+        return f"(PayK {self.payment_key[-6:]})"
 
     def clone(self):
         return self.__deepcopy__()
@@ -536,11 +545,17 @@ class Account:
         logger.info(f"{self.__me()}, token id = {l6(token_id)}, bal = {coin(balance, False)} ")
         return balance
 
-    def get_assets(self):
+    def get_assets(self, tokens=None):
         assets = {token.get_token_id(): token.get_token_amount() for token in
                   self.list_owned_custom_token().get_tokens_info()}
-        assets[PRV_ID] = self.get_balance()
-        return assets
+        if tokens:
+            return_assets = {token: assets.get(token, 0) for token in tokens}
+            if PRV_ID in tokens:
+                return_assets[PRV_ID] = self.get_balance()
+        else:
+            return_assets = assets
+            return_assets[PRV_ID] = self.get_balance()
+        return return_assets
 
     def sum_my_utxo(self, token_id=PRV_ID):
         try:
@@ -1012,14 +1027,13 @@ class Account:
         return self.REQ_HANDLER.pde3_make_trade_tx(self.private_key, token_sell, token_buy, sell_amount,
                                                    min_acceptable, trade_path, trading_fee, use_prv_fee)
 
-    def pde3_withdraw_lp_fee(self, receiver, pool_pair_id, nft_id, token_amount=1,
-                             token_tx_type=1, token_fee=0, token_name="", token_symbol="",
-                             burning_tx=None, tx_fee=-1, tx_privacy=1):
-        payment_key = receiver.payment_key if isinstance(receiver, Account) else receiver
+    def pde3_withdraw_lp_fee_nft(self, pool_pair_id, nft_id, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3() \
-            .withdraw_lp_fee(self.private_key, payment_key, token_amount, nft_id, pool_pair_id, nft_id,
-                             token_tx_type, token_fee, token_name, token_symbol, burning_tx,
-                             tx_fee=tx_fee, tx_privacy=tx_privacy)
+            .withdraw_lp_fee(self.private_key, pool_pair_id, NftID=nft_id, tx_fee=tx_fee, tx_privacy=tx_privacy)
+
+    def pde3_withdraw_lp_fee_access(self, pool_pair_id, access_id, tx_fee=-1, tx_privacy=1):
+        return self.REQ_HANDLER.dex_v3() \
+            .withdraw_lp_fee(self.private_key, pool_pair_id, AccessID=access_id, tx_fee=tx_fee, tx_privacy=tx_privacy)
 
     def pde3_stake(self, stake_amount, staking_pool_id, nft_id, tx_fee=-1, tx_privacy=1):
         nft_id = nft_id if nft_id else self.nft_ids[0]
@@ -1058,18 +1072,16 @@ class Account:
         @return:
         """
         nft_id = nft_id if nft_id else self.nft_ids[0]
-        if isinstance(pool, PdeV3State.PoolPairData):
-            pair_id = pool.get_pool_pair_id()
-            share_amount = pool.get_share(nft_id).amount if share_amount is None else share_amount
+        if not isinstance(pool, PdeV3State.PoolPairData) and isinstance(pool, str):
+            pool = self.REQ_HANDLER.pde3_get_state().get_pool_pair(id=pool)
         else:
-            pair_id = pool
-            share_amount = self.REQ_HANDLER.pde3_get_state().get_pool_pair(id=pool).get_share(nft_id).amount \
-                if share_amount is None else share_amount
+            raise RuntimeError(f"Pool must be a string or PdeV3State.PoolPairData, got {type(pool)} instead")
+        share_amount = pool.get_share(nft_id).amount if share_amount is None else share_amount
         logger.info(f"PDE3 Withdraw liquidity, private k: {self.private_key[-6:]}, NFT ID {nft_id}\n   "
-                    f"pair: {pair_id}\n   "
-                    f"share amount withdraw: {share_amount}")
+                    f"pair: {pool.get_pool_pair_id()}\n   "
+                    f"share amount available | withdraw: {pool.get_share(nft_id).amount} | {share_amount}")
         return self.REQ_HANDLER.dex_v3() \
-            .withdraw_liquidity(self.private_key, pair_id, nft_id, str(share_amount), tx_fee=tx_fee,
+            .withdraw_liquidity(self.private_key, pool.get_pool_pair_id(), nft_id, str(share_amount), tx_fee=tx_fee,
                                 tx_privacy=tx_privacy)
 
     def pde3_mint_nft(self, amount=ChainConfig.Dex3.NFT_MINT_REQ, token_id=PRV_ID, tx_fee=-1, tx_privacy=1,
@@ -1109,9 +1121,7 @@ class Account:
             logger.info(f"{self.__me()} waited {wasted_time}s, but can't get new nft id after tx was confirmed")
             return None
 
-    def pde3_get_my_nft_ids(self, pde_state=None, force=False):
-        if not force and self.nft_ids:
-            return self.nft_ids
+    def pde3_get_my_nft_ids(self, pde_state=None):
         try:
             assert pde_state.get_nft_id() != {}
         except (AttributeError, AssertionError):
@@ -1142,6 +1152,13 @@ class Account:
         new_config = new_config.get_configs() if isinstance(new_config, PdeV3State.Param) else new_config
         return self.REQ_HANDLER.dex_v3().modify_param(self.private_key, new_config, tx_fee=tx_fee,
                                                       tx_privacy=tx_privacy)
+
+    def pde3_get_my_access_ids(self, pde_state=None):
+        if not pde_state:
+            pde_state = self.REQ_HANDLER.pde3_get_state().data()
+        self.cache[Account._cache_access_id] = [find_dict_path(pde_state, c.get_public_key_base64())[-2]
+                                                for c in self.list_utxo(pDEX_ACCESS).get_coins()]
+        return self.cache[Account._cache_access_id]
 
     def wait_for_balance_change(self, token_id=PRV_ID, from_balance=None, least_change_amount=1, check_interval=10,
                                 timeout=100):
@@ -1373,6 +1390,9 @@ class Account:
             return reward
         except KeyError:
             return 0
+
+    def portal4_gen_ota_receiver(self):
+        return self.REQ_HANDLER.portal_v4().gen_ota_receiver(self.payment_key).get_result()
 
     def convert_payment_k_to_v1(self, key=None):
         key = key if key else self.payment_key
@@ -1624,11 +1644,11 @@ class AccountGroup:
             balance_result[acc] = thread.result()
         return balance_result
 
-    def get_assets(self):
+    def get_assets(self, tokens=None):
         thread_results = {}
         with ThreadPoolExecutor() as tpe:
             for acc in self:
-                thread_results[acc] = tpe.submit(acc.get_assets)
+                thread_results[acc] = tpe.submit(acc.get_assets, tokens)
         return {acc: thread.result() for acc, thread in thread_results.items()}
 
     def submit_key(self, key_type='ota'):
@@ -1668,13 +1688,13 @@ class AccountGroup:
                 # acc.pde3_mint_nft(amount, token_id, tx_fee, tx_privacy, force)
         return self
 
-    def pde3_get_nft_ids(self, pde_state=None, force=False):
+    def pde3_get_nft_ids(self, pde_state=None):
         pde_state = self[0].REQ_HANDLER.pde3_get_state(key_filter="NftIDs") if not pde_state else pde_state
         pde_state = self[0].REQ_HANDLER.pde3_get_state(key_filter="NftIDs") if pde_state.get_nft_id() == {} \
             else pde_state
         with ThreadPoolExecutor() as e:
             for acc in self:
-                e.submit(acc.pde3_get_my_nft_ids, pde_state, force)
+                e.submit(acc.pde3_get_my_nft_ids, pde_state)
         return self
 
     def pde3_make_raw_trade_txs(self, token_sell, token_buy, trade_amount, min_acceptable, trade_path,
