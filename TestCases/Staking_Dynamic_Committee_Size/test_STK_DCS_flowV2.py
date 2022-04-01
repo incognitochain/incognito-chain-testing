@@ -11,10 +11,10 @@ from TestCases.Staking_Dynamic_Committee_Size import get_staker_by_tx_id
 fix_node = ChainConfig.FIX_BLOCK_VALIDATOR
 max_shard_comm_size = ChainConfig.SHARD_COMMITTEE_SIZE
 staking_flowv2_height = 1
-enable_slashing_staking_flowV2 = 50
-staking_flowv3_height = 555
+enable_slashing_staking_flowV2 = 1
+staking_flowv3_height = 1
 # staking_flowv3_height = 100000000000000000
-slashingV2 = 50
+# slashingV2 = 2823650
 cross_stake = False
 tracking_reward = False
 
@@ -205,7 +205,10 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
                             else:
                                 validator = stakers[pub_k]
                             committee_pub_k = validator.committee_public_k
-                            total_signature, miss_signature = beacon_bs.get_missing_signature(committee_pub_k)
+                            try:
+                                total_signature, miss_signature = beacon_bs.get_missing_signature(committee_pub_k)
+                            except:
+                                continue
                             vote = total_signature - miss_signature
                             assert vote > expect_by_shard[count_signature]/2, INFO(f'{committee_pub_k}: miss_signature: {miss_signature}, total_signature: {total_signature}, expect_total: {expect_total}')
                     else:
@@ -325,7 +328,7 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
             else:
                 num_of_swap_out_node_normal[shard] = 0
             n = len(b4_shard_committees[shard])-num_of_slash[shard]-num_of_swap_out_node_normal[shard]
-            num_of_swap_in[shard] = min(int(1/swapPercent * n), (max_shard_comm_size-n))
+            num_of_swap_in[shard] = min(max(int(1/swapPercent * n), 1), (max_shard_comm_size-n))
             if len(b4_shard_committees[shard]) == max_shard_comm_size and num_of_slash[shard] == 0:
                 num_of_swap_in[shard] = num_of_swap_out[shard]
         else:
@@ -366,12 +369,12 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
             for shard, committees in pending_validator.items():
                 for committee in committees:
                     if committee not in b4_pending_validator[shard]:
-                        assert committee in b4_candidate_waiting_current_random, ERROR(committee)
+                        assert committee in b4_candidate_waiting_current_random
             assert len(
                 b4_candidate_waiting_current_random) + b4_pending_validator_size == pending_validator_size
-        assert shard_committees == b4_shard_committees, ERROR(*shard_committees) and ERROR(*b4_shard_committees)
+        assert shard_committees == b4_shard_committees
     elif b4_beacon_height % block_per_epoch < random_time < beacon_height % block_per_epoch:
-        assert shard_committees == b4_shard_committees, ERROR(*shard_committees) and ERROR(*b4_shard_committees)
+        assert shard_committees == b4_shard_committees
     elif b4_epoch != epoch:
         for shard, committees in shard_committees.items():
             swap_in = min(len(b4_pending_validator[shard]), num_of_swap_in[shard])
@@ -387,7 +390,10 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
                                                             :len(b4_pending_validator[shard]) - swap_in]
             for committee in b4_shard_committees[shard][fix_node:index_break]:
                 if beacon_bsd.get_auto_staking_committees(committee) is True:
-                    assert committee in pending_validator_list, ERROR(committee)
+                    if beacon_height >= staking_flowv3_height:
+                        assert committee in pending_validator[shard]
+                    else:
+                        assert committee in pending_validator_list
                 else:
                     assert beacon_bsd.get_auto_staking_committees(
                         committee) is None, beacon_bsd.get_auto_staking_committees(committee)

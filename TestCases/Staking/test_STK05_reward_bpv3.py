@@ -92,7 +92,7 @@ def test_verify_reward_received():
     calculated_reward_prv = SUT(). \
         cal_transaction_reward_v3_from_beacon_block_info(epoch=epoch_reward, shard_txs_fee_list=fee_reward_by_shard)
     dao_ctr_percent = SUT().pde3_get_state(key_filter="Params").get_pde_params().get_dao_contributing_percent()
-    calculated_reward_prv['DAO'] = dao_ctr_percent/100 * calculated_reward_prv['DAO']
+    calculated_reward_prv['DAO'] = (100-dao_ctr_percent)/100 * calculated_reward_prv['DAO']
     STEP(5, "Get reward after 1 epoch")
     thread_reward_dict = {}
     with ThreadPoolExecutor() as executor:

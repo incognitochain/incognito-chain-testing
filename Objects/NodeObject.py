@@ -584,28 +584,6 @@ class Node:
                     subset_id = data[2]
                     list_num_of_shard_block[int(shard_id)][int(subset_id)] += 1
         print(f'list_num_of_shard_block:\n{list_num_of_shard_block}')
-        #
-        # for shard_id in shard_range:
-        #     smallest_shard_height = int(1e30)
-        #     biggest_shard_height = -1
-        #     for bb in beacon_blocks_in_epoch:
-        #         shard_state = bb.get_shard_states(shard_id)
-        #         if shard_state:
-        #             big, small = shard_state.get_biggest_block_height(), shard_state.get_smallest_block_height()
-        #             if big > biggest_shard_height:
-        #                 biggest_shard_height = big
-        #             if small < smallest_shard_height:
-        #                 smallest_shard_height = small
-        #
-        #     num_of_block = biggest_shard_height - smallest_shard_height + 1
-        #     logger.info(f'shard{shard_id} {biggest_shard_height} - {smallest_shard_height} = {num_of_block}')
-        #     if num_of_block % 2 != 0:
-        #         x = [0] * 2  # 2 subset
-        #         x[smallest_shard_height % 2] = int(num_of_block / 2) + 1
-        #         x[abs(smallest_shard_height % 2 - 1)] = int(num_of_block / 2)
-        #         list_num_of_shard_block.append(x)
-        #     else:
-        #         list_num_of_shard_block.append([int(num_of_block / 2), int(num_of_block / 2)])
         list_beacon_reward_from_shard = []
         list_DAO_reward_from_shard = []
         committee_state = self.get_committee_state(first_height_of_epoch)
@@ -921,7 +899,7 @@ class Node:
         @return: data dir, relative to working dir
         """
         full_cmd = self.__find_run_command()
-        pattern = re.compile(r"--datadir \w+/(\w+)")
+        pattern = re.compile(r"--datadir (\w+/\w+)")
         return re.findall(pattern, full_cmd)[0]
 
     @action_over_ssh

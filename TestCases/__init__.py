@@ -16,9 +16,12 @@ init_test_bed()
 init_test_accounts()
 ChainConfig.get_running_config()
 
-from Objects.IncognitoTestCase import ACCOUNTS, SUT
+from Objects.IncognitoTestCase import ACCOUNTS, SUT, STAKER_ACCOUNTS, COMMITTEE_ACCOUNTS, BEACON_ACCOUNTS
 
 ACCOUNTS.attach_to_node(SUT())
+STAKER_ACCOUNTS.attach_to_node(SUT())
+COMMITTEE_ACCOUNTS.attach_to_node(SUT())
+BEACON_ACCOUNTS.attach_to_node(SUT())
 PORTAL_FEEDER.attach_to_node(SUT())
 COIN_MASTER.attach_to_node(SUT())
 STAKER_ACCOUNTS.attach_to_node(SUT())

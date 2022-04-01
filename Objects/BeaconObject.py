@@ -868,7 +868,7 @@ class BeaconBlock(BlockChainInfoBaseClass):
             try:
                 return BeaconBlock.ShardState(self.dict_data["ShardStates"][str(shard_id)])
             except KeyError:
-                logger.debug(f"Not found shard state of shard {shard_id} in beacon block {self.get_height()}")
+                logger.info(f"Not found shard state of shard {shard_id} in beacon block {self.get_height()}")
                 return None
         else:
             return {shard: BeaconBlock.ShardState(raw) for shard, raw in self.dict_data["ShardStates"].items()}
