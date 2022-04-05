@@ -34,6 +34,7 @@ except IndexError:
 COIN_MASTER.top_up_if_lower_than(group_staker, coin(1), coin(5))
 token_receiver = Account(
     '112t8rnX5E2Mkqywuid4r4Nb2XTeLu3NJda43cuUM1ck2brpHrufi4Vi42EGybFhzfmouNbej81YJVoWewJqbR4rPhq2H945BXCLS2aDLBTA')
+token_receiver.attach_to_node(SUT())
 token_receiver.submit_key()
 list_acc_x_shard = AccountGroup()
 for i in range(ChainConfig.ACTIVE_SHARD):
@@ -104,16 +105,14 @@ def setup_module():
         assert num_committee_in_shard == ChainConfig.SHARD_COMMITTEE_SIZE, \
             f"shard {shard_id}: {num_committee_in_shard} committees"
 
-    all_ptoken_in_chain = SUT().get_all_token_in_chain_list().get_tokens_info()
+    all_ptoken_in_chain = SUT().get_all_token_in_chain_list()
     global token_id, tear_down_trx008
-    if token_id not in all_ptoken_in_chain \
-            or (token_owner.get_balance(token_id) == 0 and token_id in all_ptoken_in_chain):
-        trx008.account_init = token_owner
-        trx008.prv_contribute_amount = prv_contribute_amount
-        trx008.token_contribute_amount = token_contribute_amount
-        trx008.token_init_amount = token_init_amount
-        trx008.setup_module()
-        token_id = trx008.test_init_ptoken()
+    if not all_ptoken_in_chain.get_tokens_info(id=token_id) \
+            or (token_owner.get_balance(token_id) == 0 and all_ptoken_in_chain.get_tokens_info(id=token_id)):
+        tx_init = token_owner.init_custom_token_new_flow(token_init_amount)
+        token_id = tx_init.get_token_id()
+        tx_init.get_transaction_by_hash()
+        token_owner.wait_for_balance_change(token_id, 0)
         INFO(f'Setup module: new token: {token_id}')
     else:
         INFO(f'Setup module: use existing token: {token_id}')

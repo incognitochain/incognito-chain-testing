@@ -1,4 +1,3 @@
-import copy
 import random
 
 from Helpers.Logging import *
@@ -19,7 +18,7 @@ def setup_module():
     is_sent = False
 
     # create receiver list
-    receiver_account_list_before = copy.deepcopy(ACCOUNTS)
+    receiver_account_list_before = ACCOUNTS.clone()
     receiver_account_list_before.remove(sender_account)
 
 
