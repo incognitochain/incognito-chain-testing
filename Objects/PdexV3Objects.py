@@ -225,17 +225,25 @@ class PdeV3State(RPCResponseBase):
         def __get_raw_orders(self):
             return self.pair_data()["Orderbook"]["orders"]
 
+        def __get_raw_shares(self):
+            return self.pair_data()["Shares"]
+
         def __add_new_share(self, nft_id):
             empty_share = {
                 "Amount": 0,
                 "TradingFees": {},
                 "LastLPFeesPerShare": {}}
-            self.pair_data()["Shares"][nft_id] = empty_share
+            self.__get_raw_shares()[nft_id] = empty_share
 
         def __rm_completed_orders(self):
             orders = self.__get_raw_orders()
             to_remove = [raw_order for raw_order in orders if PdeV3State.PoolPairData.Order(raw_order).is_completed()]
             [orders.remove(raw_order) for raw_order in to_remove]
+
+        def __rm_empty_shares(self):
+            shares = self.__get_raw_shares()
+            to_remove = [nft for nft, share in shares.items() if share["Amount"] == 0]
+            [shares.pop(nft) for nft in to_remove]
 
         def __pool_id_short(self):
             id_split = list(self.dict_data.keys())[0].split('-')
@@ -371,11 +379,16 @@ class PdeV3State(RPCResponseBase):
                 return 0
 
         def set_protocol_fee(self, token, amount):
+            try:  # check if token existed
+                self.pair_data()["ProtocolFees"][token]
+            except KeyError:
+                if not amount:  # token not existed and nothing to change
+                    return self
             self.pair_data()["ProtocolFees"][token] = amount
             return self
 
         def get_staking_pool_fee(self, by_token=None):
-            all_fee = self.get_state("StakingPoolFees")
+            all_fee = self.pair_data()["StakingPoolFees"]
             return all_fee[by_token] if by_token else all_fee
 
         def get_creator_nft_id(self):
@@ -386,7 +399,7 @@ class PdeV3State(RPCResponseBase):
             @param by_nft_id: leave default (None) to get all share object
             @return: if by_nft_id, return Share object, else return list of Share objects
             """
-            all_share = self.pair_data()["Shares"]
+            all_share = self.__get_raw_shares()
             if by_nft_id:
                 try:
                     return PdeV3State.PoolPairData.Share({by_nft_id: all_share[by_nft_id]})
@@ -672,6 +685,7 @@ class PdeV3State(RPCResponseBase):
             # update user share
             my_share = self.get_share(nft_id)
             my_share.amount -= withdraw_able
+            self.__rm_empty_shares()
             return {token_x: x_receive, token_y: y_receive}
 
         def get_token_sell_of_order(self, order):
@@ -711,7 +725,7 @@ class PdeV3State(RPCResponseBase):
             return msg
 
         def get_providers(self) -> list:
-            return self.pair_data()["Shares"].keys()
+            return self.__get_raw_shares().keys()
 
     class Param(BlockChainInfoBaseClass):
         def get_dao_contributing_percent(self):
@@ -846,7 +860,10 @@ class PdeV3State(RPCResponseBase):
                 self.__add_new_staker(nft_id, stake_amount)
 
         def get_stakers(self, by_nft_id=None):
-            all_stakers = self._1_item_dict_value()["Stakers"]
+            try:
+                all_stakers = self._1_item_dict_value()["Stakers"]
+            except KeyError:
+                return []
             all_stakers_obj = [PdeV3State.StakingPool.Staker({nft_id: staker_data}) for nft_id, staker_data in
                                all_stakers.items()]
 
@@ -1046,7 +1063,14 @@ class PdeV3State(RPCResponseBase):
             pair_id = trade_path[i]
             fee_this_pool = fee_each_pool[i]
             protocol_fee_this_pool = int(fee_this_pool * protocol_fee_rate / 100)
-            staking_fee_this_pool = int(fee_this_pool * staking_fee_rate / 100)  # todo, re-check this, not always right
+            # if there's stake this pool, split rewawrd, else staking_fee_this_pool =0
+            staking_fee_this_pool = 0
+            try:
+                if self.get_staking_pools(token=token_fee_current).get_liquidity():
+                    staking_fee_this_pool = int(fee_this_pool * staking_fee_rate / 100)
+            except AttributeError:
+                pass
+
             lp_fee_this_pool = fee_this_pool - protocol_fee_this_pool - staking_fee_this_pool
             pool = self.get_pool_pair(id=pair_id)
             receive = pool.predict_pool_after_trade(sell_amount, sell_token)
@@ -1055,7 +1079,7 @@ class PdeV3State(RPCResponseBase):
             logger.info(f"Splitting LP fee")
             if lp_trading_fee_b4:  # splitting LP fee each pool
                 shares = pool.get_share()
-                sum_share = sum([x.amount for x in shares])
+                sum_share = pool.total_share_amount
                 remain = lp_fee_this_pool
                 for share in shares[:-1]:
                     fee_share_amount = int(share.amount * lp_fee_this_pool / sum_share)
@@ -1081,6 +1105,8 @@ class PdeV3State(RPCResponseBase):
             if token_fee != PRV_ID and buy_tok != PRV_ID and i + 1 < len(trade_path):  # trade fee if needed
                 fee_each_pool[i + 1] = pool.predict_pool_after_trade(fee_each_pool[i + 1], sell_token)
                 token_fee_current = buy_tok
+
+            logger.info("Splitting staking fee (TBD)")  # todo Splitting staking fee
 
             sell_amount = receive
             sell_token = buy_tok

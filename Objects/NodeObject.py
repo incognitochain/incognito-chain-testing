@@ -10,6 +10,7 @@ from APIs.Bridge import BridgeRpc
 from APIs.DEX import DexRpc
 from APIs.Explore import ExploreRpc
 from APIs.Portal import PortalRpc
+from APIs.PortalV4 import PortalV4Rpc
 from APIs.Subscription import SubscriptionWs
 from APIs.System import SystemRpc
 from APIs.Transaction import TransactionRpc
@@ -82,9 +83,7 @@ class Node:
         import re
         regex = re.compile(
             r'^(?:http|ftp)s?://'  # http:// or https://
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-            r'localhost|'  # localhost...
-            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+            r'(.*)'  # anything
             r'(?::\d+)?'  # optional port
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
         if re.match(regex, url) is None:
@@ -140,6 +139,9 @@ class Node:
 
     def portal(self) -> PortalRpc:
         return PortalRpc(self._get_rpc_url())
+
+    def portal_v4(self):
+        return PortalV4Rpc(self._get_rpc_url())
 
     def subscription(self) -> SubscriptionWs:
         """
@@ -223,7 +225,7 @@ class Node:
         pde_state = self.dex().get_pde_state(beacon_height)
         return PDEStateInfo(pde_state.get_result())
 
-    def pde3_get_state(self, beacon_height=None, key_filter="All", id_filter="1", verbose=1):
+    def pde3_get_state(self, beacon_height=None, key_filter="All", id_filter="1", verbose=1) -> PdeV3State:
         beacon_height = self.help_get_beacon_height() if not beacon_height else beacon_height
         logger.info(f'Get PDE3 state at beacon height: {beacon_height}, filter: {key_filter}')
         return self.dex_v3().get_pdev3_state(beacon_height, key_filter, id_filter, verbose)
@@ -285,7 +287,7 @@ class Node:
         get estimate LP value of all provider of multiple pool
         @param pool_ids:
         @param pde_state:
-        @param extract_value: TradingFee or PoolValue
+        @param extract_value: LPReward or PoolValue
         @return:
         """
         pde_state = pde_state if isinstance(pde_state, PdeV3State) else self.pde3_get_state()

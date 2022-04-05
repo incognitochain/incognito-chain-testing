@@ -353,43 +353,21 @@ class DEXv3RPC(BaseRpcApi):
                                "PoolPairID": pool_pair_id,
                                "NftID": nft_id}]).execute())
 
-    def withdraw_lp_fee(self, private_k, receiver_payment_address, token_amount, token_id, pool_pair_id, nft_id,
-                        token_tx_type=1, token_fee=0, token_name="", token_symbol="",
-                        sub_tx_receiver=None, sub_tx_privacy=True, main_tx_receiver=None, tx_fee=-1, tx_privacy=1):
+    def withdraw_lp_fee(self, private_k, pool_pair_id, main_tx_receiver=None, tx_fee=-1, tx_privacy=1, **access_id):
         """
-        @param sub_tx_privacy:
-        @param main_tx_receiver: None by default, accept dict type
-        @param sub_tx_receiver: dict {burn addr: burn amount}, should test multiple output burn tx
-        @param token_symbol:
-        @param token_name:
         @param private_k:
-        @param receiver_payment_address:
-        @param token_amount:
-        @param token_id: should be the same as nft_id, and should test the case which token_id != nft_id
         @param pool_pair_id:
-        @param nft_id:
-        @param token_tx_type:
-        @param token_fee: string num, should be "0"
+        @param main_tx_receiver:
         @param tx_fee:
         @param tx_privacy:
+        @param access_id: must be AccessID or NftID
         @return:
         """
-        if sub_tx_receiver is None:
-            sub_tx_receiver = {Constants.BURNING_ADDR: 1}
         return ResponseWithdraw(
             self.rpc_connection.with_method("pdexv3_txWithdrawLPFee")
                 .with_params([private_k, main_tx_receiver, tx_fee, tx_privacy,
-                              {"Privacy": sub_tx_privacy,
-                               "TokenID": token_id,
-                               "TokenTxType": token_tx_type,
-                               "TokenName": token_name,
-                               "TokenSymbol": token_symbol,
-                               "TokenAmount": token_amount,
-                               "TokenReceivers": sub_tx_receiver,
-                               "TokenFee": token_fee,
-                               "PoolPairID": pool_pair_id,
-                               "NftID": nft_id,
-                               "FeeReceiver": receiver_payment_address}, "", 0]).execute())
+                              {"PoolPairID": pool_pair_id,
+                               **access_id}]).execute())
 
     def get_withdrawal_lp_fee_status(self, tx_id):
         return ResponseWithdrawLPFeeStatus(

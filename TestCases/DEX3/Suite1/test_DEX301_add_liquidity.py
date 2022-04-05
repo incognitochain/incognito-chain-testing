@@ -1,5 +1,6 @@
 import json
 
+import deepdiff
 import pytest
 
 from Configs.Configs import ChainConfig
@@ -55,6 +56,10 @@ def test_add_liquidity_first_time(contributor, nft_id, contribution, amplifier):
 
     bal_x_af = contributor.get_balance(token_x)
     bal_y_af = contributor.get_balance(token_y)
+    Logging.INFO(f"""
+        bal x ({token_x[-6:]}) af - b4: {bal_x_af} - {bal_x_b4} = {bal_x_af - bal_x_b4}
+        bal y ({token_y[-6:]}) af - b4: {bal_y_af} - {bal_y_b4} = {bal_y_af - bal_y_b4}  
+    """)
     assert bal_x_b4 - x_add_amount - fee_if_prv_x == bal_x_af
     assert bal_y_b4 - y_add_amount - fee_if_prv_y == bal_y_af
 
@@ -76,6 +81,10 @@ def test_add_liquidity_first_time(contributor, nft_id, contribution, amplifier):
         predict_pool_when_add_liquidity({token_x: x_add_amount, token_y: y_add_amount}, contributor.nft_ids[0])
     bal_x_af2 = contributor.get_balance(token_x)
     bal_y_af2 = contributor.get_balance(token_y)
+    Logging.INFO(f"""
+        bal x ({token_x[-6:]}) af - b4: {bal_x_af2} - {bal_x_af} = {bal_x_af2 - bal_x_af}
+        bal y ({token_y[-6:]}) af - b4: {bal_y_af2} - {bal_y_af} = {bal_y_af2 - bal_y_af}  
+    """)
     assert bal_x_af - x_add_amount - fee_if_prv_x == bal_x_af2
     assert bal_y_af - y_add_amount - fee_if_prv_y == bal_y_af2
     print(new_pool_pair2)
@@ -87,15 +96,19 @@ def test_add_liquidity_first_time(contributor, nft_id, contribution, amplifier):
 @pytest.mark.parametrize("contributor,nft_id, contribution, pair_id, amplifier", [
     pytest.param(
         ACCOUNTS[1], ACCOUNTS[1].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[1]", 200000,
-        marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
+        marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+    ),
     pytest.param(
         ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[1]", 200000,
-        marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
+        marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+    ),
     pytest.param(
         ACCOUNTS[3], ACCOUNTS[3].nft_ids[0], {TOKEN_X: coin(5000), TOKEN_Y: coin(30000)}, "INIT_PAIR_IDS[1]", 200000,
-        marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
+        marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+    ),
 ])
-def test_add_liquidity_no_trade_with_return(contributor, nft_id, contribution, pair_id, amplifier):
+def test_add_liquidity_no_trade_with_return(contributor: Account, nft_id, contribution, pair_id, amplifier):
+    Logging.INFO()
     if "INIT_PAIR_IDS" in pair_id:
         pair_id = eval(pair_id)
     pde_state_b4 = SUT().pde3_get_state()
@@ -113,11 +126,14 @@ def test_add_liquidity_no_trade_with_return(contributor, nft_id, contribution, p
     contrib_id = f"{token_x[-6:]}-{token_y[-6:]}-{get_current_date_time()}"
     TOKEN_OWNER.top_up_if_lower_than(contributor, amount_x, amount_x, token_x)
     TOKEN_OWNER.top_up_if_lower_than(contributor, amount_y, amount_y, token_y)
+    bal_b4 = contributor.get_assets({token_x, token_y, PRV_ID})
 
     Logging.STEP(1, f"Contribute {token_x}")
-    contributor.pde3_add_liquidity(token_x, amount_x, amplifier, contrib_id, nft_id, pair_id).get_transaction_by_hash()
+    tx_fee_1 = contributor.pde3_add_liquidity(token_x, amount_x, amplifier, contrib_id, nft_id,
+                                              pair_id).get_transaction_by_hash().get_fee()
     Logging.STEP(2, f"Contribute {token_y}")
-    contributor.pde3_add_liquidity(token_y, amount_y, amplifier, contrib_id, nft_id, pair_id).get_transaction_by_hash()
+    tx_fee_2 = contributor.pde3_add_liquidity(token_y, amount_y, amplifier, contrib_id, nft_id,
+                                              pair_id).get_transaction_by_hash().get_fee()
     Logging.STEP(3, f"Verify pool")
     WAIT(3 * ChainConfig.BLOCK_TIME)
     pde_state = SUT().pde3_get_state()
@@ -125,17 +141,34 @@ def test_add_liquidity_no_trade_with_return(contributor, nft_id, contribution, p
     Logging.INFO(f"Real pool after contribution\n {new_pool_pair}")
     Logging.INFO(f"Predicted pool \n {predict_pool}")
     assert new_pool_pair == predict_pool
+    Logging.STEP(4, f"Verify return balance")
+    [contributor.wait_for_balance_change(token, from_balance=bal_b4[token]) for token in contribution.keys()]
+    bal_af = contributor.get_assets({token_x, token_y, PRV_ID})
+    bal_predict = {}
+    for token, bal in bal_b4.items():
+        if token == PRV_ID and PRV_ID not in contribution.keys():
+            bal_predict[token] = bal_b4[token] - tx_fee_1 - tx_fee_2
+        elif token == PRV_ID:
+            bal_predict[token] = bal_b4[token] - contribution[token] + return_amount[token] - tx_fee_1 - tx_fee_2
+        else:
+            bal_predict[token] = bal_b4[token] - contribution[token] + return_amount[token]
+    diff = deepdiff.DeepDiff(bal_af, bal_predict)
+    assert not diff, diff.pretty()
 
 
 @pytest.mark.parametrize("contributor,nft_id, with_draw_percent, pair_id", [
     pytest.param(ACCOUNTS[3], ACCOUNTS[3].nft_ids[0], 0.1, "INIT_PAIR_IDS[1]",
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
     pytest.param(ACCOUNTS[2], ACCOUNTS[2].nft_ids[0], 1, "INIT_PAIR_IDS[1]",
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
     pytest.param(ACCOUNTS[1], ACCOUNTS[1].nft_ids[0], 1.1, "INIT_PAIR_IDS[1]",
-                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')),
+                 marks=pytest.mark.dependency(depends=['add_liquidity'], scope='session')
+                 ),
 ])
 def test_withdraw_liquidity(contributor: Account, nft_id, with_draw_percent, pair_id):
+    Logging.INFO()
     if "INIT_PAIR_IDS" in pair_id:
         pair_id = eval(pair_id)
     pde_b4 = SUT().pde3_get_state()
@@ -145,11 +178,10 @@ def test_withdraw_liquidity(contributor: Account, nft_id, with_draw_percent, pai
     bal_y_b4 = contributor.get_balance(token_y)
     my_current_share = pde_b4.get_pool_pair(id=pair_id).get_share(nft_id).amount
     withdraw_amount = int(with_draw_percent * my_current_share)
-
     Logging.STEP(1, "Withdraw liquidity")
     tx = contributor.pde3_withdraw_liquidity(pair_id, withdraw_amount, nft_id)
     if with_draw_percent > 1:
-        tx.expect_error("error shareAmount > current share amount")
+        tx.expect_error("Share amount is invalid")
         Logging.INFO("shareAmount > current share amount, tx is rejected, end test")
         return
     fee = tx.get_transaction_by_hash().get_fee()
@@ -164,11 +196,18 @@ def test_withdraw_liquidity(contributor: Account, nft_id, with_draw_percent, pai
 
     Logging.STEP(4, "Check pool")
     pool_predict = pool_b4.clone()
-    return_amounts = pool_predict.predict_pool_after_withdraw_share(withdraw_amount, nft_id)
+    receive_amounts = pool_predict.predict_pool_after_withdraw_share(withdraw_amount, nft_id)
     pool_af = SUT().pde3_get_state().get_pool_pair(id=pair_id)
+    Logging.INFO(f"""
+        estimate receive: {json.dumps(receive_amounts, indent=3)}
+        bal x ({token_x[-6:]}) af - b4: {bal_x_af} - {bal_x_b4} = {bal_x_af - bal_x_b4}
+        bal y ({token_y[-6:]}) af - b4: {bal_y_af} - {bal_y_b4} = {bal_y_af - bal_y_b4}  
+    """)
+    Logging.INFO(f""" pool af: {json.dumps(pool_af.dict_data, indent=3)}""")
+    Logging.INFO(f""" pool predict: {json.dumps(pool_predict.dict_data, indent=3)}""")
     assert status.get_status() == Status.DexV3.ShareWithdraw.SUCCESS
-    assert return_amounts[token_x] == bal_x_af - bal_x_b4
-    assert return_amounts[token_y] == bal_y_af - bal_y_b4
+    assert receive_amounts[token_x] == bal_x_af - bal_x_b4
+    assert receive_amounts[token_y] == bal_y_af - bal_y_b4
     assert pool_af == pool_predict
     if with_draw_percent == 1:
         assert pool_af.get_share(nft_id).amount == 0

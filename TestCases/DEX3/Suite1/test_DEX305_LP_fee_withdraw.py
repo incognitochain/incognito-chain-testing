@@ -1,6 +1,6 @@
 import pytest
 
-from Configs.Constants import Status
+from Configs.Constants import Status, PRV_ID
 from Helpers import Logging
 from Objects.AccountObject import Account
 from Objects.IncognitoTestCase import SUT
@@ -19,18 +19,21 @@ def test_withdraw_lp_fee(pool_id, lp_provider: Account, nft, receiver: Account):
         print(INIT_PAIR_IDS)
         print(pool_id)
 
-    all_my_reward_b4 = SUT().pde3_get_lp_value(pool_id, nft, extract_value='TradingFee')
+    all_my_reward_b4 = SUT().pde3_get_lp_value(pool_id, nft, extract_value='PoolReward')
     bal_b4 = {token_id: lp_provider.get_balance(token_id) for token_id in all_my_reward_b4.keys()}
-    tx = lp_provider.pde3_withdraw_lp_fee(receiver, pool_id, nft)
-    tx.get_transaction_by_hash()
+    tx = lp_provider.pde3_withdraw_lp_fee_nft(pool_id, nft)
+    tx_confirmed = tx.get_transaction_by_hash()
     SUT().wait_till_next_beacon_height(2)
     withdraw_status = SUT().dex_v3().get_withdrawal_lp_fee_status(tx.get_tx_id())
     receive_amount = withdraw_status.get_amounts()
-    all_my_reward_af = SUT().pde3_get_lp_value(pool_id, nft, extract_value='TradingFee')
+    all_my_reward_af = SUT().pde3_get_lp_value(pool_id, nft, extract_value='PoolReward')
     bal_af = {token_id: lp_provider.wait_for_balance_change(token_id, from_balance=bal_b4[token_id]) for token_id in
               all_my_reward_b4.keys()}
     assert withdraw_status.get_status() == Status.DexV3.WithdrawLPFee.SUCCESS
     assert all_my_reward_af == {}
     assert receive_amount == all_my_reward_b4
     for token, amount in receive_amount.items():
-        assert bal_af[token] - bal_b4[token] == amount
+        if token == PRV_ID:
+            assert bal_af[token] - bal_b4[token] - tx_confirmed.get_fee() == amount
+        else:
+            assert bal_af[token] - bal_b4[token] == amount

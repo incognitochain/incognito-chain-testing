@@ -138,8 +138,8 @@ def test_trade_success(trader, token_sell, token_buy, sell_amount, trade_fee, fe
         assert pde_af == pde_predict
         dd = deepdiff.DeepDiff(lp_value_af, lp_value_predict, math_epsilon=2)
         if dd:
-            Logging.ERROR(f" after {json.dumps(lp_value_af)}")
-            Logging.ERROR(f" predict {json.dumps(lp_value_predict)}")
+            Logging.ERROR(f" after {json.dumps(lp_value_af, indent=3)}")
+            Logging.ERROR(f" predict {json.dumps(lp_value_predict, indent=3)}")
             raise AssertionError(dd.pretty())
 
         Logging.STEP(4, "Verify balance after trade")

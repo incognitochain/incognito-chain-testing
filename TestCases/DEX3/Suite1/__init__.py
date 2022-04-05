@@ -1,4 +1,4 @@
-from Configs.Constants import coin, PRV_ID
+from Configs.Constants import coin
 from Helpers.Logging import config_logger
 from Objects.IncognitoTestCase import ACCOUNTS
 
@@ -23,7 +23,7 @@ for token in __token_list:
         tx_init = TOKEN_OWNER.init_custom_token_new_flow(__token_amount)
         __token_list[__token_list.index(token)] = tx_init.get_token_id()
         tx_init.get_transaction_by_hash()
-        TOKEN_OWNER.wait_for_balance_change(token, 0)
+        TOKEN_OWNER.wait_for_balance_change(tx_init.get_token_id(), 0)
 
 TOKEN_X, TOKEN_Y = __token_list
 logger.info(f"""   !!! Using tokens:

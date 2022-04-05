@@ -125,6 +125,9 @@ class TxOutPut(BlockChainInfoBaseClass):
     def get_public_key(self):
         return self.dict_data['PublicKey']
 
+    def get_public_key_base64(self):
+        return self.dict_data['PublicKeyBase64']
+
     def get_commitment(self):
         try:
             return self.dict_data['CoinCommitment']
@@ -174,9 +177,9 @@ class ListCoinResponseBase(RPCResponseBase):
         raise RuntimeError("This method must be override by sub class")
 
     def get_tokens_info(self, **by) -> Union[CoinInfoPublic, List[CoinInfoPublic], None]:
-        by_name = by.get("name")
+        by_name = by.get("name", "").lower()
         by_id = by.get("id")
-        by_symbol = by.get("symbol")
+        by_symbol = by.get("symbol", "").lower()
         by_bal = by.get("balance")
         all_token_info = self._get_all_tokens_info()
         if by_id:
@@ -188,8 +191,8 @@ class ListCoinResponseBase(RPCResponseBase):
         filtered_result = []
         for obj in all_token_info:
             included = True
-            included = included and obj.get_token_name() == by_name if by_name else included
-            included = included and obj.get_token_symbol() == by_symbol if by_symbol else included
+            included = included and by_name in obj.get_token_name().lower() if by_name else included
+            included = included and by_symbol in obj.get_token_symbol().lower() if by_symbol else included
             included = included and obj.get_vaue() == by_bal if by_bal else included
             filtered_result.append(obj) if included else None
         return filtered_result
