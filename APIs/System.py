@@ -12,6 +12,7 @@ class SystemRpc(BaseRpcApi):
 
         :param block_height:
         :param shard_id: shard id to retrieve data from
+        :param level: shard id to retrieve data from
         :return:
         """
         return self.rpc_connection.with_method('retrieveblockbyheight').with_params(
@@ -35,10 +36,10 @@ class SystemRpc(BaseRpcApi):
     def create_fork(self, block_fork_list, chain_id=1, num_of_branch=2, branch_tobe_continue=1):
         """
 
-        @param block_list:
+        @param block_fork_list:
         @param num_of_branch:
         @param branch_tobe_continue:
-        @param shard_id: number 1 to 7 : shard_id 1-7, 255: beacon
+        @param chain_id: number 1 to 7 : shard_id 1-7, 255: beacon
         @return:
         """
         payload = {
@@ -51,6 +52,41 @@ class SystemRpc(BaseRpcApi):
             "CID": chain_id
         }
         return self.rpc_connection.set_payload(payload).execute()
+
+    def set_consensus_rule(self, vote_rule, create_rule, handle_vote_rule, handle_propose_rule, insert_rule, validator_rule):
+        param = [{
+            "vote_rule": vote_rule,
+            "create_rule": create_rule,
+            "handle_vote_rule": handle_vote_rule,
+            "handle_propose_rule": handle_propose_rule,
+            "insert_rule": insert_rule,
+            "validator_rule": validator_rule
+        }]
+        self.rpc_connection.with_method("setconsensusrule").with_params(param).execute()
+
+    def get_consensus_rule(self):
+        return self.rpc_connection.with_method("getconsensusrule").with_params([]).execute()
+
+    def get_byzantine_detector_info(self):
+        return self.rpc_connection.with_method("getbyzantinedetectorinfo").with_params([]).execute()
+
+    def get_finality_proof(self, shard_id, block_hash):
+        return self.rpc_connection.with_method("getfinalityproof").with_params([shard_id, block_hash]).execute()
+
+    def remove_byzantine_detector(self, bls_public_k):
+        return self.rpc_connection.with_method("removebyzantinedetector").with_params([bls_public_k]).execute()
+
+    def send_finish_sync(self, validator_key, committee_pk, shard_id):
+        return self.rpc_connection.with_method("sendfinishsync").with_params([validator_key, committee_pk, shard_id]).execute()
+
+    def set_auto_enable_feature_config(self, config):
+        return self.rpc_connection.with_method("setautoenablefeatureconfig").with_params([config]).execute()
+
+    def get_feature_stats(self):
+        return self.rpc_connection.with_method("getfeaturestats").with_params([]).execute()
+
+    def get_auto_enable_feature_config(self):
+        return self.rpc_connection.with_method("getautoenablefeatureconfig").with_params([]).execute()
 
     def get_mem_pool(self):
         return self.rpc_connection.with_method("getmempoolinfo").execute()

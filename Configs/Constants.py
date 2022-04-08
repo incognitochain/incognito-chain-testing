@@ -116,7 +116,7 @@ class Status:
             REFUND = 0
 
         class WithdrawOrder(_Status2):
-            pass
+            ACCEPT = 1
 
         class ShareWithdraw(_Status2):
             REJECT = 2

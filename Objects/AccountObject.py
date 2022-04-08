@@ -380,80 +380,55 @@ class Account:
         logger.info(f"Wait until {self.validator_key} become a committee, timeout: {timeout}s")
         time_start = datetime.datetime.now()
         time_spent = 0
-        while timeout > time_spent:
+        beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+        while beacon_bsd.is_he_a_committee(self) is False:
+            self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=5)
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
-            staked_shard = beacon_bsd.is_he_a_committee(self)
-            if staked_shard is False:
-                self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=5)
-            else:
-                e2 = beacon_bsd.get_epoch()
-                h = beacon_bsd.get_beacon_height()
-                logger.info(f"Already a committee at epoch {e2}, block height {h}")
-                return e2
             time_spent = (datetime.datetime.now() - time_start).seconds
-        logger.info(f"Waited {time_spent}s but still not yet become committee")
-        return None
+            if timeout <= time_spent:
+                break
+        if beacon_bsd.is_he_a_committee(self) is not False:
+            e2 = beacon_bsd.get_epoch()
+            h = beacon_bsd.get_beacon_height()
+            logger.info(f"Already a committee at epoch {e2}, block height {h}")
+            return e2
+        else:
+            logger.info(f"Waited {time_spent}s but still not yet become committee")
+            return None
 
     def stk_wait_till_i_am_in_waiting_next_random(self, check_cycle=ChainConfig.BLOCK_TIME,
                                                   timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
         logger.info(
             f"Wait until {self.validator_key} exist in waiting next random, check every {check_cycle}s, timeout: {timeout}s")
-        while timeout > check_cycle:
+        beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+        while beacon_bsd.is_he_in_waiting_next_random(self) is False:
+            WAIT(check_cycle)
             beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
-            staked_in_waiting_4random = beacon_bsd.is_he_in_waiting_next_random(self)
-            if staked_in_waiting_4random is False:
-                WAIT(check_cycle)
-                timeout -= check_cycle
-            else:
-                e2 = beacon_bsd.get_epoch()
-                h = beacon_bsd.get_beacon_height()
-                logger.info(f"Already exists in waiting next random at epoch {e2}, block height {h}")
-                return e2, h
-        logger.info(f"Waited {t}s but still not yet exist in waiting next random")
-        return None
+            timeout -= check_cycle
+            if timeout <= check_cycle:
+                break
+        if beacon_bsd.is_he_in_waiting_next_random(self) is not False:
+            e2 = beacon_bsd.get_epoch()
+            h = beacon_bsd.get_beacon_height()
+            logger.info(f"Already exists in waiting next random at epoch {e2}, block height {h}")
+            return e2, h
+        else:
+            logger.info(f"Waited {t}s but still not yet exist in waiting next random")
+            return None
 
-    def stk_wait_till_i_am_in_shard_pending(self, timeout=ChainConfig.STK_WAIT_TIME_OUT, sfv3=False):
+    def stk_wait_till_i_am_in_shard_pending(self, timeout=ChainConfig.STK_WAIT_TIME_OUT, sfv3=True):
         logger.info(f"Wait until {self.validator_key} exist in shard pending, timeout: {timeout}s")
         time_start = datetime.datetime.now()
         time_spent = 0
         block_per_epoch = ChainConfig.BLOCK_PER_EPOCH
-        while timeout > time_spent:
-            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
-            staked_shard = beacon_bsd.is_he_in_shard_pending(self)
-            e2 = beacon_bsd.get_epoch()
-            h = beacon_bsd.get_beacon_height()
-            if staked_shard is False:
-                if sfv3:
-                    WAIT(ChainConfig.BLOCK_TIME)
-                else:
-                    index_height = h % block_per_epoch
-                    if index_height <= ChainConfig.RANDOM_TIME:
-                        num_of_block_wait = ChainConfig.RANDOM_TIME - index_height
-                        time_to_wait = ChainConfig.get_epoch_n_block_time(0, num_of_block_wait)
-                        logger.info(f'Current height = {h} @ epoch = {e2}. '
-                                    f'Wait {time_to_wait}s until epoch {e2} and B height {h + num_of_block_wait}')
-                        WAIT(time_to_wait)
-                    else:
-                        self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=ChainConfig.RANDOM_TIME + 1)
-                time_spent = (datetime.datetime.now() - time_start).seconds
+        beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+        while beacon_bsd.is_he_in_shard_pending(self) is False:
+            if sfv3:
+                WAIT(ChainConfig.BLOCK_TIME)
             else:
-                logger.info(f"Already exists in shard pending at epoch {e2}, block height {h}")
-                return staked_shard, e2, h
-        logger.info(f"Waited {time_spent}s but still not yet exist in shard pending")
-        return
-
-    def stk_wait_till_i_am_in_sync_pool(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
-        logger.info(f"Wait until {self.validator_key} exist in sync pool, timeout: {timeout}s")
-        time_start = datetime.datetime.now()
-        time_spent = 0
-        block_per_epoch = ChainConfig.BLOCK_PER_EPOCH
-        while timeout > time_spent:
-            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
-            staked_shard = beacon_bsd.is_he_in_sync_pool(self)
-            e2 = beacon_bsd.get_epoch()
-            h = beacon_bsd.get_beacon_height()
-            if staked_shard is False:
+                e2 = beacon_bsd.get_epoch()
+                h = beacon_bsd.get_beacon_height()
                 index_height = h % block_per_epoch
                 if index_height <= ChainConfig.RANDOM_TIME:
                     num_of_block_wait = ChainConfig.RANDOM_TIME - index_height
@@ -463,45 +438,91 @@ class Account:
                     WAIT(time_to_wait)
                 else:
                     self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=ChainConfig.RANDOM_TIME + 1)
-                time_spent = (datetime.datetime.now() - time_start).seconds
+            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+            time_spent = (datetime.datetime.now() - time_start).seconds
+            if timeout <= time_spent:
+                break
+        if beacon_bsd.is_he_in_shard_pending():
+            e2 = beacon_bsd.get_epoch()
+            h = beacon_bsd.get_beacon_height()
+            staked_shard = beacon_bsd.is_he_in_shard_pending()
+            logger.info(f"Already exists in shard pending at epoch {e2}, block height {h}")
+            return staked_shard, e2, h
+        else:
+            logger.info(f"Waited {time_spent}s but still not yet exist in shard pending")
+            return
+
+    def stk_wait_till_i_am_in_sync_pool(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
+        logger.info(f"Wait until {self.validator_key} exist in sync pool, timeout: {timeout}s")
+        time_start = datetime.datetime.now()
+        time_spent = 0
+        block_per_epoch = ChainConfig.BLOCK_PER_EPOCH
+        beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+        while beacon_bsd.is_he_in_sync_pool(self) is False:
+            e2 = beacon_bsd.get_epoch()
+            h = beacon_bsd.get_beacon_height()
+            index_height = h % block_per_epoch
+            if index_height <= ChainConfig.RANDOM_TIME:
+                num_of_block_wait = ChainConfig.RANDOM_TIME - index_height
+                time_to_wait = ChainConfig.get_epoch_n_block_time(0, num_of_block_wait)
+                logger.info(f'Current height = {h} @ epoch = {e2}. '
+                            f'Wait {time_to_wait}s until epoch {e2} and B height {h + num_of_block_wait}')
+                WAIT(time_to_wait)
             else:
-                logger.info(f"Already exists in shard sync_pool at epoch {e2}, block height {h}")
-                return staked_shard, e2, h
-        logger.info(f"Waited {time_spent}s but still not yet exist in sync pool")
-        return
+                self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=ChainConfig.RANDOM_TIME + 1)
+            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+            time_spent = (datetime.datetime.now() - time_start).seconds
+            if timeout <= time_spent:
+                break
+        if beacon_bsd.is_he_in_sync_pool(self) is not False:
+            e2 = beacon_bsd.get_epoch()
+            h = beacon_bsd.get_beacon_height()
+            staked_shard = beacon_bsd.is_he_in_sync_pool(self)
+            logger.info(f"Already exists in shard sync_pool at epoch {e2}, block height {h}")
+            return staked_shard, e2, h
+        else:
+            logger.info(f"Waited {time_spent}s but still not yet exist in sync pool")
+            return
 
     def stk_wait_till_i_am_out_of_autostaking_list(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
         logger.info(f"Wait until {self.validator_key} does not exist in the autostaking list, timeout: {timeout}s")
         time_start = datetime.datetime.now()
         time_spent = 0
-        while timeout > time_spent:
-            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
-            if beacon_bsd.get_auto_staking_committees(self) is None:
-                e2 = beacon_bsd.get_epoch()
-                h = beacon_bsd.get_beacon_height()
-                logger.info(f"Validator is out of autostaking list at epoch {e2}, block height {h}")
-                return e2
+        beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+        while beacon_bsd.get_auto_staking_committees(self) is not None:
             self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=5)
             time_spent = (datetime.datetime.now() - time_start).seconds
-        logger.info(f"Waited {time_spent}s but still exist in the autostaking list")
-        return None
+            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+            if timeout <= time_spent:
+                break
+        if beacon_bsd.get_auto_staking_committees(self) is None:
+            e2 = beacon_bsd.get_epoch()
+            h = beacon_bsd.get_beacon_height()
+            logger.info(f"Validator is out of autostaking list at epoch {e2}, block height {h}")
+            return e2
+        else:
+            logger.info(f"Waited {time_spent}s but still exist in the autostaking list")
+            return None
 
     def stk_wait_till_i_am_swapped_out_of_committee(self, timeout=ChainConfig.STK_WAIT_TIME_OUT):
         logger.info(f"Wait until {self.validator_key} no longer a committee, timeout: {timeout}s")
         time_start = datetime.datetime.now()
         time_spent = 0
-        while timeout > time_spent:
-            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
-            if not (beacon_bsd.is_he_a_committee(self) is False):  # is_he_a_committee returns False or shard number
-                # (number which is not False) so must use this comparison to cover the case shard =0
-                self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=5)
-            else:
-                e2 = beacon_bsd.get_epoch()
-                logger.info(f"Swapped out of committee at epoch {e2}")
-                return e2
+        beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+        while beacon_bsd.is_he_a_committee(self) is not False:  # is_he_a_committee returns False or shard number
+            # (number which is not False) so must use this comparison to cover the case shard =0
+            self.REQ_HANDLER.wait_till_next_epoch(1, block_of_epoch=5)
             time_spent = (datetime.datetime.now() - time_start).seconds
-        logger.info(f"Waited {time_spent}s but still a committee")
-        return None
+            beacon_bsd = self.REQ_HANDLER.get_beacon_best_state_detail_info()
+            if timeout <= time_spent:
+                break
+        if beacon_bsd.is_he_a_committee(self) is False:
+            e2 = beacon_bsd.get_epoch()
+            logger.info(f"Swapped out of committee at epoch {e2}")
+            return e2
+        else:
+            logger.info(f"Waited {time_spent}s but still a committee")
+            return None
 
     def stk_wait_till_i_have_reward(self, token_id=None, check_cycle=120, timeout=ChainConfig.STK_WAIT_TIME_OUT):
         t = timeout
@@ -509,17 +530,19 @@ class Account:
             token_id = 'PRV'
         logger.info(
             f'Wait until {self.validator_key} has reward: {token_id}, check every {check_cycle}s, timeout: {timeout}s')
-        while timeout > check_cycle:
-            reward = self.stk_get_reward_amount(token_id)
-            if reward is None:
-                WAIT(check_cycle)
-                timeout -= check_cycle
-            else:
-                e2 = self.REQ_HANDLER.help_get_current_epoch()
-                logger.info(f"Rewarded {reward} : {token_id} at epoch {e2}")
-                return reward
-        logger.info(f"Waited {t}s but still has no reward")
-        return None
+        while self.stk_get_reward_amount(token_id) is None:
+            WAIT(check_cycle)
+            timeout -= check_cycle
+            if timeout <= check_cycle:
+                break
+        reward = self.stk_get_reward_amount(token_id)
+        if reward is not None:
+            e2 = self.REQ_HANDLER.help_get_current_epoch()
+            logger.info(f"Rewarded {reward} : {token_id} at epoch {e2}")
+            return reward
+        else:
+            logger.info(f"Waited {t}s but still has no reward")
+            return None
 
     def get_balance(self, token_id=PRV_ID, **kwargs):
         from_cache = kwargs.get('cache', False)

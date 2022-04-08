@@ -969,6 +969,10 @@ class Node:
         return f"{self.__get_working_dir()}/logs"
 
     @action_over_ssh
+    def get_data_folder(self):
+        return f"{self.__get_working_dir()}/data"
+
+    @action_over_ssh
     def get_log_file(self):
         # when build chain, the log file name must be the same as data dir name
         # if encounter problem here, check your build config again
