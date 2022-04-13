@@ -1,6 +1,8 @@
 import copy
 import json
 
+import deepdiff
+
 from Helpers.Logging import config_logger
 
 logger = config_logger(__name__)
@@ -28,6 +30,16 @@ class ResponseBase:
 
     def __deepcopy__(self, memo=None):
         return self.__class__(copy.deepcopy(self.response), copy.deepcopy(self.more_info))
+
+    def __eq__(self, other):
+        try:
+            dd = deepdiff.DeepDiff(self.data(), other.data())
+            if dd:
+                logger.debug(dd.pretty())
+                return False
+        except TypeError:
+            return False
+        return True
 
     def clone(self):
         return self.__deepcopy__()

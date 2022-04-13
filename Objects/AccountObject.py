@@ -1118,7 +1118,7 @@ class Account:
         response = self.REQ_HANDLER.dex_v3() \
             .mint_nft(self.private_key, amount, token_id, tx_fee=tx_fee, tx_privacy=tx_privacy)
         try:
-            response.get_transaction_by_hash()
+            response.req_to(self.REQ_HANDLER).get_transaction_by_hash()
         except AssertionError:
             logger.error(f"{response.get_error_msg()}\n"
                          f"{response.get_error_trace().get_message()}\n"
@@ -1530,6 +1530,9 @@ class AccountGroup:
         return self
 
     def __init__(self, *accounts):
+        """
+        @param accounts: Account object or private key (string)
+        """
         self.mnemonic = None
         self.account_list: List[Account] = []
         list_key = []

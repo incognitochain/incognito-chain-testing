@@ -73,3 +73,8 @@ class ChainConfig:
         ChainConfig.BLOCK_PER_EPOCH = chain_info.get_block_per_epoch_number()
         ChainConfig.BLOCK_TIME = block_next.get_time() - block_from.get_time()
         ChainConfig.RANDOM_TIME = ChainConfig.BLOCK_PER_EPOCH / 2
+
+
+class CoinServiceConfig:
+    PROD_ENDPOINT = "https://api-coinservice.incognito.org"
+    BETA_ENDPOINT = "http://51.83.36.184:9005"
