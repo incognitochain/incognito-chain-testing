@@ -33,7 +33,7 @@ class ResponseBase:
 
     def __eq__(self, other):
         try:
-            dd = deepdiff.DeepDiff(self.data(), other.data())
+            dd = deepdiff.DeepDiff(self.data(), other.data(), math_epsilon=1)
             if dd:
                 logger.debug(dd.pretty())
                 return False

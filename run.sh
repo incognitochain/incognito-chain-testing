@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 python=python3
-runShVer="2022.01"
+runShVer="2022.04"
 
 if [[ -n $PYTHON ]]; then
   python=$PYTHON
@@ -10,10 +10,11 @@ fi
 if [[ $1 == "clear" ]] || [[ $1 == "clean" ]]; then
   rm reports/*.html
   rm logs/*.log*
-  exit
+  exit 0
 elif [[ $CLEAR == "1" ]] || [[ $CLEAN == "1" ]]; then
   rm reports/*.html
   rm logs/*.log*
+  exit 0
 fi
 
 more_header=""
@@ -40,4 +41,4 @@ else
 fi
 
 html_report="reports/$(date '+%Y.%m.%d-%H.%M.%S')-${TESTBED}-${TESTDATA}.html"
-$python -m pytest --html="$html_report" --self-contained-html $3 $param4
+$python -m pytest --html="$html_report" $3 $param4

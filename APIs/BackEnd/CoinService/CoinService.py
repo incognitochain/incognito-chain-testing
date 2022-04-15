@@ -71,6 +71,27 @@ class CoinServiceApi(BackEndApiBase):
     def request_drop_nft(self, paymentkey):
         return self.get('nftdrop-service/requestdrop-nft', paymentkey=paymentkey)
 
+    def get_order_book_history(self, pool_id, nft_id, limit=1000000000, offset=0):
+        return self.get("pdex/v3/tradehistory", poolid=pool_id, nftid=nft_id, limit=limit, offset=offset)
+
+    def get_trade_history(self, ota_key, limit=1000, offset=0):
+        return self.get("pdex/v3/tradehistory", otakey=ota_key, limit=limit, offset=offset)
+
+    def get_contribute_history(self, nft_id, limit=1000000000, offset=0):
+        return self.get("pdex/v3/contributehistory", nftid=nft_id, limit=limit, offset=offset)
+
+    def get_withdraw_fee_history(self, nft_id, limit=1000000000, offset=0):
+        return self.get("pdex/v3/withdrawfeehistory", nftid=nft_id, limit=limit, offset=offset)
+
+    def get_withdraw_history(self, nft_id, limit=1000000000, offset=0):
+        return self.get("pdex/v3/withdrawhistory", nftid=nft_id, limit=limit, offset=offset)
+
+    def get_swap_history(self, ota_k, limit=1000, offset=0):
+        return self.get("pdex/v3/withdrawhistory", otakey=ota_k, limit=limit, offset=offset)
+
+    def get_pool_share(self, nft_id):
+        return self.get("pdex/v3/poolshare", nftid=nft_id)
+
 
 class KeyInfoResponse(ResponseBase):
     class Coin(BlockChainInfoBaseClass):
@@ -101,13 +122,11 @@ class KeyInfoResponse(ResponseBase):
 
 
 class ListPoolResponse(ResponseBase):
+
     def get_pool_info(self, extract=None):
         """
         @param extract: must be 1 of ['PoolID', 'Token1ID', 'Token2ID', 'Token1Value', 'Token2Value', 'Virtual1Value',
          'Virtual2Value', 'TotalShare', 'AMP', 'Price', 'Volume', 'PriceChange24h', 'APY', 'IsVerify']
         @return:
         """
-        if not extract:
-            return self.get_result()
-        all_info = self.get_result()
-        return [item[extract] for item in all_info]
+        return [item[extract] for item in self.get_result()] if extract else self.get_result()
