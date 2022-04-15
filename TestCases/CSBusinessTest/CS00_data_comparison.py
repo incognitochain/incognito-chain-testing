@@ -18,27 +18,27 @@ for ota_key in LIST_OTA_KEYS:
 LIST_ALL_POOLS = CS_prod.get_list_pool().get_pool_info("PoolID")
 
 
-def compare_compare_token_list():
+def compare_token_list():
     Logging.INFO("""    Comparing production to beta    """)
     token_list_prod = CS_prod.get_token_list()
     token_list_beta = CS_beta.get_token_list()
     assert token_list_prod == token_list_beta
 
 
-def compare_compare_list_pool():
+def compare_list_pool():
     pool_list_prod = sorted(CS_prod.get_list_pool().get_result(), key=lambda item: item["PoolID"])
     pool_list_beta = sorted(CS_beta.get_list_pool().get_result(), key=lambda item: item["PoolID"])
     dd = deepdiff.DeepDiff(pool_list_prod, pool_list_beta, math_epsilon=1)
     assert not dd
 
 
-def compare_compare_pending_order():
+def compare_pending_order():
     list_pool = CS_prod.get_list_pool().get_pool_info("PoolID")
     for pool in list_pool:
         assert CS_prod.get_pending_order(pool) == CS_beta.get_pending_order(pool)
 
 
-def compare_compare_key_info():
+def compare_key_info():
     key_info_prod = CS_prod.get_key_info(ota_key)
     key_info_beta = CS_beta.get_key_info(ota_key)
     assert key_info_prod == key_info_beta
