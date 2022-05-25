@@ -16,7 +16,12 @@ def setup_module():
     send_amount = 1000
 
 
-@pytest.mark.parametrize('fee,privacy', [(-1, 0), (2, 0), (-1, 1), (2, 1)])
+@pytest.mark.parametrize('fee,privacy', [
+    (-1, 0),
+    (2, 0),
+    (-1, 1),
+    (2, 1)
+])
 def test_send_prv_1shard_with_fee_privacy(fee, privacy):
     INFO(f"Verify send PRV to another address in same Shard successfully with privacy={privacy} and fee={fee}")
     STEP(1, "get sender and receiver balance before sending")

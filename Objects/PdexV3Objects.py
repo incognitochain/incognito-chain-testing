@@ -727,6 +727,15 @@ class PdeV3State(RPCResponseBase):
         def get_providers(self) -> list:
             return self.__get_raw_shares().keys()
 
+        def cal_pool_ratio(self):
+            token0, token1 = self.get_token_id()
+            pool_r = self.get_real_pool_size()
+            pool_v = self.get_virtual_pool_size()
+            ratio0 = pool_r[token0] * pool_v[token1] / (
+                        pool_r[token0] * pool_v[token1] + pool_r[token1] * pool_v[token0]) * 100
+            ratio = {token0: ratio0, token1: 100 - ratio0}
+            return ratio
+
     class Param(BlockChainInfoBaseClass):
         def get_dao_contributing_percent(self):
             return self.dict_data["DAOContributingPercent"]

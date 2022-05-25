@@ -552,12 +552,11 @@ class DEXv3RPC(BaseRpcApi):
         return ResponseWithdrawLiquidityStatus(self.rpc_connection.with_method("pdexv3_getWithdrawLiquidityStatus")
                                                .with_params([tx_id]).execute())
 
-    def mint_nft(self, private_k, amount, token_id=Constants.PRV_ID, main_tx_receivers=unspecified, tx_fee=-1,
+    def mint_nft(self, private_k, amount, main_tx_receivers=unspecified, tx_fee=-1,
                  tx_privacy=1):
         """
         @param private_k:
         @param amount: String num
-        @param token_id:
         @param main_tx_receivers: default and should be {burn addr: "1"}
         @param tx_fee:
         @param tx_privacy:
@@ -572,3 +571,4 @@ class DEXv3RPC(BaseRpcApi):
     def get_mint_nft_status(self, tx_id):
         return ResponseMintNftStatus(self.rpc_connection.with_method("pdexv3_getMintNftStatus")
                                      .with_params([tx_id]).execute())
+

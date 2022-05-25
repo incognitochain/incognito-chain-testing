@@ -28,7 +28,6 @@ from Objects.BlockChainObjects import BlockChainCore
 from Objects.CoinObject import BridgeTokenResponse, InChainTokenResponse
 from Objects.CommitteeState import CommitteeState
 from Objects.FinalityProof import FinalityProof, ConsensusRule, ByzantinedetectorInfo
-from Objects.PdeObjects import PDEStateInfo
 from Objects.PdexV3Objects import PdeV3State
 from Objects.PortalObjects import PortalStateInfo
 from Objects.ShardBlock import ShardBlock
@@ -223,6 +222,7 @@ class Node:
     def get_latest_pde_state_info(self, beacon_height=None):
         beacon_height = self.help_get_beacon_height() if not beacon_height else beacon_height
         pde_state = self.dex().get_pde_state(beacon_height)
+        from Objects.PdeObjects import PDEStateInfo
         return PDEStateInfo(pde_state.get_result())
 
     def pde3_get_state(self, beacon_height=None, key_filter="All", id_filter="1", verbose=1) -> PdeV3State:

@@ -64,28 +64,18 @@ def test_send_prv_privacy_x_shard_insufficient_fund(privacy):
     STEP(6, "Subcribe transaction")
     send_transaction = step5_result.subscribe_transaction()
 
-    STEP(7, "Subcribe cross transaction by privatekey")
-    try:
-        receiver.subscribe_cross_output_coin()
-    except:
-        pass
-
-    STEP(8, "Check receiver balance")
-    receiver_bal_after = receiver.get_balance()
+    STEP(7, "Check receiver balance")
+    receiver_bal_after = receiver.wait_for_balance_change(from_balance=receiver_bal)
     assert receiver_bal_after == receiver_bal + sender_bal - 100, "something wrong" and INFO("Failed")
 
-    STEP(9, "Check sender balance")
+    STEP(8, "Check sender balance")
     sender_bals_after = sender.get_balance()
     INFO(f"sender balance after: {sender_bals_after}")
     assert sender_bals_after < 100, "something wrong" and INFO("Failed")
 
-    STEP(10, f"Check transaction privacy, it must be {privacy}")
+    STEP(9, f"Check transaction privacy, it must be {privacy}")
     send_transaction.verify_prv_privacy(privacy)
 
-    STEP(11, "Return the money")
+    STEP(10, "Return the money")
     receiver.send_prv_to(sender, sender_bal + 100).subscribe_transaction()
-    if sender.shard != receiver.shard:
-        try:
-            sender.subscribe_cross_output_coin()
-        except:
-            pass
+    sender.wait_for_balance_change()

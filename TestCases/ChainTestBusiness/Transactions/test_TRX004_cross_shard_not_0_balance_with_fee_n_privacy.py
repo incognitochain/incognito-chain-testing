@@ -55,7 +55,7 @@ def test_send_prv_cross_shard_with_fee_privacy(fee, privacy):
         "something wrong" and INFO("Failed")  # when privacy=1, ws cannot get fee
 
     STEP(7, "Check receiver balance")
-    receiver_bal_after = receiver.get_balance()
+    receiver_bal_after = receiver.wait_for_balance_change(from_balance=receiver_bal)
     INFO(f"receiver balance after: {receiver_bal_after}")
     assert receiver_bal_after == receiver_bal + send_amount, \
         f"Receiver balance after={receiver_bal_after}\n\t " \

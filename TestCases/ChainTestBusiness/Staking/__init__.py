@@ -17,7 +17,8 @@ from Objects.IncognitoTestCase import SUT, ACCOUNTS
 
 key_list_file = KeyListJson()
 fixed_validators = key_list_file.get_shard_fix_validator_accounts()
-stakers = key_list_file.get_staker_accounts()
+stakers = key_list_file.get_staker_accounts().attach_to_node(SUT())
+
 try:
     num_of_auto_stake = ChainConfig.ACTIVE_SHARD * (ChainConfig.SHARD_COMMITTEE_SIZE - ChainConfig.FIX_BLOCK_VALIDATOR)
     auto_stake_list = AccountGroup(*(stakers[:num_of_auto_stake]))

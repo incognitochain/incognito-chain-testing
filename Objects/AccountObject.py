@@ -1107,7 +1107,7 @@ class Account:
             .withdraw_liquidity(self.private_key, pool.get_pool_pair_id(), nft_id, str(share_amount), tx_fee=tx_fee,
                                 tx_privacy=tx_privacy)
 
-    def pde3_mint_nft(self, amount=ChainConfig.Dex3.NFT_MINT_REQ, token_id=PRV_ID, tx_fee=-1, tx_privacy=1,
+    def pde3_mint_nft(self, amount=ChainConfig.Dex3.NFT_MINT_REQ, tx_fee=-1, tx_privacy=1,
                       force=False):
         if not force:
             if self.nft_ids:
@@ -1115,8 +1115,7 @@ class Account:
                             f"return the first one now and will not mint more: \n {self.nft_ids}")
                 return self.nft_ids[0]
         logger.info(f"{self.__me()} request minting new PDEX NFT ID")
-        response = self.REQ_HANDLER.dex_v3() \
-            .mint_nft(self.private_key, amount, token_id, tx_fee=tx_fee, tx_privacy=tx_privacy)
+        response = self.REQ_HANDLER.dex_v3().mint_nft(self.private_key, amount, tx_fee=tx_fee, tx_privacy=tx_privacy)
         try:
             response.req_to(self.REQ_HANDLER).get_transaction_by_hash()
         except AssertionError:
@@ -1706,12 +1705,12 @@ class AccountGroup:
     def get_random_account(self):
         return self.account_list[random.randrange(len(self.account_list))]
 
-    def pde3_mint_nft(self, amount=coin(1), token_id=PRV_ID, tx_fee=-1, tx_privacy=1, force=False):
+    def pde3_mint_nft(self, amount=coin(1), tx_fee=-1, tx_privacy=1, force=False):
         with ThreadPoolExecutor() as e:
             for acc in self:  # bug IC-1519
                 time.sleep(0.3)
-                e.submit(acc.pde3_mint_nft, amount, token_id, tx_fee, tx_privacy, force)
-                # acc.pde3_mint_nft(amount, token_id, tx_fee, tx_privacy, force)
+                e.submit(acc.pde3_mint_nft, amount, tx_fee, tx_privacy, force)
+                # acc.pde3_mint_nft(amount, tx_fee, tx_privacy, force)
         return self
 
     def pde3_get_nft_ids(self, pde_state=None):
