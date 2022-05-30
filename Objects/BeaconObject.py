@@ -152,8 +152,12 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
             return not self.__eq__(other)
 
         def __str__(self):
-            string = f'IncPubKey = {self.get_inc_public_key} - IsAutoStake = {self.is_auto_staking}\n'
+            string = f'IncPubKey = {self.get_inc_public_key()} - IsAutoStake = {self.is_auto_staking()}\n'
             return string
+
+        def __hash__(self):
+            # for using Account object as 'key' in dictionary
+            return int(str(self.get_inc_public_key()).encode('utf8').hex(), 16)
 
     def print_committees(self):
         all_committee_in_all_shard_dict = self.get_shard_committees()
@@ -701,6 +705,12 @@ class BeaconBlock(BlockChainInfoBaseClass):
             def get_cross_shard(self):
                 return self.dict_data['CrossShard']
 
+            def get_validation_data(self):
+                return self.dict_data['ValidationData']
+
+            def get_proposer_time(self):
+                return self.dict_data['ProposerTime']
+
         def get_blocks_info(self):
             return [BeaconBlock.ShardState.BlockInfo(raw_info) for raw_info in self.dict_data]
 
@@ -834,6 +844,9 @@ class BeaconBlock(BlockChainInfoBaseClass):
 
     def get_block_producer(self):
         return self.dict_data["BlockProducer"]
+
+    def get_propose_time(self):
+        return self.dict_data["ProposeTime"]
 
     def get_consensus_type(self):
         return self.dict_data["ConsensusType"]

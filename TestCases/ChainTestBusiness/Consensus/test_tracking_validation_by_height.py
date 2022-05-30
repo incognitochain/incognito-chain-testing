@@ -5,10 +5,7 @@ from Helpers.Logging import INFO
 from Helpers.Time import WAIT
 from Objects.IncognitoTestCase import SUT
 
-if ChainConfig.ACTIVE_SHARD != 8:
-    fix_node = 12
-else:
-    fix_node = 8
+fix_node = ChainConfig.FIX_BLOCK_VALIDATOR
 
 
 def test_tracking_validation_by_height():
@@ -52,16 +49,15 @@ def test_tracking_validation_by_height():
             string += f'\tTimeslot propose: {propose_time}\n'
             string += f'\tProducer Idx: {index_producer}\n'
             string += f'\tProposer Idx: {index_proposer}\n'
-            validators_str = re.match('([\D\d]+\\\"ValidatiorsIdx\\\"\:\[)([\d,]*)(\][\D\d]+)',
-                                      validation_data).group(
-                2)
+            validators_str = re.match('([\D\d]+\\\"ValidatiorsIdx\\\"\:\[)([\d,]*)(\][\D\d]+)', validation_data).group(2)
             string += f'\tValidators Idx: {validators_str}\n'
             string += f'\tFinality Height: {finality_height}'
             INFO(string)
             if b4_propose_time is not None:
                 if produce_time == b4_propose_time + ChainConfig.BLOCK_TIME and (propose_time - produce_time) < (
                         23 * ChainConfig.BLOCK_TIME):
-                    assert finality_height == height - 1
+                    # assert finality_height == height - 1
+                    assert finality_height == height  # instant finality
                 else:
                     assert finality_height == 0
             b4_propose_time = propose_time
@@ -71,5 +67,5 @@ def test_tracking_validation_by_height():
     # with ThreadPoolExecutor() as executor:
     #     for i in range(ChainConfig.ACTIVE_SHARD):
     #         executor.submit(info_by_height, i, proposers_list[i])
-    shard_test = 2
+    shard_test = 0
     info_by_height(shard_test, proposers_list[shard_test])

@@ -38,10 +38,19 @@ LOGGING_CONFIG = {
             'filename': f'{log_folder}/run_{datetime.now().strftime("%y%m%d_%H%M%S")}.log',
             'mode': 'w',
             'maxBytes': 10485760,
-            'backupCount': 50, }, },
+            'backupCount': 50, },
+        'file_short': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': 'INFO',
+            'formatter': 'standard',
+            'filename': f'{log_folder}/run_{datetime.now().strftime("%y%m%d_%H%M%S")}.short_log',
+            'mode': 'w',
+            'maxBytes': 10485760,
+            'backupCount': 50, },
+    },
     'loggers': {
         '': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console', 'file', 'file_short'],
             'level': 'DEBUG',
             'propagate': True}, }}
 

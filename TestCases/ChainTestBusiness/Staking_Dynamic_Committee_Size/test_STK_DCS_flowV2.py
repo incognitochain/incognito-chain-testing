@@ -210,7 +210,7 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
                             except:
                                 continue
                             vote = total_signature - miss_signature
-                            assert vote > expect_by_shard[count_signature]/2, INFO(f'{committee_pub_k}: miss_signature: {miss_signature}, total_signature: {total_signature}, expect_total: {expect_total}')
+                            # assert vote > expect_by_shard[count_signature]/2, INFO(f'{committee_pub_k}: miss_signature: {miss_signature}, total_signature: {total_signature}, expect_total: {expect_total}')
                     else:
                         try:
                             assert missing_signature_penalty.get(pub_k) is None
@@ -222,7 +222,7 @@ def view_dynamic(epoch, reward_dict, candidate_waiting_next_random, candidate_wa
                             committee_pub_k = validator.committee_public_k
                             total_signature, miss_signature = beacon_bs.get_missing_signature(committee_pub_k)
                             vote = total_signature - miss_signature
-                            assert vote <= expect_by_shard[count_signature]/2, INFO(f'{committee_pub_k}: miss_signature: {miss_signature}, total_signature: {total_signature}, expect_total: {expect_total}')
+                            # assert vote <= expect_by_shard[count_signature]/2, INFO(f'{committee_pub_k}: miss_signature: {miss_signature}, total_signature: {total_signature}, expect_total: {expect_total}')
                             missing_signature_penalty_list.append(committee)
                     base_string += f'- missing signature: {miss_signature}/{total_signature}'
             base_string += '\n'

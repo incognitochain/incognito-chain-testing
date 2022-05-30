@@ -211,4 +211,4 @@ def test_update_feature_for_all_nodes():
 
 
 def test_view_stats():
-    get_features_stats("feature_test_2")
+    get_features_stats("instantfinality")

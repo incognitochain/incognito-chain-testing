@@ -6,8 +6,8 @@ class TestConfig:
 
 
 class ChainConfig:
-    # ACCESS_TOKEN = '0c3d46946bbf99c8213dd7f6c640ed6433bdc056a5b68e7e80f5525311b0ca11'
-    ACCESS_TOKEN = '0ec910a54ffbf2a0bdfc0c8b05e8b5445e51a2ae54f659a35ac7ad9980e4fd2c'
+    ACCESS_TOKEN = '0c3d46946bbf99c8213dd7f6c640ed6433bdc056a5b68e7e80f5525311b0ca11'
+    # ACCESS_TOKEN = '0ec910a54ffbf2a0bdfc0c8b05e8b5445e51a2ae54f659a35ac7ad9980e4fd2c'
     BLOCK_PER_EPOCH = 20
     RANDOM_TIME = 10  # the n(th) height in epoch to call random function, usually = BLOCK_PER_EPOCH/2 not BLOCK_TIME/2
     BLOCK_TIME = 10
@@ -19,7 +19,7 @@ class ChainConfig:
     SHARD_COMMITTEE_SIZE = 6
     PRIVACY_VERSION = 2
     STK_AMOUNT = 1750000000000
-    STK_WAIT_TIME_OUT = 8000  # seconds
+    STK_WAIT_TIME_OUT = 80000  # seconds
     MIN_FEE_PER_KB = 100000
 
     class Portal:
@@ -70,6 +70,7 @@ class ChainConfig:
         ChainConfig.BEACON_COMMITTEE_SIZE = bbs.get_max_beacon_committee_size()
         ChainConfig.ACTIVE_SHARD = bbs.get_active_shard()
         ChainConfig.SHARD_COMMITTEE_SIZE = bbs.get_max_shard_committee_size()
+        ChainConfig.FIX_BLOCK_VALIDATOR = bbs.get_min_shard_committee_size()
         ChainConfig.BLOCK_PER_EPOCH = chain_info.get_block_per_epoch_number()
         ChainConfig.BLOCK_TIME = block_next.get_time() - block_from.get_time()
         ChainConfig.RANDOM_TIME = ChainConfig.BLOCK_PER_EPOCH / 2

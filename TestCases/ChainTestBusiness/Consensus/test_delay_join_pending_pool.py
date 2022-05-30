@@ -32,7 +32,7 @@ def test_tracking_time_join_pending():
             height += 1
             b4_committee_state = committee_state
             committee_state = SUT().get_committee_state(height)
-            while committee_state.is_none():
+            while not committee_state.is_none():
                 global send_finish
                 if send_finish and committee_shard_id is not None:
                     SUT.shards[0].get_node().system_rpc().send_finish_sync(account.validator_key,
@@ -90,7 +90,10 @@ def test_tracking_time_join_pending():
                 """
         return string
 
-    acc_group = STAKER_ACCOUNTS[66:76]
+    # acc_group = STAKER_ACCOUNTS[66:76]
+    acc_group = []
+    for i in [113, 44, 110, 4, 6, 96, 12]:
+        acc_group.append(STAKER_ACCOUNTS[i])
     bs = SUT().get_beacon_best_state_info()
     thread_pool = []
     with ThreadPoolExecutor() as executor:

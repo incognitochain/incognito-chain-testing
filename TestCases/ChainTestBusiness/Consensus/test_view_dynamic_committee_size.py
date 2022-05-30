@@ -4,24 +4,52 @@ Must run test with TestData has full info of all nodes in chain (BEACONS, COMMIT
 import copy
 from concurrent.futures.thread import ThreadPoolExecutor
 
+import pytest
+
 from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO, ERROR, WARNING
 from Helpers.TestHelper import l3
 from Helpers.Time import WAIT
 from Objects.IncognitoTestCase import SUT
-from TestCases.ChainTestBusiness.Staking_Dynamic_Committee_Size import get_staker_by_tx_id
+from TestCases.ChainTestBusiness.Consensus import get_staker_by_tx_id
 
-if ChainConfig.ACTIVE_SHARD != 8:
-    fix_node = 12
-else:
-    fix_node = 8
-max_shard_comm_size = 48
+fix_node = ChainConfig.FIX_BLOCK_VALIDATOR
+max_shard_comm_size = ChainConfig.SHARD_COMMITTEE_SIZE
 cross_stake = False
 tracking_reward = True
 swapPercent = 8
 shard_range = range(ChainConfig.ACTIVE_SHARD)
 
 
+# @pytest.mark.dependency(scope='session', name="commpare_view")
+def test_commpare_view():
+    INFO()
+    with ThreadPoolExecutor() as e:
+        thread0 = e.submit(SUT().get_beacon_best_state_info)
+        thread1 = e.submit(SUT.beacons.get_node(0).get_beacon_best_state_info)
+        thread2 = e.submit(SUT.beacons.get_node(1).get_beacon_best_state_info)
+        thread3 = e.submit(SUT.beacons.get_node(2).get_beacon_best_state_info)
+        thread4 = e.submit(SUT.beacons.get_node(3).get_beacon_best_state_info)
+        thread5 = e.submit(SUT.shards[0].get_node().get_beacon_best_state_info)
+        thread6 = e.submit(SUT.shards[1].get_node().get_beacon_best_state_info)
+    data0 = thread0.result().data()
+    data0["Result"]["SyncingValidator"]["255"] = []
+    data1 = thread1.result().data()
+    data2 = thread2.result().data()
+    data3 = thread3.result().data()
+    data4 = thread4.result().data()
+    data5 = thread5.result().data()
+    data6 = thread6.result().data()
+    data1["Result"]["FinishSyncManager"] = data2["Result"]["FinishSyncManager"] = data3["Result"]["FinishSyncManager"] = \
+        data4["Result"]["FinishSyncManager"] = {}
+    assert data0 == data1 == data2 == data3 == data4 == data5 == data6
+
+
+# @pytest.mark.parametrize("", [
+#     pytest.param(
+#         marks=pytest.mark.dependency(depends=['commpare_view'], scope='session')
+#     )
+# ])
 def test_view_dynamic():
     INFO()
     bs = SUT().get_beacon_best_state_info()
@@ -136,7 +164,11 @@ def test_view_dynamic():
                     count_vote_by_subset[str(i)][subset] += 1
                 except KeyError:
                     ERROR(f'Count_blocks_subset_per_epoch: {count_blocks_subset_per_epoch}')
-                    subset = SUT().get_shard_block_by_height(i, height, 2).get_subset_id()
+                    block = SUT().get_shard_block_by_height(i, height, 2)
+                    if not block:
+                        WAIT(20)
+                        block = SUT().get_shard_block_by_height(i, height, 2)
+                    subset = block.get_subset_id()
                     count_vote_by_subset[str(i)][subset] += 1
         expect_total = int(sum(count_vote_by_shard.values()) / (ChainConfig.ACTIVE_SHARD * 2))
         for i in shard_range:
@@ -233,7 +265,7 @@ def test_view_dynamic():
                 if stakers[pub_k] is None:
                     str = ""
                     if tracking_reward:
-                        base_string += f'\t{j}_{str}\t: None__{l3(pub_k)}__{l3(reward_receiver.get(pub_k))} - reward: {reward_dict.get(pub_k)}, rwinc: {reward_increase} - auto_stk: {is_auto_stk}'
+                        base_string += f'\t{j}_{str}\t: None__{l3(pub_k)}__{l3(reward_receiver.get(pub_k))} - reward: {reward_dict.get(pub_k)},\trwinc: {reward_increase} - auto_stk: {is_auto_stk}'
                     else:
                         base_string += f'\t{j}_{str}\t: None__{l3(pub_k)}__{l3(reward_receiver.get(pub_k))} - auto_stk: {is_auto_stk}'
                 else:
@@ -243,7 +275,7 @@ def test_view_dynamic():
                     except ValueError:
                         str = ""
                     if tracking_reward:
-                        base_string += f'\t{j}_{str}\t: {l3(stakers[pub_k].private_key)}__{l3(pub_k)}__{l3(reward_receiver.get(pub_k))} - reward: {reward_dict.get(pub_k)}, rwinc: {reward_increase} - auto_stk: {is_auto_stk}'
+                        base_string += f'\t{j}_{str}\t: {l3(stakers[pub_k].private_key)}__{l3(pub_k)}__{l3(reward_receiver.get(pub_k))} - reward: {reward_dict.get(pub_k)},\trwinc: {reward_increase} - auto_stk: {is_auto_stk}'
                     else:
                         base_string += f'\t{j}_{str}\t: {l3(stakers[pub_k].private_key)}__{l3(pub_k)}__{l3(reward_receiver.get(pub_k))} - auto_stk: {is_auto_stk}'
                 if count_signature is not None:
@@ -404,9 +436,8 @@ def test_view_dynamic():
             num_of_assigned_candidates = min(len(b4_candidate_waiting_next_random), num_of_assigned_candidates)
             if not b4_candidate_waiting_current_random:
                 assert candidate_waiting_current_random == b4_candidate_waiting_next_random[
-                                                           :num_of_assigned_candidates], ERROR(
-                    *candidate_waiting_current_random) and ERROR(
-                    *b4_candidate_waiting_next_random[:num_of_assigned_candidates])
+                                                           :num_of_assigned_candidates], WARNING(
+                    'Check list current random compare with list waiting before')
             else:
                 assert candidate_waiting_current_random == b4_candidate_waiting_current_random, ERROR(
                     *candidate_waiting_current_random) and ERROR(*b4_candidate_waiting_current_random)
@@ -423,35 +454,37 @@ def test_view_dynamic():
                     if committee not in b4_syncing_validator.get(shard, []):
                         assert committee in b4_candidate_waiting_current_random, ERROR(committee)
             assert len(
-                b4_candidate_waiting_current_random) + b4_syncing_validator_size == syncing_validator_size
-            assert shard_committees == b4_shard_committees, ERROR(*shard_committees) and ERROR(*b4_shard_committees)
-        elif b4_beacon_height % block_per_epoch < random_time < beacon_height % block_per_epoch:
-            assert shard_committees == b4_shard_committees, ERROR(*shard_committees) and ERROR(*b4_shard_committees)
-        elif b4_epoch != epoch:
+                b4_candidate_waiting_current_random) + b4_syncing_validator_size == syncing_validator_size, WARNING(
+                'Check node finished syncing, out sync pool')
+        if b4_epoch != epoch:
             for shard, committees in shard_committees.items():
                 swap_in = min(len(b4_pending_validator[shard]), num_of_swap_in[shard])
-                for committee in b4_shard_missing_signature_penalty[shard][:num_of_slash[shard]]:
-                    b4_shard_committees[shard].remove(committee)
+                b4_shard_committees_cp = copy.deepcopy(b4_shard_committees[shard])
+                count_slash = 0
+                for committee in b4_shard_committees_cp:
+                    if committee in b4_shard_missing_signature_penalty[shard]:
+                        b4_shard_committees[shard].remove(committee)
+                        count_slash += 1
+                    if count_slash == num_of_slash[shard]:
+                        break
                 index_break = fix_node + num_of_swap_out_node_normal[shard]
-                try:
-                    assert committees == b4_shard_committees[shard][:fix_node] + b4_shard_committees[shard][
-                                                                                 index_break:] + \
-                           b4_pending_validator[shard][:swap_in]
-                except:
-                    ERROR('Check node in sync pool')
+                assert committees == b4_shard_committees[shard][:fix_node] + b4_shard_committees[shard][index_break:] + \
+                       b4_pending_validator[shard][:swap_in], WARNING('Check node from sync pool to committee')
                 assert b4_pending_validator[shard][swap_in:] == pending_validator[shard][
-                                                                :len(b4_pending_validator[shard]) - swap_in]
+                                                                :len(b4_pending_validator[shard]) - swap_in], WARNING(
+                    'Check node from sync pool to pending')
                 for committee in b4_shard_committees[shard][fix_node:index_break]:
                     if beacon_bsd.get_auto_staking_committees(committee) is True:
                         assert committee in pending_validator[shard]
                     else:
                         assert beacon_bsd.get_auto_staking_committees(
                             committee) is None, beacon_bsd.get_auto_staking_committees(committee)
-                for committee in b4_shard_committees[shard][fix_node:index_break]:
-                    if committee.is_auto_staking():
-                        assert committee in pending_validator[shard]
         else:
             assert shard_committees == b4_shard_committees, ERROR(*shard_committees) and ERROR(*b4_shard_committees)
+            for shard_id in range(ChainConfig.ACTIVE_SHARD):
+                assert set(b4_pending_validator[str(shard_id)]).issubset(set(pending_validator[str(shard_id)]))
+                for committee in set(b4_pending_validator[str(shard_id)]).symmetric_difference(set(pending_validator[str(shard_id)])):
+                    assert committee in b4_syncing_validator[str(shard_id)]
 
         info_supplement = f'\tEpoch: {epoch}--Beacon- height: {beacon_height}\nCount_vote_by_shard: {count_vote_by_shard}\n'
         for shard, committees in shard_committees.items():

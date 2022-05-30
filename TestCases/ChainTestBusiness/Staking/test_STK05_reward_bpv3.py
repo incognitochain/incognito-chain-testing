@@ -4,11 +4,12 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 
 from Configs.Configs import ChainConfig
+from Configs.Constants import coin, PRV_ID
 from Helpers.Logging import INFO, STEP
 from Helpers.TestHelper import ChainHelper
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
-from Objects.IncognitoTestCase import SUT, ACCOUNTS
+from Objects.IncognitoTestCase import SUT, ACCOUNTS, STAKER_ACCOUNTS
 from TestCases.ChainTestBusiness.Staking import amount_token_send, amount_token_fee, token_owner
 
 trx_list = []
@@ -31,7 +32,7 @@ def test_verify_reward_received():
     for acc in ACCOUNTS:
         trx = acc.send_prv_to(ACCOUNTS[indx_receiver], amount_token_send, amount_token_fee).expect_no_error()
         trx_list.append(trx)
-    WAIT(4 * ChainConfig.BLOCK_TIME)
+    WAIT(6 * ChainConfig.BLOCK_TIME)
     for acc in ACCOUNTS:
         trx = acc.send_token_to(ACCOUNTS[indx_receiver], token_id, amount_token_send,
                                 amount_token_fee).expect_no_error()
@@ -167,3 +168,75 @@ def test_verify_reward_received():
             assert m < 10000
     INFO(f'Difference_earned_instr: {difference_earned_instr}')
     INFO(f'Difference_instr_cal: {difference_instr_cal}')
+
+
+def test_all_withdraw_reward():
+    INFO()
+    acc_group = STAKER_ACCOUNTS
+    # with ThreadPoolExecutor() as e:
+    #     for acc in acc_group:
+    #         e.submit(acc.submit_key)
+    #         e.submit(acc.convert_token_to_v2)
+    # WAIT(30)
+    COIN_MASTER.top_up_if_lower_than(acc_group, coin(1), coin(1))
+    thread_pool = []
+    with ThreadPoolExecutor() as e:
+        for acc in acc_group:
+            thread = e.submit(acc.get_balance)
+            thread_pool.append(thread)
+    bal_list_b4 = []
+    string = '\nBalance before\n'
+    for indx in range(len(thread_pool)):
+        bal = thread_pool[indx].result()
+        bal_list_b4.append(bal)
+        string += f'{bal} => staker {indx}\n'
+    thread_pool = []
+    with ThreadPoolExecutor() as e:
+        for acc in acc_group:
+            thread = e.submit(acc.stk_get_reward_amount)
+            thread_pool.append(thread)
+    string += 'Reward before\n'
+    reward_list_b4 = []
+    for indx in range(len(thread_pool)):
+        reward = thread_pool[indx].result()
+        reward_list_b4.append(reward)
+        string += f'{reward} => staker {indx}\n'
+        if reward != 0:
+            try:
+                acc_group[indx].REQ_HANDLER.transaction().withdraw_reward(acc_group[indx].private_key,
+                                                                          acc_group[indx].payment_key,
+                                                                          PRV_ID).expect_no_error()
+            except:
+                acc_group[indx].REQ_HANDLER.transaction().withdraw_reward(acc_group[indx].private_key,
+                                                                          acc_group[indx].payment_key_v1, PRV_ID,
+                                                                          tx_ver=1).expect_no_error()
+    WAIT(100)
+    thread_pool = []
+    with ThreadPoolExecutor() as e:
+        for acc in acc_group:
+            thread = e.submit(acc.stk_get_reward_amount)
+            thread_pool.append(thread)
+    string += 'Reward After\n'
+    reward_list_af = []
+    for indx in range(len(thread_pool)):
+        reward = thread_pool[indx].result()
+        reward_list_af.append(reward)
+        string += f'{reward} => staker {indx}\n'
+    with ThreadPoolExecutor() as e:
+        for acc in acc_group:
+            e.submit(acc.convert_token_to_v2)
+    WAIT(100)
+    thread_pool = []
+    with ThreadPoolExecutor() as e:
+        for acc in acc_group:
+            thread = e.submit(acc.get_balance)
+            thread_pool.append(thread)
+    bal_list_af = []
+    string += 'Balance After\n'
+    for indx in range(len(thread_pool)):
+        bal = thread_pool[indx].result()
+        bal_list_af.append(bal)
+        string += f'{bal} => staker {indx}\n'
+    INFO(string)
+    for i in range(len(acc_group)):
+        assert (bal_list_b4[i] + reward_list_b4[i] - reward_list_af[i] - bal_list_af[i]) <= 100

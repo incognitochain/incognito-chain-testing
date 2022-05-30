@@ -442,10 +442,10 @@ class Account:
             time_spent = (datetime.datetime.now() - time_start).seconds
             if timeout <= time_spent:
                 break
-        if beacon_bsd.is_he_in_shard_pending():
+        if beacon_bsd.is_he_in_shard_pending(self):
             e2 = beacon_bsd.get_epoch()
             h = beacon_bsd.get_beacon_height()
-            staked_shard = beacon_bsd.is_he_in_shard_pending()
+            staked_shard = beacon_bsd.is_he_in_shard_pending(self)
             logger.info(f"Already exists in shard pending at epoch {e2}, block height {h}")
             return staked_shard, e2, h
         else:
