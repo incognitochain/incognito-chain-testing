@@ -1,3 +1,8 @@
+"""
+Script giúp kill node, clear DB or logs theo list beacon, shard cho trc.
+"""
+
+
 import pytest
 
 from Helpers.Logging import INFO

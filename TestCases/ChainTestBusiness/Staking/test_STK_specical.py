@@ -1,3 +1,23 @@
+"""
+- check_bal: dùng để verify prv balance của các staker cần dao động quanh ~ coin(1750)
+- staking: stake các acc trong acc_group
+- top_up_amount_prv: get balance và top-up bal = expected_amount = coin(1750) + 1000, nếu chain mới build cần nhớ setsubmit=True,
+bal=0 (để tiết kiệm time).
+- test_unstake_at_transfer_epoch: dùng để unstake/stop auto stake (line 155) tại thời điểm chuyển giao epoch.
+- test_stake_at_random: dùng để stake tại thời điểm random
+- test_unstake_at_random: dùng để un-stake tại thời điểm random
+- test_check_auto_stake: kiểm tra autostaking của các acc trong acc_group
+NOTE for: Khi chạy test_unstake_at_transfer_epoch, test_stake_at_random, test_unstake_at_random
+    - Tùy thuộc vào máy và set-up chain mà cần chỉnh điều kiện while (action trước thời điểm chuyển giao bao nhiêu epoch)
+để xảy ra được case mong muốn.
+    - Khi chạy những testcase này cần chạy cùng TestCases/ChainTestBusiness/Consensus/test_view_dynamic_committee_size.py.
+Vì script này chỉ produce testcase, chưa auto-check. Những testcase đặc biệt này chủ yếu chỉ cần check không gây đứng chain.
+**** Sau khi test qua tất cả các testcase trong file, chạy lại test_check_bal() để verify balance của các node đúng sau
+khi stake, unstake, swap-out, slashing.
+
+"""
+
+
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from Configs.Configs import ChainConfig

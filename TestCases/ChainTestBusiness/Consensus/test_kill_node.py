@@ -1,3 +1,10 @@
+"""
+Nếu chain local chạy multi-key, dùng test_create_command_run_node_multikey để support cho việc tắt node theo subset,
+script giúp tạo command line mới đã được loại bỏ các node theo subset test, dùng command line này để re-run node.
+NOTE: cần update: string_cm = "Profiling=11149 ./incognito.dev.instant-finality-bridge --datadir data/ms..."
+test_command_find_id_run_node_single dùng cho testnet (cần improve)
+"""
+
 from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO
 from Helpers.Time import WAIT

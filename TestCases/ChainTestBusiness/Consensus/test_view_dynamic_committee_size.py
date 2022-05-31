@@ -1,6 +1,21 @@
 """
 Must run test with TestData has full info of all nodes in chain (BEACONS, COMMITTEES, STAKER). Ex: Account_testnet.py
+Script dùng để verify rule swap và log lại các node ở committee theo từng blocktime.
+NÊN luôn luôn chạy script này khi test consensus và không xóa logs. Để hỗ trợ cho việc debug đứng chain, node ko vote,
+đếm chữ ký, slashing,....
+Ngoài việc script "test_view_dynamic" đã tự verify rule swap thì cần manual check reward được logs on screen theo từng epoch (các node trong
+cùng subset sẽ đc chia reward đúng và bằng nhau).
+Config cho các biến:
+    + cross_stake = True nếu có stake ở dạng nodeA stake 1750prv & nodeB run node,.... Ngược lại, tất cả
+các stakers trong chain đều tự stake tự run node thì set =False.
+    + tracking_reward = True nếu cần tracking reward theo mỗi epoch, =False sẽ thì script sẽ không get reward nữa. Test
+chain local nên set = True
+Script sẽ hay fail nếu cùng lúc chạy với testcase test_STK_specical.py. Check manual lại theo câu Warning. fail này thường
+không phải bug, nhưng nếu đứng chain thì là bug.
 """
+
+
+
 import copy
 from concurrent.futures.thread import ThreadPoolExecutor
 

@@ -1,3 +1,9 @@
+"""
+Verify rule finality block theo lemma2
+NOTE: line 64 dùng cho trước trigger instant finality, line 65 dùng cho sau trigger.
+"""
+
+
 import re
 
 from Configs.Configs import ChainConfig

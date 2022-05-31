@@ -1,3 +1,8 @@
+'''
+Dùng để theo dõi thời gian join pending của các stakers trong acc_group. Manual tự check thông tin trong show trong log (or screen).
+Note: các staker đã được staking
+'''
+
 import math
 from concurrent.futures import ThreadPoolExecutor
 
@@ -11,6 +16,10 @@ swapPercent = 8
 shard_committee_size = ChainConfig.SHARD_COMMITTEE_SIZE
 block_per_epoch = ChainConfig.BLOCK_PER_EPOCH
 send_finish = False
+# acc_group = STAKER_ACCOUNTS[66:76]
+acc_group = []
+for i in [113, 44, 110, 4, 6, 96, 12]:
+    acc_group.append(STAKER_ACCOUNTS[i])
 
 
 def test_tracking_time_join_pending():
@@ -90,10 +99,6 @@ def test_tracking_time_join_pending():
                 """
         return string
 
-    # acc_group = STAKER_ACCOUNTS[66:76]
-    acc_group = []
-    for i in [113, 44, 110, 4, 6, 96, 12]:
-        acc_group.append(STAKER_ACCOUNTS[i])
     bs = SUT().get_beacon_best_state_info()
     thread_pool = []
     with ThreadPoolExecutor() as executor:

@@ -1,3 +1,11 @@
+'''
+test_auto_enable_new_feature dùng để set-up các testcase auto enable, chạy kết hợp với test_view_stats để xem số lượng
+node được beacon ghi nhận và xem check feature được trigger không qua TriggeredFeature khi call getbeaconbeststate
+test_get_config dùng để biết config hiện tại của tất cả các node
+test_set_config dùng để set config 1 feature mới cho tất cả các node
+test_view_stats dùng để xem thống kê node update feature mới qua mỗi 10s/lần
+'''
+
 import math
 import random
 from concurrent.futures import ThreadPoolExecutor
