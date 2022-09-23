@@ -9,10 +9,10 @@ try:
     os.mkdir(log_folder)
 except FileExistsError:
     pass
-
+now = datetime.now().strftime("%y%m%d_%H%M%S")
 LOGGING_CONFIG = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'formatters': {
         'standard': {
             'format': '%(asctime)s %(levelname)-8s %(threadName)s:%(name)s:%(lineno)d %(message)s',
@@ -35,22 +35,22 @@ LOGGING_CONFIG = {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'DEBUG',
             'formatter': 'standard',
-            'filename': f'{log_folder}/run_{datetime.now().strftime("%y%m%d_%H%M%S")}.log',
-            'mode': 'w',
+            'filename': f'{log_folder}/run_{now}.log',
+            'mode': 'w+',
             'maxBytes': 10485760,
             'backupCount': 50, },
-        'file_short': {
+        'short_file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'INFO',
             'formatter': 'standard',
-            'filename': f'{log_folder}/run_{datetime.now().strftime("%y%m%d_%H%M%S")}.short_log',
+            'filename': f'{log_folder}/run_{now}.short.log',
             'mode': 'w',
             'maxBytes': 10485760,
             'backupCount': 50, },
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'file', 'file_short'],
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': True}, }}
 

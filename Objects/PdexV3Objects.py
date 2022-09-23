@@ -232,7 +232,8 @@ class PdeV3State(RPCResponseBase):
             empty_share = {
                 "Amount": 0,
                 "TradingFees": {},
-                "LastLPFeesPerShare": {}}
+                "LastLPFeesPerShare": {}
+            }
             self.__get_raw_shares()[nft_id] = empty_share
 
         def __rm_completed_orders(self):
@@ -642,6 +643,10 @@ class PdeV3State(RPCResponseBase):
                         f"Accepted: {json.dumps({token_x: accepted_x, token_y: accepted_y}, indent=3)}\n  "
                         f"Old | Added | New total share: "
                         f"{old_total_share} | {delta_share} | {self.total_share_amount}\n")
+
+            # remove this for next OTA
+            self.dict_data[self.get_pool_pair_id()]["StakingPoolFees"] = {PRV_ID: 0, self.get_token_id(0): 0,
+                                                                          self.get_token_id(1): 0}
             return return_amount
 
         def get_pool_rate(self, token_sell):
@@ -685,7 +690,7 @@ class PdeV3State(RPCResponseBase):
             # update user share
             my_share = self.get_share(nft_id)
             my_share.amount -= withdraw_able
-            self.__rm_empty_shares()
+            # self.__rm_empty_shares() # uncomment for next OTA
             return {token_x: x_receive, token_y: y_receive}
 
         def get_token_sell_of_order(self, order):
@@ -732,7 +737,7 @@ class PdeV3State(RPCResponseBase):
             pool_r = self.get_real_pool_size()
             pool_v = self.get_virtual_pool_size()
             ratio0 = pool_r[token0] * pool_v[token1] / (
-                        pool_r[token0] * pool_v[token1] + pool_r[token1] * pool_v[token0]) * 100
+                    pool_r[token0] * pool_v[token1] + pool_r[token1] * pool_v[token0]) * 100
             ratio = {token0: ratio0, token1: 100 - ratio0}
             return ratio
 

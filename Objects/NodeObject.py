@@ -19,6 +19,7 @@ from APIs.pDEX_V3 import DEXv3RPC, ResponseGetEstimatedLPValue
 from Configs.Configs import ChainConfig
 from Configs.Constants import PRV_ID
 from Drivers.Connections import SshSession
+from Drivers.IncCliWrapper import IncCliWrapper
 from Helpers import TestHelper
 from Helpers.Logging import config_logger
 from Helpers.TestHelper import l6, ChainHelper
@@ -139,6 +140,9 @@ class Node:
     def portal(self) -> PortalRpc:
         return PortalRpc(self._get_rpc_url())
 
+    def cli(self, network="testnet"):
+        return IncCliWrapper(network=network, host=self._get_rpc_url())
+
     def portal_v4(self):
         return PortalV4Rpc(self._get_rpc_url())
 
@@ -179,10 +183,10 @@ class Node:
         logger.info("Time out, tx is not confirmed!")
         return tx_detail
 
-    def get_latest_beacon_block(self, beacon_height=None):
+    def get_beacon_block(self, beacon_height=None):
         if beacon_height is None:
             beacon_height = self.help_get_beacon_height()
-        logger.info(f'Get beacon block at height {beacon_height}')
+        # logger.info(f'Get beacon block at height {beacon_height}')
         response = self.system_rpc().retrieve_beacon_block_by_height(beacon_height)
         return BeaconBlock(response.get_result()[0])
 
@@ -191,7 +195,7 @@ class Node:
         @param epoch: epoch number
         @return: BeaconBlock obj of the first epoch of epoch.
         If epoch is specified, get first beacon block of that epoch
-        If epoch is None,  get first beacon block of current epoch.
+        If epoch is None, get first beacon block of current epoch.
         If epoch = -1 then wait for the next epoch and get first beacon block of epoch
         """
         if epoch == -1:
@@ -214,7 +218,7 @@ class Node:
             pass
 
         beacon_height = TestHelper.ChainHelper.cal_first_height_of_epoch(epoch)
-        return self.get_latest_beacon_block(beacon_height)
+        return self.get_beacon_block(beacon_height)
 
     def get_beacon_best_state_detail_info(self):
         return self.system_rpc().get_beacon_best_state_detail()
@@ -465,7 +469,7 @@ class Node:
         RESULT = {}
 
         if epoch is None:
-            latest_beacon_block = self.get_latest_beacon_block()
+            latest_beacon_block = self.get_beacon_block()
             epoch = latest_beacon_block.get_epoch() - 1
             # can not calculate reward on latest epoch, because the instruction for splitting reward is only exist on
             # the first beacon block of next future epoch
@@ -481,7 +485,7 @@ class Node:
             f'last block of epoch = {last_height_of_epoch}')
 
         list_num_of_shard_block = []
-        beacon_blocks_in_epoch = [self.get_latest_beacon_block(height) for height in
+        beacon_blocks_in_epoch = [self.get_beacon_block(height) for height in
                                   range(first_height_of_epoch, last_height_of_epoch + 1)]
         for shard_id in shard_range:
             smallest_shard_height = int(1e30)
@@ -559,7 +563,7 @@ class Node:
         basic_reward = ChainConfig.BASIC_REWARD_PER_BLOCK
 
         if epoch is None:
-            latest_beacon_block = self.get_latest_beacon_block()
+            latest_beacon_block = self.get_beacon_block()
             epoch = latest_beacon_block.get_epoch() - 1
         # can not calculate reward on latest epoch, because the instruction for splitting reward is only exist on
         # the first beacon block of next future epoch
@@ -574,7 +578,7 @@ class Node:
         list_num_of_shard_block = []
         for shard_id in shard_range:
             list_num_of_shard_block.append([0, 0])
-        beacon_blocks_in_epoch = [self.get_latest_beacon_block(height) for height in
+        beacon_blocks_in_epoch = [self.get_beacon_block(height) for height in
                                   range(first_height_of_epoch, last_height_of_epoch + 1)]
         for bb in beacon_blocks_in_epoch:
             instructions = bb.get_instructions()
@@ -620,6 +624,13 @@ class Node:
         # to unify with the return result of method get reward in instruction
         # thus it will be easier to compare them to each other
         return RESULT
+
+    def cal_current_block_time(self):
+        latest_height = self.get_block_chain_info().get_beacon_block().get_height()
+        with ThreadPoolExecutor() as tpe:
+            latest_t = tpe.submit(self.get_beacon_block, latest_height)
+            previous_t = tpe.submit(self.get_beacon_block, latest_height - 1)
+        return latest_t.result().get_time() - previous_t.result().get_time()
 
     def get_committee_state(self, beacon_height=None):
         """
@@ -676,7 +687,8 @@ class Node:
         response = self.system_rpc().get_mem_pool()
         return response.get_mem_pool_transactions_id_list()
 
-    def get_shard_block_by_height(self, shard_id, height, level=1):
+    def get_shard_block_by_height(self, shard_id, height=None, level=1):
+        height = self.get_block_chain_info().get_shard_block(shard_id).get_height() if height is None else height
         response = self.system_rpc().retrieve_block_by_height(height, shard_id, level)
         return ShardBlock(response.get_result()[0])
 
@@ -1011,3 +1023,45 @@ class Node:
     @action_over_ssh
     def shell(self):
         return self._ssh_session
+
+    # ============================== for manual debug ========================================
+    def plot_tx_per_block(self, from_h, to_h=0, shard_ids=None):
+        """
+        @param from_h:
+        @param to_h:
+        @param shard_ids: list of shards to get data from
+        @return:
+        """
+        import matplotlib.pyplot as plt
+        blk_info = self.get_block_chain_info()
+        to_h = min(blk_info.get_all_height().values()) if to_h <= 0 else to_h
+        from_h = to_h + from_h if from_h < 0 else from_h
+        shard_ids = range(blk_info.get_active_shards()) if shard_ids is None else shard_ids
+        range_h = range(from_h, to_h)
+        plt.figure()
+        with ThreadPoolExecutor() as tpe:
+            threads = {shard_id: [tpe.submit(self.get_shard_block_by_height, shard_id, h) for h in range_h]
+                       for shard_id in shard_ids}
+        for shard_id, res_list in threads.items():
+            count_tx_in_block = [len(res.result().get_tx_hashes()) for res in res_list]
+            plt.plot(range_h, count_tx_in_block, label=f"Shard {shard_id}, count tx in each block")
+        plt.title("Count tx each block")
+        plt.xlabel("Bloch height")
+        plt.ylabel("Num of tx in block")
+        plt.legend()
+        plt.show()
+
+    def watch_tx_per_block_shard(self, shard):
+        import time
+        cur_h = self.get_block_chain_info().get_shard_block(0).get_height()
+        try:
+            while 1:
+                bc_info = self.get_block_chain_info()
+                h = bc_info.get_shard_block(0).get_height()
+                if cur_h < h:
+                    shard_blk = self.get_shard_block_by_height(0, h)
+                    print(f"{h}: {len(shard_blk.get_tx_hashes())}")
+                    cur_h = h
+                time.sleep(10)
+        except KeyboardInterrupt:
+            pass

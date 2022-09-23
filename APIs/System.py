@@ -53,7 +53,8 @@ class SystemRpc(BaseRpcApi):
         }
         return self.rpc_connection.set_payload(payload).execute()
 
-    def set_consensus_rule(self, vote_rule, create_rule, handle_vote_rule, handle_propose_rule, insert_rule, validator_rule):
+    def set_consensus_rule(self, vote_rule, create_rule, handle_vote_rule, handle_propose_rule, insert_rule,
+                           validator_rule):
         param = [{
             "vote_rule": vote_rule,
             "create_rule": create_rule,
@@ -77,7 +78,8 @@ class SystemRpc(BaseRpcApi):
         return self.rpc_connection.with_method("removebyzantinedetector").with_params([bls_public_k]).execute()
 
     def send_finish_sync(self, validator_key, committee_pk, shard_id):
-        return self.rpc_connection.with_method("sendfinishsync").with_params([validator_key, committee_pk, shard_id]).execute()
+        return self.rpc_connection.with_method("sendfinishsync").with_params([validator_key, committee_pk, shard_id])\
+            .execute()
 
     def set_auto_enable_feature_config(self, config):
         return self.rpc_connection.with_method("setautoenablefeatureconfig").with_params([config]).execute()

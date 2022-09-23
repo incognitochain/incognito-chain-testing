@@ -39,3 +39,4 @@ websocket-client
 pytest_dependency
 deepdiff
 mysql-connector-python
+matplotlib

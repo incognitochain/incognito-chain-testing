@@ -73,12 +73,12 @@ class Account:
         @param kwargs:
         """
         self.key_info = {"PrivateKey": private_key,
-                         "PublicKey": "",
+                         "PublicKey": kwargs.get("public_key"),
                          "PaymentAddressV1": "",
                          "PaymentAddress": payment_k,
                          "ReadOnlyKey": "",
                          "OTAPrivateKey": "",
-                         "MiningKey": "",
+                         "MiningKey": kwargs.get("validator_key", kwargs.get("mining_key")),
                          "MiningPublicKey": "",
                          "ValidatorPublicKey": "",
                          "ShardID": kwargs.get('shard'),
@@ -91,7 +91,10 @@ class Account:
         self.REQ_HANDLER: Node = handler
 
         if private_key and not payment_k:  # generate all key from private key if there's privatekey but not paymentkey
-            self.key_info = IncCliWrapper().key_info(self.private_key)
+            self.get_key_info()
+
+    def get_key_info(self):
+        self.key_info = IncCliWrapper().key_info(self.private_key)
 
     def check_payment_key_version(self, key=None):
         """
@@ -205,7 +208,7 @@ class Account:
 
     def __hash__(self):
         # for using Account object as 'key' in dictionary
-        return int(str(self.private_key).encode('utf8').hex(), 16)
+        return int(str(self.payment_key).encode('utf8').hex(), 16)
 
     def __me(self):
         return f"(PrvK {self.private_key[-6:]})"
@@ -665,13 +668,13 @@ class Account:
         # defrag account so that the custom fee = fee x 2 as below
         defrag = self.defragment_account()
         if defrag is not None:
-            defrag.subscribe_transaction()
+            defrag.get_transaction_by_hash()
         balance = self.get_balance()
         fee, size = self.get_estimate_fee_and_size(to_account, balance - 100, privacy=privacy)
         logger.info(f'''EstimateFeeCoinPerKb = {fee}, EstimateTxSizeInKb = {size}''')
         if balance > 0:
             return self.send_prv_to(to_account, balance - 100, int(100 / (size + 1)),
-                                    privacy).subscribe_transaction()
+                                    privacy).get_transaction_by_hash()
 
     def count_unspent_output_coins(self, token_id='', from_height=0):
         """
@@ -685,7 +688,7 @@ class Account:
                                                                             from_height).get_result("Outputs")
         return len(response[self.private_key])
 
-    def defragment_account(self, min_bill=1000000000000000):
+    def defragment_account(self, min_bill=None):
         """
         check if account need to be defrag by count unspent coin,
             if count > 1 then defrag
@@ -693,7 +696,7 @@ class Account:
         @return: Response object if need to defrag, None if not to
         """
         logger.info('Defrag account')
-
+        min_bill = 1000000000000000 if min_bill is None else min_bill
         if self.count_unspent_output_coins() > 1:
             return self.REQ_HANDLER.transaction().de_fragment_prv(self.private_key, min_bill)
         logger.info('No need to defrag!')
@@ -744,8 +747,8 @@ class Account:
         token1, token2 = list(pair_dict.keys())
         amount1, amount2 = list(pair_dict.values())
         pair_id = f'pde_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
-        tx1 = self.pde_contribute(token1, amount1, pair_id).expect_no_error().subscribe_transaction()
-        tx2 = self.pde_contribute(token2, amount2, pair_id).expect_no_error().subscribe_transaction()
+        tx1 = self.pde_contribute(token1, amount1, pair_id).expect_no_error().get_transaction_by_hash()
+        tx2 = self.pde_contribute(token2, amount2, pair_id).expect_no_error().get_transaction_by_hash()
         return tx1, tx2
 
     def pde_contribute(self, token_id, amount, pair_id):
@@ -792,8 +795,8 @@ class Account:
         token1, token2 = list(pair_dict.keys())
         amount1, amount2 = list(pair_dict.values())
         pair_id = f'pde_{l6(token1)}_{l6(token2)}_{get_current_date_time()}'
-        tx1 = self.pde_contribute_v2(token1, amount1, pair_id).expect_no_error().subscribe_transaction()
-        tx2 = self.pde_contribute_v2(token2, amount2, pair_id).expect_no_error().subscribe_transaction()
+        tx1 = self.pde_contribute_v2(token1, amount1, pair_id).expect_no_error().get_transaction_by_hash()
+        tx2 = self.pde_contribute_v2(token2, amount2, pair_id).expect_no_error().get_transaction_by_hash()
         return tx1, tx2
 
     def send_token_to(self, receiver, token_id, amount_custom_token,
@@ -1047,8 +1050,8 @@ class Account:
 
     def pde3_make_raw_trade_tx(self, token_sell, token_buy, sell_amount, min_acceptable, trade_path, trading_fee,
                                use_prv_fee=True):
-        return self.REQ_HANDLER.pde3_make_trade_tx(self.private_key, token_sell, token_buy, sell_amount,
-                                                   min_acceptable, trade_path, trading_fee, use_prv_fee)
+        return self.REQ_HANDLER.cli().pde3_make_swap_raw_tx(self.private_key, token_sell, token_buy, sell_amount,
+                                                            min_acceptable, trade_path, trading_fee, use_prv_fee)
 
     def pde3_withdraw_lp_fee_nft(self, pool_pair_id, nft_id, tx_fee=-1, tx_privacy=1):
         return self.REQ_HANDLER.dex_v3() \
@@ -1267,7 +1270,7 @@ class Account:
         req_tx = self.REQ_HANDLER.portal().create_n_send_tx_with_req_matching_redeem(self.private_key,
                                                                                      self.payment_key,
                                                                                      redeem_id)
-        req_tx.subscribe_transaction()
+        req_tx.get_transaction_by_hash()
         info = RedeemReqInfo()
         info.get_req_matching_redeem_status(req_tx.get_tx_id())
 
@@ -1480,7 +1483,8 @@ class Account:
 
             else:
                 # tx should be succeed
-                send_tx.expect_no_error().get_transaction_by_hash()
+                send_tx.expect_no_error()
+                self.REQ_HANDLER.get_tx_by_hash(send_tx.get_tx_id())
                 start = mid
                 mid += each
                 wasted_time = 0
@@ -1742,8 +1746,39 @@ class AccountGroup:
                 dispersion[acc.shard] = 1
         return dict(sorted(dispersion.items()))
 
+    def split_cross_shard(self):
+        """
+        Split an AccountGroup into 2, Account has same index of both group will belong to different shards
+        :return:
+        """
+        acc = self.account_list.copy()
+        senders, receivers = [], []
+        while len(acc) > 0:
+            try:
+                sender = acc.pop(0)
+                senders.append(sender)
+                for i in range(len(acc)):
+                    receiver = acc.pop(0)
+                    if sender.shard != receiver.shard:
+                        receivers.append(receiver)
+                        break
+                    else:
+                        acc.append(receiver)
+                if i == len(acc):
+                    break
+            except IndexError:
+                pass
+        return AccountGroup(*senders), AccountGroup(*receivers)
+
     @staticmethod
-    def gen_accounts(mnemonic=None, num_of_acc=1):
+    def gen_accounts(mnemonic=None, num_of_acc=1, shards=range(8)):
+        """
+        Generate a new AccountGroup
+        :param mnemonic:
+        :param num_of_acc:
+        :param shards: list of shard to gen, default = [0, 1, 2, 3, 4, 5, 6, 7]
+        :return:
+        """
         acc_group = AccountGroup()
         if mnemonic:
             accounts_raw = IncCliWrapper().import_account(mnemonic, num_of_acc)
@@ -1754,8 +1789,29 @@ class AccountGroup:
         for raw_acc in accounts_raw:
             acc = Account()
             acc.key_info = raw_acc
-            acc_group.append(acc)
+            if acc.shard in shards:
+                acc_group.append(acc)
         return acc_group
+
+    def defrag_prv(self, max_utxo=10, min_bill=None):
+        acc_to_defrag = copy.copy(self.account_list)
+        while 1:
+            to_remove = []
+            with ThreadPoolExecutor() as tpe:
+                threads = {acc: tpe.submit(acc.list_utxo, PRV_ID) for acc in acc_to_defrag}
+            utxo_count = {acc: len(r.result().get_coins()) for acc, r in threads.items()}
+            for acc, count in utxo_count.items():
+                print(f"{acc.private_key[-8:]} has {count} utxo")
+                if count < max_utxo:
+                    acc_to_defrag.remove(acc)
+                    print(f"   No need defrag, remove. Num of acc left {len(acc_to_defrag)}")
+            with ThreadPoolExecutor() as tpe:
+                for acc in acc_to_defrag:
+                    tpe.submit(acc.defragment_account, min_bill)
+            if not acc_to_defrag:
+                break
+            print("Wait for 30s")
+            time.sleep(30)
 
 
 PORTAL_FEEDER = Account(ChainConfig.Portal.FEEDER_PRIVATE_K)

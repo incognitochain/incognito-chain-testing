@@ -6,8 +6,8 @@ class TestConfig:
 
 
 class ChainConfig:
-    ACCESS_TOKEN = '0c3d46946bbf99c8213dd7f6c640ed6433bdc056a5b68e7e80f5525311b0ca11'
     # ACCESS_TOKEN = '0ec910a54ffbf2a0bdfc0c8b05e8b5445e51a2ae54f659a35ac7ad9980e4fd2c'
+    ACCESS_TOKEN = '0c3d46946bbf99c8213dd7f6c640ed6433bdc056a5b68e7e80f5525311b0ca11'
     BLOCK_PER_EPOCH = 20
     RANDOM_TIME = 10  # the n(th) height in epoch to call random function, usually = BLOCK_PER_EPOCH/2 not BLOCK_TIME/2
     BLOCK_TIME = 10
@@ -60,19 +60,21 @@ class ChainConfig:
         return ChainConfig.BLOCK_TIME * (number_of_block + num_of_epoch * ChainConfig.BLOCK_PER_EPOCH)
 
     @staticmethod
-    def get_running_config(from_height=3):
+    def get_running_config(from_node=None, from_height=None):
         # collecting running chain config
-        from Objects.IncognitoTestCase import SUT
-        bbs = SUT().get_beacon_best_state_info()
-        chain_info = SUT().get_block_chain_info()
-        block_from = SUT().get_shard_block_by_height(0, from_height)
-        block_next = SUT().get_shard_block_by_height(0, from_height + 1)
+        if not from_node:
+            from Objects.IncognitoTestCase import SUT
+            from_node = SUT()
+        bbs = from_node.get_beacon_best_state_info()
+        if from_height is None:
+            from_height = bbs.get_beacon_height() - 1
+        chain_info = from_node.get_block_chain_info()
         ChainConfig.BEACON_COMMITTEE_SIZE = bbs.get_max_beacon_committee_size()
         ChainConfig.ACTIVE_SHARD = bbs.get_active_shard()
         ChainConfig.SHARD_COMMITTEE_SIZE = bbs.get_max_shard_committee_size()
         ChainConfig.FIX_BLOCK_VALIDATOR = bbs.get_min_shard_committee_size()
         ChainConfig.BLOCK_PER_EPOCH = chain_info.get_block_per_epoch_number()
-        ChainConfig.BLOCK_TIME = block_next.get_time() - block_from.get_time()
+        ChainConfig.BLOCK_TIME = from_node.cal_current_block_time()
         ChainConfig.RANDOM_TIME = ChainConfig.BLOCK_PER_EPOCH / 2
 
 

@@ -13,9 +13,14 @@ class IncCliWrapper:
         get(sys.platform, 'bin/incognito-cli-win')
 
     def __init__(self, **settings):
-        self.setting = ["--network", settings.get('network', 'local'),
-                        "--host", settings.get('host', 'http://localhost:8334'),
-                        "--utxoCache", str(settings.get('utxoCache', 0)),
+        network = settings.get('network', settings.get("net", 'local'))
+        hosts = {"local": 'http://localhost:8334',
+                 "testnet": "http://51.83.36.184:9334",
+                 "testnet1": "http://51.195.4.15:29906",
+                 "mainnet": "https://lb-fullnode.incognito.org/fullnode"}
+        self.setting = ["--network", network,
+                        "--host", settings.get('host', hosts[network]),
+                        "--utxoCache", str(settings.get('utxoCache', settings.get("cache", 0))),
                         "--debug", str(settings.get('debug', 0))]
 
     def run(self, *args):
@@ -50,3 +55,29 @@ class IncCliWrapper:
     def send(self, private_key, to_addr, token, amount, fee):
         output = self.run('send', "-p", private_key, '--addr', to_addr, "--amt", amount, '----tokenID', token, "--fee",
                           fee)
+
+    def shield_evm(self, ):
+        pass
+
+    def shield_evm_retry(self, external_tx_hash):
+        pass
+
+    def shield_portal(self):
+        pass
+
+    def pde3_make_swap_raw_tx(self, private_k, token_sell, token_buy, sell_amount, min_acceptable, trade_path,
+                              trading_fee):
+        """
+        @param private_k:
+        @param token_sell:
+        @param token_buy:
+        @param sell_amount:
+        @param min_acceptable:
+        @param trade_path:
+        @param trading_fee:
+        @return: dict {"TxHash" : tx hash, "rawTx": raw}
+        """
+        stdout = self.run('pdeaction', 'rawtrade', '--p', private_k, '--sellTokenID', token_sell, '--buyTokenID',
+                          token_buy, '--sellAmt', str(sell_amount), '--tradingFee', str(trading_fee), '--tradingPath',
+                          str(trade_path))
+        return json.loads(stdout.split('\n', 1)[1])

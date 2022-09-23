@@ -595,7 +595,7 @@ class TransactionDetail(RPCResponseWithTxHash):
         version = ChainConfig.PRIVACY_VERSION
         privacy = privacy_flag and detail_proof.check_proof_privacy()
         if version == 2:
-            logger.info(f'In v2, privacy must always be true no mater the hell you want')
+            logger.info(f'In v2, privacy is always enable')
             assert privacy, f'Expected privacy = True, actual = {privacy}'
         else:
             assert privacy == expected_privacy, f'Expected privacy = {expected_privacy} while actual = {privacy}'
