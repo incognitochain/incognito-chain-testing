@@ -299,7 +299,7 @@ cat << EOF
               >----        STARTING STAKERS       ----<
              -------------------------------------------
 EOF
-    numTotalStaker=$(echo $$(echo $numOfStakerPreRun | cut -d',' -f1) | cut -d',' -f1)
+    numTotalStaker=$(echo $numOfStakerPreRun | cut -d',' -f1)
     numMultikeyStaker=$(echo $numOfStakerPreRun | cut -d',' -f2)
     numSiglekeyStaker=$((numTotalStaker-numMultikeyStaker))
     stakerKeys=($(keyListGet Staker $keyType $i))
