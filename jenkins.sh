@@ -80,7 +80,7 @@ function keyListGet {
   list=$1
   type=$2
   index=$3
-  if [[ -z $4 ]] numKeyToGet=1; else numKeyToGet=$4; fi
+  if [[ -z $4 ]]; then numKeyToGet=1; else numKeyToGet=$4; fi
   case $type in
     "miningkeys")
         key=$(cat $keyListFile | jq '.'$list[$index]'.ValidatorKey')
