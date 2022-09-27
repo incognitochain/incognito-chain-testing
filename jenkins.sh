@@ -66,14 +66,12 @@ EOF
 fi
 
 activeShard=$(grep "active_shards" $yamlParamFile | cut -d ' ' -f 2)
-numOfFixNode=$(grep "number_of_fixed_shard_block_validators" $yamlParamFile | cut -d ':' -f 2)
-numOfFixNode=${numOfFixNode// /}
-
+numOfFixNode=$(grep "number_of_fixed_shard_block_validators" $yamlParamFile | cut -d ':' -f 2 | tr -d " ")
+numOfBeacon=$(grep "min_beacon_committee_size" $yamlParamFile | cut -d ':' -f 2 | tr -d " ")
 unset GETH_NAME
 unset GETH_PROTOCOL
 unset GETH_PORT
 
-#
 BIN=incognito.${branch//\//.}
 
 function keyListGet {
@@ -211,7 +209,6 @@ cat << EOF
               >----        STARTING BEACONS       ----<
              -------------------------------------------
 EOF
-
     for i in $(seq 0 $(($numOfBeacon - 1))); do
         key=$(keyListGet Beacon $keyType $i)
         command="Profiling=$firstProfilingPort ./$BIN \
@@ -319,8 +316,7 @@ EOF
         ((firstProfilingPort++))
         ((i++))
     done
-    mKeys=${stakerKeys[@]:$i:$numMultikeyStaker}
-    mKeys=${mKeys//\" \"/,}
+    mKeys=$(echo "${stakerKeys[@]:$i:$numMultikeyStaker}" | tr -d "\"" | tr " " ,)
     command="Profiling=$firstProfilingPort ./$BIN \
         --datadir data/staker_$i \
         --rpclisten $listenAddress:$((++firstStakerRpcPort)) \
