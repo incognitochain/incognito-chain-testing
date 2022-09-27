@@ -236,14 +236,11 @@ cat << EOF
 EOF
     for shard in $(seq 0 $(($activeShard - 1))); do
         echo " ### STARTING SHARDS $shard ###"
+        shardKeys=($(keyListGet Shard.\"$shard\" miningkeys))
+
         if [[ $numOfFixNodeMultikeyEachShard -gt 0 ]]; then
             echo " # Starting multikey fix node shard $shard # "
-            shard_mkey=""
-            for node in $(seq 0 $(($numOfFixNodeMultikeyEachShard - 1))); do
-                qShard=.Shard.\"$shard\"
-                key=$(keyListGet Shard.\"$shard\" miningkeys)
-                shard_mkey+=${key//\"/},
-            done
+            shard_mkey=$(echo "${shardKeys[@]:0:$numOfFixNodeMultikeyEachShard}" | tr -d "\"" | tr " " ,)
             command="Profiling=$firstProfilingPort ./$BIN \
             --datadir data/shard_${shard}m \
             --rpclisten $listenAddress:$((++firstRpcPort)) \
@@ -265,13 +262,12 @@ EOF
 
         echo " # Starting single key fix nodes shard $shard # "
             for node in $(seq $numOfFixNodeMultikeyEachShard $(($numOfFixNode - 1))); do
-                key=$(keyListGet Shard.\"$shard\" $keyType $node)
                 command="Profiling=$firstProfilingPort ./$BIN \
                 --datadir data/shard_${shard}_$node \
                 --rpclisten $listenAddress:$((++firstRpcPort)) \
                 --rpcwslisten $listenAddress:$((++firstWsPort))\
                 --discoverpeersaddress $discoverPeersAddress \
-                --$keyType $key \
+                --$keyType ${shardKeys[$node]} \
                 --listen $listenAddress:$((++firstListenPort)) \
                 --externaladdress $listenAddress:$((firstListenPort)) \
                 --loglevel debug \
@@ -279,12 +275,10 @@ EOF
                 --numindexerworkers=100 \
                 --norpcauth \
                 2>$logFolder/shard_${shard}_${node}.error | cronolog $logFolder/shard_${shard}_${node}-%Y-%m-%d.log &"
-
                 eval $command
                 echo $command
                 echo
                 ((firstProfilingPort++))
-
             done
     done
 
