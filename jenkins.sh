@@ -77,29 +77,29 @@ unset GETH_PORT
 BIN=incognito.${branch//\//.}
 
 function keyListGet {
-  list=$1
-  type=$2
-  index=$3
-  if [[ -z $4 ]]; then numKeyToGet=1; else numKeyToGet=$4; fi
-  case $type in
-    "miningkeys")
-        key=$(cat $keyListFile | jq '.'$list[$index]'.ValidatorKey')
-        ;;
-    "privatekey")
-        key=$(cat $keyListFile | jq '.'$list[$index]'.PrivateKey')
-        ;;
-    ?)
-        key=$(cat $keyListFile | jq $list)
-        ;;
-  esac
+    list=$1
+    type=$2
+    index=$3
+    if [[ -z $4 ]]; then numKeyToGet=1; else numKeyToGet=$4; fi
+    case $type in
+        "miningkeys")
+            key=$(cat $keyListFile | jq '.'$list[$index]'.ValidatorKey')
+            ;;
+        "privatekey")
+            key=$(cat $keyListFile | jq '.'$list[$index]'.PrivateKey')
+            ;;
+        ?)
+            key=$(cat $keyListFile | jq $list)
+            ;;
+    esac
 
-  check=($key)
-  if [ ${check[-1]} == null ]; then
-    echo "keylist.json error: please check $list $i, $type"
-    # exit 10
-  else
-    echo $key
-  fi
+    check=($key)
+    if [ ${check[-1]} == null ]; then
+        echo "keylist.json error: please check $list $i, $type"
+        # exit 10
+    else
+        echo $key
+    fi
 }
 
 function stop_chain {
@@ -146,8 +146,8 @@ cat << EOF
 ----------------------------------------------------------------------
 
 EOF
-	set -x
-	rm $buildFolder/data/* -Rf || echo
+    set -x
+    rm $buildFolder/data/* -Rf || echo
     ls $buildFolder/data/ || echo
     set +x
 }
@@ -160,8 +160,6 @@ cat << EOF
 |--------------------        BUILD CHAIN       ----------------------|
 ----------------------------------------------------------------------
 EOF
-
-
    set -x
    eval "$sedConfig"
 
@@ -215,23 +213,23 @@ cat << EOF
 EOF
 
     for i in $(seq 0 $(($numOfBeacon - 1))); do
-      key=$(keyListGet Beacon $keyType $i)
-      command="Profiling=$firstProfilingPort ./$BIN \
-          --datadir data/beacon_$i \
-          --rpclisten $listenAddress:$((++firstRpcPort)) \
-          --listen $listenAddress:$((++firstListenPort)) \
-          --rpcwslisten $listenAddress:$((++firstWsPort)) \
-          --$keyType $key \
-          --discoverpeersaddress $discoverPeersAddress \
-          --externaladdress $listenAddress:$((firstListenPort)) \
-          --loglevel debug \
-          --norpcauth \
-          2> $logFolder/beacon_${i}.error | cronolog $logFolder/beacon_${i}-%Y-%m-%d.log &"
+        key=$(keyListGet Beacon $keyType $i)
+        command="Profiling=$firstProfilingPort ./$BIN \
+            --datadir data/beacon_$i \
+            --rpclisten $listenAddress:$((++firstRpcPort)) \
+            --listen $listenAddress:$((++firstListenPort)) \
+            --rpcwslisten $listenAddress:$((++firstWsPort)) \
+            --$keyType $key \
+            --discoverpeersaddress $discoverPeersAddress \
+            --externaladdress $listenAddress:$((firstListenPort)) \
+            --loglevel debug \
+            --norpcauth \
+            2> $logFolder/beacon_${i}.error | cronolog $logFolder/beacon_${i}-%Y-%m-%d.log &"
 
-      eval $command
-      echo $command
-      echo
-      ((firstProfilingPort++))
+        eval $command
+        echo $command
+        echo
+        ((firstProfilingPort++))
 
     done
 
@@ -240,114 +238,128 @@ cat << EOF
              -------------------------------------------
 EOF
     for shard in $(seq 0 $(($activeShard - 1))); do
-      echo " ### STARTING SHARDS $shard ###"
-      if [[ $numOfFixNodeMultikeyEachShard -gt 0 ]]; then
-         echo " # Starting multikey fix node shard $shard # "
-         shard_mkey=""
-         for node in $(seq 0 $(($numOfFixNodeMultikeyEachShard - 1))); do
-            qShard=.Shard.\"$shard\"
-            key=$(keyListGet Shard.\"$shard\" miningkeys)
-            shard_mkey+=${key//\"/},
-         done
-         command="Profiling=$firstProfilingPort ./$BIN \
-         --datadir data/shard_${shard}m \
-         --rpclisten $listenAddress:$((++firstRpcPort)) \
-         --rpcwslisten $listenAddress:$((++firstWsPort)) \
-         --discoverpeersaddress $discoverPeersAddress \
-         --miningkeys ${shard_mkey%,} \
-         --listen $listenAddress:$((++firstListenPort)) \
-         --externaladdress $listenAddress:$((firstListenPort)) \
-         --loglevel debug \
-         --usecoindata --coindatapre=__coins__ \
-         --numindexerworkers=100 \
-         --norpcauth \
-         2>$logFolder/shard_${shard}m.error | cronolog $logFolder/shard_${shard}m-%Y-%m-%d.log &"
+        echo " ### STARTING SHARDS $shard ###"
+        if [[ $numOfFixNodeMultikeyEachShard -gt 0 ]]; then
+            echo " # Starting multikey fix node shard $shard # "
+            shard_mkey=""
+            for node in $(seq 0 $(($numOfFixNodeMultikeyEachShard - 1))); do
+                qShard=.Shard.\"$shard\"
+                key=$(keyListGet Shard.\"$shard\" miningkeys)
+                shard_mkey+=${key//\"/},
+            done
+            command="Profiling=$firstProfilingPort ./$BIN \
+            --datadir data/shard_${shard}m \
+            --rpclisten $listenAddress:$((++firstRpcPort)) \
+            --rpcwslisten $listenAddress:$((++firstWsPort)) \
+            --discoverpeersaddress $discoverPeersAddress \
+            --miningkeys ${shard_mkey%,} \
+            --listen $listenAddress:$((++firstListenPort)) \
+            --externaladdress $listenAddress:$((firstListenPort)) \
+            --loglevel debug \
+            --usecoindata --coindatapre=__coins__ \
+            --numindexerworkers=100 \
+            --norpcauth \
+            2>$logFolder/shard_${shard}m.error | cronolog $logFolder/shard_${shard}m-%Y-%m-%d.log &"
+            eval $command
+            echo $command
+            echo
+            ((firstProfilingPort++))
+        fi
 
-         eval $command
-         echo $command
-         echo
-         ((firstProfilingPort++))
+        echo " # Starting single key fix nodes shard $shard # "
+            for node in $(seq $numOfFixNodeMultikeyEachShard $(($numOfFixNode - 1))); do
+                key=$(keyListGet Shard.\"$shard\" $keyType $node)
+                command="Profiling=$firstProfilingPort ./$BIN \
+                --datadir data/shard_${shard}_$node \
+                --rpclisten $listenAddress:$((++firstRpcPort)) \
+                --rpcwslisten $listenAddress:$((++firstWsPort))\
+                --discoverpeersaddress $discoverPeersAddress \
+                --$keyType $key \
+                --listen $listenAddress:$((++firstListenPort)) \
+                --externaladdress $listenAddress:$((firstListenPort)) \
+                --loglevel debug \
+                --usecoindata --coindatapre=__coins__ \
+                --numindexerworkers=100 \
+                --norpcauth \
+                2>$logFolder/shard_${shard}_${node}.error | cronolog $logFolder/shard_${shard}_${node}-%Y-%m-%d.log &"
 
-      fi
+                eval $command
+                echo $command
+                echo
+                ((firstProfilingPort++))
 
-      echo " # Starting single key fix nodes shard $shard # "
-      for node in $(seq $numOfFixNodeMultikeyEachShard $(($numOfFixNode - 1))); do
-          key=$(keyListGet Shard.\"$shard\" $keyType $node)
-          command="Profiling=$firstProfilingPort ./$BIN \
-          --datadir data/shard_${shard}_$node \
-          --rpclisten $listenAddress:$((++firstRpcPort)) \
-          --rpcwslisten $listenAddress:$((++firstWsPort))\
-          --discoverpeersaddress $discoverPeersAddress \
-          --$keyType $key \
-          --listen $listenAddress:$((++firstListenPort)) \
-          --externaladdress $listenAddress:$((firstListenPort)) \
-          --loglevel debug \
-          --usecoindata --coindatapre=__coins__ \
-          --numindexerworkers=100 \
-          --norpcauth \
-          2>$logFolder/shard_${shard}_${node}.error | cronolog $logFolder/shard_${shard}_${node}-%Y-%m-%d.log &"
-
-          eval $command
-          echo $command
-          echo
-          ((firstProfilingPort++))
-
-      done
+            done
     done
 
 cat << EOF
               >----        STARTING STAKERS       ----<
              -------------------------------------------
 EOF
-    numTotalStaker=$(echo $numOfStakerPreRun | cut -d',' -f1)
-    numMultikeyStaker=$(echo $numOfStakerPreRun | cut -d',' -f2)
+    numTotalStaker=$(echo $numOfStakerPreRun | cut -d ',' -f1)
+    numMultikeyStaker=$(echo $numOfStakerPreRun | cut -d ',' -f2)
     numSiglekeyStaker=$((numTotalStaker-numMultikeyStaker))
-    stakerKeys=($(keyListGet Staker $keyType $i))
-    for i in $(seq 0 $(($numSiglekeyStaker - 1))); do
-      command="Profiling=$firstProfilingPort ./$BIN \
-          --datadir data/staker_$i \
-          --rpclisten $listenAddress:$((++firstStakerRpcPort)) \
-          --rpcwslisten $listenAddress:$((++firstWsPort))\
-          --listen $listenAddress:$((++firstStakerListenPort)) \
-          --$keyType $key \
-          --discoverpeersaddress $discoverPeersAddress \
-          --externaladdress $listenAddress:$((firstStakerListenPort)) \
-          --loglevel debug \
-          --usecoindata --coindatapre=__coins__ \
-          --numindexerworkers=100 \
-          --norpcauth \
-          2> $logFolder/staker_${i}.error | cronolog $logFolder/staker_${i}-%Y-%m-%d.log &"
-
-      eval $command
-      echo $command
-      echo
-      ((firstProfilingPort++))
-
+    stakerKeys=($(keyListGet Staker $keyType))
+    i=0
+    while [[ $i -lt numSiglekeyStaker ]] ; do
+        command="Profiling=$firstProfilingPort ./$BIN \
+            --datadir data/staker_$i \
+            --rpclisten $listenAddress:$((++firstStakerRpcPort)) \
+            --rpcwslisten $listenAddress:$((++firstWsPort))\
+            --listen $listenAddress:$((++firstStakerListenPort)) \
+            --$keyType ${stakerKeys[$i]} \
+            --discoverpeersaddress $discoverPeersAddress \
+            --externaladdress $listenAddress:$((firstStakerListenPort)) \
+            --loglevel debug \
+            --usecoindata --coindatapre=__coins__ \
+            --numindexerworkers=100 \
+            --norpcauth \
+            2> $logFolder/staker_${i}.error | cronolog $logFolder/staker_${i}-%Y-%m-%d.log &"
+        eval $command
+        echo $command
+        ((firstProfilingPort++))
+        ((i++))
     done
+    mKeys=${stakerKeys[@]:$i:$numMultikeyStaker}
+    mKeys=${mKeys//\" \"/,}
+    command="Profiling=$firstProfilingPort ./$BIN \
+        --datadir data/staker_$i \
+        --rpclisten $listenAddress:$((++firstStakerRpcPort)) \
+        --rpcwslisten $listenAddress:$((++firstWsPort))\
+        --listen $listenAddress:$((++firstStakerListenPort)) \
+        --$keyType $mKeys\
+        --discoverpeersaddress $discoverPeersAddress \
+        --externaladdress $listenAddress:$((firstStakerListenPort)) \
+        --loglevel debug \
+        --usecoindata --coindatapre=__coins__ \
+        --numindexerworkers=100 \
+        --norpcauth \
+        2> $logFolder/staker_${i}.error | cronolog $logFolder/staker_${i}-%Y-%m-%d.log &"
+        eval $command
+        echo $command
+        ((firstProfilingPort++))
 
 cat << EOF
               >----        STARTING STAKERS MULTIKEY      ----<
              ---------------------------------------------------
 EOF
-	mKeyArray=(${mValKeys//\\n/ })
-
+    mKeyArray=(${mValKeys//\\n/ })
     for i in $(seq 0 $(($numOfStakerMultikeyPreRun - 1))); do
-      key=${mKeyArray[${i}]}
-      command="Profiling=$firstProfilingPort ./$BIN \
-          --datadir data/mstaker_$i \
-          --rpclisten $listenAddress:$((++firstmStakerRpcPort)) \
-          --listen $listenAddress:$((++firstmStakerListenPort)) \
-          --miningkeys "$key" \
-          --discoverpeersaddress $discoverPeersAddress \
-          --externaladdress $listenAddress:$((firstmStakerListenPort)) \
-          --loglevel debug \
-          --norpcauth \
-          2> $logFolder/mstaker_${i}.error | cronolog $logFolder/mstaker_${i}-%Y-%m-%d.log &"
+        key=${mKeyArray[${i}]}
+        command="Profiling=$firstProfilingPort ./$BIN \
+            --datadir data/mstaker_$i \
+            --rpclisten $listenAddress:$((++firstmStakerRpcPort)) \
+            --listen $listenAddress:$((++firstmStakerListenPort)) \
+            --miningkeys "$key" \
+            --discoverpeersaddress $discoverPeersAddress \
+            --externaladdress $listenAddress:$((firstmStakerListenPort)) \
+            --loglevel debug \
+            --norpcauth \
+            2> $logFolder/mstaker_${i}.error | cronolog $logFolder/mstaker_${i}-%Y-%m-%d.log &"
 
-      eval $command
-      echo $command
-      echo
-      ((firstProfilingPort++))
+        eval $command
+        echo $command
+        echo
+        ((firstProfilingPort++))
 
     done
 
