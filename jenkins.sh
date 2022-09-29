@@ -290,7 +290,26 @@ EOF
     numMultikeyStaker=$(echo $numOfStakerPreRun | cut -d ',' -f2)
     numSiglekeyStaker=$((numTotalStaker-numMultikeyStaker))
     stakerKeys=($(keyListGet Staker $keyType))
-    i=0
+    
+    mKeys=$(echo "${stakerKeys[@]:0:$numMultikeyStaker}" | tr -d "\"" | tr " " ,)
+    command="Profiling=$firstProfilingPort ./$BIN \
+        --datadir data/mstaker \
+        --rpclisten $listenAddress:$((++firstStakerRpcPort)) \
+        --rpcwslisten $listenAddress:$((++firstWsPort))\
+        --listen $listenAddress:$((++firstStakerListenPort)) \
+        --$keyType $mKeys\
+        --discoverpeersaddress $discoverPeersAddress \
+        --externaladdress $listenAddress:$((firstStakerListenPort)) \
+        --loglevel debug \
+        --usecoindata --coindatapre=__coins__ \
+        --numindexerworkers=100 \
+        --norpcauth \
+        2> $logFolder/mstaker.error | cronolog $logFolder/mstaker-%Y-%m-%d.log &"
+    eval $command
+    echo $command
+    ((firstProfilingPort++))
+
+    i=$numMultikeyStaker
     while [[ $i -lt numSiglekeyStaker ]] ; do
         command="Profiling=$firstProfilingPort ./$BIN \
             --datadir data/staker_$i \
@@ -310,48 +329,7 @@ EOF
         ((firstProfilingPort++))
         ((i++))
     done
-    mKeys=$(echo "${stakerKeys[@]:$i:$numMultikeyStaker}" | tr -d "\"" | tr " " ,)
-    command="Profiling=$firstProfilingPort ./$BIN \
-        --datadir data/staker_$i \
-        --rpclisten $listenAddress:$((++firstStakerRpcPort)) \
-        --rpcwslisten $listenAddress:$((++firstWsPort))\
-        --listen $listenAddress:$((++firstStakerListenPort)) \
-        --$keyType $mKeys\
-        --discoverpeersaddress $discoverPeersAddress \
-        --externaladdress $listenAddress:$((firstStakerListenPort)) \
-        --loglevel debug \
-        --usecoindata --coindatapre=__coins__ \
-        --numindexerworkers=100 \
-        --norpcauth \
-        2> $logFolder/staker_${i}.error | cronolog $logFolder/staker_${i}-%Y-%m-%d.log &"
-        eval $command
-        echo $command
-        ((firstProfilingPort++))
 
-cat << EOF
-              >----        STARTING STAKERS MULTIKEY      ----<
-             ---------------------------------------------------
-EOF
-    mKeyArray=(${mValKeys//\\n/ })
-    for i in $(seq 0 $(($numOfStakerMultikeyPreRun - 1))); do
-        key=${mKeyArray[${i}]}
-        command="Profiling=$firstProfilingPort ./$BIN \
-            --datadir data/mstaker_$i \
-            --rpclisten $listenAddress:$((++firstmStakerRpcPort)) \
-            --listen $listenAddress:$((++firstmStakerListenPort)) \
-            --miningkeys "$key" \
-            --discoverpeersaddress $discoverPeersAddress \
-            --externaladdress $listenAddress:$((firstmStakerListenPort)) \
-            --loglevel debug \
-            --norpcauth \
-            2> $logFolder/mstaker_${i}.error | cronolog $logFolder/mstaker_${i}-%Y-%m-%d.log &"
-
-        eval $command
-        echo $command
-        echo
-        ((firstProfilingPort++))
-
-    done
 
 }
 
