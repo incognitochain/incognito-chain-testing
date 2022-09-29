@@ -309,25 +309,26 @@ EOF
     echo $command
     ((firstProfilingPort++))
 
-    i=$numMultikeyStaker
-    while [[ $i -lt numSiglekeyStaker ]] ; do
+    count=0
+    while [[ $count -lt numSiglekeyStaker ]] ; do
+        index=$((count+numMultikeyStaker))
         command="Profiling=$firstProfilingPort ./$BIN \
-            --datadir data/staker_$i \
+            --datadir data/staker_$index \
             --rpclisten $listenAddress:$((++firstStakerRpcPort)) \
             --rpcwslisten $listenAddress:$((++firstWsPort))\
             --listen $listenAddress:$((++firstStakerListenPort)) \
-            --$keyType ${stakerKeys[$i]} \
+            --$keyType ${stakerKeys[$index]} \
             --discoverpeersaddress $discoverPeersAddress \
             --externaladdress $listenAddress:$((firstStakerListenPort)) \
             --loglevel debug \
             --usecoindata --coindatapre=__coins__ \
             --numindexerworkers=100 \
             --norpcauth \
-            2> $logFolder/staker_${i}.error | cronolog $logFolder/staker_${i}-%Y-%m-%d.log &"
+            2> $logFolder/staker_${index}.error | cronolog $logFolder/staker_${index}-%Y-%m-%d.log &"
         eval $command
         echo $command
         ((firstProfilingPort++))
-        ((i++))
+        ((count++))
     done
 
 
