@@ -88,12 +88,12 @@ def test_view_dynamic():
         count_blocks_subset_per_epoch[str(shard_id)] = {}
         count_vote_by_subset[str(shard_id)] = [0, 0]
     fist_beacon = (epoch - 1) * ChainConfig.BLOCK_PER_EPOCH + 1
-    beacon_block = SUT().get_latest_beacon_block(fist_beacon)
+    beacon_block = SUT().get_beacon_block(fist_beacon)
     while not beacon_block.get_shard_states():
         fist_beacon += 1
         if fist_beacon == beacon_height:
             break
-        beacon_block = SUT().get_latest_beacon_block(fist_beacon)
+        beacon_block = SUT().get_beacon_block(fist_beacon)
     for i in shard_range:
         if not beacon_block:
             break
@@ -161,7 +161,7 @@ def test_view_dynamic():
                 count_vote_by_subset[str(i)] = [0, 0]
             if current_height_in_epoch != 1:
                 fist_beacon = b4_epoch * ChainConfig.BLOCK_PER_EPOCH + 1
-                beacon_block = SUT().get_latest_beacon_block(fist_beacon)
+                beacon_block = SUT().get_beacon_block(fist_beacon)
                 for i in shard_range:
                     try:
                         first_height[str(i)] = beacon_block.get_shard_states(i).get_smallest_block_height()

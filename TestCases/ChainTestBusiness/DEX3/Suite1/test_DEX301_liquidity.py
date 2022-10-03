@@ -48,7 +48,9 @@ def test_add_liquidity_first_time(contributor, nft_id, contribution, amplifier):
     WAIT(3 * ChainConfig.BLOCK_TIME)
     pde_state = SUT().pde3_get_state()
     new_pool_pair = pde_state.get_pool_pair(tokens=[token_x, token_y])[0]
-    assert new_pool_pair.pair_data() == init_pair.pair_data()
+    dd = deepdiff.DeepDiff(new_pool_pair.pair_data(), init_pair.pair_data(), exclude_regex_paths="StakingPoolFees")
+    if dd:
+        raise AssertionError(dd.pretty())
     assert return_amount == {token_x: 0, token_y: 0}
     pp_id = new_pool_pair.get_pool_pair_id()
     INIT_PAIR_IDS.append(pp_id)
@@ -77,6 +79,7 @@ def test_add_liquidity_first_time(contributor, nft_id, contribution, amplifier):
     assert new_pool_pair2.get_real_amount(token_x) == 2 * x_add_amount
     assert new_pool_pair2.get_real_amount(token_y) == 2 * y_add_amount
     pool_predict = new_pool_pair.clone()
+
     return_amount = pool_predict. \
         predict_pool_when_add_liquidity({token_x: x_add_amount, token_y: y_add_amount}, contributor.nft_ids[0])
     bal_x_af2 = contributor.get_balance(token_x)
@@ -87,8 +90,8 @@ def test_add_liquidity_first_time(contributor, nft_id, contribution, amplifier):
     """)
     assert bal_x_af - x_add_amount - fee_if_prv_x == bal_x_af2
     assert bal_y_af - y_add_amount - fee_if_prv_y == bal_y_af2
-    print(new_pool_pair2)
-    print(pool_predict)
+    print(json.dumps(new_pool_pair2.dict_data, indent=3))
+    print(json.dumps(pool_predict.dict_data, indent=3))
     assert new_pool_pair2 == pool_predict
     assert return_amount == {token_x: 0, token_y: 0}
 

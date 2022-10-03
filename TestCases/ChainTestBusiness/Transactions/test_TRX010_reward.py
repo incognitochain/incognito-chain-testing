@@ -59,7 +59,7 @@ def test_verify_reward_received():
     BBD_b4 = SUT().get_beacon_best_state_detail_info()
 
     STEP(1, "Get current epoch")
-    current_bb = SUT().get_latest_beacon_block()
+    current_bb = SUT().get_beacon_block()
     current_epoch = current_bb.get_epoch()
     INFO(f'Current epoch = {current_epoch}')
 
@@ -82,7 +82,7 @@ def test_verify_reward_received():
 
     STEP(4.1, 'Get reward instruction from beacon')
     instruction_beacon_height = TestHelper.ChainHelper.cal_first_height_of_epoch(next_epoch)
-    instruction_BB = SUT().get_latest_beacon_block(instruction_beacon_height)
+    instruction_BB = SUT().get_beacon_block(instruction_beacon_height)
     BB_reward_instruction = instruction_BB.get_transaction_reward_from_instruction()
 
     STEP(4.2, 'Wait for 1 more epoch')

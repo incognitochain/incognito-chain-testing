@@ -10,7 +10,7 @@ try:
 except FileExistsError:
     pass
 now = datetime.now().strftime("%y%m%d_%H%M%S")
-LOGGING_CONFIG = {
+logging.config.dictConfig({
     'version': 1,
     'disable_existing_loggers': True,
     'formatters': {
@@ -31,7 +31,7 @@ LOGGING_CONFIG = {
             'formatter': 'standard',
             'class': 'logging.StreamHandler',
             'stream': 'ext://sys.stdout', },
-        'file': {
+        'file_debug': {
             'class': 'logging.handlers.RotatingFileHandler',
             'level': 'DEBUG',
             'formatter': 'standard',
@@ -39,20 +39,12 @@ LOGGING_CONFIG = {
             'mode': 'w+',
             'maxBytes': 10485760,
             'backupCount': 50, },
-        'short_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'level': 'INFO',
-            'formatter': 'standard',
-            'filename': f'{log_folder}/run_{now}.short.log',
-            'mode': 'w',
-            'maxBytes': 10485760,
-            'backupCount': 50, },
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console', 'file_debug'],
             'level': 'DEBUG',
-            'propagate': True}, }}
+            'propagate': False}, }})
 
 _FMT_WIDTH = 100
 _FMT_CHR = '='
@@ -60,7 +52,6 @@ _STEP_LVL = 12
 
 
 def config_logger(logger_name):
-    logging.config.dictConfig(LOGGING_CONFIG)
     return logging.getLogger(logger_name)
 
 
@@ -71,12 +62,6 @@ class LoggerManager:
     def get_logger():
         logger_name = os.path.basename(inspect.stack()[2][1])
         return config_logger(logger_name)
-        # try:
-        #     logger = LoggerManager.LOGGERS[logger_name]
-        # except (KeyError, AttributeError):
-        #     logger = config_logger(logger_name)
-        #     LoggerManager.LOGGERS[logger_name] = logger
-        # return logger
 
 
 def DEBUG(msg):

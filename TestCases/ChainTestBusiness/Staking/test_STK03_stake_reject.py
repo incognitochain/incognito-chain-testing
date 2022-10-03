@@ -8,9 +8,11 @@ from Helpers.Logging import STEP, INFO, ERROR
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
-from TestCases.ChainTestBusiness.Staking import account_x, amount_stake_under_1750, \
-    amount_stake_over_1750, account_y, account_t
+from TestCases.ChainTestBusiness.Staking import amount_stake_under_1750, \
+    amount_stake_over_1750, stake_acc
+
 staking_flowv3 = False
+account_x, account_y, account_a, account_u, account_t = stake_acc
 
 
 @pytest.mark.parametrize('amount_prv_stake', [

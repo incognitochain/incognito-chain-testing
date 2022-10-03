@@ -10,14 +10,21 @@
 7. verify that account balance +1750PRV (stake refund)
 8. withdraw reward, verify that account(A) received reward PRV and tokenT
 """
+import pytest
 
-from Configs.Constants import PRV_ID
-from Helpers.Logging import ERROR
+from Configs.Configs import ChainConfig
+from Configs.Constants import PRV_ID, coin
+from Helpers.Logging import ERROR, INFO, STEP
 from Helpers.Time import WAIT
-from TestCases.ChainTestBusiness.Staking import *
+from Objects.AccountObject import COIN_MASTER
+from Objects.IncognitoTestCase import SUT
+from TestCases.ChainTestBusiness.Staking import stake_acc, list_acc_x_shard, token_receiver, amount_token_send, \
+    amount_token_fee
 
 slashing_v2 = True
-staking_flowv3 = False
+staking_flowv3 = True
+
+account_x, account_y, account_a, account_u, account_t = stake_acc
 
 
 @pytest.mark.parametrize("the_stake, validator, reward_receiver, auto_re_stake", [

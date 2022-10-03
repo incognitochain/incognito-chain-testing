@@ -8,9 +8,10 @@ from Helpers.Logging import INFO, STEP, ERROR
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
-from TestCases.ChainTestBusiness.Staking import account_x, account_y, account_t
+from TestCases.ChainTestBusiness.Staking import stake_acc
 
 staking_flowv3 = True  # True if staking flow v3 is enable in chain config, or else, False
+account_x, account_y, account_a, account_u, account_t = stake_acc
 
 
 @pytest.mark.parametrize("the_stake, validator, receiver_reward, auto_re_stake", [

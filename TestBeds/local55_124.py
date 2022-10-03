@@ -2,7 +2,7 @@ from Objects.TestBedObject import Node, Shard, Beacon
 
 addr = "139.162.55.124"
 
-full_node = Node(address=addr, rpc_port=18334, ws_port=28334, node_name='fullnode-testnet')
+full_node = Node(address=addr, rpc_port=9334, ws_port=28334, node_name='fullnode-testnet')
 
 beacon = Beacon([
     Node(address=addr, rpc_port=9335, node_name='beacon1'),

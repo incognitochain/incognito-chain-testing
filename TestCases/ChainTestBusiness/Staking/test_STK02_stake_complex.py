@@ -8,9 +8,11 @@
 """
 from Configs.Constants import coin
 from Objects.AccountObject import COIN_MASTER
-from TestCases.ChainTestBusiness.Staking import account_u, account_a, account_t
+from TestCases.ChainTestBusiness.Staking import stake_acc
 from TestCases.ChainTestBusiness.Staking.test_STK01_staking import \
     test_staking as do_stake_test
+
+account_x, account_y, account_a, account_u, account_t = stake_acc
 
 
 def test_stake_complex():

@@ -7,7 +7,9 @@ from Helpers.TestHelper import ChainHelper, l6
 from Helpers.Time import WAIT
 from Objects.AccountObject import COIN_MASTER
 from Objects.IncognitoTestCase import SUT
-from TestCases.ChainTestBusiness.Staking import account_y, account_a, account_u, account_t
+from TestCases.ChainTestBusiness.Staking import stake_acc
+
+account_x, account_y, account_a, account_u, account_t = stake_acc
 
 
 def get_epoch_swap_in_out_and_reward_committee(account_stake):
@@ -26,7 +28,7 @@ def get_epoch_swap_in_out_and_reward_committee(account_stake):
         timeout=ChainConfig.get_epoch_n_block_time(100))
     for epoch in range(epoch_in, epoch_out):
         instruction_beacon_height = ChainHelper.cal_first_height_of_epoch(epoch=epoch + 1)
-        instruction_bb = SUT().get_latest_beacon_block(instruction_beacon_height)
+        instruction_bb = SUT().get_beacon_block(instruction_beacon_height)
         bb_reward_instruction_prv = instruction_bb.get_transaction_reward_from_instruction(bpv3=True)
         committees_state = SUT().get_committee_state(instruction_beacon_height - 1)
         committees = committees_state.get_shard_committee_list(shard_id)

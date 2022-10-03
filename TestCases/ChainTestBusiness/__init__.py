@@ -27,10 +27,11 @@ STAKER_ACCOUNTS.attach_to_node(SUT())
 BEACON_ACCOUNTS.attach_to_node(SUT())
 # -----------------------------------------
 logger.info("!!!!!!!!!!!!!!!!!!! Setup from Testcase init")
-if os.getenv("FIRST_TIME", 'no'):
+FIRST_TIME = os.getenv("FIRST_TIME", 0)
+if FIRST_TIME:
     env_config = {'SUBMIT': os.getenv("SUBMIT", 1),
                   'CONVERT': os.getenv("CONVERT", 1),
-                  'TOPUP': int(os.getenv("TOPUP", 1))}
+                  'TOPUP': int(os.getenv("TOPUP", FIRST_TIME))}
 else:
     env_config = {'SUBMIT': os.getenv("SUBMIT", 0),
                   'CONVERT': os.getenv("CONVERT", 0),

@@ -115,7 +115,7 @@ def summarize(tx_hashes, start_beacon_h, end_beacon_h):
             else:
                 CONFIRM_SHARD_BLOCK[confirmed_shard] = {confirmed_block: 1}
     Logging.INFO(f"Getting beacon block info from {start_beacon_h} to {end_beacon_h}")
-    beacon_blocks = {h: SUT().get_latest_beacon_block(h) for h in range(start_beacon_h, end_beacon_h + 1)}
+    beacon_blocks = {h: SUT().get_beacon_block(h) for h in range(start_beacon_h, end_beacon_h + 1)}
 
     TRADE_STATUS = {}
     TRADE_STATUS_COUNT = {"Success": 0, "Fail": 0}

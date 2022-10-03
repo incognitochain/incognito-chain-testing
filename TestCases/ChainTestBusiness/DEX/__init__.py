@@ -1,3 +1,6 @@
+"""
+@deprecated
+"""
 import copy
 
 from Configs.Constants import coin, PRV_ID

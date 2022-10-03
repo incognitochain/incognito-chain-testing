@@ -51,7 +51,7 @@ def test_multiple_tx_type_in_a_block():
         SUT().get_tx_by_hash(tx)
     WAIT(ChainConfig.BLOCK_TIME * 3)
     b_height_af = SUT().help_get_beacon_height()
-    beacon_blocks = {height: SUT().get_latest_beacon_block(height) for height in range(b_height_b4, b_height_af + 1)}
+    beacon_blocks = {height: SUT().get_beacon_block(height) for height in range(b_height_b4, b_height_af + 1)}
     INST_COUNT = {}
     for height, bb in beacon_blocks.items():
         for tx in tx_hashes:

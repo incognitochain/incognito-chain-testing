@@ -5,6 +5,8 @@ NOTE: cần update: string_cm = "Profiling=11149 ./incognito.dev.instant-finalit
 test_command_find_id_run_node_single dùng cho testnet (cần improve)
 """
 
+import pytest
+
 from Configs.Configs import ChainConfig
 from Helpers.Logging import INFO
 from Helpers.Time import WAIT
@@ -12,6 +14,8 @@ from Objects.IncognitoTestCase import SUT, STAKER_ACCOUNTS
 
 shard_test = 0
 fix_node = ChainConfig.FIX_BLOCK_VALIDATOR
+
+
 # list_validator_k_shard_test = ["1iYBtWJBANTGhpMrbUkpz2nEk7pjX2vX1NeD6Lp3Tkt2iEbUjK"","
 #                                "1AYrcY4H9a6gqzd1P74QKF3AXqVGdYmfcshsYMbTUYDviY2UGQ"","
 #                                "1mdmpXwra8MrFjyDmcbgJCBwDPnZ9ByWaXv4GwPmzHgzQTMvZP"","
@@ -109,7 +113,15 @@ def test_command_find_id_run_node_single():
         WAIT(ChainConfig.BLOCK_TIME * (ChainConfig.BLOCK_PER_EPOCH - (height % ChainConfig.BLOCK_PER_EPOCH)))
 
 
-def test_create_command_run_node_multikey():
+@pytest.mark.parametrize("subset", [
+    0,  # even
+    1  # odd
+])
+def test_create_command_run_node_multikey(subset):
+    """
+    generate command mới, tắt 1 sub set node chẵn hoặc lẻ
+    @return:
+    """
     INFO()
     epoch_b4 = 0
     while True:
@@ -125,7 +137,7 @@ def test_create_command_run_node_multikey():
         committee_shard = beacon_bsd.get_shard_committees()[str(shard_test)][fix_node:]
         acc_group = STAKER_ACCOUNTS
         for j in range(len(committee_shard)):
-            if j % 2 == 0:  # remove key of even subset - shard test
+            if j % 2 == subset:
                 key = committee_shard[j].get_inc_public_key()
                 acc = acc_group.find_account_by_key(key)
                 validator_k = acc.validator_key

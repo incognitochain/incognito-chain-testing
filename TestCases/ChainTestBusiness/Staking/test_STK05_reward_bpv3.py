@@ -88,7 +88,7 @@ def test_verify_reward_received():
 
     STEP(4, 'Get reward instruction from beacon')
     instruction_beacon_height = ChainHelper.cal_first_height_of_epoch(epoch_reward + 1)
-    instruction_bb = SUT().get_latest_beacon_block(instruction_beacon_height)
+    instruction_bb = SUT().get_beacon_block(instruction_beacon_height)
     bb_reward_instruction_prv = instruction_bb.get_transaction_reward_from_instruction(bpv3=True)
     calculated_reward_prv = SUT(). \
         cal_transaction_reward_v3_from_beacon_block_info(epoch=epoch_reward, shard_txs_fee_list=fee_reward_by_shard)

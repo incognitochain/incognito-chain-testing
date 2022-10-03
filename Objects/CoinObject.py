@@ -218,5 +218,9 @@ class InChainTokenResponse(ListCoinResponseBase):
 
 class TXOResponse(RPCResponseBase):
     def get_coins(self, **by):
-        key = list(self.get_result("Outputs").keys())[0]
+        try:
+            key = list(self.get_result("Outputs").keys())[0]
+        except IndexError:
+            logger.error("No coin data in response")
+            return []
         return [TxOutPut(data) for data in self.get_result("Outputs")[key]]

@@ -202,6 +202,10 @@ def test_unstake_at_random():
 
 
 def test_check_auto_stake():
+    """
+
+    @return:
+    """
     INFO()
     i = 0
     acc_group = STAKER_ACCOUNTS

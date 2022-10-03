@@ -494,6 +494,30 @@ class BeaconBestStateDetailInfo(BeaconBestStateBase):
         for k, v in stats.items():
             print("%5s | %7s | %7s | %9s" % (k, v[0], v[1], v[2]))
 
+    def committee_count_each_shard(self):
+        shard_committee = self.get_shard_committees()
+        shard_pending = self.get_shard_pending_validator()
+        shard_syncing = self.get_syncing_validators()
+        return {shard: len(shard_committee.get(shard, [])) + len(shard_pending.get(shard, [])) + len(
+            shard_syncing.get(shard, [])) for shard in shard_committee.keys()}
+
+    def committee_count_total(self):
+        return sum(self.committee_count_each_shard().values())
+
+    def is_full_committee(self, *shard_to_check):
+        shard_to_check = range(self.get_active_shard()) if not shard_to_check else shard_to_check
+        for count in [self.committee_count_each_shard().get(f"{shard}", 0) for shard in shard_to_check]:
+            if count < self.get_max_shard_committee_size():
+                return False
+        return True
+
+    def committee_need_fill_num(self):
+        needed = 0
+        for shard, count in self.committee_count_each_shard().items():
+            shard_need = self.get_max_shard_committee_size() - count
+            needed += shard_need if shard_need > 0 else 0
+        return needed
+
 
 class BeaconBestStateInfo(BeaconBestStateBase):
     def print_committees(self):

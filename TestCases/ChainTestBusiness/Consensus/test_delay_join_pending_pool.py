@@ -50,12 +50,12 @@ def test_tracking_time_join_pending():
                     send_finish = False
                     shard_height = SUT().get_shard_best_state_info(committee_shard_id).get_shard_height()
                     WAIT(ChainConfig.BLOCK_TIME)
-                    block = SUT().get_latest_beacon_block(height).get_shard_states(
+                    block = SUT().get_beacon_block(height).get_shard_states(
                         committee_shard_id).get_biggest_block_height()
                     while block < shard_height:
                         WAIT(ChainConfig.BLOCK_TIME)
                         height += 1
-                        block = SUT().get_latest_beacon_block(height).get_shard_states(
+                        block = SUT().get_beacon_block(height).get_shard_states(
                             committee_shard_id).get_biggest_block_height()
                     beacon_height_finish_sync = height
                     committee_state = SUT().get_committee_state(height)
