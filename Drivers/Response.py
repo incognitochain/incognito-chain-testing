@@ -10,24 +10,18 @@ logger = config_logger(__name__)
 
 
 class RPCResponseBase(ResponseBase):
-    def __init__(self, response=None, more_info=None, handler=None):
+    def __init__(self, response=None, more_info=None):
         if isinstance(response, ResponseBase):  # for casting object
             self.response = response.response
             self.more_info = response.more_info
             self.__response_json = json.loads(self.response) if type(self.response) is str else self.response.json()
-            try:
-                self._handler = response._handler
-            except AttributeError:
-                self._handler = None
         elif response is not None:
             self.__response_json = json.loads(response) if type(response) is str else response.json()
             super().__init__(response, more_info)
-            self._handler = handler
         else:
             self.response = response
             self.more_info = more_info
             self.__response_json = {}
-            self._handler = handler
 
     def data(self):
         return self.__response_json
@@ -51,22 +45,6 @@ class RPCResponseBase(ResponseBase):
             logger.info(trace_msg)
             assert (expecting_error in error_msg or expecting_error in trace_msg), \
                 f'Expecting: {expecting_error}. Instead got: {error_msg} | {trace_msg}'
-        return self
-
-    def req_to(self, handler=None):
-        """
-        @param handler: if the input handler not None, change the handler. If input handler = 0, check current handler
-        if not exist -> change to SUT. If handler is not None, nor 0, set to SUT
-        @return: self
-        """
-        if handler:
-            self._handler = handler
-            return self
-        elif handler == 0:
-            if self._handler:
-                return self
-        from Objects.IncognitoTestCase import SUT
-        self._handler = SUT()
         return self
 
     def rpc_params(self):
@@ -101,11 +79,11 @@ class RPCResponseWithTxHash(RPCResponseBase):
         @param time_out: set = 0 to ignore interval, won't retry if got error in Response or block height = 0
         @return: TransactionDetail, use TransactionDetail.is_none() to check if it's an empty object
         """
-        self.req_to(0)
         tx_hash = self.expect_no_error().get_tx_id()
         if tx_hash is None:
             raise AttributeError("Response does not contain tx hash")
-        return self._handler.get_tx_by_hash(tx_hash, interval, time_out)
+        from Objects.NodeObject import Node
+        return self.get_node().get_tx_by_hash(tx_hash, interval, time_out)
 
 
 class Response(RPCResponseWithTxHash):
@@ -158,7 +136,6 @@ class Response(RPCResponseWithTxHash):
         Subscribe transaction by tx_id
         :return: TransactionDetail Object
         """
-        self.req_to(0)
         logger.info(f'Subscribe transaction is obsoleted, get tx hash instead')
         return self.get_transaction_by_hash()
 
@@ -177,10 +154,10 @@ class Response(RPCResponseWithTxHash):
         @param tx_hash: tx hash of trade request tx
         @return: Status.Dex.Trading.ACCEPTED
         """
-        self.req_to(0)
         tx_hash = self.expect_no_error().get_tx_id() if tx_hash is None else tx_hash
         try:
-            return self._handler.dex().get_trade_status(tx_hash).get_result()
+            from Objects.NodeObject import Node
+            return self.get_node().dex().get_trade_status(tx_hash).get_result()
         except KeyError:
             pass
 

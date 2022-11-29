@@ -78,3 +78,7 @@ class ResponseBase:
             return self.data()['Error']
         except KeyError:
             pass
+
+    def get_node(self):
+        from Objects.NodeObject import Node
+        return Node(url=self.response.url)

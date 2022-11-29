@@ -7,10 +7,14 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-log/
+logs/
 auto-env/
 reports/
 .DS_Store
-
 #vscode
 .vscode
+tmp
+lab*
+jenkins.run.sh
+.idea
+TestData
