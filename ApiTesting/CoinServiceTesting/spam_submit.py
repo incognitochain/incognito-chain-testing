@@ -3,7 +3,7 @@ import multiprocessing as mp
 from APIs.BackEnd.CoinService.CoinService import CoinServiceApi
 from ApiTesting import END_POINT_MAINNET_V2
 from Helpers.Logging import CRITICAL
-from TestData.Account8000V2_full import account_list
+from environments.TestData.Account8000V2_full import account_list
 
 
 def thread_submit_ota_key(cs_api, account):

@@ -17,4 +17,4 @@ tmp
 lab*
 jenkins.run.sh
 .idea
-TestData
+environments/TestData

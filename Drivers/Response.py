@@ -82,7 +82,6 @@ class RPCResponseWithTxHash(RPCResponseBase):
         tx_hash = self.expect_no_error().get_tx_id()
         if tx_hash is None:
             raise AttributeError("Response does not contain tx hash")
-        from Objects.NodeObject import Node
         return self.get_node().get_tx_by_hash(tx_hash, interval, time_out)
 
 
